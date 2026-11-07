@@ -1,0 +1,23 @@
+# Render Blueprint — deploy with: connect GitHub repo → New → Blueprint
+services:
+  - type: web
+    name: buildops
+    runtime: docker
+    plan: starter
+    region: frankfurt        # choose the region closest to your team
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/app/data/dev.db
+      - key: UPLOAD_ROOT
+        value: /app/data/uploads
+      - key: SEED_DEMO
+        value: "true"
+      - key: SESSION_SECRET
+        generateValue: true
+    disk:
+      name: buildops-data
+      mountPath: /app/data
+      sizeGB: 1

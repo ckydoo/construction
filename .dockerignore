@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+uploads
+prisma/dev.db
+prisma/dev.db-journal
+npm-debug.log
+.env.local
+BuildOps-offline-snapshot.html
+*.zip

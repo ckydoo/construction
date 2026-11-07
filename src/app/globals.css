@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+html, body { height: 100%; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+* { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.dark * { scrollbar-color: #334155 transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+@layer components {
+  .card { @apply rounded-xl border border-slate-200/90 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900; }
+  .card-hover { @apply transition hover:border-slate-300 hover:shadow-md dark:hover:border-ink-700; }
+  .btn { @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-400/60 disabled:cursor-not-allowed disabled:opacity-55; }
+  .btn-md { @apply h-9 px-3.5; }
+  .btn-sm { @apply h-8 px-3 text-xs; }
+  .btn-icon { @apply h-9 w-9 p-0; }
+  .btn-primary { @apply btn bg-brand-500 text-ink-950 hover:bg-brand-400 active:bg-brand-600 font-semibold; }
+  .btn-dark { @apply btn bg-ink-900 text-white hover:bg-ink-800 dark:bg-white dark:text-ink-900 dark:hover:bg-slate-200; }
+  .btn-outline { @apply btn border border-slate-200 bg-white text-ink-700 hover:bg-slate-50 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-200 dark:hover:bg-ink-800; }
+  .btn-ghost { @apply btn text-ink-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-ink-800; }
+  .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-500; }
+  .input { @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none transition placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-400/25 dark:border-ink-700 dark:bg-ink-950 dark:text-slate-100 dark:placeholder:text-slate-500; }
+  .select { @apply input appearance-none pr-8; }
+  .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-slate-400; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold leading-tight; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-ink-600 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-300; }
+  .table-th { @apply whitespace-nowrap px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-ink-500 dark:text-slate-400; }
+  .table-td { @apply whitespace-nowrap px-4 py-3 text-sm text-ink-700 dark:text-slate-200; }
+  .divider { @apply border-slate-200 dark:border-ink-800; }
+  .muted { @apply text-ink-500 dark:text-slate-400; }
+  .heading { @apply text-xl font-semibold tracking-tight text-ink-900 dark:text-white; }
+  .skeleton { @apply relative overflow-hidden rounded bg-slate-200/80 dark:bg-ink-800; }
+  .skeleton::after { content:""; @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent dark:via-white/5; }
+  .nav-item { @apply flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-ink-600 transition hover:bg-slate-100 hover:text-ink-900 dark:text-slate-400 dark:hover:bg-ink-800 dark:hover:text-white; }
+  .nav-active { @apply bg-brand-50 text-brand-800 hover:bg-brand-100 hover:text-brand-900 dark:bg-brand-500/15 dark:text-brand-300 dark:hover:bg-brand-500/20; }
+}

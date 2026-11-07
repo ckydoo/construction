@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  legalName   String?
+  regNumber   String?
+  country     String   @default("ZW")
+  baseCurrency String  @default("USD")
+  localePack  String   @default("ZW")
+  companyType String?
+  size        String?
+  headcount   Int?
+  revenueBand String?
+  onboarded   Boolean  @default(false)
+  config      String   @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  memberships Membership[]
+  records     Record[]
+  auditLogs   AuditLog[]
+  notifications Notification[]
+  sequences   Sequence[]
+  invitations Invitation[]
+  comments    Comment[]
+  attachments Attachment[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  avatarColor  String   @default("#d97706")
+  createdAt    DateTime @default(now())
+  sessions     Session[]
+  memberships  Membership[]
+  auditLogs    AuditLog[]
+  notifications Notification[]
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           String   @default("ADMIN")
+  entityId       String?
+  createdAt      DateTime @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([token])
+}
+
+model Invitation {
+  id             String   @id @default(cuid())
+  email          String
+  role           String
+  token          String   @unique
+  organizationId String
+  acceptedAt     DateTime?
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Record {
+  id             String    @id @default(cuid())
+  organizationId String
+  resource       String
+  number         String?
+  title          String?
+  status         String?
+  projectId      String?
+  data           String    @default("{}")
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  comments       Comment[]
+  @@index([organizationId, resource])
+  @@index([organizationId, resource, status])
+  @@index([organizationId, projectId])
+}
+
+model Comment {
+  id             String   @id @default(cuid())
+  organizationId String
+  recordId       String
+  authorId       String?
+  authorName     String
+  body           String
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  record         Record        @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  @@index([recordId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  actor          String
+  action         String
+  resource       String?
+  detail         String
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([organizationId, createdAt])
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  title          String
+  body           String
+  kind           String   @default("INFO")
+  href           String?
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([organizationId, createdAt])
+}
+
+model Sequence {
+  id             String @id @default(cuid())
+  organizationId String
+  resource       String
+  next           Int    @default(1)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, resource])
+}
+
+model Attachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  recordId       String
+  resource       String
+  fileName       String
+  storedName     String
+  mime           String
+  size           Int
+  uploadedById   String?
+  uploadedByName String
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId, recordId])
+}
