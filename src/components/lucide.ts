@@ -9,7 +9,7 @@ export {
   ExternalLink, Eye, EyeOff, Factory, FileDown, FileInput, FileSignature, FileText, Filter,
   FolderOpen, Gauge, GitPullRequestArrow, Globe, GraduationCap, Handshake, HardHat, Hash,
   HelpCircle, Home, Inbox, Info, KeyRound, Landmark, Layers, Link2, ListChecks, ListFilter,
-  ListTodo, Loader2, Lock, Paperclip, Image, FileImage, FilePlus2, LogOut, Mail, Maximize2, Menu, MessageCircleQuestion, MessageSquare,
+  ListTodo, Loader2, Lock, History, GitBranch, Paperclip, Image, FileImage, FilePlus2, LogOut, Mail, Maximize2, Menu, MessageCircleQuestion, MessageSquare,
   MessagesSquare, Moon, MoreHorizontal, MoreVertical, Network, NotebookPen, Package,
   PackageCheck, Palmtree, Pencil, PieChart, Plug, Plus, Receipt, RefreshCw, Rocket, RotateCw,
   Route, Save, Search, Send, Settings, Shield, ShieldCheck, ShoppingCart, SlidersHorizontal,

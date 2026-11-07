@@ -78,6 +78,9 @@ Uploads are written to `UPLOAD_ROOT` (defaults to `<cwd>/uploads/<orgId>`). On e
 ## What the boot script does
 `scripts/prod-start.mjs` → `prisma db push --skip-generate` → optional seed if the DB has no organisation → `next start -H 0.0.0.0 -p $PORT`. It is idempotent and safe to run on every deploy.
 
+## Data persistence
+`render.yaml` mounts a 1 GB disk at `/app/data`; both `dev.db` and `UPLOAD_ROOT` live there, so records, uploaded drawings and revision chains survive redeploys. For Postgres, use managed backups plus object storage for uploads (see the note above).
+
 ## Post-deploy checklist
 - [ ] Log in with `owner@kestrelridge.co.zw` / `Demo@1234`, then **change the password** (or delete demo users in Settings → Users).
 - [ ] Set `SEED_DEMO=false` if you want a clean production tenant only.

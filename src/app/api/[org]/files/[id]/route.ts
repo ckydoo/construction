@@ -29,6 +29,10 @@ export async function DELETE(_req:Request,{params}:{params:Promise<{org:string;i
   if(!att) return NextResponse.json({error:'File not found'},{status:404});
   try{ await unlink(path.join(uploadDir(a.orgId),path.basename(att.storedName))); }catch{}
   await prisma.attachment.delete({where:{id}});
+  if(att.isLatest && att.documentKey){
+    const next = await prisma.attachment.findFirst({where:{organizationId:a.orgId,documentKey:att.documentKey},orderBy:{revision:'desc'}});
+    if(next) await prisma.attachment.update({where:{id:next.id},data:{isLatest:true}});
+  }
   await logActivity(a.orgId,a.userId,a.name,'DELETE',att.resource,`Removed attachment “${att.fileName}”`);
   return NextResponse.json({ok:true});
 }

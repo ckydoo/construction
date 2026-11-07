@@ -17,6 +17,9 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
   const row:any = await getRecord(a.orgId,resource,id);
   if(!row) return NextResponse.json({error:'Record not found'},{status:404});
   const orgRow = await prisma.organization.findUnique({where:{id:a.orgId}});
+  const isCert = resource==='paymentApps';
+  const isInvoice = resource==='arInvoices' || resource==='apInvoices';
+  const docKind = isCert?'CERTIFICATE':isInvoice?'INVOICE':'DOCUMENT';
 
   const pdf = await PDFDocument.create();
   pdf.setTitle(`${def.singular} ${row.number||''} — ${row.title||''}`);
@@ -38,10 +41,10 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
     page.drawRectangle({x:0,y:A4H-78,width:A4W,height:4,color:AMBER});
     page.drawText('BuildOps',{x:M,y:A4H-40,size:18,font:bold,color:rgb(1,1,1)});
     page.drawText((orgRow?.name||'').slice(0,58),{x:M+105,y:A4H-37,size:9,font,color:rgb(0.8,0.84,0.9)});
-    page.drawText('ERP / DOCUMENT',{x:A4W-M-95,y:A4H-37,size:8,font:bold,color:AMBER});
+    page.drawText(`ERP / ${docKind}`,{x:A4W-M-95,y:A4H-37,size:8,font:bold,color:AMBER});
     y=A4H-104;
     if(first){
-      page.drawText(def.singular.toUpperCase(),{x:M,y,size:9,font:bold,color:MUTED});y-=22;
+      page.drawText(isCert?'INTERIM PAYMENT CERTIFICATE':isInvoice?'TAX INVOICE':def.singular.toUpperCase(),{x:M,y,size:9,font:bold,color:MUTED});y-=22;
       for(const line of wrap(row.title||def.singular,A4W-2*M,19,bold)){page.drawText(line,{x:M,y,size:19,font:bold,color:INK});y-=24;}
       y-=6;
       page.drawText(`${row.number||'—'}`,{x:M,y,size:10,font:bold,color:MUTED});
@@ -83,6 +86,22 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
       page.drawText(money(amount,row.currency||orgRow?.baseCurrency||'USD'),{x:A4W-M-218,y:y-35,size:14,font:bold,color:INK});
       y-=46;
     }
+  }
+  if(isCert||isInvoice){
+    if(y-115<M+45)newPage();
+    y-=24;
+    page.drawText(isCert?'CERTIFICATION':'PAYMENT DETAILS',{x:M,y,size:9,font:bold,color:MUTED}); y-=18;
+    const note = isCert
+      ? `The net amount stated above is certified as due to the contractor for works executed up to ${date(row.periodEnd||new Date().toISOString())}, subject to the terms and conditions of the contract. Retention and advance recoupment have been applied as shown.`
+      : `Please settle by the due date shown above. Quote the document number on all remittances. Banking details: ${orgRow?.name||''} — contact the finance department for the current account.`;
+    for(const l of wrap(note,A4W-2*M,9,font)){ page.drawText(l,{x:M,y,size:9,font,color:INK}); y-=13; }
+    y-=24;
+    const sigY=y;
+    page.drawLine({start:{x:M,y:sigY},end:{x:M+190,y:sigY},thickness:.6,color:LINE});
+    page.drawLine({start:{x:A4W-M-190,y:sigY},end:{x:A4W-M,y:sigY},thickness:.6,color:LINE});
+    page.drawText(isCert?'Certified by / Engineer':'Prepared by / Finance',{x:M,y:sigY-14,size:8,font,color:MUTED});
+    page.drawText(isCert?'Received by / Contractor':'Authorised signatory',{x:A4W-M-190,y:sigY-14,size:8,font,color:MUTED});
+    y=sigY-34;
   }
   const pages=pdf.getPageCount();
   for(let i=0;i<pages;i++){

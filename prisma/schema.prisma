@@ -164,7 +164,13 @@ model Attachment {
   size           Int
   uploadedById   String?
   uploadedByName String
+  documentKey    String?
+  revision       Int      @default(1)
+  revisionLabel  String   @default("Rev A")
+  isLatest       Boolean  @default(true)
+  note           String?
   createdAt      DateTime @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   @@index([organizationId, recordId])
+  @@index([organizationId, documentKey])
 }

@@ -13,7 +13,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   org:string; def:ResourceDef; row:any; open:boolean; onClose:()=>void; onEdit:()=>void; onDelete:()=>void;
   refs:RefOptions; canEdit:boolean; canRemove:boolean;
 }){
-  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false);
+  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({});
   const {data,isLoading}=useQuery({ queryKey:['record',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}`)), enabled:open&&!!row?.id });
   async function addComment(){ if(!comment.trim())return; setSending(true);
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
@@ -35,6 +35,20 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     try{ await apiSend(orgApi(org,`files/${id}`),'DELETE'); await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); toast.push({tone:'success',title:'Attachment removed',description:name}); }
     catch(e:any){ toast.push({tone:'error',title:'Could not remove file',description:e.message}); }
   }
+  async function handleRevisionUpload(e:React.ChangeEvent<HTMLInputElement>,parent:any,key:string){
+    const f=e.target.files?.[0]; if(!f) return;
+    setUploading(true);
+    try{
+      const fd=new FormData(); fd.append('file',f); fd.append('recordId',row.id); fd.append('resource',def.id);
+      fd.append('supersedesId',parent.id); fd.append('note',revNotes[key]||'');
+      const res=await fetch(orgApi(org,'files'),{method:'POST',body:fd});
+      if(!res.ok){const b=await res.json().catch(()=>({error:'Upload failed'}));throw new Error(b.error);}
+      await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]});
+      setRevNotes(v=>({...v,[key]:''})); setExpanded(v=>({...v,[key]:true}));
+      toast.push({tone:'success',title:'New revision uploaded',description:f.name});
+    }catch(err:any){ toast.push({tone:'error',title:'Revision upload failed',description:err.message}); }
+    finally{ setUploading(false); e.target.value=''; }
+  }
   function display(f:any,v:any){
     if(v===null||v===undefined||v==='') return <span className="muted">—</span>;
     if(f.type==='currency') return <span className="font-medium">{money(v)}</span>;
@@ -47,6 +61,13 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     if(f.key==='status') return <StatusPill status={v}/>;
     return <span className="whitespace-pre-wrap break-words">{String(v)}</span>;
   }
+  const allFiles:any[] = data?.files||[];
+  const groups:{key:string;items:any[]}[] = (()=>{
+    const out:{key:string;items:any[]}[]=[];
+    for(const f of allFiles){ const key=f.documentKey||f.id; let g=out.find(x=>x.key===key); if(!g){g={key,items:[]};out.push(g);} g.items.push(f); }
+    for(const g of out) g.items.sort((a:any,b:any)=>(b.revision||1)-(a.revision||1));
+    return out;
+  })();
   return <Drawer open={open} onClose={onClose} title={row?.title||def.singular} subtitle={`${row?.number||''} · ${def.singular}`}
     footer={<div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2"><a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>}>
     <div className="border-b divider px-5 py-4"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}</div></div>
@@ -64,16 +85,30 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     </div>
     <div className="border-t divider px-5 py-5">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2"><Icon name="Paperclip" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Attachments</h3><Badge tone="slate">{data?.files?.length||0}</Badge></div>
+        <div className="flex items-center gap-2"><Icon name="Paperclip" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Attachments & revisions</h3><Badge tone="slate">{groups.length} doc{groups.length===1?'':'s'} · {allFiles.length} file{allFiles.length===1?'':'s'}</Badge></div>
         {canEdit&&<label className="btn-outline btn-sm cursor-pointer"><Icon name="Upload" size={13}/>{uploading?'Uploading…':'Upload file'}<input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading}/></label>}
       </div>
-      {isLoading?<Skeleton className="h-12"/>:!(data?.files||[]).length?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No files attached yet. Upload drawings, photos, signed certificates or supporting documents (up to 12 MB each).</p>:
-        <div className="space-y-2">{(data?.files||[]).map((f:any)=><div key={f.id} className="flex items-center gap-3 rounded-lg border divider p-2.5">
-          {f.mime?.startsWith('image/')?<img src={orgApi(org,`files/${f.id}`)} alt={f.fileName} className="h-9 w-9 shrink-0 rounded object-cover"/>:<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800"><Icon name={f.mime?.includes('pdf')?'FileText':'FileImage'} size={16}/></span>}
-          <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{f.fileName}</p><p className="text-[11px] muted">{Math.max(1,Math.round(f.size/1024))} KB · {f.uploadedByName} · {date(f.createdAt)}</p></div>
-          <a href={orgApi(org,`files/${f.id}`)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="Download">Open</Button></a>
-          {canRemove&&<button onClick={()=>removeFile(f.id,f.fileName)} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Remove"><Lucide.Trash2 size={14}/></button>}
-        </div>)}</div>}
+      {isLoading?<Skeleton className="h-16"/>:!groups.length?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No files attached yet. Upload drawings, photos, signed certificates or supporting documents (up to 12 MB each).</p>:
+        <div className="space-y-3">{groups.map(g=>{
+          const cur=g.items[0]; const older=g.items.slice(1);
+          return <div key={g.key} className="overflow-hidden rounded-xl border divider">
+            <div className="flex items-center gap-3 p-2.5">
+              {cur.mime?.startsWith('image/')?<img src={orgApi(org,`files/${cur.id}`)} alt={cur.fileName} className="h-9 w-9 shrink-0 rounded object-cover"/>:<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800"><Icon name={cur.mime?.includes('pdf')?'FileText':'FileImage'} size={16}/></span>}
+              <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-xs font-medium">{cur.fileName}</p><Badge tone="emerald">{cur.revisionLabel||'Rev A'}</Badge></div><p className="truncate text-[11px] muted">{Math.max(1,Math.round(cur.size/1024))} KB · {cur.uploadedByName} · {date(cur.createdAt)}{cur.note?` · ${cur.note}`:''}</p></div>
+              <a href={orgApi(org,`files/${cur.id}`)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="Download">Open</Button></a>
+              {older.length>0&&<button onClick={()=>setExpanded(v=>({...v,[g.key]:!v[g.key]}))} className="btn-outline btn-sm"><Icon name="History" size={13}/>{g.items.length} rev<Icon name={expanded[g.key]?'ChevronUp':'ChevronDown'} size={12}/></button>}
+              {canRemove&&<button onClick={()=>removeFile(cur.id,cur.fileName)} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Remove"><Lucide.Trash2 size={14}/></button>}
+            </div>
+            {canEdit&&<div className="flex items-center gap-2 border-t divider px-2.5 py-2">
+              <input className="input h-8 min-w-0 flex-1 text-xs" placeholder="Revision note (optional)" value={revNotes[g.key]||''} onChange={e=>setRevNotes(v=>({...v,[g.key]:e.target.value}))}/>
+              <label className="btn-outline btn-sm cursor-pointer whitespace-nowrap"><Icon name="GitBranch" size={13}/>New revision<input type="file" className="hidden" disabled={uploading} onChange={e=>handleRevisionUpload(e,cur,g.key)}/></label>
+            </div>}
+            {expanded[g.key]&&older.length>0&&<div className="space-y-1.5 border-t divider bg-slate-50 px-3 py-2 dark:bg-ink-950/50">
+              <p className="text-[10px] font-semibold uppercase tracking-wide muted">Revision history · superseded</p>
+              {older.map((o:any)=><div key={o.id} className="flex items-center gap-2 text-[11px]"><Badge tone="slate">{o.revisionLabel}</Badge><span className="min-w-0 flex-1 truncate">{o.note||o.fileName}</span><span className="hidden muted sm:inline">{o.uploadedByName} · {date(o.createdAt)}</span><a href={orgApi(org,`files/${o.id}`)} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">Open</a>{canRemove&&<button onClick={()=>removeFile(o.id,o.fileName)} className="text-red-500" title="Remove"><Lucide.Trash2 size={12}/></button>}</div>)}
+            </div>}
+          </div>;
+        })}</div>}
     </div>
   </Drawer>;
 }

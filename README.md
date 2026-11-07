@@ -85,9 +85,10 @@ USD + ZWG, 15% VAT, tax invoice numbering, FIDIC / NEC4 / JBCC / AIA contract fo
 
 ### 6 · File attachments & PDF documents
 - Real multipart uploads (12 MB limit) stored under `uploads/<orgId>` (or `UPLOAD_ROOT`); metadata in the relational `Attachment` table, org-scoped and permission-checked.
-- Every record detail drawer has an **Attachments** panel: upload multiple files, image thumbnails, open/download, delete, with uploader and timestamp.
-- **Download PDF** on every record: a branded A4 PDF built server-side with `pdf-lib` — company header, document number/date/status, all populated fields, an amount summary for financial records, and page footers. Ideal for tax invoices, payment certificates, POs, estimates and signed change orders.
-- Three sample PDF attachments are seeded so the panel is populated on first load.
+- **Revision history**: uploading a "New revision" on any attached drawing supersedes the previous version, auto-labels it `Rev A → Rev B → Rev C`, keeps every old file downloadable, records an optional revision note, and promotes the prior revision back to current if the latest is deleted.
+- Every record detail drawer has an **Attachments & revisions** panel: multi-file upload, image thumbnails, current-revision badge, expandable superseded history, open/download, delete.
+- **Download PDF** on every record: a branded A4 PDF built server-side with `pdf-lib` — company header, document number/date/status, all populated fields, an amount summary, certification/payment blocks and signature lines for tax invoices and interim payment certificates, and page footers.
+- Four sample PDF attachments across three revision chains are seeded so the panel is populated on first load.
 
 ### 7 · Deployment-ready
 `Dockerfile`, `render.yaml`, `.dockerignore`, `.env.example`, `scripts/prod-start.mjs` (schema + optional seed + serve), `scripts/switch-provider.mjs` (SQLite → Postgres), and a committed git repo. See **[DEPLOY.md](DEPLOY.md)**.
@@ -134,7 +135,7 @@ scripts/seed.ts       CLI seed
 - End-to-end: login, page renders, list/detail/search/CSV, create → read → update → comment → delete → soft-delete 404, validation rejection, project-scoped filtering, bulk delete.
 - Settings: module toggle on/off, invite, org update, derivation re-run.
 - RBAC: portal role can read but gets `403` on create/delete.
-- Onboarding: register → draft org → 5-step wizard → derived 27-module pack for a small specialty trade → demo data loaded into new org → disabled module route returns `403`.
+- Onboarding: register → draft org → 5-step wizard → derived 21-module / 37-resource pack for a small specialty trade → demo data loaded into new org → disabled module route returns `403`.
 
 ---
 
