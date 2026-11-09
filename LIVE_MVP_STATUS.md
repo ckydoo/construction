@@ -1,7 +1,7 @@
 # BuildOps — live MVP status
 
 **Date:** 2026-11-07 (Africa/Harare)
-**Repository:** `git@github.com:ckydoo/construction.git` · `main`
+**Repository:** `git@github.com:ckydoo/construction.git` · `main` = `bb5ff0f`
 **Runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
@@ -13,7 +13,7 @@
 | `npm run audit:browser` | **28/28 real-Chromium checks**, 0 unexpected console/page errors |
 | `npm run audit:onboarding` | **10/10 live signup/onboarding/tenancy/RBAC checks** |
 | Wallet invariant | `[]` |
-| GitHub push | Full history, 117 files, no `.env`, 0 secret hits |
+| GitHub push | Full history, 126 files, no `.env`, 0 secret hits |
 | Demo data | 616 records, 49 resources, 7 users, 34 modules, 6 wallets, 4 PDFs |
 | QA fixture cleanup | 1 org, 7 memberships, 0 QA users, last-owner trigger enabled |
 | Final demo reseed | 616 records, 6 wallet rows, 14 ledger entries, 4 PDFs, integrity `ok` |
