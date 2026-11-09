@@ -1,0 +1,12 @@
+-- BuildOps seed data is intentionally NOT a plain SQL file.
+-- Auth users must be created through the Supabase Admin API (GoTrue), so the
+-- deterministic 616-record demo workspace is loaded by:
+--
+--   npm run db:seed        # scripts/seed-supabase.ts (service-role key in .env)
+--
+-- That script creates the 7 demo auth users, profiles, memberships, the demo
+-- organisation, 616 records, 6 reconciled client wallets, 4 sample PDFs and
+-- the audit/notification/comment trail. The same payload is available to the
+-- running app via the `admin` Edge Function (Settings -> Load demo data).
+--
+-- Keeping this file empty means `supabase db reset` produces a clean schema.

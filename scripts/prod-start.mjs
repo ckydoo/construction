@@ -1,21 +1,17 @@
-/* One-shot boot for container deployments: ensure schema, optionally seed, then serve. */
+/* Production boot for a Supabase-backed deployment.
+ * No local database, no disk volume, no automatic schema creation:
+ * apply supabase/migrations with `supabase db push` before starting the app. */
+import 'dotenv/config';
 import { spawnSync } from 'node:child_process';
-import { PrismaClient } from '@prisma/client';
 
-const run = (cmd,args,opts={}) => {
-  const r = spawnSync(cmd,args,{stdio:'inherit',shell:process.platform==='win32',...opts});
-  if(r.status!==0) process.exit(r.status??1);
-};
-console.log('[boot] applying database schema…');
-run('npx',['prisma','db','push','--skip-generate']);
-
-if(process.env.SEED_DEMO==='true'){
-  const p = new PrismaClient();
-  const count = await p.organization.count().catch(()=>0);
-  await p.$disconnect();
-  if(count===0){ console.log('[boot] seeding demo workspace…'); run('npx',['tsx','scripts/seed.ts']); }
-  else console.log('[boot] existing data found, skipping seed');
+const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+const anon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '').trim();
+if (!url || !anon) {
+  console.error('Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+  console.error('See .env.example / ENV_KEYS.md. Migrations are applied with `npx supabase db push`.');
+  process.exit(1);
 }
-const port = process.env.PORT || '3000';
-console.log(`[boot] starting Next.js on 0.0.0.0:${port}`);
-run('npx',['next','start','-H','0.0.0.0','-p',String(port)]);
+console.log(`Starting BuildOps against Supabase (${new URL(url).host})…`);
+const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+const result = spawnSync(npx, ['next', 'start', '-H', '0.0.0.0', '-p', process.env.PORT || '3000'], { stdio: 'inherit' });
+process.exit(result.status ?? 1);

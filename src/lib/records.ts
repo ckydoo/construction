@@ -1,7 +1,11 @@
-/* Typed CRUD service over Prisma. All tenant data is org-scoped and validated
-   against the declarative resource registry. */
-import prisma from './db';
-import { getResource, type ResourceDef, type Field } from './resources';
+/* Typed CRUD service over Supabase Postgres.
+ * All queries use the caller's cookie-bound client, so RLS (0003_rbac.sql)
+ * enforces org membership, enabled module, role, capability and portal scope.
+ * Guard helpers in guard.ts are only a friendly pre-flight check. */
+import { randomUUID } from 'node:crypto';
+import { supabase, unwrap, dbError } from './supabase';
+import { fetchAll } from './fetch';
+import { type ResourceDef, type Field } from './resources';
 import { rowAllowed, type Scope } from './access';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
@@ -30,80 +34,91 @@ export function validate(def: ResourceDef, input: Record<string, any>): { ok:boo
   return { ok:Object.keys(errors).length===0, errors, clean };
 }
 
+export { fetchAll } from './fetch';
+
 export async function validateRefs(orgId:string, def:ResourceDef, clean:Record<string,any>): Promise<Record<string,string>> {
   const errors:Record<string,string> = {};
   const refs = def.fields.filter(f => f.type==='ref' && f.ref && clean[f.key] !== null && clean[f.key] !== undefined && clean[f.key] !== '');
+  const sb = await supabase();
   await Promise.all(refs.map(async f => {
-    const found = await prisma.record.findFirst({
-      where:{ id:String(clean[f.key]), organizationId:orgId, resource:f.ref!, deletedAt:null },
-      select:{ id:true },
-    });
-    if(!found) errors[f.key] = `${f.label} must link to an existing ${f.ref} record`;
+    const { data } = await sb.from('records').select('id')
+      .eq('organization_id', orgId).eq('resource', f.ref!)
+      .eq('id', String(clean[f.key])).is('deleted_at', null).maybeSingle();
+    if (!data) errors[f.key] = `${f.label} must link to an existing ${f.ref} record`;
   }));
   return errors;
 }
 
-function toRow(rec: any): Row {
-  let data: Record<string,any> = {};
-  try { data = JSON.parse(rec.data || '{}'); } catch {}
+export function toRow(rec: any): Row {
+  const data: Record<string,any> = (rec.data && typeof rec.data === 'object') ? rec.data : {};
   return { ...data, id:rec.id, number:rec.number || undefined, title:rec.title || undefined,
-    status:rec.status || undefined, projectId:rec.projectId || undefined,
-    createdAt:rec.createdAt.toISOString(), updatedAt:rec.updatedAt.toISOString() };
+    status:rec.status || undefined, projectId:rec.project_id || undefined,
+    createdAt:rec.created_at, updatedAt:rec.updated_at };
 }
 
 async function nextNumber(orgId: string, def: ResourceDef): Promise<string> {
-  const seq = await prisma.sequence.upsert({
-    where: { organizationId_resource: { organizationId:orgId, resource:def.id } },
-    create: { organizationId:orgId, resource:def.id, next:2 },
-    update: { next: { increment:1 } },
-  });
-  return `${def.prefix}-${String(seq.next - 1).padStart(4,'0')}`;
+  const sb = await supabase();
+  const { data, error } = await sb.rpc('app_next_number', { p_org: orgId, p_resource: def.id, p_prefix: def.prefix });
+  if (error) dbError(error);
+  return String(data);
 }
 
 export async function logActivity(orgId:string, userId:string|undefined, actor:string, action:string, resource:string|undefined, detail:string) {
-  try { await prisma.auditLog.create({ data:{ organizationId:orgId, userId, actor, action, resource, detail } }); } catch {}
+  try {
+    const sb = await supabase();
+    await sb.rpc('app_log_activity', { p_org: orgId, p_actor: actor, p_action: action, p_resource: resource || null, p_detail: detail });
+  } catch { /* auditing must never break the business operation */ }
+}
+
+export async function notify(orgId: string, title: string, body: string, kind = 'INFO', href: string | null = null) {
+  try {
+    const sb = await supabase();
+    await sb.rpc('app_notify', { p_org: orgId, p_title: title, p_body: body, p_kind: kind, p_href: href });
+  } catch { /* noop */ }
 }
 
 export type ListParams = { q?:string; status?:string; projectId?:string; page?:number; pageSize?:number; sort?:string; dir?:'asc'|'desc'; all?:boolean };
 
 export async function listRecords(orgId:string, def:ResourceDef, p:ListParams, scope?:Scope) {
-  const where: any = { organizationId:orgId, resource:def.id, deletedAt:null };
-  if (p.status && p.status !== 'ALL') where.status = p.status;
-  if (p.projectId && p.projectId !== 'ALL') where.projectId = p.projectId;
-  if (p.q) {
-    const q = p.q.trim();
-    where.OR = [{ title:{contains:q} }, { number:{contains:q} }, { data:{contains:q} }];
-  }
-  const dbTotal = await prisma.record.count({ where });
-  const scoped = !!scope?.kind;
-  const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
-  const page = Math.max(Number(p.page)||1, 1);
-  const baseColumns = ['id','createdAt','updatedAt','title','status','number','projectId'];
-  const dataSort = !!p.sort && !baseColumns.includes(p.sort);
-  const orderBy: any = dataSort
-    ? { createdAt:'desc' }
-    : { [p.sort || 'createdAt']: p.dir === 'asc' ? 'asc' : 'desc' };
-  // Data-backed columns are sorted in memory: fetch everything, sort, THEN paginate.
-  const pagination: { skip?:number; take:number } = (p.all || dataSort || scoped)
-    ? { take:10000 }
-    : { skip:(page-1)*pageSize, take:pageSize };
-  const recs = await prisma.record.findMany({ where, orderBy, ...pagination });
+  const recs = await fetchAll('records', q => {
+    let x = q.eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null);
+    if (p.status && p.status !== 'ALL') x = x.eq('status', p.status);
+    if (p.projectId && p.projectId !== 'ALL') x = x.eq('project_id', p.projectId);
+    return x;
+  });
   let rows = recs.map(toRow);
-  if (scoped) rows = rows.filter(r => rowAllowed(scope!, def.id, r));
-  const total = scoped ? rows.length : dbTotal;
-  if (dataSort) {
+  const q = (p.q || '').trim().toLowerCase();
+  if (q) rows = rows.filter(r => `${r.title || ''} ${r.number || ''} ${JSON.stringify(r)}`.toLowerCase().includes(q));
+  if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r));
+
+  const baseColumns = ['id','createdAt','updatedAt','title','status','number','projectId'];
+  if (p.sort && !baseColumns.includes(p.sort)) {
+    const key = p.sort;
     rows.sort((a,b)=>{
-      const av=a[p.sort!], bv=b[p.sort!];
+      const av=a[key], bv=b[key];
       if (typeof av==='number' && typeof bv==='number') return p.dir==='asc'?av-bv:bv-av;
       return p.dir==='asc'?String(av??'').localeCompare(String(bv??'')):String(bv??'').localeCompare(String(av??''));
     });
+  } else {
+    const key = p.sort || 'createdAt';
+    rows.sort((a,b)=>{
+      const av=String(a[key]??''), bv=String(b[key]??'');
+      return p.dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
   }
-  if (!p.all) rows = rows.slice((page-1)*pageSize, page*pageSize);
-  return { rows, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
+  const total = rows.length;
+  const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
+  const page = Math.max(Number(p.page)||1, 1);
+  const window = p.all ? rows : rows.slice((page-1)*pageSize, page*pageSize);
+  return { rows: window, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
 }
 
 export async function getRecord(orgId:string, resourceId:string, id:string, scope?:Scope) {
-  const rec = await prisma.record.findFirst({ where:{ id, organizationId:orgId, resource:resourceId, deletedAt:null } });
+  const sb = await supabase();
+  const { data: rec, error } = await sb.from('records').select('*')
+    .eq('organization_id', orgId).eq('resource', resourceId).eq('id', id)
+    .is('deleted_at', null).maybeSingle();
+  if (error) dbError(error);
   if (!rec) return null;
   const row = toRow(rec);
   if (scope?.kind && !rowAllowed(scope, resourceId, row)) return null;
@@ -111,8 +126,10 @@ export async function getRecord(orgId:string, resourceId:string, id:string, scop
 }
 
 export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope) {
-  const recs = await prisma.record.findMany({ where:{ organizationId:orgId, resource:def.id, deletedAt:null }, take:scope?.kind?10000:limit, orderBy:{createdAt:'desc'}, select:{id:true,title:true,number:true,data:true,projectId:true} });
-  let rows = recs.map(r => ({ value:r.id, label:r.title || r.number || r.id, _row:{ id:r.id, ...(()=>{try{return JSON.parse(r.data||'{}')}catch{return {}}})(), projectId:r.projectId } }));
+  const recs = await fetchAll('records', q => q.eq('organization_id', orgId)
+    .eq('resource', def.id).is('deleted_at', null), 'id,title,number,data,project_id');
+  let rows = recs.map(r => ({ value:r.id, label:r.title || r.number || r.id,
+    _row:{ id:r.id, ...(r.data||{}), projectId:r.project_id } }));
   if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r._row));
   return rows.slice(0, limit).map(r => ({ value:r.value, label:r.label }));
 }
@@ -127,19 +144,24 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
   const title = String(v.clean[def.titleKey] || number);
   const clean: Record<string,any> = { ...v.clean, number, status, projectId };
   for (const f of def.fields) if (f.readOnly) clean[f.key] = null;
-  const rec = await prisma.record.create({ data:{
-    organizationId:orgId, resource:def.id, number, title, status, projectId,
-    data:JSON.stringify(clean), createdById:userId || null,
-  }});
+
+  const sb = await supabase();
+  const { data: rec, error } = await sb.from('records').insert({
+    id: randomUUID(), organization_id: orgId, resource: def.id, number, title,
+    status, project_id: projectId, data: clean, created_by_id: userId || null,
+  }).select('*').single();
+  if (error) dbError(error);
   await logActivity(orgId, userId, actor, 'CREATE', def.id, `Created ${def.singular.toLowerCase()} “${title}” (${number})`);
   return { ok:true as const, row:toRow(rec) };
 }
 
 export async function updateRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, id:string, input:Record<string,any>) {
-  const existing = await prisma.record.findFirst({ where:{id, organizationId:orgId, resource:def.id, deletedAt:null} });
+  const sb = await supabase();
+  const { data: existing } = await sb.from('records').select('*')
+    .eq('id', id).eq('organization_id', orgId).eq('resource', def.id)
+    .is('deleted_at', null).maybeSingle();
   if (!existing) return { ok:false as const, errors:{ _:'Record not found' } };
-  let prior:Record<string,any> = {};
-  try { prior = JSON.parse(existing.data || '{}'); } catch {}
+  const prior: Record<string,any> = (existing.data && typeof existing.data === 'object') ? existing.data : {};
   // PATCH semantics: only supplied keys change; all other fields are preserved.
   const v = validate(def, { ...prior, ...input });
   const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
@@ -149,35 +171,47 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   const title = String(v.clean[def.titleKey] || existing.title || existing.number);
   const clean: Record<string,any> = { ...v.clean, number:existing.number, status, projectId };
   for (const f of def.fields) if (f.readOnly) clean[f.key] = prior[f.key] ?? null;
-  const rec = await prisma.record.update({ where:{id}, data:{ title, status, projectId, data:JSON.stringify(clean) } });
+
+  const { data: rec, error } = await sb.from('records')
+    .update({ title, status, project_id: projectId, data: clean })
+    .eq('id', id).select('*').single();
+  if (error) dbError(error);
   await logActivity(orgId, userId, actor, 'UPDATE', def.id, `Updated ${def.singular.toLowerCase()} “${title}” (${existing.number})`);
   return { ok:true as const, row:toRow(rec) };
 }
 
 export async function deleteRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, id:string) {
-  const rec = await prisma.record.findFirst({ where:{id, organizationId:orgId, resource:def.id, deletedAt:null} });
+  const sb = await supabase();
+  const { data: rec } = await sb.from('records').select('id,title,number')
+    .eq('id', id).eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null).maybeSingle();
   if (!rec) return { ok:false as const, error:'Record not found' };
-  await prisma.record.update({ where:{id}, data:{ deletedAt:new Date() } });
+  const { error } = await sb.from('records').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+  if (error) dbError(error);
   await logActivity(orgId, userId, actor, 'DELETE', def.id, `Deleted ${def.singular.toLowerCase()} “${rec.title}” (${rec.number})`);
   return { ok:true as const };
 }
 
 export async function deleteMany(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, ids:string[]) {
-  const res = await prisma.record.updateMany({ where:{ id:{in:ids}, organizationId:orgId, resource:def.id, deletedAt:null }, data:{deletedAt:new Date()} });
-  await logActivity(orgId, userId, actor, 'DELETE', def.id, `Deleted ${res.count} ${def.label.toLowerCase()}`);
-  return { ok:true as const, count:res.count };
+  const sb = await supabase();
+  const { data, error } = await sb.from('records').update({ deleted_at: new Date().toISOString() })
+    .in('id', ids).eq('organization_id', orgId).eq('resource', def.id)
+    .is('deleted_at', null).select('id');
+  if (error) dbError(error);
+  await logActivity(orgId, userId, actor, 'DELETE', def.id, `Deleted ${data?.length || 0} ${def.label.toLowerCase()}`);
+  return { ok:true as const, count: data?.length || 0 };
 }
 
 export async function statsFor(orgId:string) {
+  const sb = await supabase();
   const [all, audit, notifications] = await Promise.all([
-    prisma.record.findMany({ where:{organizationId:orgId, deletedAt:null}, select:{resource:true,status:true,projectId:true,data:true} }),
-    prisma.auditLog.findMany({ where:{organizationId:orgId}, take:12, orderBy:{createdAt:'desc'} }),
-    prisma.notification.findMany({ where:{organizationId:orgId}, take:30, orderBy:{createdAt:'desc'} }),
+    fetchAll('records', q => q.eq('organization_id', orgId).is('deleted_at', null), 'resource,status,project_id,data'),
+    unwrap(await sb.from('audit_logs').select('*').eq('organization_id', orgId).order('created_at', { ascending:false }).limit(12)) || [],
+    unwrap(await sb.from('notifications').select('*').eq('organization_id', orgId).order('created_at', { ascending:false }).limit(30)) || [],
   ]);
   const amounts: Record<string,number> = {};
   const statusCounts: Record<string,number> = {};
   for (const r of all) {
-    let d:any={}; try{d=JSON.parse(r.data||'{}')}catch{}
+    const d:any = r.data || {};
     const val = Number(d.contractValue ?? d.total ?? d.amount ?? d.netCertified ?? d.bidValue ?? d.value ?? 0);
     if (val) amounts[r.resource] = (amounts[r.resource]||0)+val;
     const key = `${r.resource}:${r.status||'NONE'}`; statusCounts[key]=(statusCounts[key]||0)+1;

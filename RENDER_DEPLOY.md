@@ -1,54 +1,49 @@
-# Render deployment runbook (chosen target)
+# Deploy BuildOps to Render with Supabase
 
-Everything in the repo is already configured: `Dockerfile`, `render.yaml`, `.dockerignore`, `scripts/prod-start.mjs`, `.env.example`, `ENV_KEYS.md` and the `env:init` / `env:check` scripts. Real keys go in the ignored `.env` locally or in Render's environment variables — never in the repo.
+`render.yaml` is a Blueprint for a Docker web service. It no longer creates a SQLite file or a 1 GB disk — Supabase is the entire backend.
 
-## 1 · Get the committed repo into your GitHub/GitLab account
+## Before you create the service
 
-No GitHub connector is available in this workspace, so I can't push to your account from here. Two credential-free options:
+1. Have a Supabase project with `supabase/migrations/0001`–`0005` applied (`npx supabase db push`).
+2. Seed it if you want the demo workspace: `npm run db:seed`.
+3. Push/import this repository into `https://github.com/ckydoo/construction.git` (see `/home/user/PUSH_TO_GITHUB.md`). No push has been performed from this workspace.
 
-**A — Git bundle (keeps the commit history).** Download `buildops.bundle` (in the workspace root), then locally:
+## Blueprint values
 
-```bash
-git clone buildops.bundle buildops
-cd buildops
-git remote set-url origin https://github.com/<you>/buildops.git   # or remove origin and re-add
-git branch -M main
-git push -u origin main
+Render → New → Blueprint → select the repo. `render.yaml` declares:
+
+```yaml
+services:
+  - type: web
+    name: buildops
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV              # production
+      - key: STORAGE_DRIVER       # supabase
+      - key: SUPABASE_STORAGE_BUCKET  # buildops-documents
+      - key: NEXT_PUBLIC_APP_URL          # sync: false → paste your .onrender.com URL
+      - key: NEXT_PUBLIC_SUPABASE_URL     # sync: false → https://<ref>.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY    # sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY        # sync: false → SECRET, server only
 ```
 
-**B — Source ZIP.** Download `buildops-source.zip`, unzip it, then:
+`sync: false` means Render prompts you for the value; never paste the service-role key into a `NEXT_PUBLIC_*` slot.
+
+After the first deploy, add the `.onrender.com` URL to Supabase Auth → URL Configuration (Site URL + Redirect URLs) and set `NEXT_PUBLIC_APP_URL` accordingly.
+
+## Local parity
 
 ```bash
-cd buildops
-npm install
-git init && git add -A && git commit -m "BuildOps ERP"
-git remote add origin https://github.com/<you>/buildops.git
-git push -u origin main
+cp .env.example .env        # paste the same values
+npm run env:check
+npm run build && npm run start:prod
 ```
 
-## 2 · Create the service on Render
+`scripts/prod-start.mjs` refuses to start without `NEXT_PUBLIC_SUPABASE_URL` and the anon key. It does **not** create a schema — migrations are a separate, explicit step (`supabase db push`), so a bad deploy can never mutate your database implicitly.
 
-1. Render dashboard → **New → Blueprint** → connect your GitHub account → select the `buildops` repo.
-2. Render reads `render.yaml` and creates:
-   - a Docker web service named `buildops`,
-   - a 1 GB persistent disk at `/app/data`,
-   - `DATABASE_URL=file:/app/data/dev.db`, `UPLOAD_ROOT=/app/data/uploads`, `SEED_DEMO=true`, a generated `SESSION_SECRET` (add Supabase / API keys here if you wire those integrations),
-   - health check on `/login`.
-3. Click **Apply**. First boot runs `prisma db push`, seeds 616 demo records plus the sample drawing revision chain, then serves on `$PORT`.
-4. Open the `.onrender.com` URL → log in with `owner@kestrelridge.co.zw` / `Demo@1234`.
+## Verification
 
-## 3 · Immediately after deploy
-
-- [ ] Change the demo password or delete demo users in **Settings → Users**.
-- [ ] Set `SEED_DEMO=false` (or leave it — it only seeds when the DB is empty).
-- [ ] Add a custom domain + Render-managed TLS.
-- [ ] Confirm `/login`, a record drawer, a file upload and a PDF download all work through the public domain.
-- [ ] Set up disk backups (or move to Render Postgres via `npm run db:postgres`).
-
-## 4 · Cost / limits
-
-Starter plan + 1 GB disk is enough for a pilot. SQLite on a single instance is fine for one workspace with tens of users; for multi-instance scaling, switch to Postgres (`scripts/switch-provider.mjs`) and move `UPLOAD_ROOT` to S3/R2 — see `DEPLOY.md`.
-
-## 5 · What I still need from you
-
-A repo URL **and** push access (or you run step 1 locally). Once the repo is pushed, give me the Render service URL and I'll verify the live deployment end-to-end from here.
+`GET /login` → 200 and no setup banner. Then sign in with a demo account and run the checklist in [DEPLOY.md](DEPLOY.md) §5. No Render deployment, `.onrender.com` URL or live verification has been performed from this workspace yet — GitHub push credentials and Supabase keys are still needed.

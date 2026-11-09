@@ -1,97 +1,73 @@
-# Deploying BuildOps permanently
+# BuildOps deployment guide (Supabase)
 
-The repo is deployment-ready: a git repository, a Dockerfile, a Render Blueprint, a production boot script and a Postgres switch script. This replaces the temporary `localhost.run` tunnel.
+The app is a Next.js 15 UI over a Supabase backend. There is **no local database, no SQLite file and no disk volume** — production needs a Supabase project with the migrations applied.
 
-## 0 · Prepare the repository (already done here)
+## 1. Create / connect the Supabase project
+
+1. Create a project at supabase.com (or use the one you already have).
+2. Project Settings → API: copy the **Project URL**, **anon/publishable key** and **service_role/secret key**.
+3. Project Settings → General: copy the **project ref**. Project Settings → Database: copy the **database password**.
+4. In Supabase Auth → Providers → Email, either disable email confirmations or configure SMTP. The registration flow expects `signInWithPassword` to return a session immediately.
+
+## 2. Apply the schema
 
 ```bash
-cd /home/user/buildops
-git status            # clean, committed working tree
-git log --oneline -1  # "BuildOps ERP: full-stack construction management"
+cd buildops
+cp .env.example .env
+# paste the values from step 2 into .env
+npm install
+npm run env:check
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase db push            # 0001 → 0005
+npm run db:seed                 # optional: demo Auth users + 616 records + wallets + PDFs
 ```
 
-To publish it, add your own remote and push (I can run the git commands here if you give me the remote URL):
+`supabase db push` creates the 12 tables, the `buildops-documents` private bucket, all RLS policies and the wallet/audit RPCs. `supabase/seed.sql` is deliberately empty because demo Auth users must be created via the GoTrue Admin API, which `npm run db:seed` does.
+
+To regenerate the RLS migration after changing `ROLE_RULES` in `src/lib/catalog.ts`:
 
 ```bash
-git remote add origin https://github.com/<you>/buildops.git
-git branch -M main && git push -u origin main
+npm run rbac:generate          # writes supabase/migrations/0003_rbac.sql
+npx supabase db push
 ```
 
-Or copy `buildops-source.zip` into your own repository. Note: this workspace has no connected GitHub app, so I can't push on your behalf.
+## 3. Environment variables in production
 
-> Before going public: change `SESSION_SECRET`, remove/rotate the demo accounts, and set `SEED_DEMO=false` after your first boot if you don't want the demo dataset.
+| Key | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role / secret key (**never** `NEXT_PUBLIC_*`) |
+| `NEXT_PUBLIC_APP_URL` | public HTTPS URL of the app |
+| `SUPABASE_STORAGE_BUCKET` | `buildops-documents` |
+| `STORAGE_DRIVER` | `supabase` |
 
-## Option A — Docker + SQLite (simplest, recommended for a demo/pilot)
+Add the app URL to Supabase Auth → URL Configuration → Redirect URLs / Site URL.
 
-Works on **Render**, **Fly.io**, **Railway**, or any VPS. A persistent volume keeps `dev.db` and uploaded files.
+## 4. Run the app
 
-### Render (blueprint)
-1. Push the repo to GitHub.
-2. Render → **New → Blueprint** → select the repo (it reads `render.yaml`).
-3. It creates a web service with a 1 GB disk mounted at `/app/data`, sets `DATABASE_URL=file:/app/data/dev.db` and `UPLOAD_ROOT=/app/data/uploads`, and generates `SESSION_SECRET`.
-4. First boot runs `prisma db push`, seeds 616 demo records, then starts Next on `$PORT`. Health check: `/login`.
-
-### Any Docker host
-```bash
-docker build -t buildops .
-docker run -d --name buildops -p 3000:3000 \
-  -v buildops-data:/app/data \
-  -e SESSION_SECRET="$(openssl rand -hex 32)" \
-  -e SEED_DEMO=true \
-  buildops
-```
-
-### Local production run
 ```bash
 npm run build
-npm run start:prod      # applies schema, seeds if empty, serves on $PORT
+npm run start                 # next start on 0.0.0.0:3000
+# or, in the container:
+npm run start:prod            # validates Supabase env then starts Next
 ```
 
-## Option B — Postgres + Vercel / Neon / Supabase (production)
+`Dockerfile` is a two-stage Node 20 Alpine build; it copies no `prisma/` directory and provisions no `/app/data` volume. Health check: `GET /login`.
 
-SQLite files are ephemeral on serverless, so use managed Postgres:
+For Render, see [RENDER_DEPLOY.md](RENDER_DEPLOY.md) and `render.yaml`. For GitHub import instructions see `/home/user/PUSH_TO_GITHUB.md` (workspace-level, not part of this repo).
 
-```bash
-npm run db:postgres     # rewrites prisma/schema.prisma provider to "postgresql"
-export DATABASE_URL="postgresql://USER:PASS@HOST:5432/buildops?schema=public"
-export UPLOAD_ROOT="/var/buildops/uploads"   # or point at S3/R2 — see below
-npx prisma generate && npx prisma db push
-npm run build && npm run start:prod
-```
+## 5. Post-deploy verification
 
-For **Vercel**, set the same env vars in project settings and use `npm run build` as the build command; `prisma db push` should be run once as a deploy step (or replace with `prisma migrate deploy` once you generate migrations). Add `vercel.json` with a function timeout if you expect large PDF exports.
+- `GET /login` → 200, no setup notice.
+- Sign in as `owner@kestrelridge.co.zw` / `Demo@1234`.
+- `/kestrel-ridge/wallets` → 6 wallets, total available $11,000,000.
+- `/kestrel-ridge/integrity` → `ok: true`, 0 broken refs, 0 wallet mismatches.
+- Upload a PDF attachment, open it, add a revision, delete the latest.
+- Sign in as `client@westgate.co.zw` → only Westgate's own records and wallet.
+- `npm run audit` and `npm run audit:browser` against the deployed URL (the historical reports in this repo describe the pre-Supabase build).
 
-### File storage on serverless
-Uploads are written to `UPLOAD_ROOT` (defaults to `<cwd>/uploads/<orgId>`). On ephemeral hosts, mount a persistent volume or swap `src/app/api/[org]/files/route.ts` and `[id]/route.ts` to write to S3/R2 — the `Attachment` model already stores file metadata, so only the two storage helpers need changing.
+## 6. Secrets hygiene
 
-## Environment variables
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `DATABASE_URL` | `file:./dev.db` | Prisma connection string (SQLite or Postgres) |
-| `UPLOAD_ROOT` | `<cwd>/uploads` | Root directory for attached files |
-| `SESSION_SECRET` | dev value | Session signing secret — **change in production** |
-| `SEED_DEMO` | unset | `true` seeds 616 demo records on first boot only |
-| `PORT` | `3000` | Next.js listen port |
-| `NODE_ENV` | — | `production` in the container |
-| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | OAuth callbacks / emailed links (reserved) |
-| `TZ` | `Africa/Harare` | Regional reporting timezone |
-| `LOG_LEVEL` | `info` | Reserved logging level |
-| `MAX_FILE_BYTES` | `12582912` | Reserved upload cap (currently a constant in `src/lib/files.ts`) |
-
-The full list — including **Supabase** project URL, anon/publishable key, service-role/secret key, JWT secret, pooled and direct database URLs, storage bucket, plus S3/R2, email, SMS/WhatsApp, Paynow/Stripe/PayPal, maps, SSO, accounting, webhook, Sentry and OpenAI keys — is in [`.env.example`](.env.example) and explained in [`ENV_KEYS.md`](ENV_KEYS.md). Run `npm run env:check` before deploying. `.env` is excluded by `.gitignore` and `.dockerignore`; set real values in the host's environment instead.
-
-## What the boot script does
-`scripts/prod-start.mjs` → `prisma db push --skip-generate` → optional seed if the DB has no organisation → `next start -H 0.0.0.0 -p $PORT`. It is idempotent and safe to run on every deploy.
-
-## Data persistence
-`render.yaml` mounts a 1 GB disk at `/app/data`; both `dev.db` and `UPLOAD_ROOT` live there, so records, uploaded drawings and revision chains survive redeploys. For Postgres, use managed backups plus object storage for uploads (see the note above).
-
-## Post-deploy checklist
-- [ ] Log in with `owner@kestrelridge.co.zw` / `Demo@1234`, then **change the password** (or delete demo users in Settings → Users).
-- [ ] Set `SEED_DEMO=false` if you want a clean production tenant only.
-- [ ] Configure a real `SESSION_SECRET` and enforce HTTPS (cookies are HTTP-only, `sameSite=lax`).
-- [ ] Run `npm run env:check` and confirm no secret is in a `NEXT_PUBLIC_*` variable.
-- [ ] Back up `/app/data` (SQLite) or take managed Postgres snapshots.
-- [ ] Verify `/api/[org]/files` uploads and a PDF download work through the public domain.
-- [ ] If exposing to the internet, put rate limiting in front of `/api/auth/login`.
+`.env` is ignored by Git and Docker. `npm run env:check` refuses secret-looking values in `NEXT_PUBLIC_*` variables and flags a tracked `.env`. Never commit a service-role key.

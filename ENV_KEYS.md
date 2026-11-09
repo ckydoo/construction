@@ -6,85 +6,53 @@
 
 ---
 
-## 1. What the app reads today
+## 1. Required for the app to run (Supabase is the server)
 
-| Variable | Default in template | Where it is read | Notes |
+| Variable | Where to get it | Exposure | Read by |
 |---|---|---|---|
-| `DATABASE_URL` | `file:./dev.db` | `prisma/schema.prisma`, Prisma CLI | Swap to a Postgres/Supabase URI to move off SQLite. Also requires `npm run db:postgres`. |
-| `PORT` | `3000` | `scripts/prod-start.mjs` | Render/Docker set this too. |
-| `NODE_ENV` | `development` | Next.js / Prisma | Set to `production` by the container. |
-| `SEED_DEMO` | `true` | `scripts/prod-start.mjs` | Seeds 616 demo records **only when the DB is empty**. Set `false` for a clean production tenant. |
-| `UPLOAD_ROOT` | empty → `<cwd>/uploads/<orgId>` | `src/lib/files.ts`, `scripts/seed.ts` | Point at a persistent volume or object storage later. |
-| `AUDIT_BASE` | `http://127.0.0.1:3000` | `scripts/browser-audit.mjs` | Base URL for the Chromium suite. |
-| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | reserved | OAuth callbacks / emailed links once those are wired. |
-| `SESSION_SECRET` | placeholder | `render.yaml` (generated) | **Reserved.** Sessions are currently opaque random tokens stored in the database, not signed cookies. Generate a value anyway for production: `openssl rand -hex 32`. |
-| `TZ` | `Africa/Harare` | reserved | Regional scheduling/reporting. |
-| `LOG_LEVEL`, `MAX_FILE_BYTES` | `info`, `12582912` | reserved | Named slots; the 12 MB upload cap is currently a constant in `src/lib/files.ts`. |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL | Public | `src/lib/supabase.ts`, `src/middleware.ts` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | API → anon/public key | Public, protected by RLS | `src/lib/supabase.ts`, `src/middleware.ts` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | API → publishable key (`sb_publishable_…`, newer projects) — alternative to the anon key | Public, protected by RLS | `src/lib/supabase.ts` |
+| `SUPABASE_SERVICE_ROLE_KEY` | API → service_role key | **Server only — bypasses RLS** | `supabaseAdmin()` (registration, invites, seeding) |
+| `SUPABASE_SECRET_KEY` | API → secret key (`sb_secret_…`) — alternative to service role | **Server only** | `supabaseAdmin()` |
+| `SUPABASE_STORAGE_BUCKET` | Storage → bucket name | Server only | `src/lib/files.ts` (default `buildops-documents`) |
+| `MAX_FILE_BYTES` | your policy | Server only | upload cap (default 12 MiB, also enforced by the bucket) |
 
-`npm run env:check` catches a missing `DATABASE_URL`, a Postgres URL with a SQLite Prisma provider, a tracked `.env`, placeholder production secrets and secret-looking values in `NEXT_PUBLIC_*` variables. It never prints key values.
+Without the URL + anon key the app builds but shows a setup notice on `/login` and sign-in is disabled. Without the service-role key, registration, team invites, demo seeding and `clearData` return a clear 503 instead of failing silently.
 
----
+## 2. Required for migrations / local stack (Supabase CLI, not the running app)
 
-## 2. Supabase keys
-
-| Variable | Where to get it | Exposure |
+| Variable | Where to get it | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project → **Project Settings → API → Project URL** | Public — safe in the browser |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **API → anon / public key** (legacy) | Public, protected by RLS |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | **API → publishable key** (`sb_publishable_…`, newer projects) | Public, protected by RLS |
-| `SUPABASE_SERVICE_ROLE_KEY` | **API → service_role key** (legacy) | **Server only** — bypasses RLS |
-| `SUPABASE_SECRET_KEY` | **API → secret key** (`sb_secret_…`, newer projects) | **Server only** |
-| `SUPABASE_JWT_SECRET` | **API → JWT settings** | Server only — verifying auth/webhooks |
-| `SUPABASE_WEBHOOK_SECRET` | Your Supabase webhook configuration | Server only |
-| `SUPABASE_PROJECT_REF`, `SUPABASE_REGION`, `SUPABASE_DB_PASSWORD` | Project settings / database setup | Server only |
-| `SUPABASE_DATABASE_URL` | **Project Settings → Database → Connection string → URI** (pooled/session) | Server only |
-| `SUPABASE_DIRECT_URL` | Same screen, direct/non-pooled connection on port `5432` | Server only — migrations |
-| `DIRECT_URL` | Optional Prisma `directUrl` if you add it to `schema.prisma` | Server only |
-| `SUPABASE_STORAGE_BUCKET` | Storage → bucket name, e.g. `buildops-documents` | Server only |
+| `SUPABASE_PROJECT_REF` | Project Settings → General | `npx supabase link --project-ref <ref>` |
+| `SUPABASE_DB_PASSWORD` | Database setup | CLI auth for `supabase db push` |
+| `SUPABASE_DATABASE_URL` | Database → Connection string → URI (pooled/session) | CLI / diagnostics |
+| `SUPABASE_DIRECT_URL`, `DIRECT_URL` | Database → direct 5432 URI | migrations |
+| `SUPABASE_REGION` | Project settings | informational |
 
-### Using Supabase Postgres as the database
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase db push       # applies supabase/migrations/0001 → 0005
+npm run db:seed            # creates Auth users + demo data
+```
 
-1. Put the pooled URI in `.env` as `SUPABASE_DATABASE_URL`, and the direct URI in `SUPABASE_DIRECT_URL`.
-2. Set `DATABASE_URL` to the same pooled URI.
-3. Run:
-   ```bash
-   npm run db:postgres       # switches prisma/schema.prisma from sqlite to postgresql
-   npx prisma generate
-   npx prisma db push
-   npm run build
-   ```
-4. Keep the direct URI for migrations against the non-pooled port. Commit the provider change if you want that database in deployment too.
+`npm run env:check` never prints key values. It flags a tracked `.env`, secret-looking `NEXT_PUBLIC_*` variables, a malformed URL, missing migrations and missing keys (as warnings until you are ready to deploy).
 
-### Using Supabase Auth / Storage
+## 3. App/runtime settings
 
-Those are **not wired yet**. The app currently uses Prisma-backed credentials sessions and local-disk uploads (`UPLOAD_ROOT`). Adding the keys above does not change that. Tell me which of **Postgres, Auth, Storage** you want first and I'll implement the switch, RLS policies and storage helpers.
-
----
-
-## 3. Optional integration slots
-
-These are named, grouped placeholders in `.env.example`. They are **not read by the current code** — they are there so you can paste keys once and I can wire the chosen connectors without renaming variables later.
-
-| Group | Variables | Typical use |
+| Variable | Default | Notes |
 |---|---|---|
-| Object storage | `STORAGE_DRIVER`, `S3_*`, `R2_*` | Move drawings/PDFs off local disk to S3 / Cloudflare R2 |
-| Email | `SMTP_*`, `RESEND_API_KEY`, `SENDGRID_API_KEY` | Invites, payment certificates, approval alerts |
-| SMS / WhatsApp | `TWILIO_*`, `WHATSAPP_*` | OTP, site alerts, payment reminders |
-| Payments | `PAYNOW_*`, `STRIPE_*`, `PAYPAL_*` | Wallet top-ups / invoices (Paynow is the ZW-friendly option) |
-| Maps / weather | `GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `OPENWEATHER_API_KEY` | Site maps, geocoding, weather in daily logs |
-| SSO | `GOOGLE_CLIENT_*`, `MICROSOFT_*`, `AUTH_CALLBACK_BASE_URL` | Google / Microsoft sign-in |
-| Accounting | `XERO_*`, `QUICKBOOKS_*`, `SAGE_*` | Sync invoices, bills, cost codes |
-| Webhooks / internal API | `BUILDOPS_API_KEY`, `BUILDOPS_WEBHOOK_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` | The **API & integrations** module, encrypted connector credentials |
-| Notifications / monitoring / AI | `SLACK_*`, `TEAMS_WEBHOOK_URL`, `SENTRY_*`, `NEXT_PUBLIC_SENTRY_DSN`, `OPENAI_API_KEY` | Alerts, error tracking, document/OCR assistance |
+| `NODE_ENV` | `development` | `production` in the container |
+| `PORT` | `3000` | Render/Docker also set this |
+| `TZ` | `Africa/Harare` | regional scheduling/reporting |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | OAuth callbacks / emailed links, set to HTTPS in production |
+| `AUDIT_BASE` | `http://127.0.0.1:3000` | Chromium audit suite |
+| `LOG_LEVEL` | `info` | reserved |
+| `STORAGE_DRIVER` | `supabase` | only `supabase` is implemented |
 
-Browser-restricted keys such as `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` are intentionally public, but restrict them by domain in the provider console.
+## 4. Optional connector slots (not wired yet)
 
----
+Sections 3–10 of `.env.example` name slots for S3/R2, email/SMTP, SMS/WhatsApp, PayNow/Stripe/PayPal, maps/weather, Google/Microsoft SSO, Xero/QuickBooks/Sage, webhooks, Slack/Teams, Sentry and OpenAI. Adding a value does **not** enable a feature; tell me which connector to wire and I'll implement it.
 
-## 4. Deployment
-
-- **Local:** `.env` holds your keys; `.env.example` is the committed template. `npm run setup` auto-creates `.env` if missing.
-- **Render / Docker:** set the same variables in the host's environment (or `render.yaml`). Host values override `.env`; `.dockerignore` excludes `.env` from the image. `render.yaml` already generates `SESSION_SECRET` and sets `DATABASE_URL`, `UPLOAD_ROOT`, `SEED_DEMO`, `NODE_ENV`.
-- **Public repo:** never commit `.env`. If a key is ever pasted into `.env.example`, rotate it immediately.
-
-See also [`DEPLOY.md`](DEPLOY.md), [`RENDER_DEPLOY.md`](RENDER_DEPLOY.md) and [`WALLETS_AND_RBAC.md`](WALLETS_AND_RBAC.md).
+**Removed with the Supabase rewrite:** `DATABASE_URL`, `SEED_DEMO`, `UPLOAD_ROOT`, `SESSION_SECRET`. There is no local SQLite database, no disk upload root and no custom session table. Supabase Auth owns sessions; Postgres owns all data; Supabase Storage owns binaries.

@@ -1,4 +1,6 @@
 # Render Blueprint — deploy with: connect GitHub repo → New → Blueprint
+# Supabase is the server: no local database, no disk volume, no SQLite file.
+# Apply supabase/migrations first with `npx supabase db push`.
 services:
   - type: web
     name: buildops
@@ -9,15 +11,15 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        value: file:/app/data/dev.db
-      - key: UPLOAD_ROOT
-        value: /app/data/uploads
-      - key: SEED_DEMO
-        value: "true"
-      - key: SESSION_SECRET
-        generateValue: true
-    disk:
-      name: buildops-data
-      mountPath: /app/data
-      sizeGB: 1
+      - key: STORAGE_DRIVER
+        value: supabase
+      - key: SUPABASE_STORAGE_BUCKET
+        value: buildops-documents
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

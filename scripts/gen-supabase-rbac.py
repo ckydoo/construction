@@ -1,0 +1,524 @@
+#!/usr/bin/env python3
+"""Generate supabase/migrations/0003_rbac.sql from the app's ROLE_RULES.
+
+Run `npm run audit:defs` (or `npx tsx scripts/audit-defs.ts > /tmp/defs.json`)
+first. This keeps the Postgres RLS matrix byte-for-byte in sync with
+src/lib/catalog.ts instead of hand-copying 14 roles x 49 resources.
+"""
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DEFS = json.loads(Path('/tmp/defs.json').read_text())
+ROLES = [r['id'] for r in DEFS['roles']]
+RULES = DEFS['roleRules']
+OUT = ROOT / 'supabase' / 'migrations' / '0003_rbac.sql'
+
+
+def arr(values, cast='text[]'):
+    if not values:
+        return f'array[]::{cast}'
+    return 'array[' + ','.join("'" + str(v).replace("'", "''") + "'" for v in values) + f']::{cast}'
+
+
+def case_array(fn, key, cast='text[]'):
+    lines = [f'create or replace function public.{fn}(p_role text) returns {cast}',
+             'language sql immutable set search_path = public, pg_temp as $$',
+             '  select case p_role']
+    for role in ROLES:
+        val = arr(RULES[role].get(key, []), cast)
+        lines.append(f"    when '{role}' then {val}")
+    lines += [f'    else array[]::{cast}', '  end;', '$$;', '']
+    return '\n'.join(lines)
+
+
+def case_bool(fn, key):
+    lines = [f'create or replace function public.{fn}(p_role text) returns boolean',
+             'language sql immutable set search_path = public, pg_temp as $$',
+             '  select case p_role']
+    for role in ROLES:
+        lines.append(f"    when '{role}' then {'true' if bool(RULES[role].get(key, False)) else 'false'}")
+    lines += ['    else false', '  end;', '$$;', '']
+    return '\n'.join(lines)
+
+
+generated = '\n'.join([
+    case_array('app_read_resources', 'read'),
+    case_array('app_write_resources', 'write'),
+    case_bool('app_can_delete_resource', 'delete'),
+    case_array('app_capabilities', 'capabilities'),
+    case_bool('app_scoped', 'scoped'),
+])
+
+STATIC = r'''
+-- ---------------------------------------------------------------------------
+-- Identity + capability helpers. Security definer is deliberate: policies on
+-- memberships/records must be able to resolve the caller's org without
+-- recursively invoking RLS on those same tables.
+-- ---------------------------------------------------------------------------
+
+create or replace function public.app_org_ids()
+returns uuid[] language sql stable security definer set search_path = public, pg_temp as $$
+  select coalesce(array_agg(organization_id), array[]::uuid[])
+  from public.memberships where user_id = auth.uid();
+$$;
+
+create or replace function public.app_role(p_org uuid)
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select role from public.memberships
+  where user_id = auth.uid() and organization_id = p_org limit 1;
+$$;
+
+create or replace function public.app_entity(p_org uuid)
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select entity_id from public.memberships
+  where user_id = auth.uid() and organization_id = p_org limit 1;
+$$;
+
+create or replace function public.app_actor_name()
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select coalesce((select name from public.profiles where id = auth.uid()), split_part(coalesce(auth.jwt()->>'email','user'),'@',1));
+$$;
+
+create or replace function public.app_org_currency(p_org uuid)
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select coalesce((select base_currency from public.organizations where id = p_org), 'USD');
+$$;
+
+create or replace function public.app_module_enabled(p_org uuid, p_module text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare cfg jsonb;
+begin
+  if p_org is null or p_module is null or not (p_org = any(public.app_org_ids())) then return false; end if;
+  select config into cfg from public.organizations where id = p_org;
+  return coalesce(cfg->'modules' ? p_module, false);
+end;
+$$;
+
+create or replace function public.app_resource_enabled(p_org uuid, p_resource text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare cfg jsonb;
+begin
+  if p_org is null or p_resource is null or not (p_org = any(public.app_org_ids())) then return false; end if;
+  select config into cfg from public.organizations where id = p_org;
+  return coalesce(cfg->'resources' ? p_resource, false);
+end;
+$$;
+
+create or replace function public.app_can_read(p_org uuid, p_resource text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare r text;
+begin
+  if p_org is null or p_resource is null or not (p_org = any(public.app_org_ids())) then return false; end if;
+  if not public.app_resource_enabled(p_org, p_resource) then return false; end if;
+  r := public.app_role(p_org);
+  return r is not null and p_resource = any(public.app_read_resources(r));
+end;
+$$;
+
+create or replace function public.app_can_write(p_org uuid, p_resource text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare r text;
+begin
+  if not public.app_can_read(p_org, p_resource) then return false; end if;
+  r := public.app_role(p_org);
+  return r is not null and p_resource = any(public.app_write_resources(r));
+end;
+$$;
+
+create or replace function public.app_can_delete(p_org uuid, p_resource text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if not public.app_can_write(p_org, p_resource) then return false; end if;
+  return public.app_can_delete_resource(public.app_role(p_org));
+end;
+$$;
+
+create or replace function public.app_has_capability(p_org uuid, p_cap text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare r text;
+begin
+  if p_org is null or p_cap is null or not (p_org = any(public.app_org_ids())) then return false; end if;
+  r := public.app_role(p_org);
+  return r is not null and p_cap = any(public.app_capabilities(r));
+end;
+$$;
+
+create or replace function public.app_is_external(p_org uuid)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if not (p_org = any(public.app_org_ids())) then return false; end if;
+  return public.app_scoped(coalesce(public.app_role(p_org), ''));
+end;
+$$;
+
+create or replace function public.app_wallet_client_allowed(p_org uuid, p_client_id text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare r text;
+begin
+  if p_org is null or p_client_id is null or not (p_org = any(public.app_org_ids())) then return false; end if;
+  r := public.app_role(p_org);
+  if r is null then return false; end if;
+  if not public.app_scoped(r) then return true; end if;
+  if r <> 'CLIENT_EXTERNAL' then return false; end if;
+  return public.app_entity(p_org) = p_client_id;
+end;
+$$;
+
+create or replace function public.app_record_resource(p_org uuid, p_record_id text)
+returns text language sql stable security definer set search_path = public, pg_temp as $$
+  select resource from public.records
+  where organization_id = p_org and id = p_record_id and deleted_at is null limit 1;
+$$;
+
+create or replace function public.app_visible_record(
+  p_org uuid, p_resource text, p_id text, p_project_id text, p_data jsonb
+)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare
+  r text; e text; pids text[]; d jsonb;
+begin
+  if p_org is null or p_id is null then return false; end if;
+  r := public.app_role(p_org);
+  if r is null then return false; end if;
+  if not public.app_scoped(r) then return true; end if;
+  e := public.app_entity(p_org);
+  if e is null then return false; end if;
+  d := coalesce(p_data, '{}'::jsonb);
+
+  if r = 'CLIENT_EXTERNAL' then
+    if p_resource = 'clients' then return p_id = e; end if;
+    if p_resource = 'contacts' then return d->>'clientId' = e; end if;
+    select coalesce(array_remove(array_agg(id), null), array[]::text[]) into pids
+      from public.records
+      where organization_id = p_org and resource = 'projects' and deleted_at is null
+        and data->>'clientId' = e;
+    if p_resource = 'projects' then return p_id = any(pids); end if;
+    if d->>'clientId' = e then return true; end if;
+    if p_project_id is not null and p_project_id = any(pids) then return true; end if;
+    return false;
+  end if;
+
+  if r = 'SUBCONTRACTOR_EXTERNAL' then
+    if p_resource = 'subcontractors' then return p_id = e; end if;
+    select coalesce(array_remove(array_agg(project_id), null), array[]::text[]) into pids
+      from public.records
+      where organization_id = p_org and resource in ('contracts','submittals') and deleted_at is null
+        and (data->>'counterparty' = e or data->>'submittedBy' = e or data->>'subcontractorId' = e);
+    if p_resource = 'projects' then return p_id = any(pids); end if;
+    if d->>'counterparty' = e or d->>'submittedBy' = e or d->>'subcontractorId' = e then return true; end if;
+    if p_project_id is not null and p_project_id = any(pids) then return true; end if;
+    return false;
+  end if;
+  return false;
+end;
+$$;
+
+create or replace function public.app_visible_record_id(p_org uuid, p_record_id text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare ok boolean;
+begin
+  select public.app_visible_record(p_org, r.resource, r.id, r.project_id, r.data) into ok
+    from public.records r
+    where r.organization_id = p_org and r.id = p_record_id and r.deleted_at is null limit 1;
+  return coalesce(ok, false);
+end;
+$$;
+
+create or replace function public.app_profile_visible(p_uid uuid)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if p_uid is null then return false; end if;
+  return p_uid = auth.uid() or exists (
+    select 1 from public.memberships m
+    where m.user_id = p_uid and m.organization_id = any(public.app_org_ids())
+  );
+end;
+$$;
+
+create or replace function public.app_can_insert_owner_membership(p_org uuid)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if p_org is null or auth.uid() is null then return false; end if;
+  return exists (select 1 from public.organizations o where o.id = p_org and o.created_by_id = auth.uid())
+     and not exists (select 1 from public.memberships m where m.organization_id = p_org);
+end;
+$$;
+
+create or replace function public.app_protect_last_owner()
+returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
+declare n integer;
+begin
+  if tg_op = 'DELETE' then
+    if old.role = 'OWNER' then
+      select count(*) into n from public.memberships where organization_id = old.organization_id and role = 'OWNER';
+      if n <= 1 then raise exception 'The workspace must keep at least one owner'; end if;
+    end if;
+    return old;
+  end if;
+  if tg_op = 'UPDATE' and old.role = 'OWNER' and new.role <> 'OWNER' then
+    select count(*) into n from public.memberships where organization_id = old.organization_id and role = 'OWNER';
+    if n <= 1 then raise exception 'The workspace must keep at least one owner'; end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists memberships_protect_last_owner on public.memberships;
+create trigger memberships_protect_last_owner
+  before update or delete on public.memberships
+  for each row execute function public.app_protect_last_owner();
+
+create or replace function public.app_storage_allowed(p_name text, p_bucket text, p_action text)
+returns boolean language plpgsql stable security definer set search_path = public, pg_temp as $$
+declare v_org uuid; v_rid text; v_res text;
+begin
+  if p_bucket is distinct from 'buildops-documents' then return false; end if;
+  v_org := split_part(p_name, '/', 1)::uuid;
+  v_rid := split_part(p_name, '/', 2);
+  if v_org is null or v_rid is null or v_rid = '' then return false; end if;
+  if not (v_org = any(public.app_org_ids())) then return false; end if;
+  select resource into v_res from public.attachments
+    where organization_id = v_org and stored_name = p_name limit 1;
+  if v_res is null then return false; end if;
+  if not public.app_visible_record_id(v_org, v_rid) then return false; end if;
+  if p_action = 'read' then
+    return public.app_can_read(v_org, v_res);
+  elsif p_action = 'write' then
+    return public.app_can_write(v_org, v_res) and public.app_has_capability(v_org, 'files.upload');
+  elsif p_action = 'delete' then
+    return public.app_can_delete(v_org, v_res) and public.app_has_capability(v_org, 'files.delete');
+  end if;
+  return false;
+exception when others then
+  return false;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- RLS. Default deny: only the policies below grant access. Writes to the
+-- wallet ledger, audit log, notifications and sequences happen exclusively via
+-- SECURITY DEFINER RPC functions so no direct client can forge money or audit.
+-- ---------------------------------------------------------------------------
+
+alter table public.organizations enable row level security;
+alter table public.profiles enable row level security;
+alter table public.memberships enable row level security;
+alter table public.invitations enable row level security;
+alter table public.records enable row level security;
+alter table public.comments enable row level security;
+alter table public.audit_logs enable row level security;
+alter table public.notifications enable row level security;
+alter table public.sequences enable row level security;
+alter table public.attachments enable row level security;
+alter table public.wallets enable row level security;
+alter table public.wallet_transactions enable row level security;
+
+drop policy if exists organizations_select on public.organizations;
+create policy organizations_select on public.organizations for select to authenticated
+  using (id = any(public.app_org_ids()) or created_by_id = auth.uid());
+
+drop policy if exists organizations_insert on public.organizations;
+create policy organizations_insert on public.organizations for insert to authenticated
+  with check (created_by_id = auth.uid());
+
+drop policy if exists organizations_update on public.organizations;
+create policy organizations_update on public.organizations for update to authenticated
+  using (id = any(public.app_org_ids()) and public.app_has_capability(id, 'settings.manage'))
+  with check (id = any(public.app_org_ids()) and public.app_has_capability(id, 'settings.manage'));
+
+drop policy if exists organizations_delete on public.organizations;
+create policy organizations_delete on public.organizations for delete to authenticated
+  using (public.app_role(id) = 'OWNER');
+
+drop policy if exists profiles_select on public.profiles;
+create policy profiles_select on public.profiles for select to authenticated
+  using (public.app_profile_visible(id));
+
+drop policy if exists profiles_update on public.profiles;
+create policy profiles_update on public.profiles for update to authenticated
+  using (id = auth.uid()) with check (id = auth.uid());
+
+drop policy if exists memberships_select on public.memberships;
+create policy memberships_select on public.memberships for select to authenticated
+  using (user_id = auth.uid() or organization_id = any(public.app_org_ids()));
+
+drop policy if exists memberships_insert on public.memberships;
+create policy memberships_insert on public.memberships for insert to authenticated
+  with check (
+    (user_id = auth.uid() and role = 'OWNER' and public.app_can_insert_owner_membership(organization_id))
+    or public.app_has_capability(organization_id, 'users.manage')
+  );
+
+drop policy if exists memberships_update on public.memberships;
+create policy memberships_update on public.memberships for update to authenticated
+  using (public.app_has_capability(organization_id, 'users.manage'))
+  with check (public.app_has_capability(organization_id, 'users.manage'));
+
+drop policy if exists memberships_delete on public.memberships;
+create policy memberships_delete on public.memberships for delete to authenticated
+  using (public.app_has_capability(organization_id, 'users.manage') and role <> 'OWNER');
+
+drop policy if exists invitations_select on public.invitations;
+create policy invitations_select on public.invitations for select to authenticated
+  using (organization_id = any(public.app_org_ids()));
+
+drop policy if exists invitations_insert on public.invitations;
+create policy invitations_insert on public.invitations for insert to authenticated
+  with check (public.app_has_capability(organization_id, 'users.manage'));
+
+drop policy if exists invitations_update on public.invitations;
+create policy invitations_update on public.invitations for update to authenticated
+  using (public.app_has_capability(organization_id, 'users.manage'))
+  with check (public.app_has_capability(organization_id, 'users.manage'));
+
+drop policy if exists invitations_delete on public.invitations;
+create policy invitations_delete on public.invitations for delete to authenticated
+  using (public.app_has_capability(organization_id, 'users.manage'));
+
+drop policy if exists records_select on public.records;
+create policy records_select on public.records for select to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_read(organization_id, resource)
+    and public.app_visible_record(organization_id, resource, id, project_id, data)
+  );
+
+drop policy if exists records_insert on public.records;
+create policy records_insert on public.records for insert to authenticated
+  with check (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_write(organization_id, resource)
+    and public.app_visible_record(organization_id, resource, id, project_id, data)
+    and created_by_id = auth.uid()
+  );
+
+drop policy if exists records_update on public.records;
+create policy records_update on public.records for update to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_write(organization_id, resource)
+    and public.app_visible_record(organization_id, resource, id, project_id, data)
+  )
+  with check (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_write(organization_id, resource)
+    and public.app_visible_record(organization_id, resource, id, project_id, data)
+  );
+
+drop policy if exists records_delete on public.records;
+create policy records_delete on public.records for delete to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_delete(organization_id, resource)
+    and public.app_visible_record(organization_id, resource, id, project_id, data)
+  );
+
+drop policy if exists comments_select on public.comments;
+create policy comments_select on public.comments for select to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_read(organization_id, public.app_record_resource(organization_id, record_id))
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists comments_insert on public.comments;
+create policy comments_insert on public.comments for insert to authenticated
+  with check (
+    organization_id = any(public.app_org_ids())
+    and author_id = auth.uid()
+    and public.app_can_read(organization_id, public.app_record_resource(organization_id, record_id))
+    and public.app_has_capability(organization_id, 'comments.create')
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists audit_logs_select on public.audit_logs;
+create policy audit_logs_select on public.audit_logs for select to authenticated
+  using (organization_id = any(public.app_org_ids()));
+
+drop policy if exists notifications_select on public.notifications;
+create policy notifications_select on public.notifications for select to authenticated
+  using (organization_id = any(public.app_org_ids()) and (user_id is null or user_id = auth.uid()));
+
+drop policy if exists notifications_update on public.notifications;
+create policy notifications_update on public.notifications for update to authenticated
+  using (organization_id = any(public.app_org_ids()) and (user_id is null or user_id = auth.uid()))
+  with check (organization_id = any(public.app_org_ids()) and (user_id is null or user_id = auth.uid()));
+
+drop policy if exists sequences_select on public.sequences;
+create policy sequences_select on public.sequences for select to authenticated
+  using (organization_id = any(public.app_org_ids()));
+
+drop policy if exists attachments_select on public.attachments;
+create policy attachments_select on public.attachments for select to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_read(organization_id, resource)
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists attachments_insert on public.attachments;
+create policy attachments_insert on public.attachments for insert to authenticated
+  with check (
+    organization_id = any(public.app_org_ids())
+    and uploaded_by_id = auth.uid()
+    and public.app_can_write(organization_id, resource)
+    and public.app_has_capability(organization_id, 'files.upload')
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists attachments_update on public.attachments;
+create policy attachments_update on public.attachments for update to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_write(organization_id, resource)
+    and public.app_has_capability(organization_id, 'files.upload')
+    and public.app_visible_record_id(organization_id, record_id)
+  )
+  with check (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_write(organization_id, resource)
+    and public.app_has_capability(organization_id, 'files.upload')
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists attachments_delete on public.attachments;
+create policy attachments_delete on public.attachments for delete to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_can_delete(organization_id, resource)
+    and public.app_has_capability(organization_id, 'files.delete')
+    and public.app_visible_record_id(organization_id, record_id)
+  );
+
+drop policy if exists wallets_select on public.wallets;
+create policy wallets_select on public.wallets for select to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_module_enabled(organization_id, 'wallets')
+    and public.app_has_capability(organization_id, 'wallet.read')
+    and public.app_wallet_client_allowed(organization_id, client_id)
+  );
+
+drop policy if exists wallet_transactions_select on public.wallet_transactions;
+create policy wallet_transactions_select on public.wallet_transactions for select to authenticated
+  using (
+    organization_id = any(public.app_org_ids())
+    and public.app_module_enabled(organization_id, 'wallets')
+    and public.app_has_capability(organization_id, 'wallet.read')
+    and public.app_wallet_client_allowed(organization_id, client_id)
+  );
+
+-- Public grants (Supabase normally supplies these; explicit for portability).
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
+grant execute on all functions in schema public to authenticated, service_role;
+'''
+
+OUT.parent.mkdir(parents=True, exist_ok=True)
+OUT.write_text(
+    '-- Generated by scripts/gen-supabase-rbac.py from src/lib/catalog.ts ROLE_RULES.\n'
+    '-- Regenerate after changing any role/resource rule; do not edit by hand.\n\n'
+    + generated + '\n' + STATIC.lstrip('\n')
+)
+print(f'Wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size} bytes, {len(ROLES)} roles)')

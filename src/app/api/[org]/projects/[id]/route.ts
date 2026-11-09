@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { readGuard, capabilityGuard } from '@/lib/guard';
 import { canRead } from '@/lib/catalog';
 import { getResource } from '@/lib/resources';
 import { getRecord } from '@/lib/records';
-import { buildScope, rowAllowed, rowsForScoped } from '@/lib/access';
+import { buildScope, rowsForScoped } from '@/lib/access';
+import { fetchAll } from '@/lib/fetch';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ org: string; id: string }> }) {
   const { org, id } = await params;
@@ -22,12 +23,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const budgets = grouped.budgets || [], invoices = grouped.arInvoices || [], apps = grouped.paymentApps || [];
   const sum = (rows: any[], key: string) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);
 
-  const allocs = await prisma.walletTransaction.findMany({ where: { organizationId: a.orgId, projectId: id, kind: 'ALLOCATION' }, orderBy: { createdAt: 'desc' }, take: 50 });
-  const funded = -allocs.filter(t => !t.reversedAt).reduce((n, t) => n + t.amountCents, 0) / 100;
+  const allocs = await fetchAll('wallet_transactions', q => q
+    .eq('organization_id', a.orgId).eq('project_id', id).eq('kind', 'ALLOCATION'));
+  allocs.sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
+  const funded = -allocs.filter(t => !t.reversed_at).reduce((n, t) => n + t.amount_cents, 0) / 100;
   const target = Number(project.contractValue || project.budget || 0);
   const walletClientId = String(project.clientId || '');
   const clientRec = walletClientId ? await getRecord(a.orgId, 'clients', walletClientId, scope) : null;
-  const walletRow = walletClientId ? await prisma.wallet.findUnique({ where: { organizationId_clientId: { organizationId: a.orgId, clientId: walletClientId } } }) : null;
+  const sb = await supabase();
+  const { data: walletRow } = walletClientId ? await sb.from('wallets').select('*')
+    .eq('organization_id', a.orgId).eq('client_id', walletClientId).maybeSingle() : { data: null };
 
   const totals = {
     originalBudget: sum(budgets, 'originalBudget'), committed: sum(budgets, 'committed'), actual: sum(budgets, 'actualToDate'),
@@ -40,10 +45,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     project, grouped, totals,
     wallet: {
       clientId: walletClientId, clientName: clientRec?.name || clientRec?.title || null,
-      balance: walletRow ? walletRow.balanceCents / 100 : null, currency: walletRow?.currency || a.org.baseCurrency || 'USD',
+      balance: walletRow ? walletRow.balance_cents / 100 : null, currency: walletRow?.currency || a.org.baseCurrency || 'USD',
       funded, remaining: Math.max(0, target - funded), target,
-      transactions: allocs.map(t => ({ id: t.id, amount: t.amountCents / 100, note: t.note, actorName: t.actorName,
-        reversedAt: t.reversedAt ? t.reversedAt.toISOString() : null, createdAt: t.createdAt.toISOString() })),
+      transactions: allocs.slice(0, 50).map(t => ({ id: t.id, amount: t.amount_cents / 100, note: t.note, actorName: t.actor_name,
+        reversedAt: t.reversed_at || null, createdAt: t.created_at })),
       href: `/wallets?client=${encodeURIComponent(walletClientId)}`,
     },
     defs: Object.fromEntries(related.map(r => [r, getResource(r)])),

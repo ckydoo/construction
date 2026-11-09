@@ -1,14 +1,21 @@
-import prisma from './db';
+import { fetchAll } from './fetch';
 
-export async function rowsFor(orgId:string, resource:string): Promise<Record<string,any>[]> {
-  const recs = await prisma.record.findMany({ where:{ organizationId:orgId, resource, deletedAt:null }, orderBy:{createdAt:'desc'}, take:1000 });
-  return recs.map(r => {
-    let d:any={}; try { d=JSON.parse(r.data||'{}'); } catch {}
-    return { ...d, id:r.id, number:r.number, title:r.title, status:r.status, projectId:r.projectId, createdAt:r.createdAt.toISOString() };
-  });
+export async function rowsFor(orgId: string, resource: string): Promise<Record<string, any>[]> {
+  const recs = await fetchAll('records', q => q
+    .eq('organization_id', orgId).eq('resource', resource).is('deleted_at', null));
+  return recs.map(r => ({
+    ...(r.data || {}),
+    id: r.id, number: r.number, title: r.title, status: r.status,
+    projectId: r.project_id, createdAt: r.created_at,
+  }));
 }
-export async function countsByResource(orgId:string): Promise<Record<string,number>> {
-  const groups = await prisma.record.groupBy({ by:['resource'], where:{organizationId:orgId, deletedAt:null}, _count:{_all:true} });
-  return Object.fromEntries(groups.map(g=>[g.resource,g._count._all]));
+
+export async function countsByResource(orgId: string): Promise<Record<string, number>> {
+  const recs = await fetchAll('records', q => q
+    .eq('organization_id', orgId).is('deleted_at', null), 'id,resource');
+  const out: Record<string, number> = {};
+  for (const r of recs) out[r.resource] = (out[r.resource] || 0) + 1;
+  return out;
 }
-export const sum = (rows:any[], key:string) => rows.reduce((t,r)=>t+(Number(r[key])||0),0);
+
+export const sum = (rows: any[], key: string) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);

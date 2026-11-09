@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { getResource } from '@/lib/resources';
 import { readGuard, writeGuard, deleteGuard, capabilityGuard } from '@/lib/guard';
 import { buildScope } from '@/lib/access';
 import { getRecord, updateRecord, deleteRecord } from '@/lib/records';
+import { commentView, attachmentView } from '@/lib/views';
 
 type Ctx = { params: Promise<{ org: string; resource: string; id: string }> };
 
@@ -16,11 +17,16 @@ export async function GET(_req: Request, { params }: Ctx) {
   const scope = await buildScope(a);
   const row = await getRecord(a.orgId, resource, id, scope);
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const [comments, files] = await Promise.all([
-    prisma.comment.findMany({ where: { recordId: id, organizationId: a.orgId }, orderBy: { createdAt: 'asc' } }),
-    prisma.attachment.findMany({ where: { recordId: id, organizationId: a.orgId }, orderBy: { createdAt: 'desc' } }),
+  const sb = await supabase();
+  const [c, f] = await Promise.all([
+    sb.from('comments').select('*').eq('record_id', id).eq('organization_id', a.orgId).order('created_at', { ascending: true }),
+    sb.from('attachments').select('*').eq('record_id', id).eq('organization_id', a.orgId).order('created_at', { ascending: false }),
   ]);
-  return NextResponse.json({ row, comments, files });
+  return NextResponse.json({
+    row,
+    comments: (c.data || []).map(commentView),
+    files: (f.data || []).map(attachmentView),
+  });
 }
 
 export async function PATCH(req: Request, { params }: Ctx) {

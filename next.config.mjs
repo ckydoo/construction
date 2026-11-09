@@ -2,6 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   allowedDevOrigins: ['**'],
-  serverExternalPackages: ['@prisma/client','pdf-lib'],
+  serverExternalPackages: ['pdf-lib'],
 };
 export default nextConfig;

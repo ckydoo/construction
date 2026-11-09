@@ -38,8 +38,6 @@ const notes = [];
 if (!fs.existsSync(envPath)) errors.push('.env is missing — run `npm run env:init` or `cp .env.example .env`.');
 if (!fs.existsSync(examplePath)) errors.push('.env.example is missing — the template must stay in the repo.');
 
-if (!isSet(get('DATABASE_URL'))) errors.push('DATABASE_URL is required (Prisma reads it).');
-
 // Never commit the real env file.
 const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '.env'], { cwd: root, stdio: 'ignore' });
 if (tracked.status === 0) errors.push('.env is tracked by Git — run `git rm --cached .env` and keep real keys out of the repo.');
@@ -52,38 +50,29 @@ const dangerousPublic = Object.keys(env).filter((k) =>
 );
 if (dangerousPublic.length) errors.push(`Secret-looking values in browser-exposed variables: ${dangerousPublic.join(', ')}`);
 
+const url = get('NEXT_PUBLIC_SUPABASE_URL') || get('SUPABASE_URL');
+const anon = get('NEXT_PUBLIC_SUPABASE_ANON_KEY') || get('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
+const service = get('SUPABASE_SERVICE_ROLE_KEY') || get('SUPABASE_SECRET_KEY');
+if (!isSet(url)) warnings.push('NEXT_PUBLIC_SUPABASE_URL is empty — paste your project URL to connect the app.');
+if (!isSet(anon)) warnings.push('NEXT_PUBLIC_SUPABASE_ANON_KEY is empty — paste the anon/publishable key.');
+if (!isSet(service)) notes.push('SUPABASE_SERVICE_ROLE_KEY is empty — needed for registration, team invites, demo seeding and migrations.');
+if (isSet(url) && !isSet(anon)) warnings.push('Supabase URL is set without a public anon/publishable key.');
+if (isSet(service) && !isSet(url)) warnings.push('A Supabase service-role key is set without NEXT_PUBLIC_SUPABASE_URL.');
+if (isSet(url) && !/^https?:\/\//.test(url)) errors.push('NEXT_PUBLIC_SUPABASE_URL must be a full https URL.');
+if (get('STORAGE_DRIVER') && !['supabase','local','s3','r2'].includes(get('STORAGE_DRIVER')))
+  warnings.push(`STORAGE_DRIVER=${get('STORAGE_DRIVER')} is not implemented; only supabase is wired.`);
+
+const migrations = path.join(root, 'supabase', 'migrations');
+if (!fs.existsSync(migrations)) errors.push('supabase/migrations is missing — the schema cannot be applied.');
+else notes.push(`Supabase migrations: ${fs.readdirSync(migrations).filter(f => f.endsWith('.sql')).length} SQL files (apply with \`npx supabase db push\`).`);
+
 if (get('NODE_ENV') === 'production') {
-  if (!isSet(get('SESSION_SECRET'))) warnings.push('SESSION_SECRET is still a placeholder; generate one with `openssl rand -hex 32`.');
-  if (get('SEED_DEMO') === 'true') warnings.push('SEED_DEMO=true in production will seed the demo organisation on an empty database.');
   if (!get('NEXT_PUBLIC_APP_URL').startsWith('https://')) warnings.push('NEXT_PUBLIC_APP_URL should be an HTTPS URL in production.');
+  if (!isSet(service)) warnings.push('Server-side actions (registration, invites, seeding) need SUPABASE_SERVICE_ROLE_KEY in production.');
 }
 
-// Postgres URL requires the matching Prisma provider.
-const schemaPath = path.join(root, 'prisma', 'schema.prisma');
-const schema = fs.existsSync(schemaPath) ? fs.readFileSync(schemaPath, 'utf8') : '';
-const provider = (schema.match(/provider\s*=\s*"(\w+)"/) || [])[1] || 'unknown';
-const db = get('DATABASE_URL');
-if (/^postgresql:\/\//i.test(db) && provider === 'sqlite') {
-  errors.push('DATABASE_URL is PostgreSQL but schema.prisma still uses sqlite — run `npm run db:postgres`, then regenerate and push.');
-}
-if (/^file:/i.test(db) && provider === 'postgresql') {
-  errors.push('DATABASE_URL is SQLite but schema.prisma uses postgresql — restore the sqlite provider or set a Postgres URL.');
-}
-
-if (isSet(get('SUPABASE_DATABASE_URL')) && /^file:/i.test(db)) {
-  notes.push('A Supabase database URL is present but not active; set DATABASE_URL to it after `npm run db:postgres`.');
-}
-if (isSet(get('NEXT_PUBLIC_SUPABASE_URL')) && !isSet(get('NEXT_PUBLIC_SUPABASE_ANON_KEY')) && !isSet(get('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'))) {
-  warnings.push('Supabase URL is set without a public anon/publishable key.');
-}
-if (isSet(get('SUPABASE_SERVICE_ROLE_KEY')) && !isSet(get('NEXT_PUBLIC_SUPABASE_URL'))) {
-  warnings.push('A Supabase service-role key is set without NEXT_PUBLIC_SUPABASE_URL.');
-}
-
-// Count only real key/endpoint slots, not harmless defaults such as
-// STORAGE_DRIVER=local or SMTP_PORT=587.
+// Count only real key/endpoint slots for optional integrations.
 const groups = {
-  Supabase: ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_ANON_KEY','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','SUPABASE_SERVICE_ROLE_KEY','SUPABASE_SECRET_KEY','SUPABASE_JWT_SECRET','SUPABASE_WEBHOOK_SECRET','SUPABASE_PROJECT_REF','SUPABASE_REGION','SUPABASE_DB_PASSWORD','SUPABASE_DATABASE_URL','SUPABASE_DIRECT_URL','DIRECT_URL'],
   'S3/R2 storage': ['S3_ENDPOINT','S3_REGION','S3_BUCKET','S3_ACCESS_KEY_ID','S3_SECRET_ACCESS_KEY','S3_PUBLIC_BASE_URL','R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET','R2_PUBLIC_BASE_URL'],
   Email: ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','RESEND_API_KEY','SENDGRID_API_KEY'],
   'SMS/WhatsApp': ['TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_FROM_NUMBER','TWILIO_MESSAGING_SERVICE_SID','WHATSAPP_BUSINESS_ACCOUNT_ID','WHATSAPP_BUSINESS_PHONE_ID','WHATSAPP_ACCESS_TOKEN'],
@@ -97,12 +86,14 @@ const configured = Object.entries(groups)
   .filter(([, keys]) => keys.some((k) => isSet(get(k))))
   .map(([name]) => name);
 
-console.log('BuildOps environment check');
-console.log(`  .env           ${fs.existsSync(envPath) ? 'present' : 'MISSING'}`);
-console.log(`  .env.example   ${fs.existsSync(examplePath) ? 'present' : 'MISSING'}`);
-console.log(`  DATABASE_URL   ${db ? (db.startsWith('file:') ? 'SQLite file' : 'external database') : 'MISSING'}`);
-console.log(`  Prisma provider ${provider}`);
-console.log(`  Integration slots configured: ${configured.length ? configured.join(', ') : 'none yet'}`);
+console.log('BuildOps environment check (Supabase)');
+console.log(`  .env             ${fs.existsSync(envPath) ? 'present' : 'MISSING'}`);
+console.log(`  .env.example     ${fs.existsSync(examplePath) ? 'present' : 'MISSING'}`);
+console.log(`  Supabase URL     ${isSet(url) ? 'configured' : 'not set'}`);
+console.log(`  Anon key         ${isSet(anon) ? 'configured' : 'not set'}`);
+console.log(`  Service-role key ${isSet(service) ? 'configured' : 'not set'}`);
+console.log(`  Storage driver   ${get('STORAGE_DRIVER') || 'supabase'}`);
+console.log(`  Optional integration slots configured: ${configured.length ? configured.join(', ') : 'none yet'}`);
 for (const n of notes) console.log(`  note    ${n}`);
 for (const w of warnings) console.log(`  WARN    ${w}`);
 for (const e of errors) console.log(`  ERROR   ${e}`);

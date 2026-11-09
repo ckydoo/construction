@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { getResource } from '@/lib/resources';
 import { writeGuard, readGuard, capabilityGuard } from '@/lib/guard';
 import { buildScope, visibleResources, allowedRecordIds } from '@/lib/access';
 import { getRecord, logActivity } from '@/lib/records';
-import { MAX_FILE_BYTES, uploadDir, revisionLabel } from '@/lib/files';
+import { fetchAll } from '@/lib/fetch';
+import { attachmentView } from '@/lib/views';
+import { MAX_FILE_BYTES, safeFileName, storageBucket, storagePath, revisionLabel } from '@/lib/files';
 
 export async function POST(req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
@@ -28,32 +28,51 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
   const scope = await buildScope(a);
   if (!(await getRecord(a.orgId, resource, recordId, scope))) return NextResponse.json({ error: 'Record not found' }, { status: 404 });
 
-  let documentKey: string = randomUUID(), revision = 1;
+  const sb = await supabase();
+  const bucket = storageBucket();
+  let documentKey: string = randomUUID(), revision = 1, previousLatest: string[] = [];
   if (supersedesId) {
-    const parent = await prisma.attachment.findFirst({ where: { id: supersedesId, organizationId: a.orgId, recordId } });
+    const { data: parent } = await sb.from('attachments').select('*')
+      .eq('id', supersedesId).eq('organization_id', a.orgId).eq('record_id', recordId).maybeSingle();
     if (!parent) return NextResponse.json({ error: 'Parent attachment not found' }, { status: 404 });
-    documentKey = parent.documentKey || parent.id;
-    if (!parent.documentKey) await prisma.attachment.update({ where: { id: parent.id }, data: { documentKey } });
-    const siblings = await prisma.attachment.findMany({ where: { organizationId: a.orgId, documentKey } });
-    revision = Math.max(0, ...siblings.map((s: any) => s.revision || 1)) + 1;
-    await prisma.attachment.updateMany({ where: { organizationId: a.orgId, documentKey }, data: { isLatest: false } });
+    documentKey = parent.document_key || parent.id;
+    if (!parent.document_key) await sb.from('attachments').update({ document_key: documentKey }).eq('id', parent.id);
+    const { data: siblings } = await sb.from('attachments').select('id,revision,is_latest')
+      .eq('organization_id', a.orgId).eq('document_key', documentKey);
+    revision = Math.max(0, ...(siblings || []).map((s: any) => s.revision || 1)) + 1;
+    previousLatest = (siblings || []).filter((s: any) => s.is_latest).map((s: any) => s.id);
+    if ((siblings || []).length) await sb.from('attachments').update({ is_latest: false })
+      .eq('organization_id', a.orgId).eq('document_key', documentKey);
   }
 
-  const safe = path.basename(file.name).replace(/[^a-zA-Z0-9._()\- ]/g, '_').slice(0, 160) || 'file';
+  const safe = safeFileName(file.name);
   const storedName = `${randomUUID()}-${safe}`;
-  const dir = uploadDir(a.orgId);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, storedName), Buffer.from(await file.arrayBuffer()));
-  const att = await prisma.attachment.create({ data: {
-    organizationId: a.orgId, recordId, resource, fileName: safe, storedName,
-    mime: file.type || 'application/octet-stream', size: file.size,
-    uploadedById: a.userId, uploadedByName: a.name,
-    documentKey, revision, revisionLabel: revisionLabel(revision), isLatest: true, note: note || null,
-  } });
+  const path = storagePath(a.orgId, recordId, storedName);
+  // Metadata first: the Storage RLS helper resolves the owning record from the
+  // object path via public.attachments, so the row must exist before upload.
+  const { data: att, error: metaErr } = await sb.from('attachments').insert({
+    organization_id: a.orgId, record_id: recordId, resource,
+    file_name: safe, stored_name: path, mime: file.type || 'application/octet-stream',
+    size: file.size, uploaded_by_id: a.userId, uploaded_by_name: a.name,
+    document_key: documentKey, revision, revision_label: revisionLabel(revision),
+    is_latest: true, note: note || null,
+  }).select('*').single();
+  if (metaErr) return NextResponse.json({ error: metaErr.message }, { status: 403 });
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const { error: uploadErr } = await sb.storage.from(bucket).upload(path, bytes, {
+    contentType: file.type || 'application/octet-stream', upsert: false,
+  });
+  if (uploadErr) {
+    await sb.from('attachments').delete().eq('id', att.id);
+    if (previousLatest.length) await sb.from('attachments').update({ is_latest: true }).in('id', previousLatest);
+    return NextResponse.json({ error: `Upload blocked: ${uploadErr.message}` }, { status: 403 });
+  }
+
   const rec = await getRecord(a.orgId, resource, recordId);
   await logActivity(a.orgId, a.userId, a.name, 'UPLOAD', resource,
     revision > 1 ? `Uploaded ${revisionLabel(revision)} of “${safe}” on ${rec?.title || rec?.number}` : `Attached “${safe}” to ${rec?.title || rec?.number}`);
-  return NextResponse.json({ attachment: att }, { status: 201 });
+  return NextResponse.json({ attachment: attachmentView(att) }, { status: 201 });
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ org: string }> }) {
@@ -64,14 +83,17 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
   const resource = u.searchParams.get('resource') || '';
   if (resource) { const g = readGuard(a.config, a.role, resource); if (g) return g; }
   const visible = visibleResources(a);
-  const where: any = { organizationId: a.orgId, resource: { in: visible } };
-  if (recordId) where.recordId = recordId;
-  if (resource) where.resource = resource;
+  if (!visible.length) return NextResponse.json({ files: [] });
+  let rows = await fetchAll('attachments', q => q
+    .eq('organization_id', a.orgId).in('resource', visible));
+  if (resource) rows = rows.filter(r => r.resource === resource);
   const scope = await buildScope(a);
   if (scope.kind) {
     const ids = await allowedRecordIds(scope, a.orgId, visible);
-    where.recordId = recordId ? (ids.has(recordId) ? recordId : '__none__') : { in: Array.from(ids) };
+    rows = rows.filter(r => (!recordId || r.record_id === recordId) && ids.has(r.record_id));
+  } else if (recordId) {
+    rows = rows.filter(r => r.record_id === recordId);
   }
-  const files = await prisma.attachment.findMany({ where, orderBy: { createdAt: 'desc' }, take: 200 });
-  return NextResponse.json({ files });
+  rows.sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
+  return NextResponse.json({ files: rows.slice(0, 200).map(attachmentView) });
 }

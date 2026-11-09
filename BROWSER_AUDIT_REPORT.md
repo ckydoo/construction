@@ -40,3 +40,9 @@ Screenshots: `screenshots/01-login.png` … `16-portal-wallet.png`.
 Covers the essentials-first CRUD flow, client wallets, linked records, the role matrix and portal scoping.
 
 Run: `node scripts/browser-audit.mjs` (after `npx playwright install chromium-headless-shell`).
+
+---
+
+## Status note (2026-11-07)
+
+This `28/28` Chromium report and the 16 screenshots describe the **pre-Supabase SQLite build**. After the Supabase rewrite the UI is unchanged, but the browser suite has not been re-run against a live Supabase project (no keys supplied). Re-run `npm run audit:browser` after `npx supabase db push` + `npm run db:seed`. See `SUPABASE.md`.

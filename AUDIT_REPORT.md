@@ -81,3 +81,9 @@ npm run audit:all       # everything
 ```
 
 Remaining coverage gap: individual browser interactions for all 49 resources (the browser suite clicks the clients, wallets and settings flows; the API suite exercises all 49 resource types). Push/import to GitHub and the Render Blueprint apply remain separate deployment steps.
+
+---
+
+## Status note (2026-11-07)
+
+This report describes the **pre-Supabase SQLite build** (`1211/1211` HTTP checks, `22/22` derivation checks). The application has since been fully rewritten onto Supabase (Postgres + Auth + Storage + RLS); the audit suite has **not** been re-run against a live Supabase project because no project keys were supplied. Treat these numbers as historical until `npm run audit` is executed against the Supabase-backed deployment. See `SUPABASE.md`.

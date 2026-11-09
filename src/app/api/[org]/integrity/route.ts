@@ -1,11 +1,11 @@
 /* Cross-module integrity check: every reference resolves, every derived figure
    reconciles and the wallet ledger matches its cached balance. */
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
 import { capabilityGuard } from '@/lib/guard';
 import { RESOURCES } from '@/lib/resources';
 import { walletInvariant } from '@/lib/wallets';
+import { fetchAll } from '@/lib/fetch';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
@@ -14,14 +14,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
 
   const defs = RESOURCES.filter(r => a.config.resources.includes(r.id));
   const ids = defs.map(r => r.id);
-  const recs = await prisma.record.findMany({
-    where: { organizationId: a.orgId, deletedAt: null, resource: { in: ids } },
-    select: { id: true, resource: true, data: true, projectId: true },
-  });
+  const recs = ids.length ? await fetchAll('records', q => q
+    .eq('organization_id', a.orgId).is('deleted_at', null).in('resource', ids),
+    'id,resource,data,project_id') : [];
   const byRes = new Map<string, Set<string>>();
   for (const r of recs) { const set = byRes.get(r.resource) || new Set<string>(); set.add(r.id); byRes.set(r.resource, set); }
   const parsed = new Map<string, any>();
-  for (const r of recs) { try { parsed.set(r.id, JSON.parse(r.data || '{}')); } catch { parsed.set(r.id, {}); } }
+  for (const r of recs) parsed.set(r.id, r.data || {});
 
   const brokenRefs: any[] = [];
   let checkedRefs = 0;
@@ -34,30 +33,31 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       checkedRefs++;
       if (!exists(f.ref, String(d[f.key]))) brokenRefs.push({ record: r.id, resource: r.resource, field: f.key, target: f.ref, value: String(d[f.key]).slice(-12) });
     }
-    if (r.projectId) { checkedRefs++; if (!exists('projects', r.projectId)) brokenRefs.push({ record: r.id, resource: r.resource, field: 'projectId', target: 'projects', value: r.projectId.slice(-12) }); }
+    if (r.project_id) { checkedRefs++; if (!exists('projects', r.project_id)) brokenRefs.push({ record: r.id, resource: r.resource, field: 'projectId', target: 'projects', value: r.project_id.slice(-12) }); }
   }
 
-  const walletMismatches = await walletInvariant(a.orgId);
-  const wallets = await prisma.wallet.findMany({ where: { organizationId: a.orgId } });
-  const txns = await prisma.walletTransaction.findMany({ where: { organizationId: a.orgId }, select: { projectId: true, clientId: true, walletId: true } });
+  const [walletMismatches, wallets, txns] = await Promise.all([
+    walletInvariant(a.orgId),
+    fetchAll('wallets', q => q.eq('organization_id', a.orgId)),
+    fetchAll('wallet_transactions', q => q.eq('organization_id', a.orgId), 'id,wallet_id,client_id,project_id,kind,amount_cents,reversed_at'),
+  ]);
   const walletIds = new Set(wallets.map(w => w.id));
   const clientIds = byRes.get('clients') || new Set<string>();
   const projectIds = byRes.get('projects') || new Set<string>();
   const walletOrphans: any[] = [];
-  for (const w of wallets) if (!clientIds.has(w.clientId)) walletOrphans.push({ wallet: w.id, clientId: w.clientId, reason: 'client record missing' });
+  for (const w of wallets) if (!clientIds.has(w.client_id)) walletOrphans.push({ wallet: w.id, clientId: w.client_id, reason: 'client record missing' });
   for (const t of txns) {
-    if (!walletIds.has(t.walletId)) walletOrphans.push({ transaction: t.walletId, reason: 'wallet missing' });
-    if (!clientIds.has(t.clientId)) walletOrphans.push({ transaction: t.walletId, reason: 'client missing' });
-    if (t.projectId && !projectIds.has(t.projectId)) walletOrphans.push({ transaction: t.walletId, reason: 'project missing' });
+    if (!walletIds.has(t.wallet_id)) walletOrphans.push({ transaction: t.wallet_id, reason: 'wallet missing' });
+    if (!clientIds.has(t.client_id)) walletOrphans.push({ transaction: t.wallet_id, reason: 'client missing' });
+    if (t.project_id && !projectIds.has(t.project_id)) walletOrphans.push({ transaction: t.wallet_id, reason: 'project missing' });
   }
 
   // Derived project funding must equal active (non-reversed) allocations.
   const fundingMismatches: any[] = [];
   for (const pid of projectIds) {
-    const agg = await prisma.walletTransaction.aggregate({ where: { organizationId: a.orgId, projectId: pid, kind: 'ALLOCATION', reversedAt: null }, _sum: { amountCents: true } });
-    const expected = -(agg._sum.amountCents || 0) / 100;
-    const rec = recs.find(r => r.id === pid);
-    const actual = Number((rec && parsed.get(pid)?.fundedAmount) || 0);
+    const expected = -txns.filter(t => t.project_id === pid && t.kind === 'ALLOCATION' && !t.reversed_at)
+      .reduce((n, t) => n + t.amount_cents, 0) / 100;
+    const actual = Number(parsed.get(pid)?.fundedAmount || 0);
     if (Math.abs(expected - actual) > 0.005) fundingMismatches.push({ projectId: pid, expected, actual });
   }
 

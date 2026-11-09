@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
 import { getRecord } from '@/lib/records';
@@ -20,7 +19,7 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
   const scope = await buildScope(a);
   const row:any = await getRecord(a.orgId,resource,id,scope);
   if(!row) return NextResponse.json({error:'Record not found'},{status:404});
-  const orgRow = await prisma.organization.findUnique({where:{id:a.orgId}});
+  const orgRow = a.org;
   const isCert = resource==='paymentApps';
   const isInvoice = resource==='arInvoices' || resource==='apInvoices';
   const docKind = isCert?'CERTIFICATE':isInvoice?'INVOICE':'DOCUMENT';

@@ -46,7 +46,7 @@ function BrandPanel(){
   </div>;
 }
 
-export default function AuthScreen(){
+export default function AuthScreen({configured=true}:{configured?:boolean}){
   const router=useRouter();
   const [mode,setMode]=useState<'login'|'register'>('login');
   const [email,setEmail]=useState(DEMO[0].email), [password,setPassword]=useState(PASSWORD);
@@ -69,6 +69,7 @@ export default function AuthScreen(){
         <div className="mb-7 flex rounded-xl bg-slate-100 p-1 dark:bg-ink-900">
           {(['login','register'] as const).map(m=><button key={m} onClick={()=>{setMode(m);setError('');}} className={`flex-1 rounded-lg py-2 text-sm font-medium transition ${mode===m?'bg-white text-ink-900 shadow-sm dark:bg-ink-800 dark:text-white':'muted'}`}>{m==='login'?'Sign in':'Create account'}</button>)}
         </div>
+        {!configured&&<div className="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">Supabase is not connected yet</p><p className="mt-1">Add <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code>, <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> and <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> to <code className="font-mono">.env</code>, run <code className="font-mono">npx supabase db push</code>, then <code className="font-mono">npm run db:seed</code>. Sign-in will stay disabled until then.</p></div>}
         <h2 className="text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">{mode==='login'?'Welcome back':'Start your workspace'}</h2>
         <p className="mt-1.5 text-sm muted">{mode==='login'?'Sign in to your construction workspace.':'Create an account, then tell us about your company.'}</p>
         <form onSubmit={submit} className="mt-7 space-y-4">

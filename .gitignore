@@ -14,3 +14,6 @@ uploads/
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Supabase CLI local temp
+supabase/.temp/

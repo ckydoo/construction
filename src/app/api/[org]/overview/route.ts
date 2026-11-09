@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { countsByResource } from '@/lib/queries';
 import { buildScope, visibleResources, rowsForScoped } from '@/lib/access';
+import { fetchAll } from '@/lib/fetch';
+import { auditView, notificationView } from '@/lib/views';
 
 const BASE = new Date('2026-11-07T09:00:00Z');
 const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
@@ -15,26 +17,33 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const ids = ['projects', 'clients', 'employees', 'equipment', 'rfis', 'changeOrders', 'incidents', 'certifications', 'inventory', 'timesheets', 'arInvoices', 'apBills', 'payments', 'paymentApps', 'budgets', 'purchaseOrders', 'leads', 'tasks', 'punchLists', 'toolboxTalks', 'inspections'].filter(r => visible.includes(r));
   const data: Record<string, any[]> = {};
   await Promise.all(ids.map(async r => { data[r] = await rowsForScoped(a, scope, r); }));
-  const [notifications, audit, allCounts] = await Promise.all([
-    scope.kind ? Promise.resolve([]) : prisma.notification.findMany({ where: { organizationId: a.orgId }, take: 12, orderBy: { createdAt: 'desc' } }),
-    scope.kind ? Promise.resolve([]) : prisma.auditLog.findMany({ where: { organizationId: a.orgId }, take: 10, orderBy: { createdAt: 'desc' } }),
+  const sb = await supabase();
+  const [notifications, audit, allCounts, walletRows, txns] = await Promise.all([
+    scope.kind ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(12),
+    scope.kind ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(10),
     countsByResource(a.orgId),
+    fetchAll('wallets', q => {
+      let x = q.eq('organization_id', a.orgId);
+      if (scope.kind === 'client') x = x.eq('client_id', scope.entityId!);
+      return x;
+    }),
+    fetchAll('wallet_transactions', q => {
+      let x = q.eq('organization_id', a.orgId);
+      if (scope.kind === 'client') x = x.eq('client_id', scope.entityId!);
+      return x;
+    }, 'id,client_id,wallet_id,project_id,kind,amount_cents,reversed_at,created_at'),
   ]);
   const counts = scope.kind
     ? Object.fromEntries(ids.map(r => [r, (data[r] || []).length]))
     : Object.fromEntries(Object.entries(allCounts).filter(([k]) => visible.includes(k)));
 
-  // Wallet roll-up — scoped to the caller's own client for portal users.
-  const walletWhere: any = { organizationId: a.orgId };
-  if (scope.kind === 'client') walletWhere.clientId = scope.entityId!;
-  const walletRows = await prisma.wallet.findMany({ where: walletWhere });
-  const allocAgg = await prisma.walletTransaction.aggregate({ where: { ...walletWhere, kind: 'ALLOCATION', reversedAt: null }, _sum: { amountCents: true } });
-  const topupAgg = await prisma.walletTransaction.aggregate({ where: { ...walletWhere, kind: 'TOPUP' }, _sum: { amountCents: true } });
+  const allocSum = txns.filter(t => t.kind === 'ALLOCATION' && !t.reversed_at).reduce((n, t) => n + t.amount_cents, 0);
+  const topupSum = txns.filter(t => t.kind === 'TOPUP').reduce((n, t) => n + t.amount_cents, 0);
   const clients = data.clients || [];
   const walletCards = walletRows.map(w => ({
-    clientId: w.clientId,
-    clientName: clients.find(c => c.id === w.clientId)?.name || clients.find(c => c.id === w.clientId)?.title || w.clientId.slice(-8),
-    balance: w.balanceCents / 100, currency: w.currency,
+    clientId: w.client_id,
+    clientName: clients.find(c => c.id === w.client_id)?.name || clients.find(c => c.id === w.client_id)?.title || w.client_id.slice(-8),
+    balance: w.balance_cents / 100, currency: w.currency,
   })).sort((x, y) => y.balance - x.balance);
 
   const projects = data.projects || [], activeProjects = projects.filter(p => p.status === 'ACTIVE');
@@ -83,14 +92,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       pipelineValue: sum((data.leads || []).filter(l => l.status === 'OPEN'), 'value'),
       certifiedValue: sum(data.paymentApps || [], 'netCertified'),
       committedPo: sum(data.purchaseOrders || [], 'amount'),
-      walletBalance: walletRows.reduce((t, w) => t + w.balanceCents, 0) / 100,
-      walletFunded: -(allocAgg._sum.amountCents || 0) / 100,
-      walletToppedUp: (topupAgg._sum.amountCents || 0) / 100,
+      walletBalance: walletRows.reduce((t, w) => t + w.balance_cents, 0) / 100,
+      walletFunded: -allocSum / 100,
+      walletToppedUp: topupSum / 100,
       walletCount: walletRows.length,
     },
     wallets: walletCards.slice(0, 6),
     projects: activeProjects.map(p => ({ id: p.id, name: p.name, code: p.code, type: p.type, progress: Number(p.progress) || 0, health: p.health, contractValue: Number(p.contractValue) || 0, costToDate: Number(p.costToDate) || 0, endDate: p.endDate, location: p.location, fundedAmount: Number(p.fundedAmount) || 0 })),
-    revenueSeries, costBreakdown: Object.entries(budgetCats).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 6),
-    attention, notifications, audit, counts, currency: a.org.baseCurrency || 'USD',
+    revenueSeries, costBreakdown: Object.entries(budgetCats).map(([label, value]) => ({ label, value })).sort((x, y) => y.value - x.value).slice(0, 6),
+    attention,
+    notifications: (notifications.data || []).map(notificationView),
+    audit: (audit.data || []).map(auditView),
+    counts, currency: a.org.baseCurrency || 'USD',
   });
 }

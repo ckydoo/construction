@@ -155,3 +155,17 @@ Reports: `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md`, screenshots `01-login.png
 - `prisma.$transaction` serialises each money movement; for high concurrency move to Postgres row locks.
 - Rotate `SESSION_SECRET`, remove demo accounts, set `SEED_DEMO=false` after first boot and back up `/app/data`.
 - Add rate limiting on auth and wallet actions before exposing publicly.
+
+---
+
+## Supabase rewrite note (2026-11-07)
+
+The wallet and RBAC behaviour described above is unchanged, but the enforcement layer moved into Postgres:
+
+- `prisma.wallet` / `prisma.walletTransaction` → `public.wallets` / `public.wallet_transactions` (integer cents, bigint).
+- `wallet.topup`, `wallet.allocate`, `wallet.refund`, `wallet.read` and `integrity` are now checked inside `supabase/migrations/0003_rbac.sql` helpers and `0005_functions.sql` RPCs, using the Supabase Auth JWT (`auth.uid()`).
+- Money can only move through `app_wallet_topup`, `app_wallet_allocate` and `app_wallet_reverse`. There are **no** client INSERT/UPDATE/DELETE policies on the ledger, audit log, notifications or sequences.
+- `ROLE_RULES` in `src/lib/catalog.ts` is still the single source of truth; `scripts/gen-supabase-rbac.py` compiles it into `0003_rbac.sql`. Run `npm run rbac:generate` after changing a role.
+- The custom `Session` table and bcrypt hashing are gone; Supabase Auth owns sessions.
+
+The numeric QA expectations above (e.g. `2950000` after two QA reversals, `$11,000,000` total available) are reproduced by `scripts/seed-supabase.ts` and must be re-verified against a live Supabase project once keys are supplied.
