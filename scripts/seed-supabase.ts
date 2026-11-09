@@ -93,11 +93,13 @@ async function main() {
     if (error) throw new Error(`Cannot create org: ${error.message}`);
     orgId = data.id;
   }
-  await admin.from('memberships').delete().eq('organization_id', orgId);
-  const { error: mErr } = await admin.from('memberships').insert(DEMO_USERS.map(u => ({
+  // Upsert, not delete+insert: the memberships_protect_last_owner trigger
+  // intentionally refuses to remove the final OWNER row, so a plain delete
+  // would leave a duplicate behind on every re-seed.
+  const { error: mErr } = await admin.from('memberships').upsert(DEMO_USERS.map(u => ({
     user_id: userIds[u.email.toLowerCase()], organization_id: orgId, role: u.role,
     entity_id: u.email === 'client@westgate.co.zw' ? `${orgId}_cli-1` : null,
-  })));
+  })), { onConflict: 'user_id,organization_id' });
   if (mErr) throw new Error(`Cannot create memberships: ${mErr.message}`);
 
   // 4. Records, wallets, ledger, comments, audit trail, notifications, PDFs.
