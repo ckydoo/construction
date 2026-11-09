@@ -6,12 +6,14 @@ import { apiAuth } from '@/lib/auth';
 import { canDelete, isExternal } from '@/lib/catalog';
 import { uploadDir } from '@/lib/files';
 import { logActivity } from '@/lib/records';
+import { guardResource } from '@/lib/guard';
 
 export async function GET(_req:Request,{params}:{params:Promise<{org:string;id:string}>}){
   const { org,id } = await params;
   const a = await apiAuth(org); if(!a) return NextResponse.json({error:'Unauthorized'},{status:401});
   const att = await prisma.attachment.findFirst({where:{id,organizationId:a.orgId}});
   if(!att) return NextResponse.json({error:'File not found'},{status:404});
+  const g = guardResource(a.config, att.resource); if (g) return g;
   try{
     const buf = await readFile(path.join(uploadDir(a.orgId),path.basename(att.storedName)));
     return new NextResponse(new Uint8Array(buf),{headers:{
@@ -27,6 +29,7 @@ export async function DELETE(_req:Request,{params}:{params:Promise<{org:string;i
   if(!canDelete(a.role)||isExternal(a.role)) return NextResponse.json({error:'Your role cannot delete files'},{status:403});
   const att = await prisma.attachment.findFirst({where:{id,organizationId:a.orgId}});
   if(!att) return NextResponse.json({error:'File not found'},{status:404});
+  const g = guardResource(a.config, att.resource); if (g) return g;
   try{ await unlink(path.join(uploadDir(a.orgId),path.basename(att.storedName))); }catch{}
   await prisma.attachment.delete({where:{id}});
   if(att.isLatest && att.documentKey){

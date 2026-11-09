@@ -91,6 +91,7 @@ export function buildDemo(orgId:string) {
     emergencyContact:`+263 7${ri(70,79)} ${ri(100000,999999)}`, nationalId:`${ri(10,75)}-${ri(100000,999999)}-${ri(10,99)}`,
     status:i%17===0?'ON_LEAVE':'ACTIVE',
   }));
+  const empRef = () => `${orgId}_${pick(employeeIds)}`; // always points at a real employee
   const departments = depts.slice(0,8).map((d,i)=>add('departments',`dep-${i+1}`,{
     name:d, code:`CC-${String(100+i*10)}`, head:`${orgId}_emp-${i+1}`, headcount:ri(3,18),
     annualBudget:money(120000,1800000), description:`${d} function for the group`, status:'ACTIVE',
@@ -113,7 +114,7 @@ export function buildDemo(orgId:string) {
     status:p[9],
   }));
   const crews = ['Civil gang A','Concrete crew','Steel fixing team','Electrical team A','Mechanical fitters','Finishing crew','Roadworks gang','Plant operators'].map((c,i)=>add('crews',`crw-${i+1}`,{
-    name:c, projectId:`${orgId}_prj-${(i%3)+1}`, trade:trades[i], crewLeader:`${orgId}_emp-${ri(7,40)}`, size:ri(4,16),
+    name:c, projectId:`${orgId}_prj-${(i%3)+1}`, trade:trades[i], crewLeader:empRef(), size:ri(4,16),
     shift:'06:00 – 17:00 Mon–Sat', members:`${ri(4,16)} operatives`, status:i===7?'STANDBY':'ACTIVE',
   }));
   const taskNames = ['Site establishment & hoarding','Bulk earthworks','Piling and foundations','Substructure concrete','Structural steel erection','Blockwork & masonry','Roof structure','External envelope','MEP first fix','Internal partitions','Electrical containment','Plumbing rough-in','HVAC ducting','Fire protection','Plaster & screeds','Tiling & finishes','Second fix electrical','Commissioning of services','External works & paving','Landscaping','Snagging and de-snagging','Final inspection','As-built documentation','Handover & O&M manuals'];
@@ -121,7 +122,7 @@ export function buildDemo(orgId:string) {
     const pIdx=i%3+1;
     add('tasks',`tsk-${i+1}`,{ name:t, projectId:`${orgId}_prj-${pIdx}`, wbsLevel:pick(['Phase','Work package','Activity','Milestone']), wbsCode:`${pIdx}.${Math.floor(i/4)+1}.${(i%4)+1}`,
       plannedStart:off(-ri(60,240)), plannedEnd:off(ri(-30,220)), actualStart:off(-ri(30,200)), actualEnd:i%5===0?off(-ri(1,90)):null,
-      duration:ri(3,45), progress:i%4===0?100:ri(10,95), assignedTo:`${orgId}_emp-${ri(2,42)}`, priority:pick(['LOW','MEDIUM','HIGH','CRITICAL']),
+      duration:ri(3,45), progress:i%4===0?100:ri(10,95), assignedTo:empRef(), priority:pick(['LOW','MEDIUM','HIGH','CRITICAL']),
       status:i%4===0?'COMPLETE':pick(['IN_PROGRESS','NOT_STARTED','ON_HOLD']),
     });
   });
@@ -143,7 +144,7 @@ export function buildDemo(orgId:string) {
     notes:'Prequalified; current tax clearance and public liability on file.', status:i===6?'SUSPENDED':'ACTIVE',
   }));
   const warehouses = [['Borrowdale central store','WH-BOR','Borrowdale site'],['Pomona plant yard','WH-POM','Pomona industrial site']].map((w,i)=>add('warehouses',`wh-${i+1}`,{
-    name:w[0], code:w[1], location:w[2], storekeeper:`${orgId}_emp-${ri(10,40)}`, phone:`+263 4 ${ri(200,899)} ${ri(1000,9999)}`, notes:'Main stores compound', status:'ACTIVE',
+    name:w[0], code:w[1], location:w[2], storekeeper:empRef(), phone:`+263 4 ${ri(200,899)} ${ri(1000,9999)}`, notes:'Main stores compound', status:'ACTIVE',
   }));
 
   // ---------- Equipment ----------
@@ -159,7 +160,7 @@ export function buildDemo(orgId:string) {
       name:`${e[0]}${i>=12?' #'+(Math.floor(i/12)+1):''}`, assetTag:`KR-AS-${String(2001+i)}`, category:e[1], makeModel:e[2],
       serialNo:`${e[2].slice(0,3)}-${ri(10000,99999)}`, projectId:`${orgId}_prj-${(i%3)+1}`, ownership:i%6===0?'LEASED':'OWNED',
       purchaseDate:off(-ri(200,2200)), purchaseCost:money(18000,420000), hourMeter:ri(120,9800), utilisation:ri(35,95),
-      serviceDue:off(ri(-25,120)), insuranceExpiry:off(ri(10,300)), operator:`${orgId}_emp-${ri(20,42)}`,
+      serviceDue:off(ri(-25,120)), insuranceExpiry:off(ri(10,300)), operator:empRef(),
       status:pick(['ON_SITE','ON_SITE','AVAILABLE','IN_WORKSHOP','RENTED_OUT']),
     });
   }
@@ -167,7 +168,7 @@ export function buildDemo(orgId:string) {
     name:pick(['1,000-hour service','Hydraulic hose replacement','Brake overhaul','Tyre replacement','Electrical fault diagnosis','Annual load test','Calibration of hour meter','Engine oil & filter change']),
     equipmentId:`${orgId}_eq-${i+1}`, projectId:`${orgId}_prj-${(i%3)+1}`, type:pick(['PREVENTIVE','CORRECTIVE','BREAKDOWN','INSPECTION','CALIBRATION']),
     priority:pick(['LOW','MEDIUM','HIGH']), openedDate:off(-ri(5,90)), dueDate:off(ri(-10,40)), closedDate:i%3===0?off(-ri(1,20)):null,
-    cost:money(180,9800), workDescription:'Scheduled maintenance carried out by plant workshop.', assignedTo:`${orgId}_emp-${ri(20,42)}`,
+    cost:money(180,9800), workDescription:'Scheduled maintenance carried out by plant workshop.', assignedTo:empRef(),
     status:pick(['OPEN','IN_PROGRESS','PARTS_PENDING','COMPLETE']),
   });
 
@@ -176,7 +177,7 @@ export function buildDemo(orgId:string) {
   leadNames.forEach((l,i)=>add('leads',`lead-${i+1}`,{
     name:l, clientId:`${orgId}_cli-${(i%9)+1}`, stage:pick(['IDENTIFIED','QUALIFIED','BID_PREP','SUBMITTED','NEGOTIATION','WON','LOST']),
     value:money(1200000,28000000), probability:pick([10,25,40,60,75,90]), workType:pick(['Commercial building','Industrial plant','Infrastructure','Water & utilities','Energy']),
-    dueDate:off(ri(-20,120)), owner:`${orgId}_emp-${ri(7,20)}`, source:pick(['Tender portal','Referral','Repeat client','Public advert']),
+    dueDate:off(ri(-20,120)), owner:empRef(), source:pick(['Tender portal','Referral','Repeat client','Public advert']),
     notes:'Tender documents reviewed by commercial team.', status:pick(['OPEN','OPEN','ON_HOLD','WON','LOST']),
   }));
   for(let i=0;i<4;i++){
@@ -190,7 +191,7 @@ export function buildDemo(orgId:string) {
     });
     add('bids',`bid-${i+1}`,{ name:`Tender – ${leadNames[i]}`, clientId:`${orgId}_cli-${i+1}`, tenderNo:`T/${2026}/${ri(100,999)}`,
       bidValue:money(2000000,26000000), closingDate:off(ri(-60,90)), contractFlavour:pick(['FIDIC Red Book','NEC4 ECC','JBCC']),
-      bidBond:money(20000,260000), outcome:pick(['PENDING','AWARDED','LOST','WITHDRAWN']), estimator:`${orgId}_emp-${ri(7,20)}`, notes:'Addenda 1–3 incorporated.',
+      bidBond:money(20000,260000), outcome:pick(['PENDING','AWARDED','LOST','WITHDRAWN']), estimator:empRef(), notes:'Addenda 1–3 incorporated.',
     });
   }
 
@@ -214,7 +215,7 @@ export function buildDemo(orgId:string) {
   for(let i=0;i<18;i++) add('rfis',`rfi-${i+1}`,{
     subject:rfiSubjects[i%rfiSubjects.length], projectId:`${orgId}_prj-${(i%3)+1}`, specRef:`DRG-${ri(100,999)} / Rev ${pick(['A','B','C'])}`,
     discipline:pick(['Architectural','Structural','Civil','Mechanical','Electrical','Plumbing']), priority:pick(['LOW','MEDIUM','HIGH','CRITICAL']),
-    raisedBy:`${orgId}_emp-${ri(2,20)}`, addressedTo:`${orgId}_con-${ri(1,10)}`, dueDate:off(ri(-25,40)), answeredDate:i%3===0?off(-ri(1,20)):null,
+    raisedBy:empRef(), addressedTo:`${orgId}_con-${ri(1,10)}`, dueDate:off(ri(-25,40)), answeredDate:i%3===0?off(-ri(1,20)):null,
     question:'Please confirm the detail noted on the referenced drawing before procurement is released.',
     response:i%3===0?'Confirmed – proceed as per revision C.':null, status:i%3===0?'CLOSED':pick(['OPEN','ANSWERED','OVERDUE']),
   });
@@ -230,7 +231,7 @@ export function buildDemo(orgId:string) {
     name:pick(['General arrangement – Level 2','Structural foundation layout','MEP coordination drawing','Site establishment plan','Concrete pour method statement','Progress report','HSE site plan','Fire strategy drawing','As-built survey','O&M manual draft'])+` (${i+1})`,
     projectId:`${orgId}_prj-${(i%4)+1}`, drawingNo:`KR-${ri(100,999)}-${pick(['A','E','S','M','C'])}`, revision:pick(['A','B','C','Rev 01','Rev 02']),
     type:pick(docTypes), discipline:pick(['Architectural','Structural','Civil','Mechanical','Electrical','HSE','Commercial']),
-    fileName:`KR-${ri(1000,9999)}-${pick(['GA','STR','MEP'])}-${pick(['A','B','C'])}.pdf`, issuedDate:off(-ri(5,200)), issuedBy:`${orgId}_emp-${ri(2,20)}`,
+    fileName:`KR-${ri(1000,9999)}-${pick(['GA','STR','MEP'])}-${pick(['A','B','C'])}.pdf`, issuedDate:off(-ri(5,200)), issuedBy:empRef(),
     notes:'Controlled copy issued to site and consultant.', status:pick(['CURRENT','CURRENT','FOR_REVIEW','SUPERSEDED','DRAFT']),
   });
   const weather=['Sunny','Cloudy','Rain','Heavy rain','Windy','Hot'];
@@ -239,7 +240,7 @@ export function buildDemo(orgId:string) {
     temperature:ri(14,34), manpower:ri(28,140), plantCount:ri(3,14),
     workDone:`Blinding and reinforcement fixing to Zone ${pick(['A','B','C'])}; ${ri(20,90)}m³ concrete placed; services first fix ongoing.`,
     delays:i%4===0?'Late delivery of rebar; mitigate by resequencing to Zone B.':'No delays recorded.',
-    visitors:i%5===0?'Engineer’s site inspection; client progress visit.':'—', preparedBy:`${orgId}_emp-${ri(3,20)}`, status:i<2?'DRAFT':'APPROVED',
+    visitors:i%5===0?'Engineer’s site inspection; client progress visit.':'—', preparedBy:empRef(), status:i<2?'DRAFT':'APPROVED',
   });
   for(let i=0;i<8;i++) add('meetings',`mtg-${i+1}`,{
     name:`${pick(['Site progress meeting','Technical coordination','Safety committee','Commercial review']) } #${i+1}`,
@@ -266,7 +267,7 @@ export function buildDemo(orgId:string) {
   // ---------- Procurement ----------
   for(let i=0;i<10;i++) add('requisitions',`mr-${i+1}`,{
     name:`${pick(['Cement 32.5R – 500 bags','Rebar Y16 – 12 tonnes','Electrical cable 4mm² – 2,000m','Concrete blocks – 8,000','Copper piping 22mm','Diesel 5,000 litres','Scaffold couplers – 600','Structural steel beams – 9t'])}`,
-    projectId:`${orgId}_prj-${(i%3)+1}`, requestedBy:`${orgId}_emp-${ri(3,40)}`, requiredDate:off(ri(-30,45)), priority:pick(['LOW','MEDIUM','HIGH']),
+    projectId:`${orgId}_prj-${(i%3)+1}`, requestedBy:empRef(), requiredDate:off(ri(-30,45)), priority:pick(['LOW','MEDIUM','HIGH']),
     estimatedValue:money(1800,180000), items:'See attached BOQ extract.', justification:'Required for the current two-week lookahead.',
     status:pick(['DRAFT','SUBMITTED','APPROVED','ORDERED']),
   });
@@ -285,7 +286,7 @@ export function buildDemo(orgId:string) {
     name:`Delivery against ${['PO-0001','PO-0003','PO-0005','PO-0007','PO-0009'][i%5]}`, projectId:`${orgId}_prj-${(i%3)+1}`,
     purchaseOrderId:`${orgId}_po-${(i%16)+1}`, vendorId:`${orgId}_ven-${(i%12)+1}`, receivedDate:off(-ri(2,150)),
     deliveryNote:`DN-${ri(1000,9999)}`, items:'Materials received in good order; quantities verified by storekeeper.',
-    discrepancies:i%5===0?'2 bags damaged – vendor credit note requested.':'None', receivedBy:`${orgId}_emp-${ri(20,42)}`,
+    discrepancies:i%5===0?'2 bags damaged – vendor credit note requested.':'None', receivedBy:empRef(),
     status:pick(['RECEIVED','RECEIVED','PARTIAL','DISPUTED','ACCEPTED']),
   });
   const stockItems=[['Ordinary Portland Cement 32.5R','bag'],['Y16 High-yield Rebar','t'],['Y12 High-yield Rebar','t'],['Concrete blocks 200mm','each'],['Plywood formwork 18mm','m²'],['4mm² PVC cable','m'],['22mm copper pipe','m'],['Diesel','litre'],['Scaffold couplers','each'],['Structural steel IPE 300','t'],['Ceramic floor tiles 600×600','m²'],['Emulsion paint 20L','litre'],['Cable tray 300mm','m'],['Fire extinguisher 9kg','each'],['Safety helmets','each'],['Binding wire','kg'],['Gabion baskets','each'],['Bitumen AC10','t']];
@@ -393,7 +394,7 @@ export function buildDemo(orgId:string) {
   for(let i=0;i<12;i++){
     const amt=money(4000,280000);
     add('journals',`jnl-${i+1}`,{ name:pick(['Monthly cost allocation','Accrual – subcontract certificates','VAT control posting','Payroll allocation to projects','Plant hire recharge','Materials issue to WBS']),
-      date:off(-ri(5,180)), period:pick(['2026-08','2026-09','2026-10','2026-11']), accountId:`${orgId}_acc-${ri(16,25)}`,
+      date:off(-ri(5,180)), period:pick(['2026-08','2026-09','2026-10','2026-11']), accountId:`${orgId}_acc-${ri(1,accountsDefs.length)}`,
       projectId:`${orgId}_prj-${(i%3)+1}`, debit:amt, credit:amt, currency:'USD', narration:'Posted by finance after supporting documents verified.',
       preparedBy:`${orgId}_emp-3`, status:pick(['POSTED','POSTED','DRAFT']),
     });
@@ -457,7 +458,7 @@ export function buildDemo(orgId:string) {
     name:pick(['Steam boiler system','Process water loop','MV distribution board','Compressed air network','Effluent treatment plant','Fire & gas detection system']),
     projectId:`${orgId}_prj-2`, systemCode:`SYS-${ri(100,999)}`, discipline:pick(['Mechanical','Electrical','Instrumentation','Process','HVAC']),
     plannedDate:off(ri(-20,160)), achievedDate:i<2?off(-ri(1,40)):null, status2:pick(['NOT_STARTED','PRE_COMMISSIONING','TESTING','READY_FOR_STARTUP']),
-    leadEngineer:`${orgId}_emp-${ri(2,20)}`, testPacks:'Test packs TP-01 to TP-14 with signed check sheets.', status:pick(['PLANNED','IN_PROGRESS','COMPLETE','HANDED_OVER']),
+    leadEngineer:empRef(), testPacks:'Test packs TP-01 to TP-14 with signed check sheets.', status:pick(['PLANNED','IN_PROGRESS','COMPLETE','HANDED_OVER']),
   });
 
   // ---------- Notifications / audit / comments ----------

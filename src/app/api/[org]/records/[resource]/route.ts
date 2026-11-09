@@ -4,6 +4,7 @@ import { getResource } from '@/lib/resources';
 import { canWrite } from '@/lib/catalog';
 import { listRecords, createRecord, refOptions } from '@/lib/records';
 import { csvCell } from '@/lib/format';
+import { guardResource } from '@/lib/guard';
 
 type Ctx = { params: Promise<{org:string;resource:string}> };
 async function ctx(p: Promise<{org:string;resource:string}>) {
@@ -33,9 +34,10 @@ export async function GET(req: Request, { params }: Ctx) {
   return NextResponse.json(result);
 }
 export async function POST(req: Request, { params }: Ctx) {
-  const { a, def } = await ctx(params);
+  const { a, def, resource } = await ctx(params);
   if (!a) return NextResponse.json({ error:'Unauthorized' }, { status:401 });
   if (!def) return NextResponse.json({ error:'Unknown resource' }, { status:404 });
+  const g = guardResource(a.config, resource); if (g) return g;
   if (!canWrite(a.role, def.id)) return NextResponse.json({ error:'Your role cannot create records here' }, { status:403 });
   const body = await req.json();
   const result = await createRecord(a.orgId, a.userId, a.name, def, body);

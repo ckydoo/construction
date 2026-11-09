@@ -9,7 +9,7 @@ const months = ['Jun','Jul','Aug','Sep','Oct','Nov'];
 export async function GET(_req:Request,{params}:{params:Promise<{org:string}>}){
   const { org } = await params;
   const a = await apiAuth(org); if(!a) return NextResponse.json({error:'Unauthorized'},{status:401});
-  const ids = ['projects','clients','employees','equipment','rfis','changeOrders','incidents','certifications','inventory','timesheets','arInvoices','apBills','payments','paymentApps','budgets','purchaseOrders','leads','tasks','punchLists','toolboxTalks','inspections'];
+  const ids = ['projects','clients','employees','equipment','rfis','changeOrders','incidents','certifications','inventory','timesheets','arInvoices','apBills','payments','paymentApps','budgets','purchaseOrders','leads','tasks','punchLists','toolboxTalks','inspections'].filter(r=>a.config.resources.includes(r));
   const data: Record<string,any[]> = {};
   await Promise.all(ids.map(async r => { data[r] = await rowsFor(a.orgId, r); }));
   const [notifications, audit, counts] = await Promise.all([

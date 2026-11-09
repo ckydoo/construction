@@ -27,6 +27,19 @@ export function validate(def: ResourceDef, input: Record<string, any>): { ok:boo
   return { ok:Object.keys(errors).length===0, errors, clean };
 }
 
+export async function validateRefs(orgId:string, def:ResourceDef, clean:Record<string,any>): Promise<Record<string,string>> {
+  const errors:Record<string,string> = {};
+  const refs = def.fields.filter(f => f.type==='ref' && f.ref && clean[f.key] !== null && clean[f.key] !== undefined && clean[f.key] !== '');
+  await Promise.all(refs.map(async f => {
+    const found = await prisma.record.findFirst({
+      where:{ id:String(clean[f.key]), organizationId:orgId, resource:f.ref!, deletedAt:null },
+      select:{ id:true },
+    });
+    if(!found) errors[f.key] = `${f.label} must link to an existing ${f.ref} record`;
+  }));
+  return errors;
+}
+
 function toRow(rec: any): Row {
   let data: Record<string,any> = {};
   try { data = JSON.parse(rec.data || '{}'); } catch {}
@@ -61,19 +74,24 @@ export async function listRecords(orgId:string, def:ResourceDef, p:ListParams) {
   const total = await prisma.record.count({ where });
   const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
   const page = Math.max(Number(p.page)||1, 1);
-  const orderBy: any = p.sort && !['id','createdAt','updatedAt','title','status','number','projectId'].includes(p.sort)
+  const baseColumns = ['id','createdAt','updatedAt','title','status','number','projectId'];
+  const dataSort = !!p.sort && !baseColumns.includes(p.sort);
+  const orderBy: any = dataSort
     ? { createdAt:'desc' }
     : { [p.sort || 'createdAt']: p.dir === 'asc' ? 'asc' : 'desc' };
-  const pagination: { skip?:number; take:number } = p.all ? { take:500 } : { skip:(page-1)*pageSize, take:pageSize };
+  // Data-backed columns are sorted in memory: fetch everything, sort, THEN paginate.
+  const pagination: { skip?:number; take:number } = (p.all || dataSort)
+    ? { take:10000 }
+    : { skip:(page-1)*pageSize, take:pageSize };
   const recs = await prisma.record.findMany({ where, orderBy, ...pagination });
-  const rows = recs.map(toRow);
-  // In-memory sort for data-backed columns
-  if (p.sort && !['id','createdAt','updatedAt','title','status','number','projectId'].includes(p.sort)) {
+  let rows = recs.map(toRow);
+  if (dataSort) {
     rows.sort((a,b)=>{
       const av=a[p.sort!], bv=b[p.sort!];
       if (typeof av==='number' && typeof bv==='number') return p.dir==='asc'?av-bv:bv-av;
       return p.dir==='asc'?String(av??'').localeCompare(String(bv??'')):String(bv??'').localeCompare(String(av??''));
     });
+    if(!p.all) rows = rows.slice((page-1)*pageSize, page*pageSize);
   }
   return { rows, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
 }
@@ -90,7 +108,8 @@ export async function refOptions(orgId:string, def:ResourceDef, limit=300) {
 
 export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>) {
   const v = validate(def, input);
-  if (!v.ok) return { ok:false as const, errors:v.errors };
+  const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
+  if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
   const number = await nextNumber(orgId, def);
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
@@ -107,8 +126,12 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
 export async function updateRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, id:string, input:Record<string,any>) {
   const existing = await prisma.record.findFirst({ where:{id, organizationId:orgId, resource:def.id, deletedAt:null} });
   if (!existing) return { ok:false as const, errors:{ _:'Record not found' } };
-  const v = validate(def, input);
-  if (!v.ok) return { ok:false as const, errors:v.errors };
+  let prior:Record<string,any> = {};
+  try { prior = JSON.parse(existing.data || '{}'); } catch {}
+  // PATCH semantics: only supplied keys change; all other fields are preserved.
+  const v = validate(def, { ...prior, ...input });
+  const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
+  if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
   const title = String(v.clean[def.titleKey] || existing.title || existing.number);
@@ -127,9 +150,9 @@ export async function deleteRecord(orgId:string, userId:string|undefined, actor:
 }
 
 export async function deleteMany(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, ids:string[]) {
-  await prisma.record.updateMany({ where:{ id:{in:ids}, organizationId:orgId, resource:def.id, deletedAt:null }, data:{deletedAt:new Date()} });
-  await logActivity(orgId, userId, actor, 'DELETE', def.id, `Deleted ${ids.length} ${def.label.toLowerCase()}`);
-  return { ok:true as const, count:ids.length };
+  const res = await prisma.record.updateMany({ where:{ id:{in:ids}, organizationId:orgId, resource:def.id, deletedAt:null }, data:{deletedAt:new Date()} });
+  await logActivity(orgId, userId, actor, 'DELETE', def.id, `Deleted ${res.count} ${def.label.toLowerCase()}`);
+  return { ok:true as const, count:res.count };
 }
 
 export async function statsFor(orgId:string) {

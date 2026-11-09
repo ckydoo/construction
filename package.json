@@ -12,7 +12,9 @@
     "db:reset": "rm -f prisma/dev.db && npx prisma db push && node scripts/seed.mjs",
     "preview": "npm run build && npm run start",
     "start:prod": "node scripts/prod-start.mjs",
-    "db:postgres": "node scripts/switch-provider.mjs"
+    "db:postgres": "node scripts/switch-provider.mjs",
+    "audit": "tsx scripts/audit-defs.ts > /tmp/defs.json && python3 scripts/audit.py",
+    "audit:defs": "tsx scripts/audit-defs.ts > /tmp/defs.json"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

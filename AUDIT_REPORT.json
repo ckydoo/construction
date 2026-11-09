@@ -1,0 +1,6174 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "marker": "QA8AE678",
+  "resources": 49,
+  "modules": 33,
+  "checks": 1023,
+  "failures": [],
+  "by_section": {
+    "auth": {
+      "total": 1,
+      "failed": 0
+    },
+    "crud": {
+      "total": 976,
+      "failed": 0
+    },
+    "connectivity": {
+      "total": 28,
+      "failed": 0
+    },
+    "rbac": {
+      "total": 7,
+      "failed": 0
+    },
+    "gating": {
+      "total": 10,
+      "failed": 0
+    },
+    "isolation": {
+      "total": 1,
+      "failed": 0
+    }
+  },
+  "results": [
+    {
+      "section": "auth",
+      "check": "owner login",
+      "ok": true,
+      "detail": "{\"ok\":true,\"slug\":\"kestrel-ridge\",\"onboarded\":true,\"name\":\"Tendai Muchengeti\",\"role\":\"OWNER\"}"
+    },
+    {
+      "section": "crud:clients",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 clients\",\"type\":\"Private developer\",\"registrationNo\":\"QA8AE678 registrationNo\",\"industry\":\"QA8AE678 industry\",\"email\":\"qa.qa8"
+    },
+    {
+      "section": "crud:clients",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CLI-0010"
+    },
+    {
+      "section": "crud:clients",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 clients vs QA8AE678 clients"
+    },
+    {
+      "section": "crud:clients",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:clients",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED clients\",\"type\":\"Private developer\",\"registrationNo\":\"QA8AE678 registrationNo\",\"industry\":\"QA8AE678 industry\",\"email\""
+    },
+    {
+      "section": "crud:clients",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('registrationNo', 'QA8AE678 registrationNo'): got QA8AE678 registrationNo"
+    },
+    {
+      "section": "crud:clients",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED clients"
+    },
+    {
+      "section": "crud:clients",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:clients",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:clients",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:clients",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:clients",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 contacts\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"jobTitle\":\"QA8AE678 jobTitle\",\"email\":\"qa.qa8ae678@example.co.zw\",\"ph"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CON-0011"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 contacts vs QA8AE678 contacts"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED contacts\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"jobTitle\":\"QA8AE678 jobTitle\",\"email\":\"qa.qa8ae678@example.co"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('jobTitle', 'QA8AE678 jobTitle'): got QA8AE678 jobTitle"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED contacts"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:contacts",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:leads",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 leads\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workType\":\"Comm"
+    },
+    {
+      "section": "crud:leads",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "OPP-0007"
+    },
+    {
+      "section": "crud:leads",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 leads vs QA8AE678 leads"
+    },
+    {
+      "section": "crud:leads",
+      "check": "status default",
+      "ok": true,
+      "detail": "OPEN"
+    },
+    {
+      "section": "crud:leads",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED leads\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workTyp"
+    },
+    {
+      "section": "crud:leads",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('value', 123.45): got 123.45"
+    },
+    {
+      "section": "crud:leads",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED leads"
+    },
+    {
+      "section": "crud:leads",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:leads",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:leads",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leads",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:leads",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 estimates\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"leadId\":\"cmw8yx9uf0000nzdc7szr26fo_lead-5\",\"workType\":\"Commercial bu"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "EST-0005"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 estimates vs QA8AE678 estimates"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED estimates\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"leadId\":\"cmw8yx9uf0000nzdc7szr26fo_lead-5\",\"workType\":\"Comme"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('labourCost', 123.45): got 123.45"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED estimates"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:estimates",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:bids",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 bids\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"tenderNo\":\"QA8AE678 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"2026-11-07"
+    },
+    {
+      "section": "crud:bids",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "BID-0005"
+    },
+    {
+      "section": "crud:bids",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 bids vs QA8AE678 bids"
+    },
+    {
+      "section": "crud:bids",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED bids\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"tenderNo\":\"QA8AE678 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"20"
+    },
+    {
+      "section": "crud:bids",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('tenderNo', 'QA8AE678 tenderNo'): got QA8AE678 tenderNo"
+    },
+    {
+      "section": "crud:bids",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED bids"
+    },
+    {
+      "section": "crud:bids",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:bids",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:bids",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:bids",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:bids",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:projects",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 projects\",\"code\":\"QA8AE678 code\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"type\":\"Commercial building\",\"contractFlavour\":"
+    },
+    {
+      "section": "crud:projects",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PRJ-0006"
+    },
+    {
+      "section": "crud:projects",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 projects vs QA8AE678 projects"
+    },
+    {
+      "section": "crud:projects",
+      "check": "status default",
+      "ok": true,
+      "detail": "BID"
+    },
+    {
+      "section": "crud:projects",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED projects\",\"code\":\"QA8AE678 code\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"type\":\"Commercial building\",\"contractF"
+    },
+    {
+      "section": "crud:projects",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('code', 'QA8AE678 code'): got QA8AE678 code"
+    },
+    {
+      "section": "crud:projects",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED projects"
+    },
+    {
+      "section": "crud:projects",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:projects",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:projects",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:projects",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:projects",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 tasks\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QA8AE678 wbsCode\",\"parentId\":\"cmw8yx9uf000"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "TSK-0025"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 tasks vs QA8AE678 tasks"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "status default",
+      "ok": true,
+      "detail": "NOT_STARTED"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED tasks\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QA8AE678 wbsCode\",\"parentId\":\"cmw8"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('wbsCode', 'QA8AE678 wbsCode'): got QA8AE678 wbsCode"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED tasks"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:tasks",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 contracts\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"counterparty\":\"cmw8yx9"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CTR-0007"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 contracts vs QA8AE678 contracts"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED contracts\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"counterparty\":"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('value', 123.45): got 123.45"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED contracts"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:contracts",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 changeOrders\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"reference\":\"QA8AE678 reference\",\"reason\":\"Client change\",\"amount"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CO-0013"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 changeOrders vs QA8AE678 changeOrders"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED changeOrders\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"reference\":\"QA8AE678 reference\",\"reason\":\"Client change\""
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('reference', 'QA8AE678 reference'): got QA8AE678 reference"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED changeOrders"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:changeOrders",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"subject\":\"QA8AE678 rfis\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"specRef\":\"QA8AE678 specRef\",\"discipline\":\"Architectural\",\"priority\":\""
+    },
+    {
+      "section": "crud:rfis",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "RFI-0019"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 rfis vs QA8AE678 rfis"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "status default",
+      "ok": true,
+      "detail": "OPEN"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"subject\":\"QA8AE678 UPDATED rfis\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"specRef\":\"QA8AE678 specRef\",\"discipline\":\"Architectural\",\"pri"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('specRef', 'QA8AE678 specRef'): got QA8AE678 specRef"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED rfis"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:rfis",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 submittals\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"package\":\"QA8AE678 package\",\"type\":\"Shop drawing\",\"submittedBy\":\"c"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "SUB-0013"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 submittals vs QA8AE678 submittals"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "status default",
+      "ok": true,
+      "detail": "PENDING"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED submittals\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"package\":\"QA8AE678 package\",\"type\":\"Shop drawing\",\"submitt"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('package', 'QA8AE678 package'): got QA8AE678 package"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED submittals"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:submittals",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:documents",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 documents\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"drawingNo\":\"QA8AE678 drawingNo\",\"revision\":\"QA8AE678 revision\",\"typ"
+    },
+    {
+      "section": "crud:documents",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "DOC-0021"
+    },
+    {
+      "section": "crud:documents",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 documents vs QA8AE678 documents"
+    },
+    {
+      "section": "crud:documents",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:documents",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED documents\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"drawingNo\":\"QA8AE678 drawingNo\",\"revision\":\"QA8AE678 revisi"
+    },
+    {
+      "section": "crud:documents",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('drawingNo', 'QA8AE678 drawingNo'): got QA8AE678 drawingNo"
+    },
+    {
+      "section": "crud:documents",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED documents"
+    },
+    {
+      "section": "crud:documents",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:documents",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:documents",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:documents",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:documents",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 dailyLogs\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\"manpower"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "DL-0031"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 dailyLogs vs QA8AE678 dailyLogs"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED dailyLogs\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\""
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED dailyLogs"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:dailyLogs",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 meetings\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QA8AE678 location\",\"type\":\"Site progr"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "MTG-0009"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 meetings vs QA8AE678 meetings"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "status default",
+      "ok": true,
+      "detail": "SCHEDULED"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED meetings\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QA8AE678 location\",\"type\":\"Si"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED meetings"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:meetings",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 punchLists\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"location\":\"QA8AE678 location\",\"trade\":\"General labour\",\"assignedTo"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PNC-0019"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 punchLists vs QA8AE678 punchLists"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "status default",
+      "ok": true,
+      "detail": "OPEN"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED punchLists\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"location\":\"QA8AE678 location\",\"trade\":\"General labour\",\"as"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('location', 'QA8AE678 location'): got QA8AE678 location"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED punchLists"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:punchLists",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:permits",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 permits\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"authority\":\"QA8AE678 authority\",\"type\":\"Building permit\",\"referenceNo"
+    },
+    {
+      "section": "crud:permits",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PMT-0009"
+    },
+    {
+      "section": "crud:permits",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 permits vs QA8AE678 permits"
+    },
+    {
+      "section": "crud:permits",
+      "check": "status default",
+      "ok": true,
+      "detail": "PENDING"
+    },
+    {
+      "section": "crud:permits",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED permits\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"authority\":\"QA8AE678 authority\",\"type\":\"Building permit\",\"ref"
+    },
+    {
+      "section": "crud:permits",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('authority', 'QA8AE678 authority'): got QA8AE678 authority"
+    },
+    {
+      "section": "crud:permits",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED permits"
+    },
+    {
+      "section": "crud:permits",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:permits",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:permits",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:permits",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:permits",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QA8AE678 registrationNo\",\"email\":\"qa.qa8ae678@example.co.zw\",\"phon"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "VEN-0013"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 vendors vs QA8AE678 vendors"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "status default",
+      "ok": true,
+      "detail": "PREFERRED"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QA8AE678 registrationNo\",\"email\":\"qa.qa8ae678@example.co.z"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('registrationNo', 'QA8AE678 registrationNo'): got QA8AE678 registrationNo"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED vendors"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:vendors",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QA8AE678 registrationNo\",\"contactPerson\":\"QA8AE678 contactPerson\",\""
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "SC-0009"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 subcontractors vs QA8AE678 subcontractors"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "status default",
+      "ok": true,
+      "detail": "PREQUALIFIED"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QA8AE678 registrationNo\",\"contactPerson\":\"QA8AE678 contactP"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('registrationNo', 'QA8AE678 registrationNo'): got QA8AE678 registrationNo"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED subcontractors"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:subcontractors",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 requisitions\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"requestedBy\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"requiredDate\":\"2"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "MR-0011"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 requisitions vs QA8AE678 requisitions"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED requisitions\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"requestedBy\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"required"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('requiredDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED requisitions"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:requisitions",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 purchaseOrders\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ven-3\",\"requisitionId\":\"c"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PO-0017"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 purchaseOrders vs QA8AE678 purchaseOrders"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED purchaseOrders\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ven-3\",\"requisiti"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('orderDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED purchaseOrders"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:purchaseOrders",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 goodsReceipts\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"purchaseOrderId\":\"cmw8yx9uf0000nzdc7szr26fo_po-5\",\"vendorId\":\"c"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "GRN-0011"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 goodsReceipts vs QA8AE678 goodsReceipts"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED goodsReceipts\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"purchaseOrderId\":\"cmw8yx9uf0000nzdc7szr26fo_po-5\",\"vend"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('receivedDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED goodsReceipts"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:goodsReceipts",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 inventory\",\"sku\":\"QA8AE678 sku\",\"warehouseId\":\"cmw8yx9uf0000nzdc7szr26fo_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,\"reorder"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "STK-0019"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 inventory vs QA8AE678 inventory"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "status default",
+      "ok": true,
+      "detail": "IN_STOCK"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED inventory\",\"sku\":\"QA8AE678 sku\",\"warehouseId\":\"cmw8yx9uf0000nzdc7szr26fo_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('sku', 'QA8AE678 sku'): got QA8AE678 sku"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED inventory"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:inventory",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 warehouses\",\"code\":\"QA8AE678 code\",\"location\":\"QA8AE678 location\",\"storekeeper\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"phone\":\"+2"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "WH-0003"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 warehouses vs QA8AE678 warehouses"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED warehouses\",\"code\":\"QA8AE678 code\",\"location\":\"QA8AE678 location\",\"storekeeper\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"ph"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('code', 'QA8AE678 code'): got QA8AE678 code"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED warehouses"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:warehouses",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 equipment\",\"assetTag\":\"QA8AE678 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QA8AE678 makeModel\",\"serialNo\":\"QA8AE678 serial"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "EQ-0029"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 equipment vs QA8AE678 equipment"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "status default",
+      "ok": true,
+      "detail": "AVAILABLE"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED equipment\",\"assetTag\":\"QA8AE678 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QA8AE678 makeModel\",\"serialNo\":\"QA8AE67"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('assetTag', 'QA8AE678 assetTag'): got QA8AE678 assetTag"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED equipment"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:equipment",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 workOrders\",\"equipmentId\":\"cmw8yx9uf0000nzdc7szr26fo_eq-20\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"type\":\"PREVENTIVE\""
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "WO-0009"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 workOrders vs QA8AE678 workOrders"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "status default",
+      "ok": true,
+      "detail": "OPEN"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED workOrders\",\"equipmentId\":\"cmw8yx9uf0000nzdc7szr26fo_eq-20\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"type\":\"PRE"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('openedDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED workOrders"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:workOrders",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:employees",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 employees\",\"employeeNo\":\"QA8AE678 employeeNo\",\"email\":\"qa.qa8ae678@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitle\":\"QA8A"
+    },
+    {
+      "section": "crud:employees",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "EMP-0041"
+    },
+    {
+      "section": "crud:employees",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 employees vs QA8AE678 employees"
+    },
+    {
+      "section": "crud:employees",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:employees",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED employees\",\"employeeNo\":\"QA8AE678 employeeNo\",\"email\":\"qa.qa8ae678@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitl"
+    },
+    {
+      "section": "crud:employees",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('employeeNo', 'QA8AE678 employeeNo'): got QA8AE678 employeeNo"
+    },
+    {
+      "section": "crud:employees",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED employees"
+    },
+    {
+      "section": "crud:employees",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:employees",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:employees",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:employees",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:employees",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:departments",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 departments\",\"code\":\"QA8AE678 code\",\"head\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45,\"descri"
+    },
+    {
+      "section": "crud:departments",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "DEP-0009"
+    },
+    {
+      "section": "crud:departments",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 departments vs QA8AE678 departments"
+    },
+    {
+      "section": "crud:departments",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:departments",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED departments\",\"code\":\"QA8AE678 code\",\"head\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45"
+    },
+    {
+      "section": "crud:departments",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('code', 'QA8AE678 code'): got QA8AE678 code"
+    },
+    {
+      "section": "crud:departments",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED departments"
+    },
+    {
+      "section": "crud:departments",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:departments",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:departments",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:departments",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:departments",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:crews",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 crews\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\","
+    },
+    {
+      "section": "crud:crews",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CRW-0009"
+    },
+    {
+      "section": "crud:crews",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 crews vs QA8AE678 crews"
+    },
+    {
+      "section": "crud:crews",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:crews",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED crews\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw8yx9uf0000nzdc7szr26fo"
+    },
+    {
+      "section": "crud:crews",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('size', 123.45): got 123.45"
+    },
+    {
+      "section": "crud:crews",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED crews"
+    },
+    {
+      "section": "crud:crews",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:crews",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:crews",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:crews",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:crews",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 timesheets\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"weekStart\":\"2026-11"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "TS-0041"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 timesheets vs QA8AE678 timesheets"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED timesheets\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"weekStart\":"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('weekStart', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED timesheets"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:timesheets",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 leaveRequests\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\":\"2026-1"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "LV-0009"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 leaveRequests vs QA8AE678 leaveRequests"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "status default",
+      "ok": true,
+      "detail": "PENDING"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED leaveRequests\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\""
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('startDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED leaveRequests"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:leaveRequests",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45,\"netPay"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PAY-0004"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 payRuns vs QA8AE678 payRuns"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('periodStart', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED payRuns"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:payRuns",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 expenses\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"category\":\"Travel\",\"e"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "EXP-0013"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 expenses vs QA8AE678 expenses"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED expenses\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"category\":\"Tr"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('expenseDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED expenses"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:expenses",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 certifications\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QA8AE678 issuingBody\",\"refe"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "CERT-0017"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 certifications vs QA8AE678 certifications"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "status default",
+      "ok": true,
+      "detail": "VALID"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED certifications\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QA8AE678 issuingBod"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('issuingBody', 'QA8AE678 issuingBody'): got QA8AE678 issuingBody"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED certifications"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:certifications",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:training",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QA8AE678 provider\",\"attendees\":\"QA8AE678 notes for attendees\",\"a"
+    },
+    {
+      "section": "crud:training",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "TRN-0009"
+    },
+    {
+      "section": "crud:training",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 training vs QA8AE678 training"
+    },
+    {
+      "section": "crud:training",
+      "check": "status default",
+      "ok": true,
+      "detail": "PLANNED"
+    },
+    {
+      "section": "crud:training",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QA8AE678 provider\",\"attendees\":\"QA8AE678 notes for atten"
+    },
+    {
+      "section": "crud:training",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:training",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED training"
+    },
+    {
+      "section": "crud:training",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:training",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:training",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:training",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:training",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 toolboxTalks\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QA8AE678 lo"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "TBT-0011"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 toolboxTalks vs QA8AE678 toolboxTalks"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "status default",
+      "ok": true,
+      "detail": "SCHEDULED"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED toolboxTalks\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QA8"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED toolboxTalks"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:toolboxTalks",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 incidents\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\",\"locatio"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "INC-0007"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 incidents vs QA8AE678 incidents"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "status default",
+      "ok": true,
+      "detail": "REPORTED"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED incidents\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\","
+    },
+    {
+      "section": "crud:incidents",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('dateTime', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED incidents"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:incidents",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 inspections\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw8yx9uf000"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "INS-0011"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 inspections vs QA8AE678 inspections"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "status default",
+      "ok": true,
+      "detail": "SCHEDULED"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED inspections\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw8"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED inspections"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:inspections",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 ncrs\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MINOR\",\"ra"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "NCR-0009"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 ncrs vs QA8AE678 ncrs"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "status default",
+      "ok": true,
+      "detail": "OPEN"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED ncrs\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MI"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('raisedDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED ncrs"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:ncrs",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:itps",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 itps\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"discipline\":\"QA8AE678 discipline\",\"type\":\"Concrete pour\",\"plannedDate\":\""
+    },
+    {
+      "section": "crud:itps",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "ITP-0009"
+    },
+    {
+      "section": "crud:itps",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 itps vs QA8AE678 itps"
+    },
+    {
+      "section": "crud:itps",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:itps",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED itps\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"discipline\":\"QA8AE678 discipline\",\"type\":\"Concrete pour\",\"planne"
+    },
+    {
+      "section": "crud:itps",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('discipline', 'QA8AE678 discipline'): got QA8AE678 discipline"
+    },
+    {
+      "section": "crud:itps",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED itps"
+    },
+    {
+      "section": "crud:itps",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:itps",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:itps",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:itps",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:itps",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 accounts\",\"code\":\"QA8AE678 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\":\"cmw8yx"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "ACC-0025"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 accounts vs QA8AE678 accounts"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "status default",
+      "ok": true,
+      "detail": "ACTIVE"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED accounts\",\"code\":\"QA8AE678 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\""
+    },
+    {
+      "section": "crud:accounts",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('code', 'QA8AE678 code'): got QA8AE678 code"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED accounts"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:accounts",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:journals",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 journals\",\"date\":\"2026-11-07\",\"period\":\"QA8AE678 period\",\"accountId\":\"cmw8yx9uf0000nzdc7szr26fo_acc-1\",\"projectId\":\"cmw8yx9uf"
+    },
+    {
+      "section": "crud:journals",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "JNL-0013"
+    },
+    {
+      "section": "crud:journals",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 journals vs QA8AE678 journals"
+    },
+    {
+      "section": "crud:journals",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:journals",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED journals\",\"date\":\"2026-11-07\",\"period\":\"QA8AE678 period\",\"accountId\":\"cmw8yx9uf0000nzdc7szr26fo_acc-1\",\"projectId\":\"c"
+    },
+    {
+      "section": "crud:journals",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('date', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:journals",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED journals"
+    },
+    {
+      "section": "crud:journals",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:journals",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:journals",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:journals",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:journals",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 budgets\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"costCode\":\"QA8AE678 costCode\",\"category\":\"Labour\",\"originalBudget\":12"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "BUD-0016"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 budgets vs QA8AE678 budgets"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED budgets\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"costCode\":\"QA8AE678 costCode\",\"category\":\"Labour\",\"originalBu"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('costCode', 'QA8AE678 costCode'): got QA8AE678 costCode"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED budgets"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:budgets",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 arInvoices\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"invoiceDate\":\"2026-11"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "INV-0015"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 arInvoices vs QA8AE678 arInvoices"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED arInvoices\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"invoiceDate\":"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('invoiceDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED arInvoices"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:arInvoices",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 paymentApps\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"certificateNo\":123.4"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PC-0009"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 paymentApps vs QA8AE678 paymentApps"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED paymentApps\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"certificateN"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('certificateNo', 123.45): got 123.45"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED paymentApps"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:paymentApps",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 apBills\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ven-3\",\"purchaseOrderId\":\"cmw8yx"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "BILL-0017"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 apBills vs QA8AE678 apBills"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED apBills\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ven-3\",\"purchaseOrderId\""
+    },
+    {
+      "section": "crud:apBills",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('vendorInvoiceNo', 'QA8AE678 vendorInvoiceNo'): got QA8AE678 vendorInvoiceNo"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED apBills"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:apBills",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:payments",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ven-3\",\"pr"
+    },
+    {
+      "section": "crud:payments",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "PYM-0015"
+    },
+    {
+      "section": "crud:payments",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 payments vs QA8AE678 payments"
+    },
+    {
+      "section": "crud:payments",
+      "check": "status default",
+      "ok": true,
+      "detail": "PENDING"
+    },
+    {
+      "section": "crud:payments",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_ve"
+    },
+    {
+      "section": "crud:payments",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('paymentDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:payments",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED payments"
+    },
+    {
+      "section": "crud:payments",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:payments",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:payments",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:payments",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:payments",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:units",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 units\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"block\":\"QA8AE678 block\",\"type\":\"Apartment\",\"area\":123.45,\"askingPrice\":"
+    },
+    {
+      "section": "crud:units",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "UN-0011"
+    },
+    {
+      "section": "crud:units",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 units vs QA8AE678 units"
+    },
+    {
+      "section": "crud:units",
+      "check": "status default",
+      "ok": true,
+      "detail": "AVAILABLE"
+    },
+    {
+      "section": "crud:units",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED units\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"block\":\"QA8AE678 block\",\"type\":\"Apartment\",\"area\":123.45,\"askin"
+    },
+    {
+      "section": "crud:units",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('block', 'QA8AE678 block'): got QA8AE678 block"
+    },
+    {
+      "section": "crud:units",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED units"
+    },
+    {
+      "section": "crud:units",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:units",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:units",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:units",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:units",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 rentalContracts\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"equipmentId\":\"cmw8yx9uf0000nzdc7szr26fo_eq-20\",\"projectId\":\"cm"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "RNT-0007"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 rentalContracts vs QA8AE678 rentalContracts"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "status default",
+      "ok": true,
+      "detail": "DRAFT"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED rentalContracts\",\"clientId\":\"cmw8yx9uf0000nzdc7szr26fo_cli-6\",\"equipmentId\":\"cmw8yx9uf0000nzdc7szr26fo_eq-20\",\"projec"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('startDate', '2026-11-07'): got 2026-11-07"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED rentalContracts"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:rentalContracts",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "list",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "refs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "create",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 commissioning\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"systemCode\":\"QA8AE678 systemCode\",\"discipline\":\"Mechanical\",\"pl"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "sequence number",
+      "ok": true,
+      "detail": "COM-0007"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "title derived",
+      "ok": true,
+      "detail": "QA8AE678 commissioning vs QA8AE678 commissioning"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "status default",
+      "ok": true,
+      "detail": "PLANNED"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "detail shape",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "partial update",
+      "ok": true,
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA8AE678 UPDATED commissioning\",\"projectId\":\"cmw8yx9uf0000nzdc7szr26fo_prj-5\",\"systemCode\":\"QA8AE678 systemCode\",\"discipline\":\"Mechani"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "update preserves other fields",
+      "ok": true,
+      "detail": "('systemCode', 'QA8AE678 systemCode'): got QA8AE678 systemCode"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "title updated",
+      "ok": true,
+      "detail": "QA8AE678 UPDATED commissioning"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "comment create",
+      "ok": true,
+      "detail": "HTTP 201"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "comment visible",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "search finds record",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "status filter",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "csv export",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "sort",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "validation rejects empty",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "soft-delete hides detail",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "crud:commissioning",
+      "check": "bulk delete",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"count\":2}"
+    },
+    {
+      "section": "connectivity",
+      "check": "client \u2192 project link",
+      "ok": true,
+      "detail": "client=cmw8yywok00zjnzjg2v4r33kd project=cmw8yywov00zpnzjgxojabjnc"
+    },
+    {
+      "section": "connectivity",
+      "check": "create estimates linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 estimates\",\"clientId\":\"cmw8yywok00zjnzjg2v4r33kd\",\"leadId\":\"cmw8yx9uf0000nzdc7szr26fo_lead-5\",\""
+    },
+    {
+      "section": "connectivity",
+      "check": "create contracts linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 contracts\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"clientId\":\"cmw8yywok00zjnzjg2v4r33kd\",\"coun"
+    },
+    {
+      "section": "connectivity",
+      "check": "create arInvoices linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 arInvoices\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"clientId\":\"cmw8yywok00zjnzjg2v4r33kd\",\"inv"
+    },
+    {
+      "section": "connectivity",
+      "check": "create paymentApps linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 paymentApps\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"clientId\":\"cmw8yywok00zjnzjg2v4r33kd\",\"ce"
+    },
+    {
+      "section": "connectivity",
+      "check": "create rfis linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"subject\":\"QA8AE678 rfis\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"specRef\":\"QA8AE678 specRef\",\"discipline\":\"Arc"
+    },
+    {
+      "section": "connectivity",
+      "check": "create submittals linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 submittals\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"package\":\"QA8AE678 package\",\"type\":\"Shop d"
+    },
+    {
+      "section": "connectivity",
+      "check": "create changeOrders linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 changeOrders\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"reference\":\"QA8AE678 reference\",\"reason\""
+    },
+    {
+      "section": "connectivity",
+      "check": "create dailyLogs linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 dailyLogs\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"tempe"
+    },
+    {
+      "section": "connectivity",
+      "check": "create purchaseOrders linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 purchaseOrders\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"vendorId\":\"cmw8yx9uf0000nzdc7szr26fo_v"
+    },
+    {
+      "section": "connectivity",
+      "check": "create timesheets linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 timesheets\",\"employeeId\":\"cmw8yx9uf0000nzdc7szr26fo_emp-9\",\"projectId\":\"cmw8yywov00zpnzjgxojabj"
+    },
+    {
+      "section": "connectivity",
+      "check": "create incidents linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 incidents\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\""
+    },
+    {
+      "section": "connectivity",
+      "check": "create tasks linked to project",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA8AE678 tasks\",\"projectId\":\"cmw8yywov00zpnzjgxojabjnc\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QA8AE678 wbsCode\","
+    },
+    {
+      "section": "connectivity",
+      "check": "project 360 endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds contracts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds arInvoices",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds paymentApps",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds rfis",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds submittals",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds changeOrders",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds dailyLogs",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds purchaseOrders",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds timesheets",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds incidents",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "project filter finds tasks",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "global search spans modules",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "overview aggregates",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "connectivity",
+      "check": "invalid project reference rejected",
+      "ok": true,
+      "detail": "HTTP 400 {\"error\":\"Validation failed\",\"errors\":{\"projectId\":\"Project must link to an existing projects record\"}}"
+    },
+    {
+      "section": "rbac",
+      "check": "portal login",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "rbac",
+      "check": "portal can read",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "rbac",
+      "check": "portal cannot create",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "rbac",
+      "check": "portal cannot edit",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "rbac",
+      "check": "portal cannot delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "rbac",
+      "check": "portal cannot bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "rbac",
+      "check": "unauthenticated blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "gating",
+      "check": "disable module",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "gating",
+      "check": "disabled list blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled create blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled detail blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled edit blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled delete blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled bulk blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "disabled csv blocked",
+      "ok": true,
+      "detail": "HTTP 403 {\"error\":\"This module is not enabled for your workspace\"}"
+    },
+    {
+      "section": "gating",
+      "check": "re-enable module",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "gating",
+      "check": "list works again",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "isolation",
+      "check": "unknown org rejected",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

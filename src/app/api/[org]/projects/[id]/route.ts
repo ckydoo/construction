@@ -9,7 +9,7 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;id:s
   const a = await apiAuth(org); if(!a) return NextResponse.json({error:'Unauthorized'},{status:401});
   const project = await getRecord(a.orgId,'projects',id);
   if(!project) return NextResponse.json({error:'Project not found'},{status:404});
-  const related = ['tasks','contracts','changeOrders','rfis','submittals','documents','dailyLogs','meetings','punchLists','permits','budgets','arInvoices','paymentApps','purchaseOrders','timesheets','incidents','inspections','ncrs','equipment','crews','expenses'];
+  const related = ['tasks','contracts','changeOrders','rfis','submittals','documents','dailyLogs','meetings','punchLists','permits','budgets','arInvoices','paymentApps','purchaseOrders','timesheets','incidents','inspections','ncrs','equipment','crews','expenses'].filter(r=>a.config.resources.includes(r));
   const grouped: Record<string,any[]> = {};
   await Promise.all(related.map(async r => {
     const rows = await rowsFor(a.orgId,r);

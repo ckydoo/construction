@@ -60,7 +60,7 @@ export async function GET(req:Request,{params}:{params:Promise<{org:string}>}){
   const u = new URL(req.url);
   const recordId = u.searchParams.get('recordId')||'';
   const resource = u.searchParams.get('resource')||'';
-  const where:any = {organizationId:a.orgId};
+  const where:any = {organizationId:a.orgId, resource:{in:a.config.resources}};
   if(recordId) where.recordId = recordId;
   if(resource) where.resource = resource;
   const files = await prisma.attachment.findMany({where,orderBy:{createdAt:'desc'},take:200});
