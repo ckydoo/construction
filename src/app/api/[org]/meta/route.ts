@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const sb = await supabase();
 
   let memberQuery = sb.from('memberships')
-    .select('user_id, role, entity_id, created_at, profiles(id,name,email,avatar_color,created_at)')
+    .select('user_id, role, entity_id, created_at')
     .eq('organization_id', a.orgId);
   if (scoped) memberQuery = memberQuery.eq('user_id', a.userId);
 
@@ -31,6 +31,17 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       .eq('organization_id', a.orgId).eq('resource', 'clients').is('deleted_at', null)
       .order('created_at', { ascending: true }).limit(300),
   ]);
+
+  // memberships.user_id points at auth.users, not public.profiles, so PostgREST
+  // cannot embed profiles(...) through a FK. Resolve the visible profiles in a
+  // second RLS-scoped query and join here; otherwise every workspace reports an
+  // empty team list even though its memberships exist.
+  const memberRows: any[] = members.data || [];
+  const profileRows: any[] = memberRows.length
+    ? ((await sb.from('profiles').select('id,name,email,avatar_color,created_at')
+        .in('id', memberRows.map(m => m.user_id))).data || [])
+    : [];
+  const profileById = new Map(profileRows.map(p => [p.id, p]));
 
   let visibleCounts: Record<string, number>;
   if (scoped) {
@@ -46,11 +57,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     visibleCounts = Object.fromEntries(Object.entries(counts).filter(([k]) => visible.includes(k)));
   }
 
-  const users = (members.data || []).map((m: any) => ({
-    id: m.user_id, name: m.profiles?.name || 'User', email: m.profiles?.email || '',
-    avatarColor: m.profiles?.avatar_color || '#64748b', role: m.role,
-    entityId: m.entity_id, joined: m.created_at,
-  }));
+  const users = memberRows.map((m: any) => {
+    const p: any = profileById.get(m.user_id) || {};
+    return {
+      id: m.user_id, name: p.name || 'User', email: p.email || '',
+      avatarColor: p.avatar_color || '#64748b', role: m.role,
+      entityId: m.entity_id, joined: m.created_at,
+    };
+  });
 
   return NextResponse.json({
     org: { id: a.orgId, name: a.orgName, slug: a.orgSlug, legalName: a.org.legalName, regNumber: a.org.regNumber,

@@ -46,4 +46,4 @@ npm run build && npm run start:prod
 
 ## Verification
 
-`GET /login` → 200 and no setup banner. Then sign in with a demo account and run the checklist in [DEPLOY.md](DEPLOY.md) §5. No Render deployment, `.onrender.com` URL or live verification has been performed from this workspace yet — GitHub push credentials and Supabase keys are still needed.
+`GET /login` → 200 and no setup banner. Then sign in with a demo account and run the checklist in [DEPLOY.md](DEPLOY.md) §5. GitHub deployment is complete via SSH; no Render Blueprint apply, `.onrender.com` URL or public-host verification has been performed yet because those account-level changes still need explicit authorization.

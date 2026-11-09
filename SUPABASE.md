@@ -108,11 +108,12 @@ Then verify: sign in as `owner@kestrelridge.co.zw` / `Demo@1234`, check `/kestre
 
 ## 5. Deployment
 
-`Dockerfile` and `render.yaml` no longer provision SQLite or a disk. Render supplies `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL` as `sync: false` (prompted) environment values. Apply migrations with `supabase db push` before the first deploy. Email confirmation should be disabled (or an SMTP provider configured) so registration returns a session immediately; `supabase/config.toml` sets `enable_confirmations = false` for local development.
+`Dockerfile` and `render.yaml` no longer provision SQLite or a disk. Render supplies `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL` as `sync: false` (prompted) environment values. Apply migrations with `supabase db push` before the first deploy. Self-registration and team invites use the server-side Supabase Admin API with `email_confirm: true` / a temporary password, so they work with the current `mailer_autoconfirm=false`, empty SMTP and localhost `site_url` settings. That is deliberate for the MVP; enable email verification / SMTP and set the public `site_url` + redirect allow-list before exposing signup publicly.
 
 ---
 
 ## 6. Known caveats
 - Next.js emits a harmless Edge Runtime warning for `@supabase/ssr`/`@supabase/supabase-js` (`process.version`) during build. Middleware compiles and runs; the warning does not affect the Node.js server routes.
-- The historical `1211/1211` API audit and `28/28` Chromium audit were run against the pre-Supabase SQLite build. They must be re-run against a live Supabase project before being treated as current; see `AUDIT_REPORT.md` and `BROWSER_AUDIT_REPORT.md`.
+- The historical `1211/1211` API and `28/28` Chromium audits were pre-Supabase SQLite results. They have been superseded by live-Supabase runs: **1211/1211 API + 22/22 derivation**, **28/28 Chromium** and **10/10 onboarding/tenancy** checks. The live API total now also includes 13 role-fixture cleanup checks enabled by the fixed team-list query; see `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md` and `ONBOARDING_AUDIT_REPORT.md`.
 - `npm run db:seed` and Settings → Load demo data require `SUPABASE_SERVICE_ROLE_KEY`; registration and team invites do too. Without it, the app renders a setup notice on the login screen.
+- The HTTP and onboarding audit suites create throwaway role/tenant Auth users. They are not auto-deleted because removing an org's last owner needs privileged SQL. After a live run, use the Supabase SQL editor/connector to disable `memberships_protect_last_owner`, delete `qa-*` organizations/users/invitations, and re-enable the trigger; see `../QA_ONBOARDING_CLEANUP.sql` and `LIVE_MVP_STATUS.md`.

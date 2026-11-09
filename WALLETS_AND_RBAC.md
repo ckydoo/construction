@@ -134,14 +134,18 @@ The seeded demo passes with **0 broken refs, 0 wallet mismatches, 0 funding mism
 ## 4. Verification
 
 ```
-npm run audit          → 1211/1211 API checks + 22/22 derivation checks
-npm run audit:browser  → 28/28 real-Chromium checks, 0 unexpected console errors
-npm run audit:all      → both
+npm run audit             → 1211/1211 live-Supabase API checks + 22/22 derivation checks
+npm run audit:browser     → 28/28 real-Chromium checks, 0 unexpected console errors
+npm run audit:onboarding  → 10/10 signup, derivation, RBAC and tenant-isolation checks
+npm run audit:all         → API + browser suites
+npm run audit:live        → all three suites (then run the generated QA cleanup SQL)
 ```
 
-The API suite provisions **all 14 roles as real users**, runs the full wallet lifecycle, reverses
+The live API suite provisions **all 14 roles as real users**, runs the full wallet lifecycle, reverses
 it back to the opening balance, checks link integrity, registers/onboards a **second real tenant**
-and confirms it cannot read the first tenant's records, wallets, meta or overview.
+and confirms it cannot read the first tenant's records, wallets, meta or overview. The live
+`1211/1211` total includes 13 cleanup checks that became possible once `/api/[org]/meta` returned
+real team members; the older SQLite run had the same headline number but a different check set.
 The browser suite clicks top-up → project funding → reversals in the UI and logs in as the client
 portal user in a second browser context to prove scoping.
 

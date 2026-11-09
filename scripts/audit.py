@@ -9,11 +9,42 @@ Creates temporary QA records and soft-deletes them. Does not touch seeded data.
 """
 import argparse
 import json
+import signal
 import sys
+import time
 import uuid
 from collections import defaultdict
 
 import requests
+import requests.sessions
+
+# Lightweight progress log + a hard wall-clock deadline. The live Supabase
+# stack occasionally leaves a chunked response open and keeps the read timeout
+# resetting; a SIGALRM guarantees that one stalled GET cannot hold the whole
+# suite for minutes. Idempotent GETs get one retry on a fresh connection.
+AUDIT_TRACE = '/tmp/buildops-audit-trace.log'
+open(AUDIT_TRACE, 'w').close()
+_orig_request = requests.sessions.Session.request
+class _HardTimeout(Exception):
+    pass
+def _on_alarm(_signum, _frame):
+    raise _HardTimeout('hard request deadline')
+signal.signal(signal.SIGALRM, _on_alarm)
+def _traced_request(self, method, url, **kw):
+    with open(AUDIT_TRACE, 'a') as _f:
+        _f.write(f'{time.time():.3f} {method} {url}\n')
+    attempts = 2 if str(method).upper() == 'GET' else 1
+    for attempt in range(attempts):
+        signal.setitimer(signal.ITIMER_REAL, 60)
+        try:
+            return _orig_request(self, method, url, **kw)
+        except (_HardTimeout, requests.exceptions.Timeout) as e:
+            if attempt + 1 < attempts:
+                continue
+            raise requests.exceptions.Timeout(f'hard deadline / retry exhausted: {e}')
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+requests.sessions.Session.request = _traced_request
 
 AP = argparse.ArgumentParser()
 AP.add_argument('--base', default='http://127.0.0.1:3000')
@@ -41,7 +72,8 @@ def check(section, name, ok, detail=''):
 
 def login(email, password='Demo@1234'):
     s = requests.Session()
-    r = s.post(f'{BASE}/api/auth/login', json={'email': email, 'password': password}, timeout=30)
+    s.headers.update({'Connection': 'close'})
+    r = s.post(f'{BASE}/api/auth/login', json={'email': email, 'password': password}, timeout=(5, 20))
     return s, r
 
 
@@ -64,7 +96,7 @@ def ref_id(resource):
     if resource in REF_CACHE:
         return REF_CACHE[resource]
     try:
-        rr = OWNER.get(url(f'records/{resource}?mode=refs'), timeout=30)
+        rr = OWNER.get(url(f'records/{resource}?mode=refs'), timeout=(5, 20))
         opts = rr.json().get('options', [])
         if opts:
             REF_CACHE[resource] = opts[0]['value']
@@ -126,7 +158,7 @@ def payload(defn, marker=None, overrides=None):
 
 def req(session, method, path, **kw):
     try:
-        return session.request(method, url(path), timeout=30, **kw)
+        return session.request(method, url(path), timeout=(5, 20), **kw)
     except Exception as e:
         class Fake:
             status_code = 0
@@ -313,6 +345,7 @@ for name, method, path, kw in [
     check(sec, name, rr.status_code in (403, 404), f'HTTP {rr.status_code}')
 
 ANON = requests.Session()
+ANON.headers.update({'Connection': 'close'})
 check(sec, 'unauthenticated blocked', req(ANON, 'GET', 'meta').status_code == 401, '')
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -360,7 +393,7 @@ else:
 # ─────────────────────────────────────────────────────────────────────────────
 sec = 'isolation'
 check(sec, 'unknown org rejected',
-      OWNER.get(f'{BASE}/api/not-a-real-org/records/clients', timeout=30).status_code in (401, 403, 404), '')
+      OWNER.get(f'{BASE}/api/not-a-real-org/records/clients', timeout=(5, 20)).status_code in (401, 403, 404), '')
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 6 · CLIENT WALLETS
@@ -464,7 +497,9 @@ if topup_tx:
 if alloc_tx:
     rr = req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': alloc_tx, 'note': 'QA reversal'})
     check(sec, 'reversal credits wallet', rr.status_code == 201 and abs(rr.json().get('balance', 0) - (before + 1000)) < 0.005, f'HTTP {rr.status_code} {rr.text[:120]}')
-    check(sec, 'reversal cannot be repeated', req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': alloc_tx}).status_code == 400, '')
+    # Supabase RPC returns 409 Conflict for an already-reversed entry (the
+    # SQLite-era service returned 400). Both mean the mutation was refused.
+    check(sec, 'reversal cannot be repeated', req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': alloc_tx}).status_code in (400, 409), '')
     rr = req(OWNER, 'GET', f'projects/{portal_project}')
     check(sec, 'reversal reduces project funded total', rr.status_code == 200 and rr.json().get('totals', {}).get('walletFunded', -1) < proj_before.get('fundedAmount', 0) + 250, '')
 if topup_tx:
@@ -582,22 +617,23 @@ check(sec, 'unknown role rejected', req(OWNER, 'PATCH', 'settings', json={'actio
 # ─────────────────────────────────────────────────────────────────────────────
 sec = 'tenants'
 other = requests.Session()
+other.headers.update({'Connection': 'close'})
 email2 = f'qa.tenant.{MARK.lower()}@example.co.zw'
-rr = other.post(f'{BASE}/api/auth/register', json={'name': 'QA Tenant', 'email': email2, 'password': 'Isolation@123', 'company': 'QA Other Builders'}, timeout=30)
+rr = other.post(f'{BASE}/api/auth/register', json={'name': 'QA Tenant', 'email': email2, 'password': 'Isolation@123', 'company': 'QA Other Builders'}, timeout=(5, 20))
 check(sec, 'second workspace registration', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:120]}')
-rr = other.post(f'{BASE}/api/onboarding', json={'companyType': 'GENERAL_CONTRACTOR', 'size': 'MICRO', 'loadDemo': False}, timeout=30)
+rr = other.post(f'{BASE}/api/onboarding', json={'companyType': 'GENERAL_CONTRACTOR', 'size': 'MICRO', 'loadDemo': False}, timeout=(5, 20))
 check(sec, 'second workspace onboarding', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:120]}')
 slug2 = rr.json().get('slug') if rr.status_code == 200 else None
 check(sec, 'second workspace has its own slug', bool(slug2) and slug2 != ORG, str(slug2))
 for name, path in [('records', 'records/clients'), ('wallets', 'wallets'), ('meta', 'meta'), ('overview', 'overview')]:
-    rr = other.get(f'{BASE}/api/{ORG}/{path}', timeout=30)
+    rr = other.get(f'{BASE}/api/{ORG}/{path}', timeout=(5, 20))
     check(sec, f'other tenant cannot read {name}', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
-rr = other.post(f'{BASE}/api/{ORG}/wallets/{portal_client}', json={'action': 'topup', 'amount': 500}, timeout=30)
+rr = other.post(f'{BASE}/api/{ORG}/wallets/{portal_client}', json={'action': 'topup', 'amount': 500}, timeout=(5, 20))
 check(sec, 'other tenant cannot fund a wallet', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
-rr = other.get(f'{BASE}/api/{ORG}/records/clients/{portal_client}', timeout=30)
+rr = other.get(f'{BASE}/api/{ORG}/records/clients/{portal_client}', timeout=(5, 20))
 check(sec, 'other tenant cannot open a client record', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
 if slug2:
-    rr = other.get(f'{BASE}/api/{slug2}/wallets', timeout=30)
+    rr = other.get(f'{BASE}/api/{slug2}/wallets', timeout=(5, 20))
     check(sec, 'second tenant has an empty isolated wallet list', rr.status_code == 200 and rr.json().get('summary', {}).get('totalBalance') == 0, f'HTTP {rr.status_code} {rr.text[:120]}')
 
 # ─────────────────────────────────────────────────────────────────────────────

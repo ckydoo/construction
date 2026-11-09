@@ -321,7 +321,12 @@ await check('UI project funding debits the wallet and writes the ledger', async 
   await drawer.locator('input[placeholder="Mobilisation advance"]').fill('QA browser funding');
   await drawer.getByRole('button', { name: 'Fund project' }).click();
   await page.locator('div[class*="z-[100]"]').getByText('Project funded', { exact: true }).waitFor({ timeout: 15000 });
-  await page.waitForTimeout(700);
+  // Supabase-backed refetch is ~1s; wait for the derived balance to actually fall
+  // instead of relying on a fixed 700ms delay.
+  await page.waitForFunction((prev) => {
+    const el = document.querySelector('p.text-2xl');
+    return el && Number((el.textContent || '').replace(/[^0-9.]/g, '')) < prev - 200;
+  }, walletBefore + 1000, { timeout: 15000 });
   const after = parseMoney(await drawer.locator('p.text-2xl').first().innerText());
   assert(Math.abs(after - (walletBefore + 750)) < 1, `balance ${after}, expected ${walletBefore + 750}`);
   await drawer.getByRole('button', { name: /^Ledger/ }).first().click();
@@ -348,8 +353,14 @@ await check('wallet reversals restore the opening balance', async () => {
 
 await check('client detail shows wallet balance and cross-module links', async () => {
   await page.goto(`${BASE}/${ORG}/m/clients`, { waitUntil: 'domcontentloaded' });
-  await page.locator('tbody tr').first().waitFor({ timeout: 20000 });
-  await page.locator('tbody tr').first().click();
+  // The first <tbody><tr> can be a loading skeleton; wait for a real data row.
+  await page.waitForFunction(() => {
+    const tr = document.querySelector('tbody tr');
+    return tr && tr.textContent && tr.textContent.trim().length > 0;
+  }, { timeout: 20000 });
+  // Click the first data cell, not the row centre: the centre can land on the
+  // status <select> or the checkbox cell, both of which stop propagation.
+  await page.locator('tbody tr').first().locator('td').nth(1).click();
   const drawer = page.locator('div.fixed.inset-0.z-50').filter({ hasText: 'Attachments & revisions' });
   await drawer.getByText('Linked records').waitFor({ timeout: 15000 });
   await drawer.getByText('Client wallet', { exact: true }).waitFor({ timeout: 15000 });

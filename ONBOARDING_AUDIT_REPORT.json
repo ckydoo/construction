@@ -1,0 +1,72 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "checks": 10,
+  "passed": 10,
+  "failed": 0,
+  "results": [
+    {
+      "name": "signup creates a confirmed Supabase Auth account and opens the wizard",
+      "ok": true,
+      "detail": "new session → /onboarding"
+    },
+    {
+      "name": "company profile step accepts legal entity, country and currency",
+      "ok": true,
+      "detail": "legal name · ZA · ZAR → step 2"
+    },
+    {
+      "name": "company type and size feed the derivation engine",
+      "ok": true,
+      "detail": "INDUSTRIAL_EPC · MID · 85 people · $10M–$50M"
+    },
+    {
+      "name": "qualifiers visibly unlock feature flags",
+      "ok": true,
+      "detail": "4 qualifiers → 5+ live flags"
+    },
+    {
+      "name": "step 5 derives the module pack and an explicit add-on",
+      "ok": true,
+      "detail": "21 → 22 modules · 13 core · demo data off"
+    },
+    {
+      "name": "creating the workspace persists derivation and lands on an empty dashboard",
+      "ok": true,
+      "detail": "qa-onboarding-mw9k8utxwbit · 22 modules · 0 seeded clients"
+    },
+    {
+      "name": "a second tenant cannot read the demo workspace",
+      "ok": true,
+      "detail": "API 401 · page redirects to own workspace"
+    },
+    {
+      "name": "sign out and sign back in keep the onboarded session",
+      "ok": true,
+      "detail": "Supabase Auth session → dashboard, no re-onboarding"
+    },
+    {
+      "name": "team invite, role edit, invited sign-in and last-owner protection",
+      "ok": true,
+      "detail": "VIEWER invite → PROJECT_MANAGER · last owner protected · temp-password sign-in"
+    },
+    {
+      "name": "no uncaught page errors or unexpected console errors",
+      "ok": true,
+      "detail": "0 page errors · 0 console errors"
+    }
+  ],
+  "company": "QA Onboarding mw9k8utxwbit",
+  "email": "qa-onboarding-mw9k8utxwbit@kestrelridge.co.zw",
+  "inviteEmail": "qa-invite-mw9k8utxwbit@kestrelridge.co.zw",
+  "slug": "qa-onboarding-mw9k8utxwbit",
+  "orgId": "9039fb8d-64cf-4602-a7a7-306f867bdf12",
+  "ownerId": "bbc4ea70-828d-4414-b156-394d085a748e",
+  "inviteUserId": "80790ced-7e6f-4744-9109-e457fc14a150",
+  "expectedModules": 22,
+  "expectedPlan": "Professional",
+  "expectedUserLimit": 60,
+  "consoleErrors": [],
+  "expectedErrors": [],
+  "pageErrors": [],
+  "cleanup": "../QA_ONBOARDING_CLEANUP.sql"
+}

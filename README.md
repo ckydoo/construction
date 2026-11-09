@@ -180,7 +180,7 @@ scripts/
 - `npx tsc --noEmit` — clean.
 - `npm run build` — clean production build (one harmless Edge Runtime warning from `@supabase/ssr`; see SUPABASE.md).
 - `npm run env:check` — validates Supabase slots without printing secrets.
-- `npx supabase db push`, `npm run db:seed`, the 1211-check HTTP audit and the 28-check Chromium audit **have not been run against Supabase** — they require a live project and keys. The historical results in `AUDIT_REPORT.md` / `BROWSER_AUDIT_REPORT.md` describe the pre-Supabase SQLite build and must be re-run before being treated as current.
+- The five BuildOps migrations are applied to the live Supabase project and the demo dataset is seeded. Live verification is **1211/1211 API checks + 22/22 derivation checks** (`npm run audit`), **28/28 real-Chromium checks** (`npm run audit:browser`) and **10/10 live onboarding/tenancy checks** (`npm run audit:onboarding`). The older SQLite-era `1211/1211` headline is superseded by this live check set (which now includes 13 role-fixture cleanup checks); see `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md` and `ONBOARDING_AUDIT_REPORT.md`. `npm run audit:onboarding` creates throwaway Auth users and a workspace; run the generated `../QA_ONBOARDING_CLEANUP.sql` through the Supabase SQL editor/connector afterwards. The `npm run audit` role/tenant fixtures are cleaned the same way (see `SUPABASE.md`).
 
 ---
 
