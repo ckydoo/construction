@@ -44,16 +44,21 @@ That is one commercial chain — clients → leads → estimates & bids → proj
 - Settings → Modules has one-click **Essentials (12)** / **All modules** focus switching; individual toggles still work.
 - The seeded demo organisation intentionally keeps all 33 modules enabled as the enterprise reference workspace (and so the audit can exercise all 49 resources).
 
-## Not covered
+## Browser verification (added)
 
-- Browser hydration and client-side behaviour (optimistic rollback, drawer/form interactions, toasts, dark mode, responsive layout). No browser is installed in this sandbox; the suite exercises the HTTP API that backs those screens.
-- Multi-tenant data leakage between two *real* provisioned orgs.
+A real Chromium suite now covers the client side: **20/20 checks passed** — login/hydration, client-side sidebar navigation, loading skeletons, empty states, optimistic create (temporary row → success toast → persists after reload), detail drawer with comments/attachments/PDF, comment posting, partial edit through the UI, inline validation errors, **optimistic rollback on a simulated 500**, status filter and sort, CSV download, dark mode, Ctrl+K command palette, mobile layout with zero horizontal overflow, mobile menu, and UI delete. There were **0 uncaught page errors and 0 unexpected console errors** (the single 500 is the deliberate rollback simulation).
+
+See `BROWSER_AUDIT_REPORT.md` and `screenshots/01-login.png` … `11-mobile-menu.png`.
+
+Still not covered: multi-tenant data leakage between two *real* provisioned orgs.
 
 ## Re-run
 
 ```bash
-npm run audit     # API suite + derivation suite
+npm run audit           # API suite (1028) + derivation suite (22)
 npm run audit:core
+npm run audit:browser    # requires: npx playwright install chromium-headless-shell
+npm run audit:all
 ```
 
 Machine-readable results: `AUDIT_REPORT.json`.

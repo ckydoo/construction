@@ -1,0 +1,113 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "checks": 20,
+  "passed": 20,
+  "failed": 0,
+  "results": [
+    {
+      "name": "login page renders",
+      "ok": true,
+      "detail": "BuildOps — Construction & Industrial Management"
+    },
+    {
+      "name": "owner login redirects to dashboard",
+      "ok": true,
+      "detail": "kestrel-ridge/dashboard"
+    },
+    {
+      "name": "sidebar navigates client-side (no full reload)",
+      "ok": true,
+      "detail": "SPA navigation retained JS context"
+    },
+    {
+      "name": "loading skeletons appear while list fetches",
+      "ok": true,
+      "detail": "skeleton → rows"
+    },
+    {
+      "name": "empty state on a search with no matches",
+      "ok": true,
+      "detail": "No matching records shown"
+    },
+    {
+      "name": "optimistic create shows temporary row, then persists",
+      "ok": true,
+      "detail": "temp row → success toast → survives reload"
+    },
+    {
+      "name": "detail drawer renders comments, attachments and PDF",
+      "ok": true,
+      "detail": "all three sections present"
+    },
+    {
+      "name": "post a comment and see it in the drawer",
+      "ok": true,
+      "detail": "comment visible"
+    },
+    {
+      "name": "partial edit via UI preserves other fields",
+      "ok": true,
+      "detail": "Changes saved + table updated"
+    },
+    {
+      "name": "required-field validation shows an inline error",
+      "ok": true,
+      "detail": "error surfaced to the user"
+    },
+    {
+      "name": "optimistic create rolls back on server failure",
+      "ok": true,
+      "detail": "temp row removed + error toast"
+    },
+    {
+      "name": "status filter and sorting do not crash the table",
+      "ok": true,
+      "detail": "filter + sort OK"
+    },
+    {
+      "name": "CSV export downloads a file",
+      "ok": true,
+      "detail": "clients.csv"
+    },
+    {
+      "name": "dark mode toggles the root class",
+      "ok": true,
+      "detail": "false → true → back"
+    },
+    {
+      "name": "command palette opens with Ctrl+K",
+      "ok": true,
+      "detail": "palette open + ESC closes"
+    },
+    {
+      "name": "mobile viewport: no horizontal overflow, bottom nav visible",
+      "ok": true,
+      "detail": "overflow 0px, bottom nav present"
+    },
+    {
+      "name": "mobile menu opens the sidebar drawer",
+      "ok": true,
+      "detail": "sidebar drawer opens"
+    },
+    {
+      "name": "delete via UI removes the QA record",
+      "ok": true,
+      "detail": "soft delete + toast"
+    },
+    {
+      "name": "no uncaught page errors",
+      "ok": true,
+      "detail": "0 pageerror events"
+    },
+    {
+      "name": "no React hydration / console errors",
+      "ok": true,
+      "detail": "0 console errors"
+    }
+  ],
+  "consoleErrors": [],
+  "expectedErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ],
+  "pageErrors": []
+}

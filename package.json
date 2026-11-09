@@ -9,13 +9,15 @@
     "setup": "npm install && npx prisma db push && npm run db:seed && npm run dev",
     "db:push": "prisma db push",
     "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "rm -f prisma/dev.db && npx prisma db push && node scripts/seed.mjs",
+    "db:reset": "rm -f prisma/dev.db && npx prisma db push && npx tsx scripts/seed.ts",
     "preview": "npm run build && npm run start",
     "start:prod": "node scripts/prod-start.mjs",
     "db:postgres": "node scripts/switch-provider.mjs",
     "audit": "tsx scripts/audit-defs.ts > /tmp/defs.json && python3 scripts/audit.py && tsx scripts/audit-core.ts",
     "audit:defs": "tsx scripts/audit-defs.ts > /tmp/defs.json",
-    "audit:core": "tsx scripts/audit-core.ts"
+    "audit:core": "tsx scripts/audit-core.ts",
+    "audit:browser": "node scripts/browser-audit.mjs",
+    "audit:all": "npm run audit && npm run audit:browser"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",
@@ -37,6 +39,7 @@
     "prisma": "^6.2.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.15",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "playwright": "^1.65.0"
   }
 }
