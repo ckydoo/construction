@@ -1,4 +1,4 @@
-# Deploy BuildOps to Render with Supabase
+# Deploy MYLA to Render with Supabase
 
 `render.yaml` is a Blueprint for a Docker web service. It no longer creates a SQLite file or a 1 GB disk — Supabase is the entire backend.
 
@@ -15,7 +15,7 @@ Render → New → Blueprint → select the repo. `render.yaml` declares:
 ```yaml
 services:
   - type: web
-    name: buildops
+    name: myla
     runtime: docker
     plan: starter
     region: frankfurt

@@ -1,10 +1,10 @@
-# BuildOps browser / UI audit
+# MYLA browser / UI audit
 
 **28/28 checks passed** — real Chromium against `http://127.0.0.1:3000`.
 
 | Check | Result | Detail |
 |---|---|---|
-| login page renders | PASS | BuildOps — Construction & Industrial Management |
+| login page renders | PASS | MYLA — Construction & Industrial Management |
 | owner login redirects to dashboard | PASS | kestrel-ridge/dashboard |
 | sidebar navigates client-side (no full reload) | PASS | SPA navigation retained JS context |
 | loading skeletons appear while list fetches | PASS | skeleton → rows |

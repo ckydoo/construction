@@ -1,4 +1,4 @@
--- BuildOps relational schema (Supabase Postgres)
+-- MYLA relational schema (Supabase Postgres)
 -- Money is stored in integer cents as bigint. Domain resources live in one
 -- org-scoped JSONB table with indexed control columns, exactly as the app's
 -- declarative 49-resource registry expects.

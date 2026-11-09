@@ -1,4 +1,4 @@
-# BuildOps live onboarding / tenancy audit
+# MYLA live onboarding / tenancy audit
 
 **10/10 checks passed** — real Chromium against `http://127.0.0.1:3000`, backed by the live Supabase project.
 

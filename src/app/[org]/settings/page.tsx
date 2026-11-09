@@ -43,12 +43,12 @@ export default function SettingsPage(){
   }
   if(isLoading) return <div className="space-y-4"><Skeleton className="h-10 w-1/3"/><Skeleton className="h-96"/></div>;
   if(!caps.includes('settings.view')) return <Card><EmptyState icon="ShieldCheck" title="Settings are restricted" description={`Your role (${(meta?.role||'').replace(/_/g,' ')}) can use the workspace modules but cannot change workspace settings. Ask an owner or administrator if you need a different role.`}/></Card>;
-  return <div className="space-y-5">
-    <div><h1 className="heading">Workspace settings</h1><p className="mt-1 text-xs muted">Manage your company profile, enabled modules, team access and data.</p></div>
+  return <div className="space-y-4">
+    <div><h1 className="heading">Workspace settings</h1><p className="caption mt-1">Manage your company profile, enabled modules, team access and data.</p></div>
     <Tabs tabs={TABS} active={tab} onChange={setTab}/>
 
     {tab==='general'&&<Card><CardHead title="Company details" subtitle="Used on invoices, reports and documents"/>
-      <form onSubmit={saveGeneral} className="grid gap-5 p-5 sm:grid-cols-2">
+      <form onSubmit={saveGeneral} className="grid gap-4 p-4 sm:grid-cols-2">
         <Field label="Trading name" required><input className="input" value={form.name||''} onChange={e=>setForm({...form,name:e.target.value})}/></Field>
         <Field label="Legal name"><input className="input" value={form.legalName||''} onChange={e=>setForm({...form,legalName:e.target.value})}/></Field>
         <Field label="Registration number"><input className="input" value={form.regNumber||''} onChange={e=>setForm({...form,regNumber:e.target.value})}/></Field>
@@ -64,23 +64,23 @@ export default function SettingsPage(){
         <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>All modules</Button></div></Card>
       {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} enabled`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
           <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-ink-900 dark:text-white">{m.label}</p><p className="mt-0.5 text-[11px] leading-relaxed muted">{m.description}</p><div className="mt-1.5 flex gap-1"><Badge tone={m.tier==='CORE'?'slate':m.tier==='ENTERPRISE'?'violet':'blue'}>{m.tier.toLowerCase()}</Badge>{m.resources?.length>0&&<Badge tone="slate">{m.resources.length} resources</Badge>}</div></div>
           <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
     </div>}
 
     {tab==='users'&&<div className="space-y-4"><Card><CardHead title="Invite a teammate" subtitle="New users receive the temporary password Welcome@123"/>
-      <div className="grid gap-4 p-5 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+      <div className="grid gap-4 p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <Field label="Full name"><input className="input" value={invite.name} onChange={e=>setInvite({...invite,name:e.target.value})} placeholder="Jane Moyo"/></Field>
         <Field label="Work email"><input className="input" type="email" value={invite.email} onChange={e=>setInvite({...invite,email:e.target.value})} placeholder="jane@company.co.zw"/></Field>
         <Field label="Role"><select className="select" value={invite.role} onChange={e=>setInvite({...invite,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
         <Button variant="primary" loading={busy} icon="UserPlus" onClick={()=>send('invite',invite,'POST').then(()=>setInvite({name:'',email:'',role:'VIEWER',entityId:''}))}>Add user</Button>
       </div>
-      {invite.role.endsWith('_EXTERNAL')&&<div className="border-t divider px-5 py-4"><Field label="Link to client (portal scope)" hint="Portal users only see this client's records, projects and wallet."><select className="select" value={invite.entityId} onChange={e=>setInvite({...invite,entityId:e.target.value})}><option value="">Select a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></Field></div>}
+      {invite.role.endsWith('_EXTERNAL')&&<div className="border-t divider px-4 py-3"><Field label="Link to client (portal scope)" hint="Portal users only see this client's records, projects and wallet."><select className="select" value={invite.entityId} onChange={e=>setInvite({...invite,entityId:e.target.value})}><option value="">Select a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></Field></div>}
       </Card>
       <Card className="overflow-hidden"><CardHead title="Team members" subtitle={`${meta.users.length} users in this workspace`}/>
-        <div className="divide-y divider">{meta.users.map((u:any)=><div key={u.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold text-white" style={{background:u.avatarColor}}>{u.name.split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span>
+        <div className="divide-y divider">{meta.users.map((u:any)=><div key={u.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md text-xs font-semibold text-white" style={{background:u.avatarColor}}>{u.name.split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span>
           <div className="min-w-0 flex-1"><p className="text-sm font-medium">{u.name}</p><p className="truncate text-[11px] muted">{u.email}</p></div>
           <select className="select w-auto min-w-[190px]" value={u.role} disabled={!caps.includes('users.manage')||u.id===meta.user.id}
             onChange={e=>send('setRole',{userId:u.id,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
@@ -89,15 +89,15 @@ export default function SettingsPage(){
           {caps.includes('users.manage')&&u.role!=='OWNER'&&u.id!==meta.user.id&&<Button variant="ghost" size="sm" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:`Remove ${u.name}?`,desc:'Their workspace access and sessions will be revoked.',action:'removeUser',body:{userId:u.id},method:'PATCH'})}>Remove</Button>}
           <span className="hidden text-[11px] muted sm:block">Joined {date(u.joined)}</span></div>)}</div></Card>
       <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle="Server-enforced on every API route — changing a role takes effect immediately"/>
-        <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead className="border-y divider bg-slate-50 text-[10px] uppercase tracking-wider muted dark:bg-ink-950/50"><tr><th className="px-4 py-2 font-semibold">Role</th><th className="px-3 py-2 font-semibold">Read</th><th className="px-3 py-2 font-semibold">Write</th><th className="px-3 py-2 font-semibold">Delete</th><th className="px-3 py-2 font-semibold">Wallets</th><th className="px-3 py-2 font-semibold">Scope</th></tr></thead>
+        <div className="overflow-x-auto"><table className="w-full text-left text-[13px]"><thead className="border-y divider bg-slate-50 muted dark:bg-ink-950/50"><tr><th className="table-th">Role</th><th className="table-th text-right">Read</th><th className="table-th text-right">Write</th><th className="table-th">Delete</th><th className="table-th">Wallets</th><th className="table-th">Scope</th></tr></thead>
           <tbody className="divide-y divider">{ROLES.map(r=>{const rule=ROLE_RULES[r.id]; const reads=(meta.config.resources||[]).filter((x:string)=>canRead(r.id,x)).length; const writes=(meta.config.resources||[]).filter((x:string)=>canWrite(r.id,x)).length;
             const w=(rule.capabilities as string[]).filter((c:string)=>c.startsWith('wallet.')).map((c:string)=>c.split('.')[1]).join(', ')||'none';
-            return <tr key={r.id} className={r.id===meta.role?'bg-brand-50/60 dark:bg-brand-500/10':''}><td className="px-4 py-2.5"><p className="font-medium">{r.label}</p><p className="text-[10px] muted">{r.desc}</p></td>
-              <td className="px-3 py-2.5"><Badge tone={reads?'slate':'red'}>{reads} / {meta.config.resources.length}</Badge></td>
-              <td className="px-3 py-2.5"><Badge tone={writes?'blue':'slate'}>{writes}</Badge></td>
-              <td className="px-3 py-2.5">{canDelete(r.id)?<Badge tone="amber">Yes</Badge>:<Badge tone="slate">No</Badge>}</td>
-              <td className="px-3 py-2.5"><span className="text-[11px] muted">{w}</span></td>
-              <td className="px-3 py-2.5">{rule.scoped?<Badge tone="violet">Own client</Badge>:<Badge tone="green">Workspace</Badge>}</td></tr>;})}</tbody></table></div></Card>
+            return <tr key={r.id} className={r.id===meta.role?'bg-slate-50 dark:bg-ink-950/50':''}><td className="table-td"><p className="font-medium">{r.label}</p><p className="text-[10px] muted">{r.desc}</p></td>
+              <td className="table-td text-right"><Badge tone={reads?'slate':'red'}>{reads} / {meta.config.resources.length}</Badge></td>
+              <td className="table-td text-right"><Badge tone={writes?'blue':'slate'}>{writes}</Badge></td>
+              <td className="table-td">{canDelete(r.id)?<Badge tone="amber">Yes</Badge>:<Badge tone="slate">No</Badge>}</td>
+              <td className="table-td"><span className="text-[11px] muted">{w}</span></td>
+              <td className="table-td">{rule.scoped?<Badge tone="violet">Own client</Badge>:<Badge tone="green">Workspace</Badge>}</td></tr>;})}</tbody></table></div></Card>
       <Card><CardHead title="Your access" subtitle={`Signed in as ${meta.role.replace(/_/g,' ')}`}/><div className="flex flex-wrap gap-1.5 p-5">{caps.map(c=><Badge key={c} tone="blue">{c}</Badge>)}</div></Card></div>}
 
     {tab==='setup'&&<div className="space-y-4"><Card><CardHead title="Re-run workspace derivation" subtitle="Changing type or size recalculates your module pack, flags and plan limits"/>

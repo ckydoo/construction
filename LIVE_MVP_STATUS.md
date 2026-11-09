@@ -1,4 +1,6 @@
-# BuildOps — live MVP status
+# MYLA — live MVP status
+
+**Motto:** Built for Progress. · **Descriptor:** CONSTRUCTION & INDUSTRIAL MANAGEMENT
 
 **Date:** 2026-11-07 (Africa/Harare)
 **Repository:** `git@github.com:ckydoo/construction.git` · `main`
@@ -6,6 +8,8 @@
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
 ## Green gates
+
+**Brand:** MYLA · *Built for Progress.* · CONSTRUCTION & INDUSTRIAL MANAGEMENT (see `BRAND.md`).
 
 | Gate | Result |
 |---|---|
@@ -20,6 +24,15 @@
 
 Full evidence: `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md`,
 `ONBOARDING_AUDIT_REPORT.md`, `screenshots/`.
+
+**Rebrand verification (MYLA):** typecheck/build and `npm run env:check` pass,
+the rebuilt app serves the MYLA title/favicon/motto/exact uppercase descriptor,
+browser audit re-run **28/28**, and both generated and seeded PDFs contain the
+new identity. Final live state is 1 org, 7 memberships, 616 records, 0 QA users,
+`ok=true` integrity and `$11,000,000` wallet balance. See `BRAND.md`. The
+1211/1211 API and 10/10 onboarding gates above were proven before the rebrand
+and were not re-run for this user-facing change. Rebrand files are currently
+local and uncommitted.
 
 ## What “complete MVP” means now
 

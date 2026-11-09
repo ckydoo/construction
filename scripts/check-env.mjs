@@ -86,7 +86,7 @@ const configured = Object.entries(groups)
   .filter(([, keys]) => keys.some((k) => isSet(get(k))))
   .map(([name]) => name);
 
-console.log('BuildOps environment check (Supabase)');
+console.log('MYLA environment check (Supabase)');
 console.log(`  .env             ${fs.existsSync(envPath) ? 'present' : 'MISSING'}`);
 console.log(`  .env.example     ${fs.existsSync(examplePath) ? 'present' : 'MISSING'}`);
 console.log(`  Supabase URL     ${isSet(url) ? 'configured' : 'not set'}`);

@@ -1,4 +1,4 @@
-# BuildOps environment variables & API keys
+# MYLA environment variables & API keys
 
 **Fill in `/home/user/buildops/.env`.** It is ignored by Git and Docker, so real keys stay on your machine. The committed [`.env.example`](.env.example) is the master template — copy it with `npm run env:init` (or `cp .env.example .env`) and validate with `npm run env:check`.
 

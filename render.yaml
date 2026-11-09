@@ -3,7 +3,7 @@
 # Apply supabase/migrations first with `npx supabase db push`.
 services:
   - type: web
-    name: buildops
+    name: myla
     runtime: docker
     plan: starter
     region: frankfurt        # choose the region closest to your team

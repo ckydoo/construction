@@ -6,5 +6,5 @@ npm-debug.log
 .env
 .env.*
 !.env.example
-BuildOps-offline-snapshot.html
+MYLA-offline-snapshot.html
 *.zip

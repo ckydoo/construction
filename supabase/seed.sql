@@ -1,4 +1,4 @@
--- BuildOps seed data is intentionally NOT a plain SQL file.
+-- MYLA seed data is intentionally NOT a plain SQL file.
 -- Auth users must be created through the Supabase Admin API (GoTrue), so the
 -- deterministic 616-record demo workspace is loaded by:
 --

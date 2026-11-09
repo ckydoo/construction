@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BuildOps module audit — exercises CRUD, references, RBAC and module gating
+"""MYLA module audit — exercises CRUD, references, RBAC and module gating
 against a running server. Usage:
 
     npx tsx scripts/audit-defs.ts > /tmp/defs.json

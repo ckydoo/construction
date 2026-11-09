@@ -1,4 +1,4 @@
-# BuildOps on Supabase — architecture, migrations & runbook
+# MYLA on Supabase — architecture, migrations & runbook
 
 **Status of this change:** code and migrations are complete and type-checked/built. They have **not** been applied to a live Supabase project: no project URL, anon key or service-role key was supplied, and the Supabase connector is disconnected. Per your choice (`code_only`), `supabase db push`, seeding and live verification are deferred until you paste the keys or connect the app.
 

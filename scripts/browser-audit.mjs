@@ -49,7 +49,7 @@ page.on('pageerror', e => pageErrors.push(e.message));
 // ── Login & hydration ───────────────────────────────────────────────────────
 await check('login page renders', async () => {
   await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-  assert((await page.title()).includes('BuildOps'), 'wrong title');
+  assert((await page.title()).includes('MYLA'), 'wrong title');
   assert(await page.getByRole('button', { name: /Sign in/ }).count() > 0, 'no sign-in button');
   await page.screenshot({ path: path.join(SHOTS, '01-login.png'), fullPage: true });
   return await page.title();
@@ -425,7 +425,7 @@ const passed = results.filter(r => r.ok).length;
 const report = { base: BASE, checks: results.length, passed, failed: results.length - passed, results, consoleErrors, expectedErrors, pageErrors };
 await fs.writeFile(path.join(ROOT, 'BROWSER_AUDIT_REPORT.json'), JSON.stringify(report, null, 2));
 const md = [
-  '# BuildOps browser / UI audit', '',
+  '# MYLA browser / UI audit', '',
   `**${passed}/${results.length} checks passed** — real Chromium against \`${BASE}\`.`, '',
   '| Check | Result | Detail |', '|---|---|---|',
   ...results.map(r => `| ${r.name} | ${r.ok ? 'PASS' : 'FAIL'} | ${String(r.detail).replace(/\|/g, '\\|').slice(0, 180)} |`),

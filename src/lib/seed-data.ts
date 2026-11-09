@@ -6,6 +6,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { buildDemo } from './demo';
+import { BRAND } from './brand';
 
 export const DEFAULT_BUCKET = 'buildops-documents';
 const snake = (k: string) => k.replace(/[A-Z]/g, (c) => '_' + c.toLowerCase());
@@ -130,11 +131,13 @@ async function pdfBytes(kind: string, title: string, orgName: string) {
   const safeOrg = winAnsi(orgName).slice(0, 52);
   const safeTitle = winAnsi(title).slice(0, 62);
   page.drawRectangle({ x: 0, y: 802, width: 595, height: 40, color: ink });
-  page.drawText('BuildOps', { x: 40, y: 816, size: 16, font: bold, color: rgb(1, 1, 1) });
-  page.drawText(safeOrg, { x: 145, y: 818, size: 9, font, color: rgb(0.8, 0.84, 0.9) });
+  page.drawText(BRAND.name, { x: 40, y: 816, size: 16, font: bold, color: rgb(1, 1, 1) });
+  page.drawText(BRAND.descriptor, { x: 98, y: 817, size: 6.5, font: bold, color: amber });
+  page.drawText(safeOrg, { x: 40, y: 805, size: 8, font, color: rgb(0.8, 0.84, 0.9) });
   page.drawText(kind.toUpperCase(), { x: 455, y: 818, size: 8, font: bold, color: amber });
   page.drawText(safeTitle, { x: 40, y: 760, size: 18, font: bold, color: ink });
-  page.drawText('Generated from the BuildOps Supabase demo workspace.', { x: 40, y: 730, size: 10, font, color: muted });
+  page.drawText(`Generated from the ${BRAND.name} Supabase demo workspace.`, { x: 40, y: 730, size: 10, font, color: muted });
+  page.drawText(BRAND.motto, { x: 40, y: 715, size: 9, font: bold, color: amber });
   page.drawText(`Document: ${safeTitle}`, { x: 40, y: 700, size: 11, font, color: ink });
   page.drawText('Sample attachment — replace with a real drawing or certificate.', { x: 40, y: 675, size: 10, font, color: muted });
   page.drawLine({ start: { x: 40, y: 650 }, end: { x: 555, y: 650 }, thickness: 1, color: amber });
@@ -266,7 +269,7 @@ export async function seedBusinessData(
 
   const { data: orgRow } = await client.from('organizations').select('name').eq('id', orgId).single();
   const pdfs = await uploadSamplePdfs(
-    client, orgId, userId, actorName, orgRow?.name || 'BuildOps',
+    client, orgId, userId, actorName, orgRow?.name || BRAND.name,
     demo.records.map((r) => ({ id: r.id, resource: r.resource, title: r.title })),
     bucket,
   );

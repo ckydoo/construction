@@ -72,43 +72,43 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   })();
   return <Drawer open={open} onClose={onClose} title={row?.title||def.singular} subtitle={`${row?.number||''} · ${def.singular}`}
     footer={<div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2"><a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>}>
-    <div className="border-b divider px-5 py-4"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}</div></div>
-    <div className="grid gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">
+    <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}</div></div>
+    <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {def.fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'?'sm:col-span-2':''}>
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,row?.[f.key])}</div>
       </div>)}
     </div>
-    <div className="border-t divider px-5 py-5">
+    <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center gap-2"><Icon name="Link2" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Linked records</h3>
         <Badge tone="slate">{(related?.groups||[]).reduce((n:number,g:any)=>n+g.count,0)} across modules</Badge></div>
-      {related?.wallet&&<div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border divider bg-emerald-50/50 p-3 dark:bg-emerald-500/10">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600 dark:bg-ink-900"><Icon name="CreditCard" size={16}/></span>
+      {related?.wallet&&<div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/50">
+        <span className="flex h-8 w-8 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-900"><Icon name="CreditCard" size={16}/></span>
         <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-wider muted">Client wallet</p><p className="text-sm font-semibold tabular-nums">{related.wallet.balance!==null?money(related.wallet.balance,related.wallet.currency):`${money(related.wallet.fundedToProjects,related.wallet.currency)} funded to this project`}</p></div>
         <Link href={`/${org}${related.wallet.href}`} className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open wallet →</Link></div>}
-      {!related?<Skeleton className="h-14"/>:!(related.groups||[]).length?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No other modules link to this record yet.</p>:
+      {!related?<Skeleton className="h-14"/>:!(related.groups||[]).length?<p className="rounded-md border divider bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No other modules link to this record yet.</p>:
         <div className="space-y-2.5">{(related.groups||[]).map((g:any)=><div key={g.resource} className="rounded-lg border divider p-3">
-          <div className="mb-2 flex items-center gap-2"><Icon name={g.icon||'FileText'} size={14} className="text-brand-500"/><p className="text-xs font-semibold">{g.label}</p><Badge tone="slate">{g.count}</Badge></div>
-          <div className="flex flex-wrap gap-1.5">{g.items.map((it:any)=><Link key={it.id} href={`/${org}${it.href}`} className="max-w-[220px] truncate rounded-md bg-slate-100 px-2 py-1 text-[11px] text-ink-700 hover:bg-brand-50 hover:text-brand-700 dark:bg-ink-800 dark:text-slate-300">{it.title||it.number}</Link>)}</div></div>)}</div>}
+          <div className="mb-2 flex items-center gap-2"><Icon name={g.icon||'FileText'} size={14} className="muted"/><p className="text-xs font-semibold">{g.label}</p><Badge tone="slate">{g.count}</Badge></div>
+          <div className="flex flex-wrap gap-1.5">{g.items.map((it:any)=><Link key={it.id} href={`/${org}${it.href}`} className="max-w-[220px] truncate rounded border divider px-2 py-1 text-[11px] text-ink-700 hover:bg-brand-50 hover:text-brand-700 dark:bg-ink-800 dark:text-slate-300">{it.title||it.number}</Link>)}</div></div>)}</div>}
     </div>
-    <div className="border-t divider px-5 py-5">
+    <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center gap-2"><Icon name="MessageSquare" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Comments & activity</h3></div>
       {isLoading?<div className="space-y-2"><Skeleton className="h-12"/><Skeleton className="h-12"/></div>:
-        (data?.comments||[]).length===0?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No comments yet. Start the conversation.</p>:
-        <div className="space-y-3">{(data?.comments||[]).map((c:any)=><div key={c.id} className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-ink-700 dark:bg-ink-700 dark:text-slate-200">{c.authorName.split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span><div className="min-w-0 flex-1 rounded-lg bg-slate-50 p-2.5 dark:bg-ink-950/50"><p className="text-xs font-semibold">{c.authorName}<span className="ml-2 font-normal muted">{date(c.createdAt)}</span></p><p className="mt-1 text-xs text-ink-700 dark:text-slate-300">{c.body}</p></div></div>)}</div>}
+        (data?.comments||[]).length===0?<p className="rounded-md border divider bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No comments yet. Start the conversation.</p>:
+        <div className="space-y-3">{(data?.comments||[]).map((c:any)=><div key={c.id} className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-200 text-[10px] font-semibold text-ink-700 dark:bg-ink-700 dark:text-slate-200">{c.authorName.split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span><div className="min-w-0 flex-1 rounded-md border divider bg-slate-50 p-2.5 dark:bg-ink-950/50"><p className="text-xs font-semibold">{c.authorName}<span className="ml-2 font-normal muted">{date(c.createdAt)}</span></p><p className="mt-1 text-xs text-ink-700 dark:text-slate-300">{c.body}</p></div></div>)}</div>}
       <div className="mt-4 flex gap-2"><input className="input" value={comment} onChange={e=>setComment(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')addComment();}} placeholder="Write a comment…"/><Button variant="primary" size="sm" loading={sending} onClick={addComment} icon="Send">Post</Button></div>
     </div>
-    <div className="border-t divider px-5 py-5">
+    <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2"><Icon name="Paperclip" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Attachments & revisions</h3><Badge tone="slate">{groups.length} doc{groups.length===1?'':'s'} · {allFiles.length} file{allFiles.length===1?'':'s'}</Badge></div>
         {canEdit&&<label className="btn-outline btn-sm cursor-pointer"><Icon name="Upload" size={13}/>{uploading?'Uploading…':'Upload file'}<input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading}/></label>}
       </div>
-      {isLoading?<Skeleton className="h-16"/>:!groups.length?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No files attached yet. Upload drawings, photos, signed certificates or supporting documents (up to 12 MB each).</p>:
+      {isLoading?<Skeleton className="h-16"/>:!groups.length?<p className="rounded-md border divider bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No files attached yet. Upload drawings, photos, signed certificates or supporting documents (up to 12 MB each).</p>:
         <div className="space-y-3">{groups.map(g=>{
           const cur=g.items[0]; const older=g.items.slice(1);
-          return <div key={g.key} className="overflow-hidden rounded-xl border divider">
+          return <div key={g.key} className="overflow-hidden rounded-lg border divider">
             <div className="flex items-center gap-3 p-2.5">
               {cur.mime?.startsWith('image/')?<img src={orgApi(org,`files/${cur.id}`)} alt={cur.fileName} className="h-9 w-9 shrink-0 rounded object-cover"/>:<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800"><Icon name={cur.mime?.includes('pdf')?'FileText':'FileImage'} size={16}/></span>}
-              <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-xs font-medium">{cur.fileName}</p><Badge tone="emerald">{cur.revisionLabel||'Rev A'}</Badge></div><p className="truncate text-[11px] muted">{Math.max(1,Math.round(cur.size/1024))} KB · {cur.uploadedByName} · {date(cur.createdAt)}{cur.note?` · ${cur.note}`:''}</p></div>
+              <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-xs font-medium">{cur.fileName}</p><Badge tone="green">{cur.revisionLabel||'Rev A'}</Badge></div><p className="truncate text-[11px] muted">{Math.max(1,Math.round(cur.size/1024))} KB · {cur.uploadedByName} · {date(cur.createdAt)}{cur.note?` · ${cur.note}`:''}</p></div>
               <a href={orgApi(org,`files/${cur.id}`)} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="Download">Open</Button></a>
               {older.length>0&&<button onClick={()=>setExpanded(v=>({...v,[g.key]:!v[g.key]}))} className="btn-outline btn-sm"><Icon name="History" size={13}/>{g.items.length} rev<Icon name={expanded[g.key]?'ChevronUp':'ChevronDown'} size={12}/></button>}
               {canRemove&&<button onClick={()=>removeFile(cur.id,cur.fileName)} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Remove"><Lucide.Trash2 size={14}/></button>}

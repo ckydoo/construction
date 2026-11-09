@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-11-09T20:51:39.321Z",
+  "base": "http://127.0.0.1:3000",
+  "summary": {
+    "passed": 15,
+    "total": 15,
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "results": [
+    {
+      "name": "owner signs in",
+      "ok": true,
+      "detail": "kestrel-ridge/dashboard"
+    },
+    {
+      "name": "metadata exposes the full connected module set",
+      "ok": true,
+      "detail": "49 resources · 34 modules"
+    },
+    {
+      "name": "large desktop: 4 routes, no overflow / decoration / stale titles",
+      "ok": true,
+      "detail": "1920×1080 · 4 routes · max overflow 0px"
+    },
+    {
+      "name": "desktop: 54 routes, no overflow / decoration / stale titles",
+      "ok": true,
+      "detail": "1440×900 · 54 routes · max overflow 0px"
+    },
+    {
+      "name": "laptop: 4 routes, no overflow / decoration / stale titles",
+      "ok": true,
+      "detail": "1024×768 · 4 routes · max overflow 0px"
+    },
+    {
+      "name": "tablet: 4 routes, no overflow / decoration / stale titles",
+      "ok": true,
+      "detail": "768×1024 · 4 routes · max overflow 0px"
+    },
+    {
+      "name": "mobile: 54 routes, no overflow / decoration / stale titles",
+      "ok": true,
+      "detail": "390×844 · 54 routes · max overflow 0px"
+    },
+    {
+      "name": "desktop after screenshots captured",
+      "ok": true,
+      "detail": "7 views"
+    },
+    {
+      "name": "detail drawer after screenshot captured",
+      "ok": true,
+      "detail": "drawer open"
+    },
+    {
+      "name": "mobile / tablet / wide dashboard after screenshots captured",
+      "ok": true,
+      "detail": "3 viewports"
+    },
+    {
+      "name": "authentic MYLA logo loads on fresh login views",
+      "ok": true,
+      "detail": "3 logo variants"
+    },
+    {
+      "name": "keyboard focus has a visible indicator",
+      "ok": true,
+      "detail": "BUTTON: solid / none"
+    },
+    {
+      "name": "reduced-motion preference suppresses transitions",
+      "ok": true,
+      "detail": "1e-05s / 1e-05s"
+    },
+    {
+      "name": "dark mode after screenshot captured",
+      "ok": true,
+      "detail": "dark class applied"
+    },
+    {
+      "name": "no console or page errors during visual QA",
+      "ok": true,
+      "detail": "0 errors"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}

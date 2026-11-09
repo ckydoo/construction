@@ -14,10 +14,10 @@ function ToastHost({items,remove}:{items:Toast[];remove:(id:number)=>void}) {
   const icons:any={success:CheckCircle2,error:XCircle,warning:AlertTriangle,info:Info};
   const tones:any={ success:'text-emerald-600 dark:text-emerald-400', error:'text-red-600 dark:text-red-400', warning:'text-amber-600 dark:text-amber-400', info:'text-sky-600 dark:text-sky-400' };
   return <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2">
-    {items.map(t=>{ const I=icons[t.tone]; return <div key={t.id} className="pointer-events-auto flex animate-fadein items-start gap-3 rounded-xl border border-slate-200 bg-white p-3.5 shadow-lg dark:border-ink-700 dark:bg-ink-900">
+    {items.map(t=>{ const I=icons[t.tone]; return <div key={t.id} className="panel pointer-events-auto flex animate-fadein items-start gap-3 p-3">
       <I size={18} className={`mt-0.5 shrink-0 ${tones[t.tone]}`}/>
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{t.title}</p>{t.description&&<p className="mt-0.5 text-xs muted">{t.description}</p>}</div>
-      <button onClick={()=>remove(t.id)} className="text-slate-400 hover:text-ink-700 dark:hover:text-white"><X size={15}/></button>
+      <button onClick={()=>remove(t.id)} aria-label="Dismiss notification" className="text-slate-400 hover:text-ink-700 dark:hover:text-white"><X size={15}/></button>
     </div>;})}
   </div>;
 }

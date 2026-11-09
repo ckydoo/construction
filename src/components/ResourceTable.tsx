@@ -27,7 +27,7 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
   }
   if(f.type==='currency') return <span className="font-medium tabular-nums">{money(v,row.currency||'USD')}</span>;
   if(f.type==='number') return <span className="tabular-nums">{num(v)}</span>;
-  if(f.type==='percent') return <div className="flex min-w-[90px] items-center gap-2"><span className="w-8 text-xs tabular-nums">{Math.round(Number(v)||0)}%</span><div className="w-12"><ProgressBar value={v}/></div></div>;
+  if(f.type==='percent') return <div className="flex min-w-[90px] items-center justify-end gap-2"><span className="w-8 text-right text-xs tabular-nums">{Math.round(Number(v)||0)}%</span><div className="w-12"><ProgressBar value={v}/></div></div>;
   if(f.type==='date') return <span className="tabular-nums">{date(v)}</span>;
   if(f.type==='boolean') return v?<Badge tone="green">Yes</Badge>:<Badge tone="slate">No</Badge>;
   if(f.type==='tags') return <div className="flex gap-1">{(Array.isArray(v)?v:[v]).slice(0,2).map((t:string)=><Badge key={t} tone="blue">{t}</Badge>)}</div>;
@@ -117,15 +117,16 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   if(meta&&!enabled) return <Card><EmptyState icon="Lock" title="Module not enabled" description={`${def.label} is not part of your current workspace. An owner or admin can enable it in Settings → Modules.`} action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Settings">Open settings</Button></Link>}/></Card>;
 
   const cols=def.columns;
+  const numericCols=new Set(cols.filter(c=>{const f=def.fields.find(x=>x.key===c);return f&&['currency','number','percent'].includes(f.type);}));
   const allSelected=rows.length>0&&rows.every(r=>selected.has(r.id));
   const toggleAll=()=>setSelected(s=>{const n=new Set(s);if(allSelected)rows.forEach(r=>n.delete(r.id));else rows.forEach(r=>n.add(r.id));return n;});
   const toggleOne=(id:string)=>setSelected(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
   const csvHref=orgApi(org,`records/${resource}?mode=csv&${new URLSearchParams({q,status,projectId:projectFilter}).toString()}`);
   const projectOpts=refs?.projects||[];
 
-  return <div className={embedded?'':'space-y-5'}>
+  return <div className={embedded?'':'space-y-4'}>
     {!embedded&&<div className="flex flex-wrap items-start justify-between gap-3">
-      <div><div className="flex items-center gap-2.5"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"><Icon name={def.icon} size={20}/></span><div><h1 className="heading">{def.label}</h1><p className="mt-0.5 text-xs muted">{def.description}</p></div></div></div>
+      <div><div className="flex items-center gap-2.5"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-400"><Icon name={def.icon} size={16}/></span><div><h1 className="heading">{def.label}</h1><p className="caption mt-0.5">{def.description}</p></div></div></div>
       <div className="flex flex-wrap items-center gap-2">
         <a href={csvHref} download><Button icon="Download" size="sm">Export CSV</Button></a>
         <Button variant="ghost" size="icon" onClick={()=>refetch()} title="Refresh"><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
@@ -134,23 +135,30 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
     </div>}
 
     <Card className="overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b divider p-3">
+      <div className="flex flex-wrap items-center gap-2 border-b divider p-2.5">
         <div className="relative min-w-[200px] flex-1"><Lucide.Search size={15} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" value={qInput} onChange={e=>setQInput(e.target.value)} placeholder={`Search ${def.label.toLowerCase()}…`}/></div>
         {def.statusOptions&&<select className="select w-auto min-w-[140px]" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><option value="ALL">All statuses</option>{def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>}
         {def.projectScoped&&!fixedProjectId&&<select className="select w-auto min-w-[160px]" value={projectFilter} onChange={e=>{setProjectFilter(e.target.value);setPage(1);}}><option value="ALL">All projects</option>{projectOpts.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>}
-        {(q||status!=='ALL'||(projectFilter!=='ALL'&&!fixedProjectId))&&<Button variant="ghost" size="sm" icon="X" onClick={()=>{setQInput('');setQ('');setStatus('ALL');setProjectFilter(fixedProjectId||'ALL');setPage(1);}}>Clear</Button>}
+        {(q||status!=='ALL'||(projectFilter!=='ALL'&&!fixedProjectId))&&<Button variant="ghost" size="sm" className="h-8 px-2 text-[11px]" icon="X" onClick={()=>{setQInput('');setQ('');setStatus('ALL');setProjectFilter(fixedProjectId||'ALL');setPage(1);}}>Clear</Button>}
         <span className="ml-auto hidden text-xs muted sm:block">{data?.total??0} records</span>
       </div>
-      {selected.size>0&&<div className="flex flex-wrap items-center gap-2 border-b divider bg-brand-50/60 px-4 py-2.5 dark:bg-brand-500/5">
-        <span className="text-xs font-semibold text-brand-800 dark:text-brand-300">{selected.size} selected</span>
+      {(q||status!=='ALL'||(projectFilter!=='ALL'&&!fixedProjectId))&&<div className="flex flex-wrap items-center gap-2 border-b divider bg-slate-50 px-3 py-1.5 text-[11px] dark:bg-ink-950/40">
+        <span className="font-medium muted">Active filters</span>
+        {q&&<span className="chip py-0.5">Search: {q}</span>}
+        {status!=='ALL'&&<span className="chip py-0.5">Status: {status.replace(/_/g,' ')}</span>}
+        {projectFilter!=='ALL'&&!fixedProjectId&&<span className="chip py-0.5">Project: {projectOpts.find(o=>o.value===projectFilter)?.label||projectFilter}</span>}
+        <Button variant="ghost" size="sm" className="ml-auto h-7 px-2 text-[11px]" icon="X" onClick={()=>{setQInput('');setQ('');setStatus('ALL');setProjectFilter(fixedProjectId||'ALL');setPage(1);}}>Reset all</Button>
+      </div>}
+      {selected.size>0&&<div className="flex flex-wrap items-center gap-2 border-b divider bg-slate-50 px-3 py-2 dark:bg-ink-950/50">
+        <span className="text-xs font-semibold text-ink-800 dark:text-slate-200">{selected.size} selected</span>
         {canRemove&&<Button variant="ghost" size="sm" icon="Trash2" className="text-red-600" onClick={()=>setConfirm({ids:[...selected],label:`${selected.size} ${def.label.toLowerCase()}`})}>Delete selected</Button>}
         <Button variant="ghost" size="sm" onClick={()=>setSelected(new Set())}>Clear selection</Button>
       </div>}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse">
           <thead className="bg-slate-50/80 dark:bg-ink-950/40"><tr>
-            {canRemove&&<th className="w-10 px-4 py-3"><input type="checkbox" checked={allSelected} onChange={toggleAll} className="h-3.5 w-3.5 accent-amber-500"/></th>}
-            {cols.map(c=>{const f=def.fields.find(x=>x.key===c);return <th key={c} className="table-th">
+            {canRemove&&<th className="w-10 px-3 py-2.5"><input type="checkbox" checked={allSelected} onChange={toggleAll} className="h-3.5 w-3.5 accent-brand-500"/></th>}
+            {cols.map(c=>{const f=def.fields.find(x=>x.key===c);return <th key={c} className={`table-th ${numericCols.has(c)?'text-right':''}`}>
               <button className="inline-flex items-center gap-1 hover:text-ink-800 dark:hover:text-white" onClick={()=>{if(sort===c)setDir(d=>d==='asc'?'desc':'asc');else{setSort(c);setDir('asc');}}}>
                 {f?.label||(c==='number'?'No.':c)}{sort===c&&<Icon name={dir==='asc'?'ChevronUp':'ChevronDown'} size={12}/>}
               </button></th>;})}
@@ -162,20 +170,20 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
               description={q||status!=='ALL'?'Try a different search or clear your filters.':`Create your first ${def.singular.toLowerCase()} to get started, or load the demo dataset to explore a fully populated workspace.`}
               action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={()=>{setEditing(null);setFormOpen(true);}}>New {def.singular}</Button>{!q&&<Link href={`/${org}/settings`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
             rows.map(r=><tr key={r.id} onClick={()=>setDetailRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
-              {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-amber-500"/></td>}
-              {cols.map(c=><td key={c} className="table-td" onClick={c==='status'?e=>e.stopPropagation():undefined}>
-                {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{...r,status:e.target.value}})} className={`rounded-md border-0 bg-transparent px-1 py-0.5 text-[11px] font-semibold focus:ring-1 focus:ring-brand-400 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
+              {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
+              {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
+                {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{...r,status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
                   {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={refs||{}} org={org}/>}
               </td>)}
-              <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-60 transition group-hover:opacity-100">
-                {canEdit&&<button onClick={()=>{setEditing(r);setServerErrors(undefined);setFormOpen(true);}} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
-                {canRemove&&<button onClick={()=>setConfirm({ids:[r.id],label:r.title||r.number})} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Delete"><Lucide.Trash2 size={14}/></button>}
+              <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
+                {canEdit&&<button aria-label={`Edit ${r.title||r.number}`} onClick={()=>{setEditing(r);setServerErrors(undefined);setFormOpen(true);}} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
+                {canRemove&&<button aria-label={`Delete ${r.title||r.number}`} onClick={()=>setConfirm({ids:[r.id],label:r.title||r.number})} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Delete"><Lucide.Trash2 size={14}/></button>}
               </div></td>
             </tr>)}
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t divider px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t divider px-3 py-2.5">
         <p className="text-xs muted">{data?.total?`Showing ${(page-1)*PAGE_SIZE+1}–${Math.min(page*PAGE_SIZE,data.total)} of ${data.total}`:'No records'}</p>
         <div className="flex items-center gap-1.5"><Button size="sm" variant="ghost" disabled={page<=1} onClick={()=>setPage(p=>p-1)} icon="ChevronLeft">Prev</Button><span className="px-2 text-xs font-medium">Page {page} / {data?.pages||1}</span><Button size="sm" variant="ghost" disabled={page>=(data?.pages||1)} onClick={()=>setPage(p=>p+1)}>Next<Icon name="ChevronRight" size={14}/></Button></div>
       </div>

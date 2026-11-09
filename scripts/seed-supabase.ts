@@ -1,4 +1,4 @@
-/* Seed the BuildOps demo workspace into Supabase.
+/* Seed the MYLA demo workspace into Supabase.
  *
  *   npm run db:seed
  *
@@ -24,7 +24,7 @@ async function main() {
     process.exit(1);
   }
   const admin = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  console.log('Seeding BuildOps demo workspace into Supabase…');
+  console.log('Seeding MYLA demo workspace into Supabase…');
 
   // 1. Private Storage bucket (migrations also create it; this makes seeding
   //    work when the bucket was deleted or when running against an older DB).
@@ -103,7 +103,7 @@ async function main() {
   if (mErr) throw new Error(`Cannot create memberships: ${mErr.message}`);
 
   // 4. Records, wallets, ledger, comments, audit trail, notifications, PDFs.
-  const seeded = await seedBusinessData(admin, orgId, ownerId, 'BuildOps Demo', bucket);
+  const seeded = await seedBusinessData(admin, orgId, ownerId, 'MYLA Demo', bucket);
 
   console.log(`  ✓ organisation: ${DEMO_ORG.name} (${orgId})`);
   console.log(`  ✓ ${seeded.records} records across ${config.resources.length} resources`);

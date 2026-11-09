@@ -1,4 +1,4 @@
-# Supabase CLI project config for BuildOps.
+# Supabase CLI project config for MYLA.
 # `supabase start` runs the local stack; `supabase db push` applies migrations/.
 project_id = "buildops"
 

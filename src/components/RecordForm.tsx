@@ -44,13 +44,13 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
     const v=values[f.key];
     const common=`input ${errors[f.key]?'border-red-400 focus:ring-red-400/30':''}`;
     switch(f.type){
-      case 'textarea': return <textarea className={`${common} min-h-[84px] resize-y`} value={v??''} onChange={e=>set(f.key,e.target.value)} placeholder={f.placeholder||`Enter ${f.label.toLowerCase()}`}/>;
+      case 'textarea': return <textarea className={`${common} min-h-[76px] resize-y py-2`} value={v??''} onChange={e=>set(f.key,e.target.value)} placeholder={f.placeholder||`Enter ${f.label.toLowerCase()}`}/>;
       case 'select': return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">Select…</option>{(f.options||[]).map(o=><option key={o} value={o}>{o.replace(/_/g,' ')}</option>)}</select>;
       case 'ref': {
         const opts=refs[f.ref||'']||[];
         return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">— None —</option>{opts.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>;
       }
-      case 'boolean': return <div className="flex h-[38px] items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
+      case 'boolean': return <div className="flex h-9 items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
       case 'tags': return <input className={common} value={Array.isArray(v)?v.join(', '):v??''} onChange={e=>set(f.key,e.target.value)} placeholder="Comma separated tags"/>;
       case 'date': return <input className={common} type="date" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'datetime': return <input className={common} type="datetime-local" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
@@ -60,7 +60,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   }
   return <Drawer open={open} onClose={onClose} title={`${initial?'Edit':'New'} ${def.singular}`} subtitle={initial?`${initial.number} · changes are saved immediately`:`Complete the fields below to create a new ${def.singular.toLowerCase()}.`}
     footer={<div className="flex items-center justify-between"><p className="text-[11px] muted"><span className="text-red-500">*</span> Required field</p><div className="flex gap-2"><Button onClick={onClose}>Cancel</Button><Button variant="primary" onClick={submit as any} loading={submitting} icon="Save">{initial?'Save changes':`Create ${def.singular}`}</Button></div></div>}>
-    <form onSubmit={submit} className="grid gap-5 px-5 py-5 sm:grid-cols-2">
+    <form onSubmit={submit} className="grid gap-4 px-4 py-4 sm:grid-cols-2">
       {grouped.basic.map(f=><FWrap key={f.key} label={f.label} required={f.required} error={errors[f.key]} hint={f.hint}>{control(f)}</FWrap>)}
       {grouped.wide.map(f=><FWrap key={f.key} label={f.label} required={f.required} error={errors[f.key]} wide>{control(f)}</FWrap>)}
     </form>

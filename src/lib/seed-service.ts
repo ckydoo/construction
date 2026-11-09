@@ -4,8 +4,9 @@
 import { supabaseAdmin } from './supabase';
 import { seedBusinessData, clearBusinessData, DEFAULT_BUCKET } from './seed-data';
 import { storageBucket } from './files';
+import { BRAND } from './brand';
 
-export async function seedDemo(orgId: string, userId: string, actorName = 'BuildOps Demo') {
+export async function seedDemo(orgId: string, userId: string, actorName = `${BRAND.name} Demo`) {
   const admin = supabaseAdmin();
   return seedBusinessData(admin, orgId, userId, actorName, storageBucket() || DEFAULT_BUCKET);
 }

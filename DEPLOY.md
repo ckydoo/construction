@@ -1,4 +1,4 @@
-# BuildOps deployment guide (Supabase)
+# MYLA deployment guide (Supabase)
 
 The app is a Next.js 15 UI over a Supabase backend. There is **no local database, no SQLite file and no disk volume** — production needs a Supabase project with the migrations applied.
 

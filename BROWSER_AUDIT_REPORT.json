@@ -7,7 +7,7 @@
     {
       "name": "login page renders",
       "ok": true,
-      "detail": "BuildOps — Construction & Industrial Management"
+      "detail": "MYLA — Construction & Industrial Management"
     },
     {
       "name": "owner login redirects to dashboard",

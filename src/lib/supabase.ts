@@ -1,4 +1,4 @@
-/* BuildOps Supabase clients.
+/* MYLA Supabase clients.
  *
  * `supabase()`   — a cookie-bound, RLS-enforcing client for the signed-in user.
  *                  EVERY app read/write goes through this client, so Postgres

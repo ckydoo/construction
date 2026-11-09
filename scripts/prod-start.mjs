@@ -11,7 +11,7 @@ if (!url || !anon) {
   console.error('See .env.example / ENV_KEYS.md. Migrations are applied with `npx supabase db push`.');
   process.exit(1);
 }
-console.log(`Starting BuildOps against Supabase (${new URL(url).host})…`);
+console.log(`Starting MYLA against Supabase (${new URL(url).host})…`);
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const result = spawnSync(npx, ['next', 'start', '-H', '0.0.0.0', '-p', process.env.PORT || '3000'], { stdio: 'inherit' });
 process.exit(result.status ?? 1);

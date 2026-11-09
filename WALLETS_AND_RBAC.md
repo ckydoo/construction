@@ -1,6 +1,6 @@
 # Client wallets & role-level access
 
-BuildOps now has a prepaid **client wallet** that is wired into the commercial chain, and a single
+MYLA now has a prepaid **client wallet** that is wired into the commercial chain, and a single
 server-enforced **role matrix** that governs every endpoint and every screen.
 
 ---

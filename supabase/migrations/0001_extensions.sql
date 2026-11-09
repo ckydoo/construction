@@ -1,4 +1,4 @@
--- BuildOps / Supabase foundation
+-- MYLA / Supabase foundation
 -- Requires Supabase's auth + storage schemas to already exist.
 
 create schema if not exists extensions;

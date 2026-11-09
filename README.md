@@ -1,4 +1,6 @@
-# BuildOps — Construction & Industrial Company Management
+# MYLA — CONSTRUCTION & INDUSTRIAL MANAGEMENT
+
+> **Built for Progress.**
 
 A full-stack, multi-tenant ERP for construction and industrial companies. Register → complete a 5-step onboarding wizard (company **type** + **size** + work-style qualifiers) → the workspace derives its module pack, feature flags and plan limits automatically. Every enabled module is CRUD-complete and connected. The seeded demo workspace is alive on first load. Client wallets, a Postgres-enforced 14-role permission matrix and live cross-module link integrity checks are built in.
 
@@ -180,7 +182,7 @@ scripts/
 - `npx tsc --noEmit` — clean.
 - `npm run build` — clean production build (one harmless Edge Runtime warning from `@supabase/ssr`; see SUPABASE.md).
 - `npm run env:check` — validates Supabase slots without printing secrets.
-- The five BuildOps migrations are applied to the live Supabase project and the demo dataset is seeded. Live verification is **1211/1211 API checks + 22/22 derivation checks** (`npm run audit`), **28/28 real-Chromium checks** (`npm run audit:browser`) and **10/10 live onboarding/tenancy checks** (`npm run audit:onboarding`). The older SQLite-era `1211/1211` headline is superseded by this live check set (which now includes 13 role-fixture cleanup checks); see `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md` and `ONBOARDING_AUDIT_REPORT.md`. `npm run audit:onboarding` creates throwaway Auth users and a workspace; run the generated `../QA_ONBOARDING_CLEANUP.sql` through the Supabase SQL editor/connector afterwards. The `npm run audit` role/tenant fixtures are cleaned the same way (see `SUPABASE.md`).
+- The five MYLA migrations are applied to the live Supabase project and the demo dataset is seeded. Live verification is **1211/1211 API checks + 22/22 derivation checks** (`npm run audit`), **28/28 real-Chromium checks** (`npm run audit:browser`) and **10/10 live onboarding/tenancy checks** (`npm run audit:onboarding`). The older SQLite-era `1211/1211` headline is superseded by this live check set (which now includes 13 role-fixture cleanup checks); see `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md` and `ONBOARDING_AUDIT_REPORT.md`. `npm run audit:onboarding` creates throwaway Auth users and a workspace; run the generated `../QA_ONBOARDING_CLEANUP.sql` through the Supabase SQL editor/connector afterwards. The `npm run audit` role/tenant fixtures are cleaned the same way (see `SUPABASE.md`).
 
 ---
 

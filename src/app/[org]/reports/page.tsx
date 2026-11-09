@@ -51,30 +51,30 @@ export default function ReportsPage(){
   const items=REPORTS.flatMap(g=>g.items.map(i=>({...i,group:g.group}))).filter(i=>group==='All'||i.group===group);
   const defs=meta?.resources||[];
   const statuses=(defs.find((d:any)=>d.id===builderResource)?.statusOptions)||[];
-  return <div className="space-y-5">
-    <div><h1 className="heading">Reports & business intelligence</h1><p className="mt-1 text-xs muted">Standard reports built from live workspace records. Export any view to CSV for Excel or your accounting system.</p></div>
+  return <div className="space-y-4">
+    <div><h1 className="heading">Reports & business intelligence</h1><p className="mt-1 caption">Standard reports built from live workspace records. Export any view to CSV for Excel or your accounting system.</p></div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {isLoading?Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-24"/>):[
         ['Total records',num(Object.values(ov?.counts||{}).reduce((a:number,b:any)=>a+Number(b),0))],['Contract value',money(ov?.kpis?.contractValue,'USD',true)],['Safety score',pct(ov?.kpis?.safetyScore)],['Open RFIs',num(ov?.kpis?.openRfis)],
-      ].map(([l,v])=><Card key={String(l)} className="p-4"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1.5 text-xl font-semibold">{v}</p></Card>)}
+      ].map(([l,v])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 text-[20px] font-semibold tabular-nums">{v}</p></Card>)}
     </div>
     <div className="grid gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Revenue trend" subtitle="Client invoices by month"/><div className="p-5 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
-      <Card className="overflow-hidden"><CardHead title="Cost mix" subtitle="Actual cost by category"/><div className="p-5">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
+      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Revenue trend" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
+      <Card className="overflow-hidden"><CardHead title="Cost mix" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
     </div>
     <Card><CardHead title="Custom report builder" subtitle="Pick a dataset and filter, then export"/>
-      <div className="grid gap-4 p-5 sm:grid-cols-3">
+      <div className="grid gap-4 p-4 sm:grid-cols-3">
         <Field label="Dataset"><select className="select" value={builderResource} onChange={e=>{setBuilderResource(e.target.value);setBuilderStatus('ALL');}}>{defs.filter((d:any)=>meta?.config?.resources?.includes(d.id)).map((d:any)=><option key={d.id} value={d.id}>{d.label}</option>)}</select></Field>
         <Field label="Status filter"><select className="select" value={builderStatus} onChange={e=>setBuilderStatus(e.target.value)}><option value="ALL">All statuses</option>{statuses.map((s:string)=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select></Field>
         <div className="flex items-end gap-2"><a className="flex-1" href={orgApi(org,`records/${builderResource}?mode=csv&status=${builderStatus}`)} download><Button variant="primary" className="w-full" icon="Download">Export CSV</Button></a><Link href={`/${org}/m/${builderResource}?status=${builderStatus}`}><Button icon="Table2">Open</Button></Link></div>
       </div>
     </Card>
-    <div className="flex flex-wrap items-center gap-2">{groups.map(g=><button key={g} onClick={()=>setGroup(g)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${group===g?'border-brand-400 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{g}</button>)}</div>
+    <div className="flex flex-wrap items-center gap-2">{groups.map(g=><button key={g} onClick={()=>setGroup(g)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition ${group===g?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{g}</button>)}</div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{items.map(r=>{
       const enabled=meta?.config?.resources?.includes(r.resource);
-      return <Card key={r.title} className="card-hover flex flex-col p-4"><div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={r.icon} size={17}/></span>
+      return <Card key={r.title} className="card-hover flex flex-col p-3.5"><div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={r.icon} size={17}/></span>
         <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{r.title}</p><p className="mt-1 text-xs leading-relaxed muted">{r.desc}</p></div></div>
-        <div className="mt-4 flex items-center justify-between border-t divider pt-3"><div className="flex items-center gap-2"><Badge tone="slate">{r.group}</Badge><span className="text-[11px] muted">{num(ov?.counts?.[r.resource])} rows</span></div>
+        <div className="mt-3.5 flex items-center justify-between border-t divider pt-2.5"><div className="flex items-center gap-2"><Badge tone="slate">{r.group}</Badge><span className="text-[11px] muted">{num(ov?.counts?.[r.resource])} rows</span></div>
           <div className="flex gap-1.5">{enabled?<a href={orgApi(org,`records/${r.resource}?mode=csv`)} download><Button size="sm" icon="Download">CSV</Button></a>:<Badge tone="amber">Module off</Badge>}<Link href={`/${org}/m/${r.resource}`}><Button size="sm" variant="ghost" icon="ArrowUpRight">Open</Button></Link></div></div></Card>;})}</div>
   </div>;
 }
