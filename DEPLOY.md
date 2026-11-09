@@ -74,6 +74,12 @@ Uploads are written to `UPLOAD_ROOT` (defaults to `<cwd>/uploads/<orgId>`). On e
 | `SEED_DEMO` | unset | `true` seeds 616 demo records on first boot only |
 | `PORT` | `3000` | Next.js listen port |
 | `NODE_ENV` | — | `production` in the container |
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | OAuth callbacks / emailed links (reserved) |
+| `TZ` | `Africa/Harare` | Regional reporting timezone |
+| `LOG_LEVEL` | `info` | Reserved logging level |
+| `MAX_FILE_BYTES` | `12582912` | Reserved upload cap (currently a constant in `src/lib/files.ts`) |
+
+The full list — including **Supabase** project URL, anon/publishable key, service-role/secret key, JWT secret, pooled and direct database URLs, storage bucket, plus S3/R2, email, SMS/WhatsApp, Paynow/Stripe/PayPal, maps, SSO, accounting, webhook, Sentry and OpenAI keys — is in [`.env.example`](.env.example) and explained in [`ENV_KEYS.md`](ENV_KEYS.md). Run `npm run env:check` before deploying. `.env` is excluded by `.gitignore` and `.dockerignore`; set real values in the host's environment instead.
 
 ## What the boot script does
 `scripts/prod-start.mjs` → `prisma db push --skip-generate` → optional seed if the DB has no organisation → `next start -H 0.0.0.0 -p $PORT`. It is idempotent and safe to run on every deploy.
@@ -85,6 +91,7 @@ Uploads are written to `UPLOAD_ROOT` (defaults to `<cwd>/uploads/<orgId>`). On e
 - [ ] Log in with `owner@kestrelridge.co.zw` / `Demo@1234`, then **change the password** (or delete demo users in Settings → Users).
 - [ ] Set `SEED_DEMO=false` if you want a clean production tenant only.
 - [ ] Configure a real `SESSION_SECRET` and enforce HTTPS (cookies are HTTP-only, `sameSite=lax`).
+- [ ] Run `npm run env:check` and confirm no secret is in a `NEXT_PUBLIC_*` variable.
 - [ ] Back up `/app/data` (SQLite) or take managed Postgres snapshots.
 - [ ] Verify `/api/[org]/files` uploads and a PDF download work through the public domain.
 - [ ] If exposing to the internet, put rate limiting in front of `/api/auth/login`.

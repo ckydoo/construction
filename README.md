@@ -10,14 +10,23 @@ A full-stack, multi-tenant ERP for construction and industrial companies. Regist
 
 ```bash
 npm install
-npx prisma db push          # creates prisma/dev.db (SQLite)
+cp .env.example .env        # fill in Supabase / API keys (optional for local SQLite)
+npm run env:check
+npm run db:push             # creates prisma/dev.db (SQLite)
 npm run db:seed             # 616 demo records, 7 demo users
 npm run dev                 # development server on 0.0.0.0:3000
 # or, for a lighter production preview:
 npm run build && npm run start
 ```
 
-`npm run setup` does install + db push + seed + dev in one command. `npm run db:reset` recreates the database from scratch.
+`npm run setup` does all of that in one command and creates `.env` from the template if it is missing. `npm run db:reset` recreates the database from scratch. **`.env` is ignored by Git and Docker** — see [`ENV_KEYS.md`](ENV_KEYS.md) and [`.env.example`](.env.example) for every Supabase and integration key.
+
+### Environment & API keys
+
+- `npm run env:init` — create `.env` from `.env.example` without overwriting an existing one.
+- `npm run env:check` — validate required values, provider/URL mismatches, tracked secrets and public/private key mistakes, without printing values.
+- Supabase: project URL + anon/publishable key are public; **service-role/secret keys and DB passwords stay server-side**. Add them to `.env` (or Render environment), never to `NEXT_PUBLIC_*`.
+- Sections 2–10 of `.env.example` are named slots for optional connectors (storage, email, SMS, payments, maps, SSO, accounting, webhooks, monitoring, AI). They are not read by the current code until the integration is wired.
 
 ### Demo logins (password `Demo@1234`)
 
@@ -99,7 +108,7 @@ USD + ZWG, 15% VAT, tax invoice numbering, FIDIC / NEC4 / JBCC / AIA contract fo
 - Four sample PDF attachments across three revision chains are seeded so the panel is populated on first load.
 
 ### 9 · Deployment-ready
-`Dockerfile`, `render.yaml`, `.dockerignore`, `.env.example`, `scripts/prod-start.mjs` (schema + optional seed + serve), `scripts/switch-provider.mjs` (SQLite → Postgres), and a committed git repo. See **[DEPLOY.md](DEPLOY.md)**.
+`Dockerfile`, `render.yaml`, `.dockerignore`, `.env.example`, `ENV_KEYS.md`, `scripts/prod-start.mjs` (schema + optional seed + serve), `scripts/ensure-env.mjs` / `scripts/check-env.mjs`, `scripts/switch-provider.mjs` (SQLite → Postgres/Supabase), and a committed git repo. See **[DEPLOY.md](DEPLOY.md)**.
 
 ### 10 · Demo dataset
 616 reconciled records for **Kestrel Ridge Construction & Industrial Group**: 5 projects (3 live, 1 complete, 1 bid), 9 clients, 42 employees, 14 vendors/subcontractors, 28 plant assets, 16 POs, 14 invoices, 8 payment certificates, 16 supplier bills, 40 timesheets, 18 RFIs, 12 change orders, safety incidents, inspections, NCRs, certifications with expiry alerts, stock, units and commissioning packages — plus notifications, audit trail and comments.
@@ -154,4 +163,4 @@ scripts/seed.ts       CLI seed
 
 - Deep domain engines (critical-path CPM scheduling, a full statutory payroll engine, BIM/telematics integrations, e-signature, offline sync) are represented as usable registers, workflows and settings rather than full external systems — but nothing is a dead stub: every screen has real create/edit/delete, relationships and seed data.
 - File uploads now store real binaries locally; on serverless hosts swap the two storage helpers for S3/R2 (the `Attachment` metadata model is already there).
-- SQLite WAL mode handles the demo workload; set `DATABASE_URL` to a Postgres URL and change the provider in `schema.prisma` for production deployments.
+- SQLite WAL mode handles the demo workload; set `DATABASE_URL` to a Postgres/Supabase URL, run `npm run db:postgres`, and change the provider in `schema.prisma` for production deployments. All keys belong in the ignored `.env`; see `ENV_KEYS.md`.

@@ -7,7 +7,7 @@ s=s.replace(/provider\s*=\s*"sqlite"/,'provider = "postgresql"');
 fs.writeFileSync(schema,s);
 console.log('✓ prisma/schema.prisma now uses the PostgreSQL provider.');
 console.log('Next steps:');
-console.log('  1. Set DATABASE_URL to your Postgres connection string in .env / host env vars');
+console.log('  1. Set DATABASE_URL to your Postgres/Supabase connection string in .env (see ENV_KEYS.md)');
 console.log('  2. npx prisma generate && npx prisma db push');
 console.log('  3. npm run build && npm run start:prod   (or deploy)');
 console.log('To revert: change provider back to "sqlite" and set DATABASE_URL="file:./dev.db"');

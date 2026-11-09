@@ -6,7 +6,7 @@
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
-    "setup": "npm install && npx prisma db push && npm run db:seed && npm run dev",
+    "setup": "npm install && npm run db:push && npm run db:seed && npm run dev",
     "db:push": "prisma db push",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "rm -f prisma/dev.db && npx prisma db push && npx tsx scripts/seed.ts",
@@ -18,7 +18,16 @@
     "audit:core": "tsx scripts/audit-core.ts",
     "audit:browser": "node scripts/browser-audit.mjs",
     "audit:all": "npm run audit && npm run audit:browser",
-    "audit:report": "python3 scripts/report.py"
+    "audit:report": "python3 scripts/report.py",
+    "predb:push": "node scripts/ensure-env.mjs",
+    "predb:seed": "node scripts/ensure-env.mjs",
+    "predb:reset": "node scripts/ensure-env.mjs",
+    "predev": "node scripts/ensure-env.mjs",
+    "prebuild": "node scripts/ensure-env.mjs",
+    "prestart": "node scripts/ensure-env.mjs",
+    "prestart:prod": "node scripts/ensure-env.mjs",
+    "env:init": "node scripts/ensure-env.mjs",
+    "env:check": "node scripts/check-env.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

@@ -1,6 +1,6 @@
 # Render deployment runbook (chosen target)
 
-Everything in the repo is already configured: `Dockerfile`, `render.yaml`, `.dockerignore`, `scripts/prod-start.mjs`, `.env.example`.
+Everything in the repo is already configured: `Dockerfile`, `render.yaml`, `.dockerignore`, `scripts/prod-start.mjs`, `.env.example`, `ENV_KEYS.md` and the `env:init` / `env:check` scripts. Real keys go in the ignored `.env` locally or in Render's environment variables — never in the repo.
 
 ## 1 · Get the committed repo into your GitHub/GitLab account
 
@@ -32,7 +32,7 @@ git push -u origin main
 2. Render reads `render.yaml` and creates:
    - a Docker web service named `buildops`,
    - a 1 GB persistent disk at `/app/data`,
-   - `DATABASE_URL=file:/app/data/dev.db`, `UPLOAD_ROOT=/app/data/uploads`, `SEED_DEMO=true`, a generated `SESSION_SECRET`,
+   - `DATABASE_URL=file:/app/data/dev.db`, `UPLOAD_ROOT=/app/data/uploads`, `SEED_DEMO=true`, a generated `SESSION_SECRET` (add Supabase / API keys here if you wire those integrations),
    - health check on `/login`.
 3. Click **Apply**. First boot runs `prisma db push`, seeds 616 demo records plus the sample drawing revision chain, then serves on `$PORT`.
 4. Open the `.onrender.com` URL → log in with `owner@kestrelridge.co.zw` / `Demo@1234`.

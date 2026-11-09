@@ -1,6 +1,9 @@
 node_modules
 .next
-.env.local
+# Environment files — keep the template, ignore real values
+.env
+.env.*
+!.env.example
 prisma/dev.db
 prisma/dev.db-journal
 

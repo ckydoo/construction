@@ -5,6 +5,8 @@ uploads
 prisma/dev.db
 prisma/dev.db-journal
 npm-debug.log
-.env.local
+.env
+.env.*
+!.env.example
 BuildOps-offline-snapshot.html
 *.zip
