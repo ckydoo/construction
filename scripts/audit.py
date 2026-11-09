@@ -341,6 +341,17 @@ if mod:
     rr = req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': mid, 'enabled': True})
     check(sec, 're-enable module', rr.status_code == 200, f'HTTP {rr.status_code}')
     check(sec, 'list works again', req(OWNER, 'GET', f'records/{target_res}?pageSize=3').status_code == 200, '')
+
+    # Essentials-first pack switch (Settings → Modules)
+    rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'essentials'})
+    check(sec, 'apply essentials pack', rr.status_code == 200, f'HTTP {rr.status_code}')
+    check(sec, 'essentials disables non-core resource',
+          req(OWNER, 'GET', f'records/{target_res}?pageSize=3').status_code == 403, '')
+    check(sec, 'essentials keeps core chain',
+          req(OWNER, 'GET', 'records/clients?pageSize=3').status_code == 200, '')
+    rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'full'})
+    check(sec, 'restore full pack', rr.status_code == 200, f'HTTP {rr.status_code}')
+    check(sec, 'resource restored', req(OWNER, 'GET', f'records/{target_res}?pageSize=3').status_code == 200, '')
 else:
     check(sec, 'module found for gating test', False, f'no module owns {target_res}')
 

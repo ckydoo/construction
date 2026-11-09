@@ -80,6 +80,21 @@ export const MODULES: ModuleDef[] = [
 ];
 
 export const CORE_MODULE_IDS = MODULES.filter(m => m.tier === 'CORE').map(m => m.id);
+
+/* The essentials: one connected commercial chain — win work → deliver → invoice →
+   get paid — plus the people and reporting needed to run it. New workspaces start
+   here. Everything else is an explicit add-on (onboarding step 5) or can be
+   switched on later in Settings → Modules. This keeps the first-run surface small
+   and lets each module be verified before the next one is introduced. */
+export const STARTER_MODULE_IDS: string[] = [
+  'dashboard','company','crm','pipeline','estimating','projects','contracts',
+  'documents','finance','hr','time','reports',
+];
+export const STARTER_MODULE_SET = new Set(STARTER_MODULE_IDS);
+// A company's defining modules (unit sales, rental, commissioning) unlock as soon
+// as that company type is chosen; everything else follows a size/tier ramp.
+const TYPE_DEFINING_MODULES = new Set(['unitSales','rental','commissioning']);
+const TIER_MIN_SIZE: Record<ModuleTier, number> = { CORE:2, STANDARD:3, ADVANCED:4, ENTERPRISE:4 };
 const SIZE_INDEX: Record<string, number> = { MICRO:0, SMALL:1, MID:2, LARGE:3, ENTERPRISE:4 };
 
 export type OnboardingInput = {
@@ -106,22 +121,25 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   const si = SIZE_INDEX[size] ?? 1;
   const qualifiers = input.qualifiers || [];
   const addons = input.addons || [];
-  const enabled = new Set<string>(CORE_MODULE_IDS);
+  // Start small: only the 12 essentials. Type, size, qualifiers and explicit
+  // add-ons then layer on modules — nothing is enabled "just because it exists".
+  const enabled = new Set<string>(STARTER_MODULE_IDS);
 
   for (const m of MODULES) {
+    if (enabled.has(m.id)) continue;
     const typeMatch = m.defaultTypes === '*' || (m.defaultTypes || []).includes(type) || type === 'MIXED_GROUP';
-    const sizeMatch = si >= (m.minSize ?? 0);
+    if (!typeMatch) continue;
+    const minSize = TYPE_DEFINING_MODULES.has(m.id) ? 0 : Math.max(m.minSize ?? 0, TIER_MIN_SIZE[m.tier]);
+    const sizeMatch = si >= minSize;
     const qualMatch = !m.requiresQualifier || qualifiers.includes(m.requiresQualifier) || addons.includes(m.id);
-    if (typeMatch && sizeMatch && qualMatch) enabled.add(m.id);
+    if (sizeMatch && qualMatch) enabled.add(m.id);
   }
-  // Qualifier-driven modules
+  // Qualifiers are explicit choices in onboarding — they unlock their modules.
   if (qualifiers.includes('clientPortal')) enabled.add('portal');
   if (qualifiers.includes('ownedPlant')) enabled.add('equipment');
   if (qualifiers.includes('materialsWarehouse')) enabled.add('inventory');
   if (qualifiers.includes('multiEntity') || type === 'MIXED_GROUP') enabled.add('integrations');
-  if (si >= 3) { enabled.add('jobCosting'); enabled.add('billing'); enabled.add('quality'); enabled.add('audit'); }
-  if (si >= 4) { enabled.add('integrations'); enabled.add('portal'); }
-  for (const a of addons) enabled.add(a);
+  for (const a of addons) if (MODULES.some(m => m.id === a)) enabled.add(a);
 
   const flags: Record<string, boolean> = {
     approvalChains: si >= 2,

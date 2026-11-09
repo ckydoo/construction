@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
-import { resolveWorkspace, MODULES, type WorkspaceConfig } from '@/lib/catalog';
+import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, type WorkspaceConfig } from '@/lib/catalog';
 import { getResource } from '@/lib/resources';
 import { createRecord } from '@/lib/records';
 import { seedDemo } from '@/lib/seed-service';
@@ -28,6 +28,14 @@ export async function PATCH(req:Request,{params}:{params:Promise<{org:string}>})
     cfg.resources=[...new Set(MODULES.filter(m=>enabled.has(m.id)).flatMap(m=>m.resources))];
     await prisma.organization.update({where:{id:a.orgId},data:{config:JSON.stringify(cfg)}});
     return NextResponse.json({ok:true,config:cfg});
+  }
+  if(b.action==='applyPack'){
+    const cfg:WorkspaceConfig = {...a.config};
+    const ids = b.pack==='essentials' ? STARTER_MODULE_IDS : MODULES.map(m=>m.id);
+    cfg.modules=[...ids];
+    cfg.resources=[...new Set(MODULES.filter(m=>ids.includes(m.id)).flatMap(m=>m.resources))];
+    await prisma.organization.update({where:{id:a.orgId},data:{config:JSON.stringify(cfg)}});
+    return NextResponse.json({ok:true,config:cfg,message:`Switched to ${b.pack==='essentials'?'the 12 essentials':'all '+ids.length+' modules'}.`});
   }
   if(b.action==='markRead'){
     if(b.id) await prisma.notification.updateMany({where:{id:b.id,organizationId:a.orgId},data:{read:true}});

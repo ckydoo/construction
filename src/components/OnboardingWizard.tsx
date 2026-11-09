@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace } from '@/lib/catalog';
+import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS } from '@/lib/catalog';
 import { apiSend } from '@/lib/client';
 import { Button, Icon, Field, Badge, Toggle } from './ui';
 import * as Lucide from '@/components/lucide';
@@ -11,7 +11,7 @@ const STEPS = [
   { id:2, title:'Company type', desc:'What kind of work you do' },
   { id:3, title:'Company size', desc:'How big your team is today' },
   { id:4, title:'How you work', desc:'Delivery model and requirements' },
-  { id:5, title:'Your workspace', desc:'Review the modules you get' },
+  { id:5, title:'Your workspace', desc:'Start small, add what you need' },
 ];
 const HEADCOUNTS:Record<string,number>={MICRO:6,SMALL:28,MID:85,LARGE:520,ENTERPRISE:1400};
 const COUNTRIES=['ZW','ZA','ZM','BW','MW','MZ','KE','NG','GB','US','AE','OTHER'];
@@ -25,10 +25,10 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [country,setCountry]=useState('ZW');
   const [baseCurrency,setBaseCurrency]=useState('USD');
   const [companyType,setCompanyType]=useState('GENERAL_CONTRACTOR');
-  const [size,setSize]=useState('MID');
-  const [headcount,setHeadcount]=useState('85');
-  const [revenueBand,setRevenueBand]=useState('$10M – $50M');
-  const [qualifiers,setQualifiers]=useState<string[]>(['fieldCrews','subcontractHeavy','ownedPlant','regulatedHse']);
+  const [size,setSize]=useState('SMALL');
+  const [headcount,setHeadcount]=useState('28');
+  const [revenueBand,setRevenueBand]=useState('$1M – $10M');
+  const [qualifiers,setQualifiers]=useState<string[]>([]);
   const [addons,setAddons]=useState<string[]>([]);
   const [loadDemo,setLoadDemo]=useState(true);
   const [loading,setLoading]=useState(false);
@@ -41,7 +41,8 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     for(const m of MODULES){ (g[m.group] ||= []).push(m); }
     return g;
   },[]);
-  const optional=MODULES.filter(m=>m.tier!=='CORE'&&!enabled.has(m.id));
+  const starter=new Set(STARTER_MODULE_IDS);
+  const optional=MODULES.filter(m=>!starter.has(m.id)&&!enabled.has(m.id));
 
   function toggleQ(id:string){ setQualifiers(q=>q.includes(id)?q.filter(x=>x!==id):[...q,id]); }
   function toggleAddon(id:string){ setAddons(a=>a.includes(id)?a.filter(x=>x!==id):[...a,id]); }
@@ -72,8 +73,8 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
             <div><p className={`text-sm font-medium ${active?'text-ink-900 dark:text-white':'muted'}`}>{s.title}</p><p className="text-[11px] muted">{s.desc}</p></div>
           </li>;})}</ol>
         <div className="mt-8 rounded-xl border border-brand-200 bg-brand-50/60 p-3.5 dark:border-brand-500/20 dark:bg-brand-500/5">
-          <p className="text-xs font-semibold text-brand-800 dark:text-brand-300">Tailored automatically</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-brand-900/70 dark:text-brand-200/70">Your answers decide which modules appear, approval depth, limits and regional settings. You can change everything later in Settings.</p>
+          <p className="text-xs font-semibold text-brand-800 dark:text-brand-300">Essentials first</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-brand-900/70 dark:text-brand-200/70">Every workspace starts with 12 connected core modules. Your answers and add-ons decide what else appears — switch more on whenever you are ready in Settings.</p>
         </div>
       </aside>
       <main className="min-w-0 flex-1">
@@ -115,7 +116,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           </div>}
 
           {step===4&&<div className="mt-7">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider muted">Select everything that applies</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider muted">Select everything that applies — each choice can switch on extra modules</p>
             <div className="grid gap-2.5 sm:grid-cols-2">{QUALIFIERS.map(q=>{
               const on=qualifiers.includes(q.id);
               return <button key={q.id} onClick={()=>toggleQ(q.id)} className={`flex items-center gap-3 rounded-lg border px-3.5 py-3 text-left text-sm transition ${on?'border-brand-400 bg-brand-50/60 dark:bg-brand-500/10':'divider bg-white dark:bg-ink-900'}`}>
@@ -131,16 +132,23 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[['Modules',config.modules.length],['Resources',config.resources.length],['Users',config.limits.users.toLocaleString()],['Plan',config.plan]].map(([l,v])=><div key={String(l)} className="rounded-xl border divider bg-slate-50/60 p-3.5 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">{v}</p></div>)}
             </div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/5">
+              <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-300">You start with {STARTER_MODULE_IDS.length} essential modules — one connected chain from clients to cash</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-emerald-900/75 dark:text-emerald-200/70">Clients → leads → estimates & bids → projects → contracts → documents → invoices & payments, plus people and reporting. Everything else is optional below, and can be enabled later in Settings → Modules.</p>
+            </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">Your module pack</p><span className="text-xs muted">{config.modules.length} enabled</span></div>
               <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border divider p-4">{Object.entries(byGroup).map(([group,mods])=><div key={group}>
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider muted">{group}</p>
-                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}</span>)}</div>
+                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}{starter.has(m.id)&&<span className="ml-0.5 rounded bg-emerald-600/15 px-1 text-[9px] font-bold uppercase">core</span>}</span>)}</div>
               </div>)}</div>
             </div>
-            {optional.length>0&&<div><p className="mb-2 text-sm font-semibold text-ink-900 dark:text-white">Optional add-ons</p><div className="flex flex-wrap gap-2">{optional.slice(0,12).map(m=>{
+            {optional.length>0&&<div>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink-900 dark:text-white">Optional add-ons <span className="font-normal muted">({optional.length} available)</span></p>
+                <div className="flex gap-2"><button onClick={()=>setAddons(MODULES.map(m=>m.id))} className="text-[11px] font-medium text-brand-700 hover:underline dark:text-brand-300">Enable all</button><button onClick={()=>{setAddons([]);setQualifiers([]);}} className="text-[11px] font-medium muted hover:underline">Reset to essentials</button></div></div>
+              <div className="max-h-48 overflow-y-auto rounded-xl border divider p-3"><div className="flex flex-wrap gap-2">{optional.map(m=>{
               const on=addons.includes(m.id);
-              return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs transition ${on?'border-brand-400 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div>}
+              return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs transition ${on?'border-brand-400 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div></div>}
             <div className="flex items-center justify-between gap-4 rounded-xl border border-brand-200 bg-brand-50/60 p-4 dark:border-brand-500/20 dark:bg-brand-500/5">
               <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Load realistic demo data</p><p className="mt-0.5 text-xs muted">616 records: 5 projects, 42 employees, POs, invoices, timesheets, RFIs, safety events and more.</p></div>
               <Toggle checked={loadDemo} onChange={setLoadDemo}/>

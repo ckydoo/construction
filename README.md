@@ -44,7 +44,8 @@ The login screen has one-click demo account chips. **Create account** starts a b
 - 14 roles with resource-level write restrictions and delete restrictions; external client/subcontractor roles are read-only (verified by integration tests).
 - Invite teammates from Settings with a temporary password.
 
-### 2 · Onboarding → derived modules
+### 2 · Onboarding → derived modules (essentials first)
+New workspaces start with **12 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 12, SMALL 12–13, MID 16, LARGE 28, ENTERPRISE 32. Everything can be switched on later in **Settings → Modules**, which also has one-click Essentials / All-modules focus switching.
 `src/lib/catalog.ts` is the single source of truth: 8 company types, 5 company sizes, 11 work-style qualifiers, 33 modules with tiers and resource bundles.
 
 | Type / Size | Modules | Resources | Plan |
@@ -135,7 +136,7 @@ scripts/seed.ts       CLI seed
 - End-to-end: login, page renders, list/detail/search/CSV, create → read → update → comment → delete → soft-delete 404, validation rejection, project-scoped filtering, bulk delete.
 - Settings: module toggle on/off, invite, org update, derivation re-run.
 - RBAC: portal role can read but gets `403` on create/delete.
-- Onboarding: register → draft org → 5-step wizard → derived 21-module / 37-resource pack for a small specialty trade → demo data loaded into new org → disabled module route returns `403`.
+- Onboarding: register → draft org → 5-step wizard → derived 12-module / 19-resource essentials pack for a small specialty trade → demo data loaded into new org → disabled module route returns `403`.
 
 ---
 

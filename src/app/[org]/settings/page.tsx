@@ -57,6 +57,8 @@ export default function SettingsPage(){
 
     {tab==='modules'&&<div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Module manager</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} modules enabled · changes take effect immediately across the sidebar and route guards.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">Focus mode keeps the 12 essential modules — one connected chain from clients to cash. Turn the full pack back on whenever you need the rest. Individual toggles below still work either way.</p></div>
+        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>Essentials (12)</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>All modules</Button></div></Card>
       {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} enabled`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
