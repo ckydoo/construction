@@ -32,6 +32,51 @@ model Organization {
   invitations Invitation[]
   comments    Comment[]
   attachments Attachment[]
+  wallets     Wallet[]
+  walletTransactions WalletTransaction[]
+}
+
+/* Client wallet: one prepaid account per client company. `balanceCents` is a
+   cached mirror of the immutable ledger below; the ledger is the source of
+   truth and is reconciled by the integrity endpoint. */
+model Wallet {
+  id             String   @id @default(cuid())
+  organizationId String
+  clientId       String
+  currency       String   @default("USD")
+  balanceCents   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions   WalletTransaction[]
+  @@unique([organizationId, clientId])
+  @@index([organizationId])
+}
+
+model WalletTransaction {
+  id             String   @id @default(cuid())
+  organizationId String
+  walletId       String
+  clientId       String
+  projectId      String?
+  kind           String   // TOPUP | ALLOCATION | REVERSAL
+  amountCents    Int      // signed: credit > 0, debit < 0
+  balanceCents   Int      // running balance after this entry
+  currency       String   @default("USD")
+  reference      String?
+  method         String?
+  note           String?
+  actorId        String?
+  actorName      String
+  reversesId     String?
+  reversedAt     DateTime?
+  idempotencyKey String?
+  createdAt      DateTime @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  wallet         Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  @@index([organizationId, walletId, createdAt])
+  @@index([organizationId, projectId, kind])
+  @@unique([organizationId, idempotencyKey])
 }
 
 model User {

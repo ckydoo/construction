@@ -263,6 +263,140 @@ await check('delete via UI removes the QA record', async () => {
   return 'soft delete + toast';
 });
 
+// ── Client wallets + linked modules ────────────────────────────────────────
+const parseMoney = (t) => Number(String(t).replace(/[^0-9.]/g, '')) || 0;
+let qaClientId = null;
+
+await check('wallet workspace opens from the sidebar', async () => {
+  // Clear any drawer/dialog left over from the CRUD checks before navigating.
+  await page.keyboard.press('Escape').catch(() => {});
+  await page.goto(`${BASE}/${ORG}/dashboard`, { waitUntil: 'domcontentloaded' });
+  await page.locator('a[href$="/wallets"]').first().waitFor({ timeout: 15000 });
+  await page.locator('a[href$="/wallets"]').first().click();
+  await page.waitForURL(/\/wallets/, { timeout: 15000 });
+  await page.getByRole('heading', { name: 'Client wallets', exact: true }).waitFor({ timeout: 15000 });
+  await page.getByText('Available balance').waitFor();
+  assert((await page.locator('tbody tr').count()) >= 4, 'wallet table has no client rows');
+  const resp = await page.request.get(`${BASE}/api/${ORG}/wallets`);
+  const list = await resp.json();
+  qaClientId = list.wallets[0].clientId;
+  await page.screenshot({ path: path.join(SHOTS, '12-wallets.png'), fullPage: true });
+  return `${list.wallets.length} client wallets, ${list.summary.totalBalance} available`;
+});
+
+await check('wallet drawer shows the reconciled ledger', async () => {
+  await page.locator('tbody tr').first().getByRole('button', { name: 'Open' }).click();
+  const drawer = page.locator('div.fixed.inset-0.z-50').filter({ hasText: 'Amount left' });
+  await drawer.waitFor({ timeout: 15000 });
+  await drawer.getByText('Ledger', { exact: false }).first().waitFor();
+  assert((await drawer.locator('tbody tr').count()) > 0, 'ledger is empty');
+  await page.screenshot({ path: path.join(SHOTS, '13-wallet-ledger.png') });
+  return 'ledger entries + running balances visible';
+});
+
+let walletBefore = 0;
+await check('UI top-up increases the wallet balance', async () => {
+  const drawer = page.locator('div.fixed.inset-0.z-50').filter({ hasText: 'Amount left' });
+  const bal = drawer.locator('p.text-2xl').first();
+  walletBefore = parseMoney(await bal.innerText());
+  await drawer.getByRole('button', { name: 'Add funds' }).last().click();
+  await drawer.locator('input[type="number"]').first().fill('1000');
+  await drawer.locator('input[placeholder="RTGS-2026-1148"]').fill('QA browser topup');
+  await drawer.locator('input[placeholder="Deposit received"]').fill('QA browser topup note');
+  await drawer.getByRole('button', { name: 'Add funds to wallet' }).click();
+  await page.locator('div[class*="z-[100]"]').getByText('Funds added', { exact: true }).waitFor({ timeout: 15000 });
+  await page.waitForFunction((prev) => {
+    const el = document.querySelector('p.text-2xl');
+    return el && Number((el.textContent || '').replace(/[^0-9.]/g, '')) > prev + 500;
+  }, walletBefore, { timeout: 15000 }).catch(() => {});
+  const after = parseMoney(await bal.innerText());
+  assert(Math.abs(after - (walletBefore + 1000)) < 1, `balance ${walletBefore} → ${after}, expected +1000`);
+  return `${walletBefore} → ${after}`;
+});
+
+await check('UI project funding debits the wallet and writes the ledger', async () => {
+  const drawer = page.locator('div.fixed.inset-0.z-50').filter({ hasText: 'Amount left' });
+  await drawer.getByRole('button', { name: 'Fund a project' }).last().click();
+  await drawer.locator('input[type="number"]').first().fill('250');
+  await drawer.locator('input[placeholder="Mobilisation advance"]').fill('QA browser funding');
+  await drawer.getByRole('button', { name: 'Fund project' }).click();
+  await page.locator('div[class*="z-[100]"]').getByText('Project funded', { exact: true }).waitFor({ timeout: 15000 });
+  await page.waitForTimeout(700);
+  const after = parseMoney(await drawer.locator('p.text-2xl').first().innerText());
+  assert(Math.abs(after - (walletBefore + 750)) < 1, `balance ${after}, expected ${walletBefore + 750}`);
+  await drawer.getByRole('button', { name: /^Ledger/ }).first().click();
+  assert((await drawer.getByText('Project funding').count()) > 0, 'allocation is missing from the ledger');
+  return `balance ${after} · allocation ledger entry visible`;
+});
+
+// Restore the demo balance by reversing the two QA ledger entries.
+await check('wallet reversals restore the opening balance', async () => {
+  const resp = await page.request.get(`${BASE}/api/${ORG}/wallets/${qaClientId}`);
+  const detail = await resp.json();
+  const qa = detail.ledger.filter(t => (t.note || '').includes('QA browser') || (t.reference || '').includes('QA browser'));
+  for (const kind of ['ALLOCATION', 'TOPUP']) {
+    for (const t of qa.filter(x => x.kind === kind && !x.reversedAt)) {
+      await page.request.post(`${BASE}/api/${ORG}/wallets/${qaClientId}`, { data: { action: 'reverse', transactionId: t.id, note: 'QA browser cleanup' } });
+    }
+  }
+  const after = await page.request.get(`${BASE}/api/${ORG}/wallets/${qaClientId}`);
+  const d = await after.json();
+  assert(Math.abs(d.wallet.balance - walletBefore) < 1, `balance ${d.wallet.balance}, expected ${walletBefore}`);
+  await page.keyboard.press('Escape');
+  return `${qa.length} QA entries reversed · balance ${d.wallet.balance}`;
+});
+
+await check('client detail shows wallet balance and cross-module links', async () => {
+  await page.goto(`${BASE}/${ORG}/m/clients`, { waitUntil: 'domcontentloaded' });
+  await page.locator('tbody tr').first().waitFor({ timeout: 20000 });
+  await page.locator('tbody tr').first().click();
+  const drawer = page.locator('div.fixed.inset-0.z-50').filter({ hasText: 'Attachments & revisions' });
+  await drawer.getByText('Linked records').waitFor({ timeout: 15000 });
+  await drawer.getByText('Client wallet', { exact: true }).waitFor({ timeout: 15000 });
+  assert((await drawer.locator('a[href*="/m/"]').count()) > 0, 'no linked record chips');
+  await page.screenshot({ path: path.join(SHOTS, '14-linked-records.png') });
+  await page.keyboard.press('Escape');
+  return 'wallet balance + linked modules in the detail drawer';
+});
+
+await check('role matrix and link integrity render in settings', async () => {
+  await page.goto(`${BASE}/${ORG}/settings`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Users & roles' }).click();
+  await page.getByText('Role permissions').waitFor({ timeout: 15000 });
+  assert((await page.locator('tbody tr').count()) >= 14, 'role matrix is missing rows');
+  await page.screenshot({ path: path.join(SHOTS, '15-role-matrix.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Plan & audit' }).click();
+  await page.getByText('Link integrity').waitFor({ timeout: 15000 });
+  await page.getByText('All links healthy').waitFor({ timeout: 20000 });
+  return '14-role matrix + live integrity check';
+});
+
+// ── Role-level access in a second, real browser session ─────────────────────
+await check('client portal role sees only its own wallet', async () => {
+  const portalCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const portal = await portalCtx.newPage();
+  portal.setDefaultTimeout(12000);
+  portal.on('console', m => { if (m.type() === 'error') consoleErrors.push(`[portal] ${m.text()}`); });
+  portal.on('pageerror', e => pageErrors.push(`[portal] ${e.message}`));
+  try {
+    await portal.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await portal.locator('input[type="email"]').fill('client@westgate.co.zw');
+    await portal.locator('input[type="password"]').fill('Demo@1234');
+    await portal.locator('form').getByRole('button', { name: /Sign in/ }).click();
+    await portal.waitForURL(/dashboard/, { timeout: 20000 });
+    await portal.goto(`${BASE}/${ORG}/wallets`, { waitUntil: 'domcontentloaded' });
+    await portal.getByRole('heading', { name: 'Client wallets', exact: true }).waitFor({ timeout: 20000 });
+    await portal.locator('tbody tr').first().waitFor();
+    const rows = await portal.locator('tbody tr').count();
+    assert(rows === 1, `portal saw ${rows} wallets, expected exactly 1`);
+    assert((await portal.getByRole('button', { name: 'Add funds' }).count()) === 0, 'portal user can see admin top-up controls');
+    assert((await portal.locator('a[href$="/settings"]').count()) === 0, 'portal user can see Settings');
+    assert((await portal.locator('a[href$="/m/accounts"]').count()) === 0, 'portal user can see the finance register');
+    await portal.screenshot({ path: path.join(SHOTS, '16-portal-wallet.png'), fullPage: true });
+    return `1 scoped wallet, no admin controls`;
+  } finally { await portalCtx.close(); }
+});
+
 // ── Console/hydration health ────────────────────────────────────────────────
 await check('no uncaught page errors', async () => {
   assert(pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));
@@ -285,7 +419,8 @@ const md = [
   '| Check | Result | Detail |', '|---|---|---|',
   ...results.map(r => `| ${r.name} | ${r.ok ? 'PASS' : 'FAIL'} | ${String(r.detail).replace(/\|/g, '\\|').slice(0, 180)} |`),
   '', `Unexpected console errors: ${consoleErrors.length} · Expected (simulated 500 rollback): ${expectedErrors.length} · Uncaught page errors: ${pageErrors.length}`, '',
-  'Screenshots: `screenshots/01-login.png` … `11-mobile-menu.png`.', '',
+  'Screenshots: `screenshots/01-login.png` … `16-portal-wallet.png`.', '',
+  'Covers the essentials-first CRUD flow, client wallets, linked records, the role matrix and portal scoping.', '',
   'Run: `node scripts/browser-audit.mjs` (after `npx playwright install chromium-headless-shell`).',
 ];
 await fs.writeFile(path.join(ROOT, 'BROWSER_AUDIT_REPORT.md'), md.join('\n') + '\n');

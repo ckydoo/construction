@@ -4,6 +4,8 @@ import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
 import { getRecord } from '@/lib/records';
+import { readGuard, capabilityGuard } from '@/lib/guard';
+import { buildScope } from '@/lib/access';
 import { money, date } from '@/lib/format';
 
 const A4W=595.28, A4H=841.89, M=42;
@@ -13,8 +15,10 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
   const { org,resource,id } = await params;
   const a = await apiAuth(org); if(!a) return NextResponse.json({error:'Unauthorized'},{status:401});
   const def = getResource(resource);
-  if(!def || !a.config.resources.includes(resource)) return NextResponse.json({error:'Unknown or disabled resource'},{status:404});
-  const row:any = await getRecord(a.orgId,resource,id);
+  if(!def) return NextResponse.json({error:'Unknown or disabled resource'},{status:404});
+  const g = readGuard(a.config, a.role, resource) || capabilityGuard(a.role,'exports'); if(g) return g;
+  const scope = await buildScope(a);
+  const row:any = await getRecord(a.orgId,resource,id,scope);
   if(!row) return NextResponse.json({error:'Record not found'},{status:404});
   const orgRow = await prisma.organization.findUnique({where:{id:a.orgId}});
   const isCert = resource==='paymentApps';

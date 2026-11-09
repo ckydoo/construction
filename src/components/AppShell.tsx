@@ -5,6 +5,7 @@ import { usePathname, useRouter, useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { canRead, canWrite, canCapability } from '@/lib/catalog';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
 import { useToast } from './Providers';
 
@@ -12,12 +13,14 @@ type Meta = {
   org:any; config:{modules:string[];resources:string[];flags:Record<string,boolean>;limits:any;plan:string;localePack:string};
   modules:any[]; resources:any[]; roles:any[]; role:string; user:any; memberships:any[];
   users:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; companyTypes:any[]; sizes:any[];
+  permissions?:any; walletEnabled?:boolean; entityId?:string|null;
 };
 
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard' },
+  { id:'wallets', label:'Client wallets', group:'Finance', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports & BI', group:'Insights', icon:'BarChart3', href:'/reports' },
-  { id:'settings', label:'Settings', group:'Administration', icon:'Settings', href:'/settings' },
+  { id:'settings', label:'Settings', group:'Administration', icon:'Settings', href:'/settings', cap:'settings.view' },
 ];
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -39,9 +42,15 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
   const navGroups=useMemo(()=>{
     if(!meta) return [];
     const groups:Record<string,any[]>={};
-    for(const s of SPECIAL) (groups[s.group] ||= []).push({...s,count:undefined});
+    const role=meta.role||'ADMIN';
+    for(const s of SPECIAL){
+      if((s as any).module && !meta.config.modules.includes((s as any).module)) continue;
+      if((s as any).cap && !canCapability(role,(s as any).cap)) continue;
+      (groups[s.group] ||= []).push({...s,count:undefined});
+    }
     for(const r of meta.resources){
       if(!meta.config.resources.includes(r.id)) continue;
+      if(!canRead(role,r.id)) continue;
       (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,count:meta.counts?.[r.id],group:r.group});
     }
     const order=['Overview','Win work','Project delivery','Supply chain','People & HR','Safety & quality','Finance','Insights','Administration'];
@@ -102,7 +111,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="relative">
           <button className="btn-ghost btn-icon" onClick={()=>setQuickOpen(v=>!v)} title="Quick create"><Lucide.Plus size={19}/></button>
           {quickOpen&&<div className="card absolute right-0 top-11 z-30 w-60 p-2 shadow-xl"><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Quick create</p>
-            {QUICK_CREATE.map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
+            {QUICK_CREATE.filter(id=>canWrite(meta?.role||'ADMIN',id)).map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
           </div>}
         </div>
         <button className="btn-ghost btn-icon" onClick={toggleTheme} title="Toggle theme"><Icon name={dark?'Sun':'Moon'} size={18}/></button>
@@ -118,14 +127,15 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="relative">
           <button className="btn-ghost btn-icon" onClick={()=>{setUserOpen(v=>!v);setNotifOpen(false);}}><span className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold text-white" style={{background:meta?.user?.avatarColor||'#d97706'}}>{(meta?.user?.name||userName).split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span></button>
           {userOpen&&<div className="card absolute right-0 top-11 z-30 w-56 p-2 shadow-xl"><div className="border-b divider px-2 py-2"><p className="text-xs font-semibold">{meta?.user?.name||userName}</p><p className="truncate text-[11px] muted">{meta?.user?.email||userEmail}</p></div>
-            <Link href={`/${orgSlug}/settings`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="Settings" size={14}/>Workspace settings</Link>
+            <div className="mt-1 flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-2 text-[11px] muted dark:bg-ink-950/50"><Icon name="ShieldCheck" size={14}/><span className="flex-1">{role.replace(/_/g,' ')}</span>{meta?.permissions?.scoped&&<Badge tone="violet">Scoped</Badge>}</div>
+            {canCapability(meta?.role||'ADMIN','settings.view')&&<Link href={`/${orgSlug}/settings`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="Settings" size={14}/>Workspace settings</Link>}
             <button onClick={signOut} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"><Icon name="LogOut" size={14}/>Sign out</button></div>}
         </div>
       </header>
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">{children}</main>
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex h-14 items-center justify-around border-t divider bg-white dark:bg-ink-900 lg:hidden">
-        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home'},{h:'/m/projects',i:'HardHat',l:'Projects'},{h:'/m/timesheets',i:'Clock',l:'Time'},{h:'/reports',i:'BarChart3',l:'Reports'},{h:'/settings',i:'Settings',l:'Settings'}].map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-400':'muted'}`}><Icon name={x.i} size={19}/>{x.l}</Link>)}
+        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets'},{h:'/wallets',i:'CreditCard',l:'Wallets',c:'wallet.read'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view'}].filter(x=>!(x as any).r||canRead(meta?.role||'ADMIN',(x as any).r)).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-400':'muted'}`}><Icon name={x.i} size={19}/>{x.l}</Link>)}
       </nav>
       <div className="h-14 lg:hidden"/>
     </div>

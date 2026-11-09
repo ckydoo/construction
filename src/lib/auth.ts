@@ -14,7 +14,8 @@ export async function verifyPassword(pw: string, hash: string) { return bcrypt.c
 export type AuthCtx = {
   userId: string; name: string; email: string; role: string; avatarColor: string;
   orgId: string; orgName: string; orgSlug: string; onboarded: boolean;
-  org: any; config: WorkspaceConfig; memberships: {orgId:string;orgSlug:string;orgName:string;role:string}[];
+  org: any; config: WorkspaceConfig; entityId: string|null;
+  memberships: {orgId:string;orgSlug:string;orgName:string;role:string;entityId:string|null}[];
 };
 
 export function parseOrgConfig(org: any): WorkspaceConfig {
@@ -34,7 +35,7 @@ export async function getAuth(): Promise<AuthCtx | null> {
   });
   if (!session || session.expiresAt < new Date()) return null;
   const user = session.user;
-  const memberships = user.memberships.map(m => ({ orgId:m.organizationId, orgSlug:m.organization.slug, orgName:m.organization.name, role:m.role }));
+  const memberships = user.memberships.map(m => ({ orgId:m.organizationId, orgSlug:m.organization.slug, orgName:m.organization.name, role:m.role, entityId:m.entityId }));
   const primary = memberships[0];
   if (!primary) return null;
   const org = await prisma.organization.findUnique({ where: { id: primary.orgId } });
@@ -42,7 +43,7 @@ export async function getAuth(): Promise<AuthCtx | null> {
   return {
     userId:user.id, name:user.name, email:user.email, role:primary.role, avatarColor:user.avatarColor,
     orgId:org.id, orgName:org.name, orgSlug:org.slug, onboarded:org.onboarded, org,
-    config:parseOrgConfig(org), memberships,
+    config:parseOrgConfig(org), entityId:primary.entityId, memberships,
   };
 }
 
@@ -56,7 +57,7 @@ export async function requireOrg(slug: string): Promise<AuthCtx> {
   if (!m) redirect(`/${a.orgSlug}/dashboard`);
   if (m.orgId !== a.orgId) {
     const org = await prisma.organization.findUnique({ where:{id:m.orgId} });
-    if (org) Object.assign(a, { orgId:org.id, orgName:org.name, orgSlug:org.slug, role:m.role, onboarded:org.onboarded, org, config:parseOrgConfig(org) });
+    if (org) Object.assign(a, { orgId:org.id, orgName:org.name, orgSlug:org.slug, role:m.role, entityId:m.entityId, onboarded:org.onboarded, org, config:parseOrgConfig(org) });
   }
   if (!a.onboarded) redirect('/onboarding');
   return a;
@@ -71,7 +72,7 @@ export async function apiAuth(slug?: string): Promise<AuthCtx | null> {
     if (m.orgId !== a.orgId) {
       const org = await prisma.organization.findUnique({ where:{id:m.orgId} });
       if (!org) return null;
-      Object.assign(a, { orgId:org.id, orgName:org.name, orgSlug:org.slug, role:m.role, onboarded:org.onboarded, org, config:parseOrgConfig(org) });
+      Object.assign(a, { orgId:org.id, orgName:org.name, orgSlug:org.slug, role:m.role, entityId:m.entityId, onboarded:org.onboarded, org, config:parseOrgConfig(org) });
     }
   }
   return a;

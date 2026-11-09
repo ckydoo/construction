@@ -188,6 +188,6 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       onEdit={()=>{setEditing(detailRow);setDetailRow(null);setFormOpen(true);}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={bulkMut.isPending||deleteMut.isPending}
       title={`Delete ${confirm?.label||'record'}?`} description="This record will be moved to the recycle bin (soft delete). You can restore it from the database."
-      onConfirm={()=>{if(!confirm)return;if(confirm.ids.length===1)deleteMut.mutate(confirm.ids[0]);else bulkMut.mutate(confirm.ids);}}/>
+      onConfirm={()=>{if(!confirm)return;setConfirm(null);if(confirm.ids.length===1)deleteMut.mutate(confirm.ids[0]);else bulkMut.mutate(confirm.ids);}}/>
   </div>;
 }

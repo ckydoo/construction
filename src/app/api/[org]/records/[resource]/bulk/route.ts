@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
-import { canDelete } from '@/lib/catalog';
+import { deleteGuard, capabilityGuard } from '@/lib/guard';
 import { deleteMany } from '@/lib/records';
-import { guardResource } from '@/lib/guard';
-export async function DELETE(req: Request, { params }: { params: Promise<{org:string;resource:string}> }) {
+
+export async function DELETE(req: Request, { params }: { params: Promise<{ org: string; resource: string }> }) {
   const { org, resource } = await params;
   const a = await apiAuth(org); const def = getResource(resource);
-  if (!a || !def) return NextResponse.json({ error:'Unauthorized' }, { status:401 });
-  const g = guardResource(a.config, resource); if (g) return g;
-  if (!canDelete(a.role)) return NextResponse.json({ error:'Your role cannot delete records' }, { status:403 });
+  if (!a || !def) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const g = deleteGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.delete'); if (g) return g;
   const { ids } = await req.json();
-  if (!Array.isArray(ids)) return NextResponse.json({ error:'ids must be an array' }, { status:400 });
+  if (!Array.isArray(ids)) return NextResponse.json({ error: 'ids must be an array' }, { status: 400 });
   const r = await deleteMany(a.orgId, a.userId, a.name, def, ids);
   return NextResponse.json(r);
 }

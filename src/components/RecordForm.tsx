@@ -34,8 +34,9 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
     onSubmit(values);
   };
   const grouped=useMemo(()=>{
-    const basic=def.fields.filter(f=>!f.wide&&f.type!=='tags');
-    const wide=def.fields.filter(f=>f.wide||f.type==='tags');
+    const visible=def.fields.filter(f=>!f.readOnly);
+    const basic=visible.filter(f=>!f.wide&&f.type!=='tags');
+    const wide=visible.filter(f=>f.wide||f.type==='tags');
     return {basic,wide};
   },[def]);
 

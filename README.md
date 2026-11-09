@@ -1,6 +1,6 @@
 # BuildOps — Construction & Industrial Company Management
 
-A full-stack, multi-tenant ERP for construction and industrial companies. Register → complete a 5-step onboarding wizard (company **type** + **size** + work-style qualifiers) → the workspace derives its module pack, feature flags and plan limits automatically. Every module is CRUD-complete, persistent, and the seeded demo workspace is alive on first load.
+A full-stack, multi-tenant ERP for construction and industrial companies. Register → complete a 5-step onboarding wizard (company **type** + **size** + work-style qualifiers) → the workspace derives its module pack, feature flags and plan limits automatically. Every module is CRUD-complete, persistent, and the seeded demo workspace is alive on first load. Client wallets, a server-enforced 14-role permission matrix and live cross-module link integrity checks are built in.
 
 **Live preview:** the app is served on port 3000 (`npm run start` after `npm run build`).
 
@@ -29,7 +29,7 @@ npm run build && npm run start
 | `hr@kestrelridge.co.zw` | HR Manager | People, leave, payroll |
 | `safety@kestrelridge.co.zw` | HSE Officer | Safety & quality |
 | `procurement@kestrelridge.co.zw` | Procurement | Vendors, POs, stores |
-| `client@westgate.co.zw` | Client (portal) | Read-only across the workspace |
+| `client@westgate.co.zw` | Client (portal) | Westgate's own projects, invoices and wallet; can fund its own projects |
 
 The login screen has one-click demo account chips. **Create account** starts a brand-new organisation and the onboarding wizard; ticking "Load realistic demo data" populates that new org too.
 
@@ -41,24 +41,31 @@ The login screen has one-click demo account chips. **Create account** starts a b
 - Credentials auth with `bcryptjs` password hashing, opaque HTTP-only session cookies stored in the database, 30-day expiry, logout revocation.
 - Registration creates a draft `Organization` + `OWNER` membership; onboarding finalises it.
 - Every tenant-owned row carries `organizationId`; all API routes resolve the org from the URL and verify membership via `apiAuth(orgSlug)`. Cross-tenant reads/writes are impossible.
-- 14 roles with resource-level write restrictions and delete restrictions; external client/subcontractor roles are read-only (verified by integration tests).
+- 14 roles governed by one `ROLE_RULES` matrix (per-resource read/write denylists, delete rights, 16 capabilities, row-level scoping for external users). Enforced on every API route, the sidebar, forms and settings; see `WALLETS_AND_RBAC.md`.
+- Owners/admins can change roles, pin portal users to a client and remove members from Settings → Users & roles. The last owner cannot be removed or demoted.
 - Invite teammates from Settings with a temporary password.
 
 ### 2 · Onboarding → derived modules (essentials first)
-New workspaces start with **12 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 12, SMALL 12–13, MID 16, LARGE 28, ENTERPRISE 32. Everything can be switched on later in **Settings → Modules**, which also has one-click Essentials / All-modules focus switching.
-`src/lib/catalog.ts` is the single source of truth: 8 company types, 5 company sizes, 11 work-style qualifiers, 33 modules with tiers and resource bundles.
+New workspaces start with **13 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments → client wallets, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 13, SMALL 13, MID 17, LARGE 29–30, ENTERPRISE 30 (mixed group 33). Everything can be switched on later in **Settings → Modules**, which also has one-click Essentials / All-modules focus switching.
+`src/lib/catalog.ts` is the single source of truth: 8 company types, 5 company sizes, 11 work-style qualifiers, 34 modules with tiers and resource bundles.
 
 | Type / Size | Modules | Resources | Plan |
 |---|---|---|---|
-| General contractor · Micro | 19 | 35 | Starter |
-| Specialty trade · Small | 21 | 37 | Growth |
-| General contractor · Mid | 28 | 46 | Professional |
-| Industrial EPC · Large | 29 | 47 | Business |
+| General contractor · Micro | 13 | 19 | Starter |
+| Specialty trade · Small | 13 | 19 | Growth |
+| General contractor · Mid | 17 | 28 | Professional |
+| Industrial EPC · Large | 30 | 47 | Business |
 | Mixed group · Enterprise | 33 | 49 | Enterprise |
 
 `resolveWorkspace()` returns `{ modules, resources, flags, limits, localePack, plan }`. It drives the sidebar, API route guards, the command palette, Settings → Modules, and the review screen of the wizard. Owners can toggle any module at any time, or re-run the derivation in Settings → Company profile.
 
-### 3 · 49 resources / 33 modules (full CRUD)
+### 3 · Client wallets
+One prepaid `Wallet` per client with an append-only `WalletTransaction` ledger (integer cents, no float drift). Owners/admins/finance managers top up; those roles and client-portal users allocate funds to a project belonging to **that same client**. Corrections are `REVERSAL` entries — ledger rows can never be edited or deleted. Balances are mirrored into the Clients register (`walletBalance`), the Projects register (`fundedAmount`, `remainingToFund`), dashboard KPIs, project 360 and the client detail drawer. Idempotency keys stop double submissions; `/api/[org]/integrity` reconciles ledger, balances and derived figures.
+
+### 4 · Role-level access & link integrity
+`src/lib/catalog.ts` → `ROLE_RULES` is the single source of truth for 14 roles: per-resource read/write denylists, delete rights, capabilities (`wallet.topup`, `wallet.allocate`, `wallet.refund`, `users.manage`, `integrity`, …) and row scoping. `guard.ts` + `access.ts` apply it to records, files, PDFs, comments, search, overview, meta, project 360, settings and wallets. External portal users are pinned to one client via `Membership.entityId` and see only that client's records, projects and wallet. Settings → Users & roles shows the full matrix, allows role changes/client scoping/removal, and Settings → Plan & audit runs a live link-integrity check. Details: `WALLETS_AND_RBAC.md`.
+
+### 5 · 49 resources / 34 modules (full CRUD)
 Declarative registry in `src/lib/resources.ts` — one definition drives the API, validation, list table, detail drawer, create/edit form, filters, CSV export, reference lookups and command-palette search.
 
 - **Win work:** clients, contacts, leads/opportunities, estimates, bids
@@ -71,7 +78,7 @@ Declarative registry in `src/lib/resources.ts` — one definition drives the API
 
 Each record has a numbered sequence (`PRJ-0001`…), status workflow, project scoping, soft delete, comments, and an audit-log entry on every write.
 
-### 4 · UI / UX
+### 6 · UI / UX
 - Collapsible grouped sidebar generated from enabled modules, org switcher, top bar with global search (⌘K), quick-create, notifications, theme toggle, avatar menu; mobile drawer + bottom tab bar.
 - Generic data table: debounced search, status/project filters, sortable columns, pagination, bulk select/delete, CSV export, inline optimistic status changes, row detail drawers with comments.
 - **Optimistic updates:** `onMutate` patches the React Query cache for create/update/delete/bulk, rolls back with an error toast on failure, invalidates related queries on settle.
@@ -81,20 +88,20 @@ Each record has a numbered sequence (`PRJ-0001`…), status workflow, project sc
 - Reports & BI: 22 canned reports with live row counts, custom report builder, CSV export.
 - Settings: company details, module manager, users/roles, re-derivation, CSV import, demo loader, clear data, feature flags, plan limits, audit log.
 
-### 5 · Regional pack (ZW / Southern Africa)
+### 7 · Regional pack (ZW / Southern Africa)
 USD + ZWG, 15% VAT, tax invoice numbering, FIDIC / NEC4 / JBCC / AIA contract forms, NSSA & PAYE concepts, interim payment certificates with retention and advance recoupment, Zimbabwean client/vendor/site names and demo place names (Borrowdale, Pomona, Mutare–Nyanga).
 
-### 6 · File attachments & PDF documents
+### 8 · File attachments & PDF documents
 - Real multipart uploads (12 MB limit) stored under `uploads/<orgId>` (or `UPLOAD_ROOT`); metadata in the relational `Attachment` table, org-scoped and permission-checked.
 - **Revision history**: uploading a "New revision" on any attached drawing supersedes the previous version, auto-labels it `Rev A → Rev B → Rev C`, keeps every old file downloadable, records an optional revision note, and promotes the prior revision back to current if the latest is deleted.
 - Every record detail drawer has an **Attachments & revisions** panel: multi-file upload, image thumbnails, current-revision badge, expandable superseded history, open/download, delete.
 - **Download PDF** on every record: a branded A4 PDF built server-side with `pdf-lib` — company header, document number/date/status, all populated fields, an amount summary, certification/payment blocks and signature lines for tax invoices and interim payment certificates, and page footers.
 - Four sample PDF attachments across three revision chains are seeded so the panel is populated on first load.
 
-### 7 · Deployment-ready
+### 9 · Deployment-ready
 `Dockerfile`, `render.yaml`, `.dockerignore`, `.env.example`, `scripts/prod-start.mjs` (schema + optional seed + serve), `scripts/switch-provider.mjs` (SQLite → Postgres), and a committed git repo. See **[DEPLOY.md](DEPLOY.md)**.
 
-### 8 · Demo dataset
+### 10 · Demo dataset
 616 reconciled records for **Kestrel Ridge Construction & Industrial Group**: 5 projects (3 live, 1 complete, 1 bid), 9 clients, 42 employees, 14 vendors/subcontractors, 28 plant assets, 16 POs, 14 invoices, 8 payment certificates, 16 supplier bills, 40 timesheets, 18 RFIs, 12 change orders, safety incidents, inspections, NCRs, certifications with expiry alerts, stock, units and commissioning packages — plus notifications, audit trail and comments.
 
 ---
@@ -109,7 +116,10 @@ src/
     api/   auth/*, onboarding, [org]/{meta,overview,search,projects/[id],
            records/[resource]/[id], records/[resource]/bulk, settings}
   lib/
-    catalog.ts      module catalogue + resolveWorkspace() + RBAC
+    catalog.ts      module catalogue + resolveWorkspace() + ROLE_RULES
+    access.ts       row-level scoping for portal roles
+    guard.ts        shared module + role + capability guards
+    wallets.ts      wallet ledger service and derived-figure mirroring
     resources.ts    49 declarative resource definitions
     records.ts      validated CRUD service, numbering, soft delete, audit
     demo.ts         deterministic demo data generator
@@ -120,7 +130,8 @@ src/
   components/       AppShell, ResourceTable, RecordForm, RecordDetail,
                     Charts, ui primitives, Providers, AuthScreen, OnboardingWizard
 prisma/schema.prisma  Organization, User, Membership, Session, Invitation,
-                      Record, Comment, AuditLog, Notification, Sequence
+                      Record, Comment, AuditLog, Notification, Sequence,
+                      Wallet, WalletTransaction
 scripts/seed.ts       CLI seed
 ```
 
@@ -133,10 +144,9 @@ scripts/seed.ts       CLI seed
 ## Verification performed
 
 - `npx tsc --noEmit` — clean; `npm run build` — clean production build.
-- End-to-end: login, page renders, list/detail/search/CSV, create → read → update → comment → delete → soft-delete 404, validation rejection, project-scoped filtering, bulk delete.
-- Settings: module toggle on/off, invite, org update, derivation re-run.
-- RBAC: portal role can read but gets `403` on create/delete.
-- Onboarding: register → draft org → 5-step wizard → derived 12-module / 19-resource essentials pack for a small specialty trade → demo data loaded into new org → disabled module route returns `403`.
+- `npm run audit` — **1211/1211 HTTP checks** (49 resources, 34 modules, 14 real provisioned roles, wallet ledger, link integrity and two real tenants) plus **22/22 derivation checks**. Writes `AUDIT_REPORT.md` / `AUDIT_REPORT.json`.
+- `npm run audit:browser` — **28/28 real-Chromium checks**, 0 uncaught page errors, 0 unexpected console errors. Covers hydration, SPA navigation, skeletons, empty states, optimistic create/rollback, drawers, comments, uploads/PDF, partial edit, validation, filters, CSV, dark mode, ⌘K, mobile layout, UI delete, wallet top-up/funding/reversal, linked records, the role matrix and portal scoping. Writes `BROWSER_AUDIT_REPORT.md` + 16 screenshots.
+- `npm run audit:all` runs both suites. See `AUDIT_REPORT.md` and `BROWSER_AUDIT_REPORT.md`.
 
 ---
 

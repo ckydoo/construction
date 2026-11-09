@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
+import Link from 'next/link';
 import type { ResourceDef } from '@/lib/resources';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { Button, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
@@ -15,6 +16,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
 }){
   const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({});
   const {data,isLoading}=useQuery({ queryKey:['record',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}`)), enabled:open&&!!row?.id });
+  const {data:related}:any=useQuery({ queryKey:['related',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}/related`)), enabled:open&&!!row?.id });
   async function addComment(){ if(!comment.trim())return; setSending(true);
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
     catch(e:any){ toast.push({tone:'error',title:'Could not post comment',description:e.message}); } finally{ setSending(false); }
@@ -75,6 +77,18 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
       {def.fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'?'sm:col-span-2':''}>
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,row?.[f.key])}</div>
       </div>)}
+    </div>
+    <div className="border-t divider px-5 py-5">
+      <div className="mb-3 flex items-center gap-2"><Icon name="Link2" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Linked records</h3>
+        <Badge tone="slate">{(related?.groups||[]).reduce((n:number,g:any)=>n+g.count,0)} across modules</Badge></div>
+      {related?.wallet&&<div className="mb-3 flex flex-wrap items-center gap-3 rounded-xl border divider bg-emerald-50/50 p-3 dark:bg-emerald-500/10">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-emerald-600 dark:bg-ink-900"><Icon name="CreditCard" size={16}/></span>
+        <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-wider muted">Client wallet</p><p className="text-sm font-semibold tabular-nums">{related.wallet.balance!==null?money(related.wallet.balance,related.wallet.currency):`${money(related.wallet.fundedToProjects,related.wallet.currency)} funded to this project`}</p></div>
+        <Link href={`/${org}${related.wallet.href}`} className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open wallet →</Link></div>}
+      {!related?<Skeleton className="h-14"/>:!(related.groups||[]).length?<p className="rounded-lg bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No other modules link to this record yet.</p>:
+        <div className="space-y-2.5">{(related.groups||[]).map((g:any)=><div key={g.resource} className="rounded-lg border divider p-3">
+          <div className="mb-2 flex items-center gap-2"><Icon name={g.icon||'FileText'} size={14} className="text-brand-500"/><p className="text-xs font-semibold">{g.label}</p><Badge tone="slate">{g.count}</Badge></div>
+          <div className="flex flex-wrap gap-1.5">{g.items.map((it:any)=><Link key={it.id} href={`/${org}${it.href}`} className="max-w-[220px] truncate rounded-md bg-slate-100 px-2 py-1 text-[11px] text-ink-700 hover:bg-brand-50 hover:text-brand-700 dark:bg-ink-800 dark:text-slate-300">{it.title||it.number}</Link>)}</div></div>)}</div>}
     </div>
     <div className="border-t divider px-5 py-5">
       <div className="mb-3 flex items-center gap-2"><Icon name="MessageSquare" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Comments & activity</h3></div>

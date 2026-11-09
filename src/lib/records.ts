@@ -2,6 +2,7 @@
    against the declarative resource registry. */
 import prisma from './db';
 import { getResource, type ResourceDef, type Field } from './resources';
+import { rowAllowed, type Scope } from './access';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
 
@@ -16,6 +17,8 @@ function coerce(field: Field, value: any): any {
 export function validate(def: ResourceDef, input: Record<string, any>): { ok:boolean; errors:Record<string,string>; clean:Record<string,any> } {
   const errors: Record<string,string> = {}; const clean: Record<string,any> = {};
   for (const f of def.fields) {
+    // Derived fields are owned by their source module (wallet ledger, etc.).
+    if (f.readOnly) { clean[f.key] = input[f.key] ?? null; continue; }
     const raw = input[f.key];
     const val = coerce(f, raw);
     clean[f.key] = val;
@@ -63,7 +66,7 @@ export async function logActivity(orgId:string, userId:string|undefined, actor:s
 
 export type ListParams = { q?:string; status?:string; projectId?:string; page?:number; pageSize?:number; sort?:string; dir?:'asc'|'desc'; all?:boolean };
 
-export async function listRecords(orgId:string, def:ResourceDef, p:ListParams) {
+export async function listRecords(orgId:string, def:ResourceDef, p:ListParams, scope?:Scope) {
   const where: any = { organizationId:orgId, resource:def.id, deletedAt:null };
   if (p.status && p.status !== 'ALL') where.status = p.status;
   if (p.projectId && p.projectId !== 'ALL') where.projectId = p.projectId;
@@ -71,7 +74,8 @@ export async function listRecords(orgId:string, def:ResourceDef, p:ListParams) {
     const q = p.q.trim();
     where.OR = [{ title:{contains:q} }, { number:{contains:q} }, { data:{contains:q} }];
   }
-  const total = await prisma.record.count({ where });
+  const dbTotal = await prisma.record.count({ where });
+  const scoped = !!scope?.kind;
   const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
   const page = Math.max(Number(p.page)||1, 1);
   const baseColumns = ['id','createdAt','updatedAt','title','status','number','projectId'];
@@ -80,30 +84,37 @@ export async function listRecords(orgId:string, def:ResourceDef, p:ListParams) {
     ? { createdAt:'desc' }
     : { [p.sort || 'createdAt']: p.dir === 'asc' ? 'asc' : 'desc' };
   // Data-backed columns are sorted in memory: fetch everything, sort, THEN paginate.
-  const pagination: { skip?:number; take:number } = (p.all || dataSort)
+  const pagination: { skip?:number; take:number } = (p.all || dataSort || scoped)
     ? { take:10000 }
     : { skip:(page-1)*pageSize, take:pageSize };
   const recs = await prisma.record.findMany({ where, orderBy, ...pagination });
   let rows = recs.map(toRow);
+  if (scoped) rows = rows.filter(r => rowAllowed(scope!, def.id, r));
+  const total = scoped ? rows.length : dbTotal;
   if (dataSort) {
     rows.sort((a,b)=>{
       const av=a[p.sort!], bv=b[p.sort!];
       if (typeof av==='number' && typeof bv==='number') return p.dir==='asc'?av-bv:bv-av;
       return p.dir==='asc'?String(av??'').localeCompare(String(bv??'')):String(bv??'').localeCompare(String(av??''));
     });
-    if(!p.all) rows = rows.slice((page-1)*pageSize, page*pageSize);
   }
+  if (!p.all) rows = rows.slice((page-1)*pageSize, page*pageSize);
   return { rows, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
 }
 
-export async function getRecord(orgId:string, resourceId:string, id:string) {
+export async function getRecord(orgId:string, resourceId:string, id:string, scope?:Scope) {
   const rec = await prisma.record.findFirst({ where:{ id, organizationId:orgId, resource:resourceId, deletedAt:null } });
-  return rec ? toRow(rec) : null;
+  if (!rec) return null;
+  const row = toRow(rec);
+  if (scope?.kind && !rowAllowed(scope, resourceId, row)) return null;
+  return row;
 }
 
-export async function refOptions(orgId:string, def:ResourceDef, limit=300) {
-  const recs = await prisma.record.findMany({ where:{ organizationId:orgId, resource:def.id, deletedAt:null }, take:limit, orderBy:{createdAt:'desc'}, select:{id:true,title:true,number:true} });
-  return recs.map(r=>({ value:r.id, label:r.title || r.number || r.id }));
+export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope) {
+  const recs = await prisma.record.findMany({ where:{ organizationId:orgId, resource:def.id, deletedAt:null }, take:scope?.kind?10000:limit, orderBy:{createdAt:'desc'}, select:{id:true,title:true,number:true,data:true,projectId:true} });
+  let rows = recs.map(r => ({ value:r.id, label:r.title || r.number || r.id, _row:{ id:r.id, ...(()=>{try{return JSON.parse(r.data||'{}')}catch{return {}}})(), projectId:r.projectId } }));
+  if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r._row));
+  return rows.slice(0, limit).map(r => ({ value:r.value, label:r.label }));
 }
 
 export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>) {
@@ -114,7 +125,8 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
   const title = String(v.clean[def.titleKey] || number);
-  const clean = { ...v.clean, number, status, projectId };
+  const clean: Record<string,any> = { ...v.clean, number, status, projectId };
+  for (const f of def.fields) if (f.readOnly) clean[f.key] = null;
   const rec = await prisma.record.create({ data:{
     organizationId:orgId, resource:def.id, number, title, status, projectId,
     data:JSON.stringify(clean), createdById:userId || null,
@@ -135,7 +147,8 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
   const title = String(v.clean[def.titleKey] || existing.title || existing.number);
-  const clean = { ...v.clean, number:existing.number, status, projectId };
+  const clean: Record<string,any> = { ...v.clean, number:existing.number, status, projectId };
+  for (const f of def.fields) if (f.readOnly) clean[f.key] = prior[f.key] ?? null;
   const rec = await prisma.record.update({ where:{id}, data:{ title, status, projectId, data:JSON.stringify(clean) } });
   await logActivity(orgId, userId, actor, 'UPDATE', def.id, `Updated ${def.singular.toLowerCase()} “${title}” (${existing.number})`);
   return { ok:true as const, row:toRow(rec) };

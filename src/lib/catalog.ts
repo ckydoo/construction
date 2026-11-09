@@ -68,6 +68,7 @@ export const MODULES: ModuleDef[] = [
   { id:'safety', label:'HSE / safety', group:'Safety & quality', icon:'ShieldCheck', tier:'CORE', description:'Toolbox talks, JSA, permits-to-work, incidents and CAPA', resources:['toolboxTalks','incidents'], defaultTypes:'*' },
   { id:'quality', label:'Quality management', group:'Safety & quality', icon:'BadgeCheck', tier:'STANDARD', description:'Inspections, NCRs, ITPs and test results', resources:['inspections','ncrs','itps'], defaultTypes:'*', minSize:2 },
   { id:'finance', label:'Finance & accounting', group:'Finance', icon:'Landmark', tier:'CORE', description:'Chart of accounts, journals, AP/AR, payments and period close', resources:['accounts','journals','arInvoices','apBills','payments'], defaultTypes:'*' },
+  { id:'wallets', label:'Client wallets', group:'Finance', icon:'CreditCard', tier:'CORE', description:'Prepaid client wallets: admin top-ups, project funding and a reconciled ledger', resources:[], defaultTypes:'*' },
   { id:'billing', label:'Progress billing & retention', group:'Finance', icon:'Receipt', tier:'STANDARD', description:'Payment certificates, retention and client receipts', resources:['paymentApps'], defaultTypes:'*', minSize:2 },
   { id:'jobCosting', label:'Budgets & job costing', group:'Finance', icon:'PieChart', tier:'STANDARD', description:'Budget vs committed vs actual, CVR and earned value', resources:['budgets'], defaultTypes:'*', minSize:2 },
   { id:'reports', label:'Reports & BI', group:'Insights', icon:'BarChart3', tier:'CORE', description:'Canned reports, saved views and exports', resources:[], defaultTypes:'*' },
@@ -88,7 +89,7 @@ export const CORE_MODULE_IDS = MODULES.filter(m => m.tier === 'CORE').map(m => m
    and lets each module be verified before the next one is introduced. */
 export const STARTER_MODULE_IDS: string[] = [
   'dashboard','company','crm','pipeline','estimating','projects','contracts',
-  'documents','finance','hr','time','reports',
+  'documents','finance','wallets','hr','time','reports',
 ];
 export const STARTER_MODULE_SET = new Set(STARTER_MODULE_IDS);
 // A company's defining modules (unit sales, rental, commissioning) unlock as soon
@@ -121,7 +122,7 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   const si = SIZE_INDEX[size] ?? 1;
   const qualifiers = input.qualifiers || [];
   const addons = input.addons || [];
-  // Start small: only the 12 essentials. Type, size, qualifiers and explicit
+  // Start small: only the essentials. Type, size, qualifiers and explicit
   // add-ons then layer on modules — nothing is enabled "just because it exists".
   const enabled = new Set<string>(STARTER_MODULE_IDS);
 
@@ -191,26 +192,115 @@ export const ROLES = [
   { id:'SUBCONTRACTOR_EXTERNAL', label:'Subcontractor (portal)', desc:'External limited access' },
 ] as const;
 
-const WRITE_DENY: Record<string, string[]> = {
-  VIEWER: ['*'], CLIENT_EXTERNAL: ['*'], SUBCONTRACTOR_EXTERNAL: ['*'],
-};
-const RESTRICTED: Record<string, string[]> = {
-  SITE_ENGINEER: ['accounts','journals','payRuns','employees','budgets','arInvoices','apBills','payments','paymentApps'],
-  SAFETY_OFFICER: ['accounts','journals','payRuns','budgets','arInvoices','apBills','payments','paymentApps'],
-  PLANT_MANAGER: ['accounts','journals','payRuns','arInvoices','apBills','payments','paymentApps'],
-  ESTIMATOR: ['accounts','journals','payRuns','payments'],
-  PROCUREMENT: ['accounts','journals','payRuns','arInvoices','apBills','payments','paymentApps','employees'],
-  ACCOUNTANT: ['employees','incidents','inspections','toolboxTalks'],
-  HR_MANAGER: ['accounts','journals','arInvoices','apBills','payments','paymentApps','purchaseOrders'],
-  FINANCE_MANAGER: ['incidents','inspections','toolboxTalks','toolboxTalks'],
+/* ─────────────────────────────────────────────────────────────────────────
+   ROLE-LEVEL ACCESS CONTROL
+   One matrix drives every API route, the sidebar, the form actions and the
+   audit suite. `read`/`write` are resource-id allow/deny lists; `scoped`
+   roles are additionally row-limited to their own client/subcontractor.
+   Capabilities gate actions that are not ordinary record writes.
+   ───────────────────────────────────────────────────────────────────────── */
+export type Capability =
+  | 'records.create' | 'records.update' | 'records.delete'
+  | 'files.upload' | 'files.delete' | 'comments.create' | 'exports'
+  | 'settings.view' | 'settings.manage' | 'users.manage'
+  | 'project360' | 'integrity'
+  | 'wallet.read' | 'wallet.topup' | 'wallet.allocate' | 'wallet.refund';
+
+const FINANCE_REGISTERS = ['accounts','journals','arInvoices','apBills','payments','paymentApps','budgets','payRuns','expenses'];
+const HR_REGISTERS = ['employees','departments','crews','payRuns','leaveRequests','certifications','training'];
+const HSE_REGISTERS = ['incidents','inspections','toolboxTalks','ncrs','itps'];
+export const CLIENT_PORTAL_READ = [
+  'clients','contacts','projects','tasks','contracts','changeOrders','documents','rfis','submittals',
+  'dailyLogs','meetings','punchLists','permits','arInvoices','paymentApps','payments','budgets',
+  'units','commissioning','inspections',
+];
+export const SUB_PORTAL_READ = [
+  'projects','tasks','contracts','documents','rfis','submittals','purchaseOrders','timesheets',
+  'dailyLogs','meetings','punchLists','toolboxTalks','incidents',
+];
+
+export type RoleRule = {
+  read: '*' | string[]; readDeny?: string[];
+  write: '*' | string[]; writeDeny?: string[];
+  delete: boolean; scoped: boolean; capabilities: Capability[];
 };
 
+const ALL_CAPS: Capability[] = [
+  'records.create','records.update','records.delete','files.upload','files.delete','comments.create',
+  'exports','settings.view','settings.manage','users.manage','project360','integrity',
+  'wallet.read','wallet.topup','wallet.allocate','wallet.refund',
+];
+const READ_CAPS: Capability[] = ['comments.create','exports','project360','wallet.read','settings.view'];
+const caps = (extra: Capability[], remove: Capability[] = []) =>
+  Array.from(new Set([...READ_CAPS, ...extra].filter(c => !remove.includes(c))));
+
+export const ROLE_RULES: Record<string, RoleRule> = {
+  OWNER:            { read:'*', write:'*', delete:true, scoped:false, capabilities:[...ALL_CAPS] },
+  ADMIN:            { read:'*', write:'*', delete:true, scoped:false, capabilities:[...ALL_CAPS] },
+  PROJECT_MANAGER:  { read:'*', readDeny:['accounts','journals','payRuns'], write:'*',
+                      writeDeny:FINANCE_REGISTERS, delete:true, scoped:false,
+                      capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete','wallet.allocate']) },
+  SITE_ENGINEER:    { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+                      writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
+                      capabilities:caps(['records.create','records.update','files.upload']) },
+  FINANCE_MANAGER:  { read:'*', write:'*', writeDeny:[...HSE_REGISTERS,'dailyLogs','toolboxTalks'],
+                      delete:true, scoped:false,
+                      capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete','integrity','wallet.topup','wallet.allocate','wallet.refund']) },
+  ACCOUNTANT:       { read:'*', write:'*', writeDeny:[...HSE_REGISTERS,'employees','dailyLogs','projects','contracts'],
+                      delete:false, scoped:false,
+                      capabilities:caps(['records.create','records.update','files.upload','integrity']) },
+  HR_MANAGER:       { read:'*', readDeny:FINANCE_REGISTERS, write:'*',
+                      writeDeny:[...FINANCE_REGISTERS,'projects','contracts','purchaseOrders'], delete:true, scoped:false,
+                      capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete']) },
+  PROCUREMENT:      { read:'*', write:'*', writeDeny:[...FINANCE_REGISTERS,'employees'], delete:true, scoped:false,
+                      capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete']) },
+  SAFETY_OFFICER:   { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+                      writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
+                      capabilities:caps(['records.create','records.update','files.upload']) },
+  PLANT_MANAGER:    { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+                      writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
+                      capabilities:caps(['records.create','records.update','files.upload']) },
+  ESTIMATOR:        { read:'*', write:'*', writeDeny:[...FINANCE_REGISTERS,'payRuns'], delete:false, scoped:false,
+                      capabilities:caps(['records.create','records.update','files.upload']) },
+  VIEWER:           { read:'*', write:[], delete:false, scoped:false,
+                      capabilities:['exports','wallet.read','project360','settings.view'] },
+  CLIENT_EXTERNAL:  { read:CLIENT_PORTAL_READ, write:[], delete:false, scoped:true,
+                      capabilities:['comments.create','exports','project360','wallet.read','wallet.allocate'] },
+  SUBCONTRACTOR_EXTERNAL: { read:SUB_PORTAL_READ, write:[], delete:false, scoped:true,
+                      capabilities:['comments.create','exports','project360'] },
+};
+
+export function ruleFor(role: string): RoleRule { return ROLE_RULES[role] || ROLE_RULES.VIEWER; }
+export function capabilitiesFor(role: string): Capability[] { return ruleFor(role).capabilities; }
+export function canCapability(role: string, cap: Capability): boolean { return ruleFor(role).capabilities.includes(cap); }
+
+export function canRead(role: string, resource: string): boolean {
+  const r = ruleFor(role);
+  if (r.readDeny?.includes(resource)) return false;
+  return r.read === '*' || r.read.includes(resource);
+}
 export function canWrite(role: string, resource: string): boolean {
-  if (role === 'OWNER' || role === 'ADMIN' || role === 'PROJECT_MANAGER') return true;
-  if (WRITE_DENY[role]?.includes('*')) return false;
-  return !(RESTRICTED[role] || []).includes(resource);
+  const r = ruleFor(role);
+  if (!canRead(role, resource)) return false;
+  if (r.writeDeny?.includes(resource)) return false;
+  return r.write === '*' || r.write.includes(resource);
 }
-export function canDelete(role: string): boolean {
-  return ['OWNER','ADMIN','PROJECT_MANAGER','FINANCE_MANAGER','HR_MANAGER','PROCUREMENT'].includes(role);
+export function canDelete(role: string, resource?: string): boolean {
+  const r = ruleFor(role);
+  if (!r.delete) return false;
+  return resource ? canWrite(role, resource) : true;
 }
-export function isExternal(role: string): boolean { return role.endsWith('_EXTERNAL'); }
+export function isExternal(role: string): boolean { return ruleFor(role).scoped; }
+
+/** Snapshot of what the current role may do — sent to the UI by /meta. */
+export function permissionsFor(role: string, resources: string[]) {
+  const r = ruleFor(role);
+  return {
+    role,
+    read: resources.filter(x => canRead(role, x)),
+    write: resources.filter(x => canWrite(role, x)),
+    delete: r.delete,
+    scoped: r.scoped,
+    capabilities: r.capabilities,
+  };
+}

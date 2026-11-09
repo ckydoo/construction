@@ -1,8 +1,41 @@
-/* Shared API guard: a workspace may have a module switched off, and EVERY
-   route touching that module's records must honour it — not just the list. */
+/* Shared API guards. Every route touching a module must honour BOTH the
+   workspace module switch and the caller's role — not just the list endpoint. */
 import { NextResponse } from 'next/server';
+import { canRead, canWrite, canDelete, canCapability, type Capability } from './catalog';
 
-export function guardResource(config: { resources: string[] }, resource: string) {
+type Config = { resources: string[]; modules?: string[] };
+const deny = (message: string, status = 403) => NextResponse.json({ error: message }, { status });
+
+export function guardResource(config: Config, resource: string) {
   if (config.resources.includes(resource)) return null;
-  return NextResponse.json({ error: 'This module is not enabled for your workspace' }, { status: 403 });
+  return deny('This module is not enabled for your workspace');
+}
+
+export function guardModule(config: Config, moduleId: string) {
+  if ((config.modules || []).includes(moduleId)) return null;
+  return deny('This module is not enabled for your workspace');
+}
+
+/** Read access: module enabled AND role permitted to see this resource. */
+export function readGuard(config: Config, role: string, resource: string) {
+  const g = guardResource(config, resource); if (g) return g;
+  if (!canRead(role, resource)) return deny('Your role cannot view this module');
+  return null;
+}
+
+export function writeGuard(config: Config, role: string, resource: string) {
+  const g = guardResource(config, resource); if (g) return g;
+  if (!canWrite(role, resource)) return deny('Your role cannot create or edit records here');
+  return null;
+}
+
+export function deleteGuard(config: Config, role: string, resource: string) {
+  const g = guardResource(config, resource); if (g) return g;
+  if (!canDelete(role, resource)) return deny('Your role cannot delete records');
+  return null;
+}
+
+export function capabilityGuard(role: string, cap: Capability) {
+  if (!canCapability(role, cap)) return deny('Your role is not permitted to do that');
+  return null;
 }

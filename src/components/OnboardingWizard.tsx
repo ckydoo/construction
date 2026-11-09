@@ -74,7 +74,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           </li>;})}</ol>
         <div className="mt-8 rounded-xl border border-brand-200 bg-brand-50/60 p-3.5 dark:border-brand-500/20 dark:bg-brand-500/5">
           <p className="text-xs font-semibold text-brand-800 dark:text-brand-300">Essentials first</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-brand-900/70 dark:text-brand-200/70">Every workspace starts with 12 connected core modules. Your answers and add-ons decide what else appears — switch more on whenever you are ready in Settings.</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-brand-900/70 dark:text-brand-200/70">Every workspace starts with the connected essentials pack — including client wallets. Your answers and add-ons decide what else appears — switch more on whenever you are ready in Settings.</p>
         </div>
       </aside>
       <main className="min-w-0 flex-1">

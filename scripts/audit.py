@@ -107,7 +107,7 @@ def payload(defn, marker=None, overrides=None):
     p = {}
     for f in defn['fields']:
         key = f['key']
-        if key in ('number', 'id', 'createdAt', 'updatedAt'):
+        if key in ('number', 'id', 'createdAt', 'updatedAt') or f.get('readOnly'):
             continue
         if key == 'status' and defn.get('statusOptions'):
             p[key] = defn['statusOptions'][0]
@@ -361,6 +361,244 @@ else:
 sec = 'isolation'
 check(sec, 'unknown org rejected',
       OWNER.get(f'{BASE}/api/not-a-real-org/records/clients', timeout=30).status_code in (401, 403, 404), '')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6 · CLIENT WALLETS
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'wallet'
+RULES = D.get('roleRules', {})
+ROLE_IDS = [r['id'] for r in D.get('roles', [])]
+
+def wallet_list(session=None):
+    rr = req(session or OWNER, 'GET', 'wallets')
+    return rr, (rr.json() if rr.status_code == 200 else {})
+
+def wallet_of(data, client_id):
+    return next((w for w in data.get('wallets', []) if w['clientId'] == client_id), None)
+
+def balance_of(session, client_id):
+    rr, data = wallet_list(session)
+    w = wallet_of(data, client_id)
+    return w['balance'] if w else None
+
+rr, wdata = wallet_list()
+check(sec, 'wallet list endpoint', rr.status_code == 200 and 'summary' in wdata, f'HTTP {rr.status_code}')
+check(sec, 'wallets are one-per-client', len({w['clientId'] for w in wdata.get('wallets', [])}) == len(wdata.get('wallets', [])), '')
+check(sec, 'seeded demo wallets have activity', wdata.get('summary', {}).get('fundedWallets', 0) >= 4, wdata.get('summary'))
+check(sec, 'balance equals toppedUp minus allocated plus reversals',
+      all(abs(w['balance'] - (w['toppedUp'] - w['allocated'] + w['reversed'])) < 0.005 for w in wdata.get('wallets', [])), '')
+seed_balance = sum(w['balance'] for w in wdata.get('wallets', []))
+
+# Find the client the demo portal user belongs to, and one of its projects.
+portal_client = None
+rr = req(OWNER, 'GET', 'records/clients?q=Westgate')
+if rr.status_code == 200 and rr.json().get('rows'):
+    portal_client = rr.json()['rows'][0]['id']
+if not portal_client:
+    portal_client = ref_id('clients')
+check(sec, 'wallet test client found', bool(portal_client), str(portal_client))
+
+portal_project = None
+other_project = None
+rr = req(OWNER, 'GET', 'records/projects?pageSize=100')
+if rr.status_code == 200:
+    for pr in rr.json().get('rows', []):
+        if pr.get('clientId') == portal_client and not portal_project:
+            portal_project = pr['id']
+        elif pr.get('clientId') != portal_client and not other_project:
+            other_project = pr['id']
+check(sec, 'wallet test project found', bool(portal_project), str(portal_project))
+check(sec, 'project of another client found', bool(other_project), str(other_project))
+
+before = balance_of(OWNER, portal_client)
+check(sec, 'starting balance recorded', before is not None, str(before))
+wpath = f'wallets/{portal_client}'
+key = 'AUDIT-' + MARK
+rr = req(OWNER, 'POST', wpath, json={'action': 'topup', 'amount': 1000, 'reference': MARK, 'method': 'Bank transfer (USD)', 'note': 'QA top-up', 'idempotencyKey': key})
+check(sec, 'admin top-up', rr.status_code == 201 and abs(rr.json().get('balance', 0) - (before + 1000)) < 0.005, f'HTTP {rr.status_code} {rr.text[:120]}')
+topup_tx = rr.json().get('transaction', {}).get('id') if rr.status_code == 201 else None
+check(sec, 'top-up writes TOPUP ledger entry', bool(topup_tx), str(topup_tx))
+
+rr = req(OWNER, 'POST', wpath, json={'action': 'topup', 'amount': 1000, 'idempotencyKey': key})
+check(sec, 'duplicate top-up rejected', rr.status_code == 409, f'HTTP {rr.status_code}')
+check(sec, 'idempotency leaves balance unchanged', abs((balance_of(OWNER, portal_client) or 0) - (before + 1000)) < 0.005, '')
+for label, amount in [('negative amount', -5), ('zero amount', 0), ('missing amount', None)]:
+    body = {'action': 'topup'}
+    if amount is not None: body['amount'] = amount
+    rr = req(OWNER, 'POST', wpath, json=body)
+    check(sec, f'topup rejects {label}', rr.status_code == 400, f'HTTP {rr.status_code}')
+
+rr = req(OWNER, 'GET', wpath)
+detail = rr.json() if rr.status_code == 200 else {}
+check(sec, 'wallet detail endpoint', rr.status_code == 200 and 'ledger' in detail, f'HTTP {rr.status_code}')
+check(sec, 'ledger shows the new top-up', any(t['kind'] == 'TOPUP' and t['reference'] == MARK for t in detail.get('ledger', [])), '')
+check(sec, 'ledger running balance reconciles', bool(detail.get('ledger')) and abs(detail['ledger'][0]['balanceAfter'] - (before + 1000)) < 0.005, '')
+rr = req(OWNER, 'GET', f'records/clients/{portal_client}')
+check(sec, 'client register mirrors wallet balance', rr.status_code == 200 and abs((rr.json().get('row', {}).get('walletBalance') or 0) - (before + 1000)) < 0.005, f'HTTP {rr.status_code}')
+
+if other_project:
+    rr = req(OWNER, 'POST', wpath, json={'action': 'allocate', 'amount': 10, 'projectId': other_project})
+    check(sec, 'cannot fund another client\'s project', rr.status_code in (400, 404), f'HTTP {rr.status_code} {rr.text[:120]}')
+rr = req(OWNER, 'POST', wpath, json={'action': 'allocate', 'amount': 999999999, 'projectId': portal_project})
+check(sec, 'insufficient balance rejected', rr.status_code == 409, f'HTTP {rr.status_code}')
+check(sec, 'failed allocation does not move money', abs((balance_of(OWNER, portal_client) or 0) - (before + 1000)) < 0.005, '')
+rr = req(OWNER, 'POST', wpath, json={'action': 'allocate', 'amount': 250, 'projectId': portal_project, 'note': MARK + ' funding'})
+alloc_tx = rr.json().get('transaction', {}).get('id') if rr.status_code == 201 else None
+check(sec, 'wallet funds own project', rr.status_code == 201 and abs(rr.json().get('balance', 0) - (before + 750)) < 0.005, f'HTTP {rr.status_code} {rr.text[:120]}')
+
+rr = req(OWNER, 'GET', f'records/projects/{portal_project}')
+proj_before = rr.json().get('row', {}) if rr.status_code == 200 else {}
+check(sec, 'project register mirrors funded amount', rr.status_code == 200 and abs((proj_before.get('fundedAmount') or 0)) >= 250, f'HTTP {rr.status_code} funded={proj_before.get("fundedAmount")}')
+rr = req(OWNER, 'GET', f'projects/{portal_project}')
+check(sec, 'project 360 includes wallet funding', rr.status_code == 200 and rr.json().get('totals', {}).get('walletFunded', 0) >= 250, f'HTTP {rr.status_code}')
+check(sec, 'project 360 names the client wallet', rr.status_code == 200 and rr.json().get('wallet', {}).get('clientId') == portal_client, '')
+rr = req(OWNER, 'GET', 'overview')
+check(sec, 'dashboard KPI includes wallet balance', rr.status_code == 200 and abs(rr.json().get('kpis', {}).get('walletBalance', -1) - (seed_balance + 750)) < 0.005, f'HTTP {rr.status_code}')
+
+if topup_tx:
+    url_tx = f'wallets/{portal_client}/transactions/{topup_tx}'
+    check(sec, 'ledger entry is readable', req(OWNER, 'GET', url_tx).status_code == 200, '')
+    check(sec, 'ledger PATCH is immutable', req(OWNER, 'PATCH', url_tx, json={'amount': 1}).status_code == 405, '')
+    check(sec, 'ledger DELETE is immutable', req(OWNER, 'DELETE', url_tx).status_code == 405, '')
+
+if alloc_tx:
+    rr = req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': alloc_tx, 'note': 'QA reversal'})
+    check(sec, 'reversal credits wallet', rr.status_code == 201 and abs(rr.json().get('balance', 0) - (before + 1000)) < 0.005, f'HTTP {rr.status_code} {rr.text[:120]}')
+    check(sec, 'reversal cannot be repeated', req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': alloc_tx}).status_code == 400, '')
+    rr = req(OWNER, 'GET', f'projects/{portal_project}')
+    check(sec, 'reversal reduces project funded total', rr.status_code == 200 and rr.json().get('totals', {}).get('walletFunded', -1) < proj_before.get('fundedAmount', 0) + 250, '')
+if topup_tx:
+    rr = req(OWNER, 'POST', wpath, json={'action': 'reverse', 'transactionId': topup_tx})
+    check(sec, 'top-up reversal restores starting balance', rr.status_code == 201 and abs(rr.json().get('balance', 0) - before) < 0.005, f'HTTP {rr.status_code} {rr.text[:120]}')
+
+# Module gating on the new module
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': 'wallets', 'enabled': False})
+check(sec, 'disable wallets module', rr.status_code == 200, f'HTTP {rr.status_code}')
+check(sec, 'disabled wallet list blocked', req(OWNER, 'GET', 'wallets').status_code == 403, '')
+check(sec, 'disabled wallet action blocked', req(OWNER, 'POST', wpath, json={'action': 'topup', 'amount': 1}).status_code == 403, '')
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': 'wallets', 'enabled': True})
+check(sec, 're-enable wallets module', rr.status_code == 200 and req(OWNER, 'GET', 'wallets').status_code == 200, f'HTTP {rr.status_code}')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7 · LINK INTEGRITY
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'linkage'
+rr = req(OWNER, 'GET', f'records/clients/{portal_client}/related')
+rel = rr.json() if rr.status_code == 200 else {}
+check(sec, 'client reverse-link endpoint', rr.status_code == 200 and 'groups' in rel, f'HTTP {rr.status_code}')
+check(sec, 'client links to contacts/projects/invoices',
+      {'contacts', 'projects', 'arInvoices'}.issubset({g['resource'] for g in rel.get('groups', [])}),
+      str([g['resource'] for g in rel.get('groups', [])]))
+check(sec, 'client detail exposes wallet balance', bool(rel.get('wallet')) and rel['wallet'].get('balance') is not None, '')
+if portal_project:
+    rr = req(OWNER, 'GET', f'records/projects/{portal_project}/related')
+    pr = rr.json() if rr.status_code == 200 else {}
+    check(sec, 'project reverse-link endpoint', rr.status_code == 200 and len(pr.get('groups', [])) >= 3, f'HTTP {rr.status_code}')
+    check(sec, 'project links to wallet funding', bool(pr.get('wallet')) and pr['wallet'].get('fundedToProjects', 0) > 0, '')
+rr = req(OWNER, 'GET', 'integrity')
+integ = rr.json() if rr.status_code == 200 else {}
+check(sec, 'integrity endpoint', rr.status_code == 200, f'HTTP {rr.status_code}')
+check(sec, 'all cross-module references resolve', integ.get('brokenRefCount') == 0, str(integ.get('brokenRefCount')))
+check(sec, 'integrity checks a meaningful number of refs', integ.get('checkedRefs', 0) > 1000, str(integ.get('checkedRefs')))
+check(sec, 'wallet ledger reconciles', not integ.get('walletMismatches'), str(integ.get('walletMismatches')))
+check(sec, 'derived project funding reconciles', not integ.get('fundingMismatches'), str(integ.get('fundingMismatches')))
+check(sec, 'no orphan wallet rows', integ.get('walletOrphanCount') == 0, str(integ.get('walletOrphanCount')))
+check(sec, 'integrity overall healthy', integ.get('ok') is True, str(integ)[:200])
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8 · ROLE MATRIX (all 14 roles provisioned as real users)
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'roles'
+qa_users = []
+# The demo OWNER session is used directly (a second OWNER cannot be removed
+# while it is the last owner of the workspace).
+check(sec, 'OWNER read accounts', req(OWNER, 'GET', 'records/accounts?pageSize=2').status_code == 200, '')
+_owner_client = req(OWNER, 'POST', 'records/clients', json={'name': f'{MARK} owner'})
+check(sec, 'OWNER create clients', _owner_client.status_code == 201, '')
+if _owner_client.status_code == 201: req(OWNER, 'DELETE', f'records/clients/{_owner_client.json()["row"]["id"]}')
+check(sec, 'OWNER wallet.topup capability', req(OWNER, 'POST', wpath, json={'action': 'topup', 'amount': -1}).status_code == 400, '')
+for role in ROLE_IDS:
+    if role == 'OWNER':
+        continue
+    email = f'qa.{MARK.lower()}.{role.lower()}@example.co.zw'
+    inv = {'name': f'QA {role}', 'email': email, 'role': role}
+    if role.endswith('_EXTERNAL'):
+        inv['entityId'] = portal_client
+    rr = req(OWNER, 'POST', 'settings', json={'action': 'invite', **inv})
+    check(sec, f'invite {role}', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:100]}')
+    ss, lr = login(email, 'Welcome@123')
+    if lr.status_code != 200:
+        check(sec, f'{role} login', False, f'HTTP {lr.status_code}')
+        continue
+    qa_users.append((role, email))
+    rule = RULES.get(role, {})
+    caps = rule.get('capabilities', [])
+    # Read matrix on a finance register
+    rr = req(ss, 'GET', 'records/accounts?pageSize=2')
+    check(sec, f'{role} read accounts', (rr.status_code == 200) == ('accounts' in rule.get('read', [])), f'HTTP {rr.status_code}')
+    # Write matrix on clients
+    rr = req(ss, 'POST', 'records/clients', json={'name': f'{MARK} {role}'})
+    expected_write = 'clients' in rule.get('write', [])
+    if not expected_write:
+        check(sec, f'{role} create clients denied', rr.status_code == 403, f'HTTP {rr.status_code}')
+    else:
+        check(sec, f'{role} create clients allowed', rr.status_code == 201, f'HTTP {rr.status_code} {rr.text[:100]}')
+        if rr.status_code == 201: req(OWNER, 'DELETE', f'records/clients/{rr.json()["row"]["id"]}')
+    # Delete matrix (bulk with empty ids is harmless)
+    rr = req(ss, 'DELETE', 'records/clients/bulk', json={'ids': []})
+    expected_delete = bool(rule.get('delete')) and 'clients' in rule.get('write', [])
+    check(sec, f'{role} bulk delete', (rr.status_code == 200) == expected_delete, f'HTTP {rr.status_code}')
+    # Wallet visibility
+    rr = req(ss, 'GET', 'wallets')
+    expected_wallet = 'wallet.read' in caps
+    check(sec, f'{role} wallet visibility', (rr.status_code == 200) == expected_wallet, f'HTTP {rr.status_code}')
+    if role == 'CLIENT_EXTERNAL' and rr.status_code == 200:
+        ws = rr.json().get('wallets', [])
+        check(sec, 'portal sees only its own wallet', len(ws) == 1 and ws[0]['clientId'] == portal_client, str([w['clientId'] for w in ws]))
+        check(sec, 'portal cannot read another wallet', req(ss, 'GET', f'wallets/{other_project or "x"}').status_code in (403, 404), '')
+    # Capabilities via invalid payloads (no money moves)
+    rr = req(ss, 'POST', wpath, json={'action': 'topup', 'amount': -1})
+    check(sec, f'{role} wallet.topup capability', rr.status_code == (400 if 'wallet.topup' in caps else 403), f'HTTP {rr.status_code}')
+    rr = req(ss, 'POST', wpath, json={'action': 'allocate', 'amount': -1, 'projectId': portal_project})
+    check(sec, f'{role} wallet.allocate capability', rr.status_code == (400 if 'wallet.allocate' in caps else 403), f'HTTP {rr.status_code}')
+    # Settings / role management
+    rr = req(ss, 'PATCH', 'settings', json={'action': 'setRole', 'userId': 'x', 'role': 'ADMIN'})
+    expected_manage = 'users.manage' in caps
+    check(sec, f'{role} role management', (rr.status_code in (403, 404)) == expected_manage or (not expected_manage and rr.status_code == 403), f'HTTP {rr.status_code}')
+
+# Cleanup QA members (sessions revoked, users removed)
+meta_users = req(OWNER, 'GET', 'meta').json().get('users', [])
+for role, email in qa_users:
+    u = next((x for x in meta_users if x['email'] == email), None)
+    if u:
+        rr = req(OWNER, 'PATCH', 'settings', json={'action': 'removeUser', 'userId': u['id']})
+        check(sec, f'cleanup {role}', rr.status_code == 200, f'HTTP {rr.status_code}')
+
+# Owner-only guardrails
+check(sec, 'unknown role rejected', req(OWNER, 'PATCH', 'settings', json={'action': 'setRole', 'userId': 'x', 'role': 'SUPERUSER'}).status_code in (400, 404), '')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9 · TWO REAL TENANTS (leakage)
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'tenants'
+other = requests.Session()
+email2 = f'qa.tenant.{MARK.lower()}@example.co.zw'
+rr = other.post(f'{BASE}/api/auth/register', json={'name': 'QA Tenant', 'email': email2, 'password': 'Isolation@123', 'company': 'QA Other Builders'}, timeout=30)
+check(sec, 'second workspace registration', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:120]}')
+rr = other.post(f'{BASE}/api/onboarding', json={'companyType': 'GENERAL_CONTRACTOR', 'size': 'MICRO', 'loadDemo': False}, timeout=30)
+check(sec, 'second workspace onboarding', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:120]}')
+slug2 = rr.json().get('slug') if rr.status_code == 200 else None
+check(sec, 'second workspace has its own slug', bool(slug2) and slug2 != ORG, str(slug2))
+for name, path in [('records', 'records/clients'), ('wallets', 'wallets'), ('meta', 'meta'), ('overview', 'overview')]:
+    rr = other.get(f'{BASE}/api/{ORG}/{path}', timeout=30)
+    check(sec, f'other tenant cannot read {name}', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
+rr = other.post(f'{BASE}/api/{ORG}/wallets/{portal_client}', json={'action': 'topup', 'amount': 500}, timeout=30)
+check(sec, 'other tenant cannot fund a wallet', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
+rr = other.get(f'{BASE}/api/{ORG}/records/clients/{portal_client}', timeout=30)
+check(sec, 'other tenant cannot open a client record', rr.status_code in (401, 403, 404), f'HTTP {rr.status_code}')
+if slug2:
+    rr = other.get(f'{BASE}/api/{slug2}/wallets', timeout=30)
+    check(sec, 'second tenant has an empty isolated wallet list', rr.status_code == 200 and rr.json().get('summary', {}).get('totalBalance') == 0, f'HTTP {rr.status_code} {rr.text[:120]}')
 
 # ─────────────────────────────────────────────────────────────────────────────
 report = {

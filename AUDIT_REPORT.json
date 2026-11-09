@@ -1,9 +1,9 @@
 {
   "base": "http://127.0.0.1:3000",
-  "marker": "QAC0D0B3",
+  "marker": "QAA2DAB4",
   "resources": 49,
-  "modules": 33,
-  "checks": 1028,
+  "modules": 34,
+  "checks": 1211,
   "failures": [],
   "by_section": {
     "auth": {
@@ -28,6 +28,22 @@
     },
     "isolation": {
       "total": 1,
+      "failed": 0
+    },
+    "wallet": {
+      "total": 38,
+      "failed": 0
+    },
+    "linkage": {
+      "total": 12,
+      "failed": 0
+    },
+    "roles": {
+      "total": 123,
+      "failed": 0
+    },
+    "tenants": {
+      "total": 10,
       "failed": 0
     }
   },
@@ -54,19 +70,19 @@
       "section": "crud:clients",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 clients\",\"type\":\"Private developer\",\"registrationNo\":\"QAC0D0B3 registrationNo\",\"industry\":\"QAC0D0B3 industry\",\"email\":\"qa.qac"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 clients\",\"type\":\"Private developer\",\"registrationNo\":\"QAA2DAB4 registrationNo\",\"industry\":\"QAA2DAB4 industry\",\"email\":\"qa.qaa"
     },
     {
       "section": "crud:clients",
       "check": "sequence number",
       "ok": true,
-      "detail": "CLI-0010"
+      "detail": "CLI-0011"
     },
     {
       "section": "crud:clients",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 clients vs QAC0D0B3 clients"
+      "detail": "QAA2DAB4 clients vs QAA2DAB4 clients"
     },
     {
       "section": "crud:clients",
@@ -84,19 +100,19 @@
       "section": "crud:clients",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED clients\",\"type\":\"Private developer\",\"registrationNo\":\"QAC0D0B3 registrationNo\",\"industry\":\"QAC0D0B3 industry\",\"email\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED clients\",\"type\":\"Private developer\",\"registrationNo\":\"QAA2DAB4 registrationNo\",\"industry\":\"QAA2DAB4 industry\",\"email\""
     },
     {
       "section": "crud:clients",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAC0D0B3 registrationNo'): got QAC0D0B3 registrationNo"
+      "detail": "('registrationNo', 'QAA2DAB4 registrationNo'): got QAA2DAB4 registrationNo"
     },
     {
       "section": "crud:clients",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED clients"
+      "detail": "QAA2DAB4 UPDATED clients"
     },
     {
       "section": "crud:clients",
@@ -174,7 +190,7 @@
       "section": "crud:contacts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 contacts\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"jobTitle\":\"QAC0D0B3 jobTitle\",\"email\":\"qa.qac0d0b3@example.co.zw\",\"ph"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 contacts\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"jobTitle\":\"QAA2DAB4 jobTitle\",\"email\":\"qa.qaa2dab4@example.co.zw\",\"ph"
     },
     {
       "section": "crud:contacts",
@@ -186,7 +202,7 @@
       "section": "crud:contacts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 contacts vs QAC0D0B3 contacts"
+      "detail": "QAA2DAB4 contacts vs QAA2DAB4 contacts"
     },
     {
       "section": "crud:contacts",
@@ -198,19 +214,19 @@
       "section": "crud:contacts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED contacts\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"jobTitle\":\"QAC0D0B3 jobTitle\",\"email\":\"qa.qac0d0b3@example.co"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED contacts\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"jobTitle\":\"QAA2DAB4 jobTitle\",\"email\":\"qa.qaa2dab4@example.co"
     },
     {
       "section": "crud:contacts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('jobTitle', 'QAC0D0B3 jobTitle'): got QAC0D0B3 jobTitle"
+      "detail": "('jobTitle', 'QAA2DAB4 jobTitle'): got QAA2DAB4 jobTitle"
     },
     {
       "section": "crud:contacts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED contacts"
+      "detail": "QAA2DAB4 UPDATED contacts"
     },
     {
       "section": "crud:contacts",
@@ -282,7 +298,7 @@
       "section": "crud:leads",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 leads\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workType\":\"Comm"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 leads\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workType\":\"Comm"
     },
     {
       "section": "crud:leads",
@@ -294,7 +310,7 @@
       "section": "crud:leads",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 leads vs QAC0D0B3 leads"
+      "detail": "QAA2DAB4 leads vs QAA2DAB4 leads"
     },
     {
       "section": "crud:leads",
@@ -312,7 +328,7 @@
       "section": "crud:leads",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED leads\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workTyp"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED leads\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"stage\":\"IDENTIFIED\",\"value\":123.45,\"probability\":123.45,\"workTyp"
     },
     {
       "section": "crud:leads",
@@ -324,7 +340,7 @@
       "section": "crud:leads",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED leads"
+      "detail": "QAA2DAB4 UPDATED leads"
     },
     {
       "section": "crud:leads",
@@ -402,7 +418,7 @@
       "section": "crud:estimates",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 estimates\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"leadId\":\"cmw8yzk890000nzladntbwcdy_lead-5\",\"workType\":\"Commercial bu"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 estimates\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"leadId\":\"cmw91om8h0000nz16lazvli97_lead-5\",\"workType\":\"Commercial bu"
     },
     {
       "section": "crud:estimates",
@@ -414,7 +430,7 @@
       "section": "crud:estimates",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 estimates vs QAC0D0B3 estimates"
+      "detail": "QAA2DAB4 estimates vs QAA2DAB4 estimates"
     },
     {
       "section": "crud:estimates",
@@ -432,7 +448,7 @@
       "section": "crud:estimates",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED estimates\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"leadId\":\"cmw8yzk890000nzladntbwcdy_lead-5\",\"workType\":\"Comme"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED estimates\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"leadId\":\"cmw91om8h0000nz16lazvli97_lead-5\",\"workType\":\"Comme"
     },
     {
       "section": "crud:estimates",
@@ -444,7 +460,7 @@
       "section": "crud:estimates",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED estimates"
+      "detail": "QAA2DAB4 UPDATED estimates"
     },
     {
       "section": "crud:estimates",
@@ -522,7 +538,7 @@
       "section": "crud:bids",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 bids\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"tenderNo\":\"QAC0D0B3 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"2026-11-07"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 bids\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"tenderNo\":\"QAA2DAB4 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"2026-11-07"
     },
     {
       "section": "crud:bids",
@@ -534,7 +550,7 @@
       "section": "crud:bids",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 bids vs QAC0D0B3 bids"
+      "detail": "QAA2DAB4 bids vs QAA2DAB4 bids"
     },
     {
       "section": "crud:bids",
@@ -546,19 +562,19 @@
       "section": "crud:bids",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED bids\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"tenderNo\":\"QAC0D0B3 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"20"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED bids\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"tenderNo\":\"QAA2DAB4 tenderNo\",\"bidValue\":123.45,\"closingDate\":\"20"
     },
     {
       "section": "crud:bids",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('tenderNo', 'QAC0D0B3 tenderNo'): got QAC0D0B3 tenderNo"
+      "detail": "('tenderNo', 'QAA2DAB4 tenderNo'): got QAA2DAB4 tenderNo"
     },
     {
       "section": "crud:bids",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED bids"
+      "detail": "QAA2DAB4 UPDATED bids"
     },
     {
       "section": "crud:bids",
@@ -630,7 +646,7 @@
       "section": "crud:projects",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 projects\",\"code\":\"QAC0D0B3 code\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"type\":\"Commercial building\",\"contractFlavour\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 projects\",\"code\":\"QAA2DAB4 code\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"type\":\"Commercial building\",\"contractFlavour\":"
     },
     {
       "section": "crud:projects",
@@ -642,7 +658,7 @@
       "section": "crud:projects",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 projects vs QAC0D0B3 projects"
+      "detail": "QAA2DAB4 projects vs QAA2DAB4 projects"
     },
     {
       "section": "crud:projects",
@@ -660,19 +676,19 @@
       "section": "crud:projects",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED projects\",\"code\":\"QAC0D0B3 code\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"type\":\"Commercial building\",\"contractF"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED projects\",\"code\":\"QAA2DAB4 code\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"type\":\"Commercial building\",\"contractF"
     },
     {
       "section": "crud:projects",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAC0D0B3 code'): got QAC0D0B3 code"
+      "detail": "('code', 'QAA2DAB4 code'): got QAA2DAB4 code"
     },
     {
       "section": "crud:projects",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED projects"
+      "detail": "QAA2DAB4 UPDATED projects"
     },
     {
       "section": "crud:projects",
@@ -750,7 +766,7 @@
       "section": "crud:tasks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 tasks\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAC0D0B3 wbsCode\",\"parentId\":\"cmw8yzk89000"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 tasks\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAA2DAB4 wbsCode\",\"parentId\":\"cmw91om8h000"
     },
     {
       "section": "crud:tasks",
@@ -762,7 +778,7 @@
       "section": "crud:tasks",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 tasks vs QAC0D0B3 tasks"
+      "detail": "QAA2DAB4 tasks vs QAA2DAB4 tasks"
     },
     {
       "section": "crud:tasks",
@@ -780,19 +796,19 @@
       "section": "crud:tasks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED tasks\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAC0D0B3 wbsCode\",\"parentId\":\"cmw8"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED tasks\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAA2DAB4 wbsCode\",\"parentId\":\"cmw9"
     },
     {
       "section": "crud:tasks",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('wbsCode', 'QAC0D0B3 wbsCode'): got QAC0D0B3 wbsCode"
+      "detail": "('wbsCode', 'QAA2DAB4 wbsCode'): got QAA2DAB4 wbsCode"
     },
     {
       "section": "crud:tasks",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED tasks"
+      "detail": "QAA2DAB4 UPDATED tasks"
     },
     {
       "section": "crud:tasks",
@@ -870,7 +886,7 @@
       "section": "crud:contracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 contracts\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"counterparty\":\"cmw8yzk"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 contracts\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"counterparty\":\"cmw91om"
     },
     {
       "section": "crud:contracts",
@@ -882,7 +898,7 @@
       "section": "crud:contracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 contracts vs QAC0D0B3 contracts"
+      "detail": "QAA2DAB4 contracts vs QAA2DAB4 contracts"
     },
     {
       "section": "crud:contracts",
@@ -900,7 +916,7 @@
       "section": "crud:contracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED contracts\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"counterparty\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED contracts\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"counterparty\":"
     },
     {
       "section": "crud:contracts",
@@ -912,7 +928,7 @@
       "section": "crud:contracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED contracts"
+      "detail": "QAA2DAB4 UPDATED contracts"
     },
     {
       "section": "crud:contracts",
@@ -990,7 +1006,7 @@
       "section": "crud:changeOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 changeOrders\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"reference\":\"QAC0D0B3 reference\",\"reason\":\"Client change\",\"amount"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 changeOrders\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"reference\":\"QAA2DAB4 reference\",\"reason\":\"Client change\",\"amount"
     },
     {
       "section": "crud:changeOrders",
@@ -1002,7 +1018,7 @@
       "section": "crud:changeOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 changeOrders vs QAC0D0B3 changeOrders"
+      "detail": "QAA2DAB4 changeOrders vs QAA2DAB4 changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1020,19 +1036,19 @@
       "section": "crud:changeOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED changeOrders\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"reference\":\"QAC0D0B3 reference\",\"reason\":\"Client change\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED changeOrders\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"reference\":\"QAA2DAB4 reference\",\"reason\":\"Client change\""
     },
     {
       "section": "crud:changeOrders",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('reference', 'QAC0D0B3 reference'): got QAC0D0B3 reference"
+      "detail": "('reference', 'QAA2DAB4 reference'): got QAA2DAB4 reference"
     },
     {
       "section": "crud:changeOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED changeOrders"
+      "detail": "QAA2DAB4 UPDATED changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1110,7 +1126,7 @@
       "section": "crud:rfis",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"subject\":\"QAC0D0B3 rfis\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"specRef\":\"QAC0D0B3 specRef\",\"discipline\":\"Architectural\",\"priority\":\""
+      "detail": "HTTP 201 {\"row\":{\"subject\":\"QAA2DAB4 rfis\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"specRef\":\"QAA2DAB4 specRef\",\"discipline\":\"Architectural\",\"priority\":\""
     },
     {
       "section": "crud:rfis",
@@ -1122,7 +1138,7 @@
       "section": "crud:rfis",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 rfis vs QAC0D0B3 rfis"
+      "detail": "QAA2DAB4 rfis vs QAA2DAB4 rfis"
     },
     {
       "section": "crud:rfis",
@@ -1140,19 +1156,19 @@
       "section": "crud:rfis",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"subject\":\"QAC0D0B3 UPDATED rfis\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"specRef\":\"QAC0D0B3 specRef\",\"discipline\":\"Architectural\",\"pri"
+      "detail": "HTTP 200 {\"row\":{\"subject\":\"QAA2DAB4 UPDATED rfis\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"specRef\":\"QAA2DAB4 specRef\",\"discipline\":\"Architectural\",\"pri"
     },
     {
       "section": "crud:rfis",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('specRef', 'QAC0D0B3 specRef'): got QAC0D0B3 specRef"
+      "detail": "('specRef', 'QAA2DAB4 specRef'): got QAA2DAB4 specRef"
     },
     {
       "section": "crud:rfis",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED rfis"
+      "detail": "QAA2DAB4 UPDATED rfis"
     },
     {
       "section": "crud:rfis",
@@ -1230,7 +1246,7 @@
       "section": "crud:submittals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 submittals\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"package\":\"QAC0D0B3 package\",\"type\":\"Shop drawing\",\"submittedBy\":\"c"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 submittals\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"package\":\"QAA2DAB4 package\",\"type\":\"Shop drawing\",\"submittedBy\":\"c"
     },
     {
       "section": "crud:submittals",
@@ -1242,7 +1258,7 @@
       "section": "crud:submittals",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 submittals vs QAC0D0B3 submittals"
+      "detail": "QAA2DAB4 submittals vs QAA2DAB4 submittals"
     },
     {
       "section": "crud:submittals",
@@ -1260,19 +1276,19 @@
       "section": "crud:submittals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED submittals\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"package\":\"QAC0D0B3 package\",\"type\":\"Shop drawing\",\"submitt"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED submittals\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"package\":\"QAA2DAB4 package\",\"type\":\"Shop drawing\",\"submitt"
     },
     {
       "section": "crud:submittals",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('package', 'QAC0D0B3 package'): got QAC0D0B3 package"
+      "detail": "('package', 'QAA2DAB4 package'): got QAA2DAB4 package"
     },
     {
       "section": "crud:submittals",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED submittals"
+      "detail": "QAA2DAB4 UPDATED submittals"
     },
     {
       "section": "crud:submittals",
@@ -1350,7 +1366,7 @@
       "section": "crud:documents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 documents\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"drawingNo\":\"QAC0D0B3 drawingNo\",\"revision\":\"QAC0D0B3 revision\",\"typ"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 documents\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"drawingNo\":\"QAA2DAB4 drawingNo\",\"revision\":\"QAA2DAB4 revision\",\"typ"
     },
     {
       "section": "crud:documents",
@@ -1362,7 +1378,7 @@
       "section": "crud:documents",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 documents vs QAC0D0B3 documents"
+      "detail": "QAA2DAB4 documents vs QAA2DAB4 documents"
     },
     {
       "section": "crud:documents",
@@ -1380,19 +1396,19 @@
       "section": "crud:documents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED documents\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"drawingNo\":\"QAC0D0B3 drawingNo\",\"revision\":\"QAC0D0B3 revisi"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED documents\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"drawingNo\":\"QAA2DAB4 drawingNo\",\"revision\":\"QAA2DAB4 revisi"
     },
     {
       "section": "crud:documents",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('drawingNo', 'QAC0D0B3 drawingNo'): got QAC0D0B3 drawingNo"
+      "detail": "('drawingNo', 'QAA2DAB4 drawingNo'): got QAA2DAB4 drawingNo"
     },
     {
       "section": "crud:documents",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED documents"
+      "detail": "QAA2DAB4 UPDATED documents"
     },
     {
       "section": "crud:documents",
@@ -1470,7 +1486,7 @@
       "section": "crud:dailyLogs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 dailyLogs\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\"manpower"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 dailyLogs\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\"manpower"
     },
     {
       "section": "crud:dailyLogs",
@@ -1482,7 +1498,7 @@
       "section": "crud:dailyLogs",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 dailyLogs vs QAC0D0B3 dailyLogs"
+      "detail": "QAA2DAB4 dailyLogs vs QAA2DAB4 dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1500,7 +1516,7 @@
       "section": "crud:dailyLogs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED dailyLogs\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED dailyLogs\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"temperature\":123.45,\""
     },
     {
       "section": "crud:dailyLogs",
@@ -1512,7 +1528,7 @@
       "section": "crud:dailyLogs",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED dailyLogs"
+      "detail": "QAA2DAB4 UPDATED dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1590,7 +1606,7 @@
       "section": "crud:meetings",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 meetings\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QAC0D0B3 location\",\"type\":\"Site progr"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 meetings\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QAA2DAB4 location\",\"type\":\"Site progr"
     },
     {
       "section": "crud:meetings",
@@ -1602,7 +1618,7 @@
       "section": "crud:meetings",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 meetings vs QAC0D0B3 meetings"
+      "detail": "QAA2DAB4 meetings vs QAA2DAB4 meetings"
     },
     {
       "section": "crud:meetings",
@@ -1620,7 +1636,7 @@
       "section": "crud:meetings",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED meetings\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QAC0D0B3 location\",\"type\":\"Si"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED meetings\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"location\":\"QAA2DAB4 location\",\"type\":\"Si"
     },
     {
       "section": "crud:meetings",
@@ -1632,7 +1648,7 @@
       "section": "crud:meetings",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED meetings"
+      "detail": "QAA2DAB4 UPDATED meetings"
     },
     {
       "section": "crud:meetings",
@@ -1710,7 +1726,7 @@
       "section": "crud:punchLists",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 punchLists\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"location\":\"QAC0D0B3 location\",\"trade\":\"General labour\",\"assignedTo"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 punchLists\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"location\":\"QAA2DAB4 location\",\"trade\":\"General labour\",\"assignedTo"
     },
     {
       "section": "crud:punchLists",
@@ -1722,7 +1738,7 @@
       "section": "crud:punchLists",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 punchLists vs QAC0D0B3 punchLists"
+      "detail": "QAA2DAB4 punchLists vs QAA2DAB4 punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1740,19 +1756,19 @@
       "section": "crud:punchLists",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED punchLists\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"location\":\"QAC0D0B3 location\",\"trade\":\"General labour\",\"as"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED punchLists\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"location\":\"QAA2DAB4 location\",\"trade\":\"General labour\",\"as"
     },
     {
       "section": "crud:punchLists",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('location', 'QAC0D0B3 location'): got QAC0D0B3 location"
+      "detail": "('location', 'QAA2DAB4 location'): got QAA2DAB4 location"
     },
     {
       "section": "crud:punchLists",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED punchLists"
+      "detail": "QAA2DAB4 UPDATED punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1830,7 +1846,7 @@
       "section": "crud:permits",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 permits\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"authority\":\"QAC0D0B3 authority\",\"type\":\"Building permit\",\"referenceNo"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 permits\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"authority\":\"QAA2DAB4 authority\",\"type\":\"Building permit\",\"referenceNo"
     },
     {
       "section": "crud:permits",
@@ -1842,7 +1858,7 @@
       "section": "crud:permits",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 permits vs QAC0D0B3 permits"
+      "detail": "QAA2DAB4 permits vs QAA2DAB4 permits"
     },
     {
       "section": "crud:permits",
@@ -1860,19 +1876,19 @@
       "section": "crud:permits",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED permits\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"authority\":\"QAC0D0B3 authority\",\"type\":\"Building permit\",\"ref"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED permits\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"authority\":\"QAA2DAB4 authority\",\"type\":\"Building permit\",\"ref"
     },
     {
       "section": "crud:permits",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('authority', 'QAC0D0B3 authority'): got QAC0D0B3 authority"
+      "detail": "('authority', 'QAA2DAB4 authority'): got QAA2DAB4 authority"
     },
     {
       "section": "crud:permits",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED permits"
+      "detail": "QAA2DAB4 UPDATED permits"
     },
     {
       "section": "crud:permits",
@@ -1950,7 +1966,7 @@
       "section": "crud:vendors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QAC0D0B3 registrationNo\",\"email\":\"qa.qac0d0b3@example.co.zw\",\"phon"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QAA2DAB4 registrationNo\",\"email\":\"qa.qaa2dab4@example.co.zw\",\"phon"
     },
     {
       "section": "crud:vendors",
@@ -1962,7 +1978,7 @@
       "section": "crud:vendors",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 vendors vs QAC0D0B3 vendors"
+      "detail": "QAA2DAB4 vendors vs QAA2DAB4 vendors"
     },
     {
       "section": "crud:vendors",
@@ -1980,19 +1996,19 @@
       "section": "crud:vendors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QAC0D0B3 registrationNo\",\"email\":\"qa.qac0d0b3@example.co.z"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED vendors\",\"category\":\"Building materials\",\"registrationNo\":\"QAA2DAB4 registrationNo\",\"email\":\"qa.qaa2dab4@example.co.z"
     },
     {
       "section": "crud:vendors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAC0D0B3 registrationNo'): got QAC0D0B3 registrationNo"
+      "detail": "('registrationNo', 'QAA2DAB4 registrationNo'): got QAA2DAB4 registrationNo"
     },
     {
       "section": "crud:vendors",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED vendors"
+      "detail": "QAA2DAB4 UPDATED vendors"
     },
     {
       "section": "crud:vendors",
@@ -2070,7 +2086,7 @@
       "section": "crud:subcontractors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QAC0D0B3 registrationNo\",\"contactPerson\":\"QAC0D0B3 contactPerson\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QAA2DAB4 registrationNo\",\"contactPerson\":\"QAA2DAB4 contactPerson\",\""
     },
     {
       "section": "crud:subcontractors",
@@ -2082,7 +2098,7 @@
       "section": "crud:subcontractors",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 subcontractors vs QAC0D0B3 subcontractors"
+      "detail": "QAA2DAB4 subcontractors vs QAA2DAB4 subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2100,19 +2116,19 @@
       "section": "crud:subcontractors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QAC0D0B3 registrationNo\",\"contactPerson\":\"QAC0D0B3 contactP"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED subcontractors\",\"trades\":[\"QA\",\"audit\"],\"registrationNo\":\"QAA2DAB4 registrationNo\",\"contactPerson\":\"QAA2DAB4 contactP"
     },
     {
       "section": "crud:subcontractors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAC0D0B3 registrationNo'): got QAC0D0B3 registrationNo"
+      "detail": "('registrationNo', 'QAA2DAB4 registrationNo'): got QAA2DAB4 registrationNo"
     },
     {
       "section": "crud:subcontractors",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED subcontractors"
+      "detail": "QAA2DAB4 UPDATED subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2190,7 +2206,7 @@
       "section": "crud:requisitions",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 requisitions\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"requestedBy\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"requiredDate\":\"2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 requisitions\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"requestedBy\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"requiredDate\":\"2"
     },
     {
       "section": "crud:requisitions",
@@ -2202,7 +2218,7 @@
       "section": "crud:requisitions",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 requisitions vs QAC0D0B3 requisitions"
+      "detail": "QAA2DAB4 requisitions vs QAA2DAB4 requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2220,7 +2236,7 @@
       "section": "crud:requisitions",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED requisitions\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"requestedBy\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"required"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED requisitions\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"requestedBy\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"required"
     },
     {
       "section": "crud:requisitions",
@@ -2232,7 +2248,7 @@
       "section": "crud:requisitions",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED requisitions"
+      "detail": "QAA2DAB4 UPDATED requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2310,7 +2326,7 @@
       "section": "crud:purchaseOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 purchaseOrders\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ven-3\",\"requisitionId\":\"c"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 purchaseOrders\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ven-3\",\"requisitionId\":\"c"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2322,7 +2338,7 @@
       "section": "crud:purchaseOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 purchaseOrders vs QAC0D0B3 purchaseOrders"
+      "detail": "QAA2DAB4 purchaseOrders vs QAA2DAB4 purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2340,7 +2356,7 @@
       "section": "crud:purchaseOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED purchaseOrders\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ven-3\",\"requisiti"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED purchaseOrders\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ven-3\",\"requisiti"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2352,7 +2368,7 @@
       "section": "crud:purchaseOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED purchaseOrders"
+      "detail": "QAA2DAB4 UPDATED purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2430,7 +2446,7 @@
       "section": "crud:goodsReceipts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 goodsReceipts\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"purchaseOrderId\":\"cmw8yzk890000nzladntbwcdy_po-5\",\"vendorId\":\"c"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 goodsReceipts\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"purchaseOrderId\":\"cmw91om8h0000nz16lazvli97_po-5\",\"vendorId\":\"c"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2442,7 +2458,7 @@
       "section": "crud:goodsReceipts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 goodsReceipts vs QAC0D0B3 goodsReceipts"
+      "detail": "QAA2DAB4 goodsReceipts vs QAA2DAB4 goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2460,7 +2476,7 @@
       "section": "crud:goodsReceipts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED goodsReceipts\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"purchaseOrderId\":\"cmw8yzk890000nzladntbwcdy_po-5\",\"vend"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED goodsReceipts\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"purchaseOrderId\":\"cmw91om8h0000nz16lazvli97_po-5\",\"vend"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2472,7 +2488,7 @@
       "section": "crud:goodsReceipts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED goodsReceipts"
+      "detail": "QAA2DAB4 UPDATED goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2550,7 +2566,7 @@
       "section": "crud:inventory",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 inventory\",\"sku\":\"QAC0D0B3 sku\",\"warehouseId\":\"cmw8yzk890000nzladntbwcdy_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,\"reorder"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 inventory\",\"sku\":\"QAA2DAB4 sku\",\"warehouseId\":\"cmw91om8h0000nz16lazvli97_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,\"reorder"
     },
     {
       "section": "crud:inventory",
@@ -2562,7 +2578,7 @@
       "section": "crud:inventory",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 inventory vs QAC0D0B3 inventory"
+      "detail": "QAA2DAB4 inventory vs QAA2DAB4 inventory"
     },
     {
       "section": "crud:inventory",
@@ -2580,19 +2596,19 @@
       "section": "crud:inventory",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED inventory\",\"sku\":\"QAC0D0B3 sku\",\"warehouseId\":\"cmw8yzk890000nzladntbwcdy_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED inventory\",\"sku\":\"QAA2DAB4 sku\",\"warehouseId\":\"cmw91om8h0000nz16lazvli97_wh-1\",\"unit\":\"each\",\"quantityOnHand\":123.45,"
     },
     {
       "section": "crud:inventory",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('sku', 'QAC0D0B3 sku'): got QAC0D0B3 sku"
+      "detail": "('sku', 'QAA2DAB4 sku'): got QAA2DAB4 sku"
     },
     {
       "section": "crud:inventory",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED inventory"
+      "detail": "QAA2DAB4 UPDATED inventory"
     },
     {
       "section": "crud:inventory",
@@ -2670,7 +2686,7 @@
       "section": "crud:warehouses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 warehouses\",\"code\":\"QAC0D0B3 code\",\"location\":\"QAC0D0B3 location\",\"storekeeper\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"phone\":\"+2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 warehouses\",\"code\":\"QAA2DAB4 code\",\"location\":\"QAA2DAB4 location\",\"storekeeper\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"phone\":\"+2"
     },
     {
       "section": "crud:warehouses",
@@ -2682,7 +2698,7 @@
       "section": "crud:warehouses",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 warehouses vs QAC0D0B3 warehouses"
+      "detail": "QAA2DAB4 warehouses vs QAA2DAB4 warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2700,19 +2716,19 @@
       "section": "crud:warehouses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED warehouses\",\"code\":\"QAC0D0B3 code\",\"location\":\"QAC0D0B3 location\",\"storekeeper\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"ph"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED warehouses\",\"code\":\"QAA2DAB4 code\",\"location\":\"QAA2DAB4 location\",\"storekeeper\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"ph"
     },
     {
       "section": "crud:warehouses",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAC0D0B3 code'): got QAC0D0B3 code"
+      "detail": "('code', 'QAA2DAB4 code'): got QAA2DAB4 code"
     },
     {
       "section": "crud:warehouses",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED warehouses"
+      "detail": "QAA2DAB4 UPDATED warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2790,7 +2806,7 @@
       "section": "crud:equipment",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 equipment\",\"assetTag\":\"QAC0D0B3 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QAC0D0B3 makeModel\",\"serialNo\":\"QAC0D0B3 serial"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 equipment\",\"assetTag\":\"QAA2DAB4 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QAA2DAB4 makeModel\",\"serialNo\":\"QAA2DAB4 serial"
     },
     {
       "section": "crud:equipment",
@@ -2802,7 +2818,7 @@
       "section": "crud:equipment",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 equipment vs QAC0D0B3 equipment"
+      "detail": "QAA2DAB4 equipment vs QAA2DAB4 equipment"
     },
     {
       "section": "crud:equipment",
@@ -2820,19 +2836,19 @@
       "section": "crud:equipment",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED equipment\",\"assetTag\":\"QAC0D0B3 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QAC0D0B3 makeModel\",\"serialNo\":\"QAC0D0B"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED equipment\",\"assetTag\":\"QAA2DAB4 assetTag\",\"category\":\"Excavator\",\"makeModel\":\"QAA2DAB4 makeModel\",\"serialNo\":\"QAA2DAB"
     },
     {
       "section": "crud:equipment",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('assetTag', 'QAC0D0B3 assetTag'): got QAC0D0B3 assetTag"
+      "detail": "('assetTag', 'QAA2DAB4 assetTag'): got QAA2DAB4 assetTag"
     },
     {
       "section": "crud:equipment",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED equipment"
+      "detail": "QAA2DAB4 UPDATED equipment"
     },
     {
       "section": "crud:equipment",
@@ -2910,7 +2926,7 @@
       "section": "crud:workOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 workOrders\",\"equipmentId\":\"cmw8yzk890000nzladntbwcdy_eq-20\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"type\":\"PREVENTIVE\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 workOrders\",\"equipmentId\":\"cmw91om8h0000nz16lazvli97_eq-20\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"type\":\"PREVENTIVE\""
     },
     {
       "section": "crud:workOrders",
@@ -2922,7 +2938,7 @@
       "section": "crud:workOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 workOrders vs QAC0D0B3 workOrders"
+      "detail": "QAA2DAB4 workOrders vs QAA2DAB4 workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -2940,7 +2956,7 @@
       "section": "crud:workOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED workOrders\",\"equipmentId\":\"cmw8yzk890000nzladntbwcdy_eq-20\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"type\":\"PRE"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED workOrders\",\"equipmentId\":\"cmw91om8h0000nz16lazvli97_eq-20\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"type\":\"PRE"
     },
     {
       "section": "crud:workOrders",
@@ -2952,7 +2968,7 @@
       "section": "crud:workOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED workOrders"
+      "detail": "QAA2DAB4 UPDATED workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -3030,7 +3046,7 @@
       "section": "crud:employees",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 employees\",\"employeeNo\":\"QAC0D0B3 employeeNo\",\"email\":\"qa.qac0d0b3@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitle\":\"QAC0"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 employees\",\"employeeNo\":\"QAA2DAB4 employeeNo\",\"email\":\"qa.qaa2dab4@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitle\":\"QAA2"
     },
     {
       "section": "crud:employees",
@@ -3042,7 +3058,7 @@
       "section": "crud:employees",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 employees vs QAC0D0B3 employees"
+      "detail": "QAA2DAB4 employees vs QAA2DAB4 employees"
     },
     {
       "section": "crud:employees",
@@ -3060,19 +3076,19 @@
       "section": "crud:employees",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED employees\",\"employeeNo\":\"QAC0D0B3 employeeNo\",\"email\":\"qa.qac0d0b3@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitl"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED employees\",\"employeeNo\":\"QAA2DAB4 employeeNo\",\"email\":\"qa.qaa2dab4@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"jobTitl"
     },
     {
       "section": "crud:employees",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('employeeNo', 'QAC0D0B3 employeeNo'): got QAC0D0B3 employeeNo"
+      "detail": "('employeeNo', 'QAA2DAB4 employeeNo'): got QAA2DAB4 employeeNo"
     },
     {
       "section": "crud:employees",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED employees"
+      "detail": "QAA2DAB4 UPDATED employees"
     },
     {
       "section": "crud:employees",
@@ -3150,7 +3166,7 @@
       "section": "crud:departments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 departments\",\"code\":\"QAC0D0B3 code\",\"head\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45,\"descri"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 departments\",\"code\":\"QAA2DAB4 code\",\"head\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45,\"descri"
     },
     {
       "section": "crud:departments",
@@ -3162,7 +3178,7 @@
       "section": "crud:departments",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 departments vs QAC0D0B3 departments"
+      "detail": "QAA2DAB4 departments vs QAA2DAB4 departments"
     },
     {
       "section": "crud:departments",
@@ -3180,19 +3196,19 @@
       "section": "crud:departments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED departments\",\"code\":\"QAC0D0B3 code\",\"head\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED departments\",\"code\":\"QAA2DAB4 code\",\"head\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"headcount\":123.45,\"annualBudget\":123.45"
     },
     {
       "section": "crud:departments",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAC0D0B3 code'): got QAC0D0B3 code"
+      "detail": "('code', 'QAA2DAB4 code'): got QAA2DAB4 code"
     },
     {
       "section": "crud:departments",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED departments"
+      "detail": "QAA2DAB4 UPDATED departments"
     },
     {
       "section": "crud:departments",
@@ -3270,7 +3286,7 @@
       "section": "crud:crews",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 crews\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw8yzk890000nzladntbwcdy_emp-9\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 crews\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw91om8h0000nz16lazvli97_emp-9\","
     },
     {
       "section": "crud:crews",
@@ -3282,7 +3298,7 @@
       "section": "crud:crews",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 crews vs QAC0D0B3 crews"
+      "detail": "QAA2DAB4 crews vs QAA2DAB4 crews"
     },
     {
       "section": "crud:crews",
@@ -3300,7 +3316,7 @@
       "section": "crud:crews",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED crews\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw8yzk890000nzladntbwcdy"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED crews\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"trade\":\"General labour\",\"crewLeader\":\"cmw91om8h0000nz16lazvli97"
     },
     {
       "section": "crud:crews",
@@ -3312,7 +3328,7 @@
       "section": "crud:crews",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED crews"
+      "detail": "QAA2DAB4 UPDATED crews"
     },
     {
       "section": "crud:crews",
@@ -3390,7 +3406,7 @@
       "section": "crud:timesheets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 timesheets\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"weekStart\":\"2026-11"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 timesheets\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"weekStart\":\"2026-11"
     },
     {
       "section": "crud:timesheets",
@@ -3402,7 +3418,7 @@
       "section": "crud:timesheets",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 timesheets vs QAC0D0B3 timesheets"
+      "detail": "QAA2DAB4 timesheets vs QAA2DAB4 timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3420,7 +3436,7 @@
       "section": "crud:timesheets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED timesheets\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"weekStart\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED timesheets\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"weekStart\":"
     },
     {
       "section": "crud:timesheets",
@@ -3432,7 +3448,7 @@
       "section": "crud:timesheets",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED timesheets"
+      "detail": "QAA2DAB4 UPDATED timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3510,7 +3526,7 @@
       "section": "crud:leaveRequests",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 leaveRequests\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\":\"2026-1"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 leaveRequests\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\":\"2026-1"
     },
     {
       "section": "crud:leaveRequests",
@@ -3522,7 +3538,7 @@
       "section": "crud:leaveRequests",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 leaveRequests vs QAC0D0B3 leaveRequests"
+      "detail": "QAA2DAB4 leaveRequests vs QAA2DAB4 leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3540,7 +3556,7 @@
       "section": "crud:leaveRequests",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED leaveRequests\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED leaveRequests\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"leaveType\":\"ANNUAL\",\"startDate\":\"2026-11-07\",\"endDate\""
     },
     {
       "section": "crud:leaveRequests",
@@ -3552,7 +3568,7 @@
       "section": "crud:leaveRequests",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED leaveRequests"
+      "detail": "QAA2DAB4 UPDATED leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3630,7 +3646,7 @@
       "section": "crud:payRuns",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45,\"netPay"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45,\"netPay"
     },
     {
       "section": "crud:payRuns",
@@ -3642,7 +3658,7 @@
       "section": "crud:payRuns",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 payRuns vs QAC0D0B3 payRuns"
+      "detail": "QAA2DAB4 payRuns vs QAA2DAB4 payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3660,7 +3676,7 @@
       "section": "crud:payRuns",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED payRuns\",\"periodStart\":\"2026-11-07\",\"periodEnd\":\"2026-11-07\",\"headcount\":123.45,\"grossPay\":123.45,\"deductions\":123.45"
     },
     {
       "section": "crud:payRuns",
@@ -3672,7 +3688,7 @@
       "section": "crud:payRuns",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED payRuns"
+      "detail": "QAA2DAB4 UPDATED payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3750,7 +3766,7 @@
       "section": "crud:expenses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 expenses\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"category\":\"Travel\",\"e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 expenses\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"category\":\"Travel\",\"e"
     },
     {
       "section": "crud:expenses",
@@ -3762,7 +3778,7 @@
       "section": "crud:expenses",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 expenses vs QAC0D0B3 expenses"
+      "detail": "QAA2DAB4 expenses vs QAA2DAB4 expenses"
     },
     {
       "section": "crud:expenses",
@@ -3780,7 +3796,7 @@
       "section": "crud:expenses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED expenses\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"category\":\"Tr"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED expenses\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"category\":\"Tr"
     },
     {
       "section": "crud:expenses",
@@ -3792,7 +3808,7 @@
       "section": "crud:expenses",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED expenses"
+      "detail": "QAA2DAB4 UPDATED expenses"
     },
     {
       "section": "crud:expenses",
@@ -3870,7 +3886,7 @@
       "section": "crud:certifications",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 certifications\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QAC0D0B3 issuingBody\",\"refe"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 certifications\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QAA2DAB4 issuingBody\",\"refe"
     },
     {
       "section": "crud:certifications",
@@ -3882,7 +3898,7 @@
       "section": "crud:certifications",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 certifications vs QAC0D0B3 certifications"
+      "detail": "QAA2DAB4 certifications vs QAA2DAB4 certifications"
     },
     {
       "section": "crud:certifications",
@@ -3900,19 +3916,19 @@
       "section": "crud:certifications",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED certifications\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QAC0D0B3 issuingBod"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED certifications\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"type\":\"Trade test\",\"issuingBody\":\"QAA2DAB4 issuingBod"
     },
     {
       "section": "crud:certifications",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('issuingBody', 'QAC0D0B3 issuingBody'): got QAC0D0B3 issuingBody"
+      "detail": "('issuingBody', 'QAA2DAB4 issuingBody'): got QAA2DAB4 issuingBody"
     },
     {
       "section": "crud:certifications",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED certifications"
+      "detail": "QAA2DAB4 UPDATED certifications"
     },
     {
       "section": "crud:certifications",
@@ -3990,7 +4006,7 @@
       "section": "crud:training",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QAC0D0B3 provider\",\"attendees\":\"QAC0D0B3 notes for attendees\",\"a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QAA2DAB4 provider\",\"attendees\":\"QAA2DAB4 notes for attendees\",\"a"
     },
     {
       "section": "crud:training",
@@ -4002,7 +4018,7 @@
       "section": "crud:training",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 training vs QAC0D0B3 training"
+      "detail": "QAA2DAB4 training vs QAA2DAB4 training"
     },
     {
       "section": "crud:training",
@@ -4020,7 +4036,7 @@
       "section": "crud:training",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QAC0D0B3 provider\",\"attendees\":\"QAC0D0B3 notes for atten"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED training\",\"type\":\"Induction\",\"date\":\"2026-11-07\",\"provider\":\"QAA2DAB4 provider\",\"attendees\":\"QAA2DAB4 notes for atten"
     },
     {
       "section": "crud:training",
@@ -4032,7 +4048,7 @@
       "section": "crud:training",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED training"
+      "detail": "QAA2DAB4 UPDATED training"
     },
     {
       "section": "crud:training",
@@ -4110,7 +4126,7 @@
       "section": "crud:toolboxTalks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 toolboxTalks\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QAC0D0B3 lo"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 toolboxTalks\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QAA2DAB4 lo"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4122,7 +4138,7 @@
       "section": "crud:toolboxTalks",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 toolboxTalks vs QAC0D0B3 toolboxTalks"
+      "detail": "QAA2DAB4 toolboxTalks vs QAA2DAB4 toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4140,7 +4156,7 @@
       "section": "crud:toolboxTalks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED toolboxTalks\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QAC"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED toolboxTalks\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Toolbox talk\",\"location\":\"QAA"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4152,7 +4168,7 @@
       "section": "crud:toolboxTalks",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED toolboxTalks"
+      "detail": "QAA2DAB4 UPDATED toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4230,7 +4246,7 @@
       "section": "crud:incidents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 incidents\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\",\"locatio"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 incidents\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\",\"locatio"
     },
     {
       "section": "crud:incidents",
@@ -4242,7 +4258,7 @@
       "section": "crud:incidents",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 incidents vs QAC0D0B3 incidents"
+      "detail": "QAA2DAB4 incidents vs QAA2DAB4 incidents"
     },
     {
       "section": "crud:incidents",
@@ -4260,7 +4276,7 @@
       "section": "crud:incidents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED incidents\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\","
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED incidents\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\"severity\":\"LOW\","
     },
     {
       "section": "crud:incidents",
@@ -4272,7 +4288,7 @@
       "section": "crud:incidents",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED incidents"
+      "detail": "QAA2DAB4 UPDATED incidents"
     },
     {
       "section": "crud:incidents",
@@ -4350,7 +4366,7 @@
       "section": "crud:inspections",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 inspections\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw8yzk89000"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 inspections\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw91om8h000"
     },
     {
       "section": "crud:inspections",
@@ -4362,7 +4378,7 @@
       "section": "crud:inspections",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 inspections vs QAC0D0B3 inspections"
+      "detail": "QAA2DAB4 inspections vs QAA2DAB4 inspections"
     },
     {
       "section": "crud:inspections",
@@ -4380,7 +4396,7 @@
       "section": "crud:inspections",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED inspections\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw8"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED inspections\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"date\":\"2026-11-07\",\"type\":\"Site safety\",\"inspector\":\"cmw9"
     },
     {
       "section": "crud:inspections",
@@ -4392,7 +4408,7 @@
       "section": "crud:inspections",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED inspections"
+      "detail": "QAA2DAB4 UPDATED inspections"
     },
     {
       "section": "crud:inspections",
@@ -4470,7 +4486,7 @@
       "section": "crud:ncrs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 ncrs\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MINOR\",\"ra"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 ncrs\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MINOR\",\"ra"
     },
     {
       "section": "crud:ncrs",
@@ -4482,7 +4498,7 @@
       "section": "crud:ncrs",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 ncrs vs QAC0D0B3 ncrs"
+      "detail": "QAA2DAB4 ncrs vs QAA2DAB4 ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4500,7 +4516,7 @@
       "section": "crud:ncrs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED ncrs\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MI"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED ncrs\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"raisedDate\":\"2026-11-07\",\"category\":\"Workmanship\",\"severity\":\"MI"
     },
     {
       "section": "crud:ncrs",
@@ -4512,7 +4528,7 @@
       "section": "crud:ncrs",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED ncrs"
+      "detail": "QAA2DAB4 UPDATED ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4590,7 +4606,7 @@
       "section": "crud:itps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 itps\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"discipline\":\"QAC0D0B3 discipline\",\"type\":\"Concrete pour\",\"plannedDate\":\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 itps\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"discipline\":\"QAA2DAB4 discipline\",\"type\":\"Concrete pour\",\"plannedDate\":\""
     },
     {
       "section": "crud:itps",
@@ -4602,7 +4618,7 @@
       "section": "crud:itps",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 itps vs QAC0D0B3 itps"
+      "detail": "QAA2DAB4 itps vs QAA2DAB4 itps"
     },
     {
       "section": "crud:itps",
@@ -4620,19 +4636,19 @@
       "section": "crud:itps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED itps\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"discipline\":\"QAC0D0B3 discipline\",\"type\":\"Concrete pour\",\"planne"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED itps\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"discipline\":\"QAA2DAB4 discipline\",\"type\":\"Concrete pour\",\"planne"
     },
     {
       "section": "crud:itps",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('discipline', 'QAC0D0B3 discipline'): got QAC0D0B3 discipline"
+      "detail": "('discipline', 'QAA2DAB4 discipline'): got QAA2DAB4 discipline"
     },
     {
       "section": "crud:itps",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED itps"
+      "detail": "QAA2DAB4 UPDATED itps"
     },
     {
       "section": "crud:itps",
@@ -4710,7 +4726,7 @@
       "section": "crud:accounts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 accounts\",\"code\":\"QAC0D0B3 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\":\"cmw8yz"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 accounts\",\"code\":\"QAA2DAB4 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\":\"cmw91o"
     },
     {
       "section": "crud:accounts",
@@ -4722,7 +4738,7 @@
       "section": "crud:accounts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 accounts vs QAC0D0B3 accounts"
+      "detail": "QAA2DAB4 accounts vs QAA2DAB4 accounts"
     },
     {
       "section": "crud:accounts",
@@ -4740,19 +4756,19 @@
       "section": "crud:accounts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED accounts\",\"code\":\"QAC0D0B3 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED accounts\",\"code\":\"QAA2DAB4 code\",\"type\":\"ASSET\",\"category\":\"Labour\",\"openingBalance\":123.45,\"balance\":123.45,\"parent\""
     },
     {
       "section": "crud:accounts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAC0D0B3 code'): got QAC0D0B3 code"
+      "detail": "('code', 'QAA2DAB4 code'): got QAA2DAB4 code"
     },
     {
       "section": "crud:accounts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED accounts"
+      "detail": "QAA2DAB4 UPDATED accounts"
     },
     {
       "section": "crud:accounts",
@@ -4830,7 +4846,7 @@
       "section": "crud:journals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 journals\",\"date\":\"2026-11-07\",\"period\":\"QAC0D0B3 period\",\"accountId\":\"cmw8yzk890000nzladntbwcdy_acc-1\",\"projectId\":\"cmw8yzk89"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 journals\",\"date\":\"2026-11-07\",\"period\":\"QAA2DAB4 period\",\"accountId\":\"cmw91om8h0000nz16lazvli97_acc-1\",\"projectId\":\"cmw91om8h"
     },
     {
       "section": "crud:journals",
@@ -4842,7 +4858,7 @@
       "section": "crud:journals",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 journals vs QAC0D0B3 journals"
+      "detail": "QAA2DAB4 journals vs QAA2DAB4 journals"
     },
     {
       "section": "crud:journals",
@@ -4860,7 +4876,7 @@
       "section": "crud:journals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED journals\",\"date\":\"2026-11-07\",\"period\":\"QAC0D0B3 period\",\"accountId\":\"cmw8yzk890000nzladntbwcdy_acc-1\",\"projectId\":\"c"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED journals\",\"date\":\"2026-11-07\",\"period\":\"QAA2DAB4 period\",\"accountId\":\"cmw91om8h0000nz16lazvli97_acc-1\",\"projectId\":\"c"
     },
     {
       "section": "crud:journals",
@@ -4872,7 +4888,7 @@
       "section": "crud:journals",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED journals"
+      "detail": "QAA2DAB4 UPDATED journals"
     },
     {
       "section": "crud:journals",
@@ -4950,7 +4966,7 @@
       "section": "crud:budgets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 budgets\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"costCode\":\"QAC0D0B3 costCode\",\"category\":\"Labour\",\"originalBudget\":12"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 budgets\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"costCode\":\"QAA2DAB4 costCode\",\"category\":\"Labour\",\"originalBudget\":12"
     },
     {
       "section": "crud:budgets",
@@ -4962,7 +4978,7 @@
       "section": "crud:budgets",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 budgets vs QAC0D0B3 budgets"
+      "detail": "QAA2DAB4 budgets vs QAA2DAB4 budgets"
     },
     {
       "section": "crud:budgets",
@@ -4980,19 +4996,19 @@
       "section": "crud:budgets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED budgets\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"costCode\":\"QAC0D0B3 costCode\",\"category\":\"Labour\",\"originalBu"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED budgets\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"costCode\":\"QAA2DAB4 costCode\",\"category\":\"Labour\",\"originalBu"
     },
     {
       "section": "crud:budgets",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('costCode', 'QAC0D0B3 costCode'): got QAC0D0B3 costCode"
+      "detail": "('costCode', 'QAA2DAB4 costCode'): got QAA2DAB4 costCode"
     },
     {
       "section": "crud:budgets",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED budgets"
+      "detail": "QAA2DAB4 UPDATED budgets"
     },
     {
       "section": "crud:budgets",
@@ -5070,7 +5086,7 @@
       "section": "crud:arInvoices",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 arInvoices\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"invoiceDate\":\"2026-11"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 arInvoices\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"invoiceDate\":\"2026-11"
     },
     {
       "section": "crud:arInvoices",
@@ -5082,7 +5098,7 @@
       "section": "crud:arInvoices",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 arInvoices vs QAC0D0B3 arInvoices"
+      "detail": "QAA2DAB4 arInvoices vs QAA2DAB4 arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5100,7 +5116,7 @@
       "section": "crud:arInvoices",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED arInvoices\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"invoiceDate\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED arInvoices\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"invoiceDate\":"
     },
     {
       "section": "crud:arInvoices",
@@ -5112,7 +5128,7 @@
       "section": "crud:arInvoices",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED arInvoices"
+      "detail": "QAA2DAB4 UPDATED arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5190,7 +5206,7 @@
       "section": "crud:paymentApps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 paymentApps\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"certificateNo\":123.4"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 paymentApps\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"certificateNo\":123.4"
     },
     {
       "section": "crud:paymentApps",
@@ -5202,7 +5218,7 @@
       "section": "crud:paymentApps",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 paymentApps vs QAC0D0B3 paymentApps"
+      "detail": "QAA2DAB4 paymentApps vs QAA2DAB4 paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5220,7 +5236,7 @@
       "section": "crud:paymentApps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED paymentApps\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"certificateN"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED paymentApps\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"certificateN"
     },
     {
       "section": "crud:paymentApps",
@@ -5232,7 +5248,7 @@
       "section": "crud:paymentApps",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED paymentApps"
+      "detail": "QAA2DAB4 UPDATED paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5310,7 +5326,7 @@
       "section": "crud:apBills",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 apBills\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ven-3\",\"purchaseOrderId\":\"cmw8yz"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 apBills\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ven-3\",\"purchaseOrderId\":\"cmw91o"
     },
     {
       "section": "crud:apBills",
@@ -5322,7 +5338,7 @@
       "section": "crud:apBills",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 apBills vs QAC0D0B3 apBills"
+      "detail": "QAA2DAB4 apBills vs QAA2DAB4 apBills"
     },
     {
       "section": "crud:apBills",
@@ -5340,19 +5356,19 @@
       "section": "crud:apBills",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED apBills\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ven-3\",\"purchaseOrderId\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED apBills\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ven-3\",\"purchaseOrderId\""
     },
     {
       "section": "crud:apBills",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('vendorInvoiceNo', 'QAC0D0B3 vendorInvoiceNo'): got QAC0D0B3 vendorInvoiceNo"
+      "detail": "('vendorInvoiceNo', 'QAA2DAB4 vendorInvoiceNo'): got QAA2DAB4 vendorInvoiceNo"
     },
     {
       "section": "crud:apBills",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED apBills"
+      "detail": "QAA2DAB4 UPDATED apBills"
     },
     {
       "section": "crud:apBills",
@@ -5430,7 +5446,7 @@
       "section": "crud:payments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ven-3\",\"pr"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ven-3\",\"pr"
     },
     {
       "section": "crud:payments",
@@ -5442,7 +5458,7 @@
       "section": "crud:payments",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 payments vs QAC0D0B3 payments"
+      "detail": "QAA2DAB4 payments vs QAA2DAB4 payments"
     },
     {
       "section": "crud:payments",
@@ -5460,7 +5476,7 @@
       "section": "crud:payments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_ve"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED payments\",\"direction\":\"RECEIPT\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_ve"
     },
     {
       "section": "crud:payments",
@@ -5472,7 +5488,7 @@
       "section": "crud:payments",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED payments"
+      "detail": "QAA2DAB4 UPDATED payments"
     },
     {
       "section": "crud:payments",
@@ -5550,7 +5566,7 @@
       "section": "crud:units",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 units\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"block\":\"QAC0D0B3 block\",\"type\":\"Apartment\",\"area\":123.45,\"askingPrice\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 units\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"block\":\"QAA2DAB4 block\",\"type\":\"Apartment\",\"area\":123.45,\"askingPrice\":"
     },
     {
       "section": "crud:units",
@@ -5562,7 +5578,7 @@
       "section": "crud:units",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 units vs QAC0D0B3 units"
+      "detail": "QAA2DAB4 units vs QAA2DAB4 units"
     },
     {
       "section": "crud:units",
@@ -5580,19 +5596,19 @@
       "section": "crud:units",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED units\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"block\":\"QAC0D0B3 block\",\"type\":\"Apartment\",\"area\":123.45,\"askin"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED units\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"block\":\"QAA2DAB4 block\",\"type\":\"Apartment\",\"area\":123.45,\"askin"
     },
     {
       "section": "crud:units",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('block', 'QAC0D0B3 block'): got QAC0D0B3 block"
+      "detail": "('block', 'QAA2DAB4 block'): got QAA2DAB4 block"
     },
     {
       "section": "crud:units",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED units"
+      "detail": "QAA2DAB4 UPDATED units"
     },
     {
       "section": "crud:units",
@@ -5670,7 +5686,7 @@
       "section": "crud:rentalContracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 rentalContracts\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"equipmentId\":\"cmw8yzk890000nzladntbwcdy_eq-20\",\"projectId\":\"cm"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 rentalContracts\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"equipmentId\":\"cmw91om8h0000nz16lazvli97_eq-20\",\"projectId\":\"cm"
     },
     {
       "section": "crud:rentalContracts",
@@ -5682,7 +5698,7 @@
       "section": "crud:rentalContracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 rentalContracts vs QAC0D0B3 rentalContracts"
+      "detail": "QAA2DAB4 rentalContracts vs QAA2DAB4 rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5700,7 +5716,7 @@
       "section": "crud:rentalContracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED rentalContracts\",\"clientId\":\"cmw8yzk890000nzladntbwcdy_cli-6\",\"equipmentId\":\"cmw8yzk890000nzladntbwcdy_eq-20\",\"projec"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED rentalContracts\",\"clientId\":\"cmw91om8h0000nz16lazvli97_cli-6\",\"equipmentId\":\"cmw91om8h0000nz16lazvli97_eq-20\",\"projec"
     },
     {
       "section": "crud:rentalContracts",
@@ -5712,7 +5728,7 @@
       "section": "crud:rentalContracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED rentalContracts"
+      "detail": "QAA2DAB4 UPDATED rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5790,7 +5806,7 @@
       "section": "crud:commissioning",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 commissioning\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"systemCode\":\"QAC0D0B3 systemCode\",\"discipline\":\"Mechanical\",\"pl"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 commissioning\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"systemCode\":\"QAA2DAB4 systemCode\",\"discipline\":\"Mechanical\",\"pl"
     },
     {
       "section": "crud:commissioning",
@@ -5802,7 +5818,7 @@
       "section": "crud:commissioning",
       "check": "title derived",
       "ok": true,
-      "detail": "QAC0D0B3 commissioning vs QAC0D0B3 commissioning"
+      "detail": "QAA2DAB4 commissioning vs QAA2DAB4 commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5820,19 +5836,19 @@
       "section": "crud:commissioning",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAC0D0B3 UPDATED commissioning\",\"projectId\":\"cmw8yzk890000nzladntbwcdy_prj-5\",\"systemCode\":\"QAC0D0B3 systemCode\",\"discipline\":\"Mechani"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QAA2DAB4 UPDATED commissioning\",\"projectId\":\"cmw91om8h0000nz16lazvli97_prj-5\",\"systemCode\":\"QAA2DAB4 systemCode\",\"discipline\":\"Mechani"
     },
     {
       "section": "crud:commissioning",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('systemCode', 'QAC0D0B3 systemCode'): got QAC0D0B3 systemCode"
+      "detail": "('systemCode', 'QAA2DAB4 systemCode'): got QAA2DAB4 systemCode"
     },
     {
       "section": "crud:commissioning",
       "check": "title updated",
       "ok": true,
-      "detail": "QAC0D0B3 UPDATED commissioning"
+      "detail": "QAA2DAB4 UPDATED commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5898,79 +5914,79 @@
       "section": "connectivity",
       "check": "client \u2192 project link",
       "ok": true,
-      "detail": "client=cmw8z9i9k00zjnz9vgv2un5py project=cmw8z9i9x00zpnz9vijxbyh55"
+      "detail": "client=cmw91plbs0117nzwii46fgvl2 project=cmw91plc2011dnzwicmvs6toh"
     },
     {
       "section": "connectivity",
       "check": "create estimates linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 estimates\",\"clientId\":\"cmw8z9i9k00zjnz9vgv2un5py\",\"leadId\":\"cmw8yzk890000nzladntbwcdy_lead-5\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 estimates\",\"clientId\":\"cmw91plbs0117nzwii46fgvl2\",\"leadId\":\"cmw91om8h0000nz16lazvli97_lead-5\",\""
     },
     {
       "section": "connectivity",
       "check": "create contracts linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 contracts\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"clientId\":\"cmw8z9i9k00zjnz9vgv2un5py\",\"coun"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 contracts\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"clientId\":\"cmw91plbs0117nzwii46fgvl2\",\"coun"
     },
     {
       "section": "connectivity",
       "check": "create arInvoices linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 arInvoices\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"clientId\":\"cmw8z9i9k00zjnz9vgv2un5py\",\"inv"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 arInvoices\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"clientId\":\"cmw91plbs0117nzwii46fgvl2\",\"inv"
     },
     {
       "section": "connectivity",
       "check": "create paymentApps linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 paymentApps\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"clientId\":\"cmw8z9i9k00zjnz9vgv2un5py\",\"ce"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 paymentApps\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"clientId\":\"cmw91plbs0117nzwii46fgvl2\",\"ce"
     },
     {
       "section": "connectivity",
       "check": "create rfis linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"subject\":\"QAC0D0B3 rfis\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"specRef\":\"QAC0D0B3 specRef\",\"discipline\":\"Arc"
+      "detail": "HTTP 201 {\"row\":{\"subject\":\"QAA2DAB4 rfis\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"specRef\":\"QAA2DAB4 specRef\",\"discipline\":\"Arc"
     },
     {
       "section": "connectivity",
       "check": "create submittals linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 submittals\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"package\":\"QAC0D0B3 package\",\"type\":\"Shop d"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 submittals\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"package\":\"QAA2DAB4 package\",\"type\":\"Shop d"
     },
     {
       "section": "connectivity",
       "check": "create changeOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 changeOrders\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"reference\":\"QAC0D0B3 reference\",\"reason\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 changeOrders\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"reference\":\"QAA2DAB4 reference\",\"reason\""
     },
     {
       "section": "connectivity",
       "check": "create dailyLogs linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 dailyLogs\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"tempe"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 dailyLogs\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"date\":\"2026-11-07\",\"weather\":\"Sunny\",\"tempe"
     },
     {
       "section": "connectivity",
       "check": "create purchaseOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 purchaseOrders\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"vendorId\":\"cmw8yzk890000nzladntbwcdy_v"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 purchaseOrders\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"vendorId\":\"cmw91om8h0000nz16lazvli97_v"
     },
     {
       "section": "connectivity",
       "check": "create timesheets linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 timesheets\",\"employeeId\":\"cmw8yzk890000nzladntbwcdy_emp-9\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 timesheets\",\"employeeId\":\"cmw91om8h0000nz16lazvli97_emp-9\",\"projectId\":\"cmw91plc2011dnzwicmvs6t"
     },
     {
       "section": "connectivity",
       "check": "create incidents linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 incidents\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 incidents\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"dateTime\":\"2026-11-07\",\"type\":\"NEAR_MISS\",\""
     },
     {
       "section": "connectivity",
       "check": "create tasks linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAC0D0B3 tasks\",\"projectId\":\"cmw8z9i9x00zpnz9vijxbyh55\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAC0D0B3 wbsCode\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 tasks\",\"projectId\":\"cmw91plc2011dnzwicmvs6toh\",\"wbsLevel\":\"Phase\",\"wbsCode\":\"QAA2DAB4 wbsCode\","
     },
     {
       "section": "connectivity",
@@ -6199,6 +6215,1104 @@
       "check": "unknown org rejected",
       "ok": true,
       "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "wallet list endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "wallets are one-per-client",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "seeded demo wallets have activity",
+      "ok": true,
+      "detail": "{'clientCount': 9, 'fundedWallets': 6, 'totalBalance': 11000000, 'totalToppedUp': 16451000, 'totalAllocated': 5450250, 'fundedProjects': 4}"
+    },
+    {
+      "section": "wallet",
+      "check": "balance equals toppedUp minus allocated plus reversals",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "wallet test client found",
+      "ok": true,
+      "detail": "cmw91om8h0000nz16lazvli97_cli-1"
+    },
+    {
+      "section": "wallet",
+      "check": "wallet test project found",
+      "ok": true,
+      "detail": "cmw91om8h0000nz16lazvli97_prj-1"
+    },
+    {
+      "section": "wallet",
+      "check": "project of another client found",
+      "ok": true,
+      "detail": "cmw91om8h0000nz16lazvli97_prj-5"
+    },
+    {
+      "section": "wallet",
+      "check": "starting balance recorded",
+      "ok": true,
+      "detail": "2950000"
+    },
+    {
+      "section": "wallet",
+      "check": "admin top-up",
+      "ok": true,
+      "detail": "HTTP 201 {\"ok\":true,\"transaction\":{\"id\":\"cmw91plua014bnzwiulsxvb45\",\"kind\":\"TOPUP\",\"amount\":1000,\"balanceAfter\":2951000,\"currency"
+    },
+    {
+      "section": "wallet",
+      "check": "top-up writes TOPUP ledger entry",
+      "ok": true,
+      "detail": "cmw91plua014bnzwiulsxvb45"
+    },
+    {
+      "section": "wallet",
+      "check": "duplicate top-up rejected",
+      "ok": true,
+      "detail": "HTTP 409"
+    },
+    {
+      "section": "wallet",
+      "check": "idempotency leaves balance unchanged",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "topup rejects negative amount",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "wallet",
+      "check": "topup rejects zero amount",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "wallet",
+      "check": "topup rejects missing amount",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "wallet",
+      "check": "wallet detail endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "ledger shows the new top-up",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "ledger running balance reconciles",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "client register mirrors wallet balance",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "cannot fund another client's project",
+      "ok": true,
+      "detail": "HTTP 400 {\"error\":\"That project belongs to a different client \u2014 funds cannot be moved between clients\"}"
+    },
+    {
+      "section": "wallet",
+      "check": "insufficient balance rejected",
+      "ok": true,
+      "detail": "HTTP 409"
+    },
+    {
+      "section": "wallet",
+      "check": "failed allocation does not move money",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "wallet funds own project",
+      "ok": true,
+      "detail": "HTTP 201 {\"ok\":true,\"transaction\":{\"id\":\"cmw91plwf014fnzwiu2qvl6gr\",\"kind\":\"ALLOCATION\",\"amount\":-250,\"balanceAfter\":2950750,\"cur"
+    },
+    {
+      "section": "wallet",
+      "check": "project register mirrors funded amount",
+      "ok": true,
+      "detail": "HTTP 200 funded=2050250"
+    },
+    {
+      "section": "wallet",
+      "check": "project 360 includes wallet funding",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "project 360 names the client wallet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "dashboard KPI includes wallet balance",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "ledger entry is readable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "ledger PATCH is immutable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "ledger DELETE is immutable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "reversal credits wallet",
+      "ok": true,
+      "detail": "HTTP 201 {\"ok\":true,\"transaction\":{\"id\":\"cmw91plyt014lnzwivn89bf39\",\"kind\":\"REVERSAL\",\"amount\":250,\"balanceAfter\":2951000,\"curren"
+    },
+    {
+      "section": "wallet",
+      "check": "reversal cannot be repeated",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "reversal reduces project funded total",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "top-up reversal restores starting balance",
+      "ok": true,
+      "detail": "HTTP 201 {\"ok\":true,\"transaction\":{\"id\":\"cmw91pm05014pnzwi4hoavxtd\",\"kind\":\"REVERSAL\",\"amount\":-1000,\"balanceAfter\":2950000,\"curr"
+    },
+    {
+      "section": "wallet",
+      "check": "disable wallets module",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "wallet",
+      "check": "disabled wallet list blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "disabled wallet action blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "wallet",
+      "check": "re-enable wallets module",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "linkage",
+      "check": "client reverse-link endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "linkage",
+      "check": "client links to contacts/projects/invoices",
+      "ok": true,
+      "detail": "['arInvoices', 'contacts', 'bids', 'contracts', 'estimates', 'leads', 'payments', 'paymentApps', 'projects', 'rentalContracts']"
+    },
+    {
+      "section": "linkage",
+      "check": "client detail exposes wallet balance",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "linkage",
+      "check": "project reverse-link endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "linkage",
+      "check": "project links to wallet funding",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "linkage",
+      "check": "integrity endpoint",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "linkage",
+      "check": "all cross-module references resolve",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "section": "linkage",
+      "check": "integrity checks a meaningful number of refs",
+      "ok": true,
+      "detail": "1627"
+    },
+    {
+      "section": "linkage",
+      "check": "wallet ledger reconciles",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "section": "linkage",
+      "check": "derived project funding reconciles",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "section": "linkage",
+      "check": "no orphan wallet rows",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "section": "linkage",
+      "check": "integrity overall healthy",
+      "ok": true,
+      "detail": "{'ok': True, 'checkedRecords': 616, 'checkedRefs': 1627, 'brokenRefs': [], 'brokenRefCount': 0, 'walletMismatches': [], 'walletOrphans': [], 'walletOrphanCount': 0, 'fundingMismatches': [], 'resourceM"
+    },
+    {
+      "section": "roles",
+      "check": "OWNER read accounts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "roles",
+      "check": "OWNER create clients",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "roles",
+      "check": "OWNER wallet.topup capability",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "roles",
+      "check": "invite ADMIN",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA ADMIN added as admin. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 ADMIN\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":null,\"phon"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN bulk delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "ADMIN role management",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "section": "roles",
+      "check": "invite PROJECT_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA PROJECT_MANAGER added as project manager. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 PROJECT_MANAGER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER bulk delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "PROJECT_MANAGER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite SITE_ENGINEER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA SITE_ENGINEER added as site engineer. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 SITE_ENGINEER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":nu"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SITE_ENGINEER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite FINANCE_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA FINANCE_MANAGER added as finance manager. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 FINANCE_MANAGER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER bulk delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "FINANCE_MANAGER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite ACCOUNTANT",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA ACCOUNTANT added as accountant. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 ACCOUNTANT\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":null,"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ACCOUNTANT role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite HR_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA HR_MANAGER added as hr manager. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 HR_MANAGER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":null,"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER bulk delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "HR_MANAGER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite PROCUREMENT",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA PROCUREMENT added as procurement. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 PROCUREMENT\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":null"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT bulk delete",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PROCUREMENT role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite SAFETY_OFFICER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA SAFETY_OFFICER added as safety officer. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 SAFETY_OFFICER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":n"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SAFETY_OFFICER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite PLANT_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA PLANT_MANAGER added as plant manager. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 PLANT_MANAGER\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":nu"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "PLANT_MANAGER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite ESTIMATOR",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA ESTIMATOR added as estimator. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR create clients allowed",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QAA2DAB4 ESTIMATOR\",\"type\":null,\"registrationNo\":null,\"industry\":null,\"email\":null,\""
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "ESTIMATOR role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite VIEWER",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA VIEWER added as viewer. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER read accounts",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER create clients denied",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "VIEWER role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite CLIENT_EXTERNAL",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA CLIENT_EXTERNAL added as client external. Temporary password: Welcome@123\"}"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL create clients denied",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL wallet visibility",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "portal sees only its own wallet",
+      "ok": true,
+      "detail": "['cmw91om8h0000nz16lazvli97_cli-1']"
+    },
+    {
+      "section": "roles",
+      "check": "portal cannot read another wallet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 400"
+    },
+    {
+      "section": "roles",
+      "check": "CLIENT_EXTERNAL role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "invite SUBCONTRACTOR_EXTERNAL",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"message\":\"QA SUBCONTRACTOR_EXTERNAL added as subcontractor external. Temporary password:"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL read accounts",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL create clients denied",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL bulk delete",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL wallet visibility",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL wallet.topup capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL wallet.allocate capability",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "SUBCONTRACTOR_EXTERNAL role management",
+      "ok": true,
+      "detail": "HTTP 403"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup ADMIN",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup PROJECT_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup SITE_ENGINEER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup FINANCE_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup ACCOUNTANT",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup HR_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup PROCUREMENT",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup SAFETY_OFFICER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup PLANT_MANAGER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup ESTIMATOR",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup VIEWER",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup CLIENT_EXTERNAL",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "cleanup SUBCONTRACTOR_EXTERNAL",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "roles",
+      "check": "unknown role rejected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "tenants",
+      "check": "second workspace registration",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-3\",\"onboarded\":false}"
+    },
+    {
+      "section": "tenants",
+      "check": "second workspace onboarding",
+      "ok": true,
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-3\",\"config\":{\"modules\":[\"dashboard\",\"company\",\"crm\",\"pipeline\",\"estimating\",\"projec"
+    },
+    {
+      "section": "tenants",
+      "check": "second workspace has its own slug",
+      "ok": true,
+      "detail": "qa-other-builders-3"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot read records",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot read wallets",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot read meta",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot read overview",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot fund a wallet",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "other tenant cannot open a client record",
+      "ok": true,
+      "detail": "HTTP 401"
+    },
+    {
+      "section": "tenants",
+      "check": "second tenant has an empty isolated wallet list",
+      "ok": true,
+      "detail": "HTTP 200 {\"wallets\":[],\"currency\":\"USD\",\"summary\":{\"clientCount\":0,\"fundedWallets\":0,\"totalBalance\":0,\"totalToppedUp\":0,\"totalAll"
     }
   ]
 }

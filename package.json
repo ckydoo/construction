@@ -13,11 +13,12 @@
     "preview": "npm run build && npm run start",
     "start:prod": "node scripts/prod-start.mjs",
     "db:postgres": "node scripts/switch-provider.mjs",
-    "audit": "tsx scripts/audit-defs.ts > /tmp/defs.json && python3 scripts/audit.py && tsx scripts/audit-core.ts",
+    "audit": "tsx scripts/audit-defs.ts > /tmp/defs.json && python3 scripts/audit.py && tsx scripts/audit-core.ts && python3 scripts/report.py",
     "audit:defs": "tsx scripts/audit-defs.ts > /tmp/defs.json",
     "audit:core": "tsx scripts/audit-core.ts",
     "audit:browser": "node scripts/browser-audit.mjs",
-    "audit:all": "npm run audit && npm run audit:browser"
+    "audit:all": "npm run audit && npm run audit:browser",
+    "audit:report": "python3 scripts/report.py"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

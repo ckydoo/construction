@@ -29,13 +29,16 @@ async function main() {
     const user = await prisma.user.create({ data: {
       name:u.name, email:u.email, passwordHash:hash, avatarColor:u.color,
     }});
-    await prisma.membership.create({ data: { userId:user.id, organizationId:org.id, role:u.role } });
+    // Portal users are pinned to one client record for row-level scoping.
+    const entityId = u.email === 'client@westgate.co.zw' ? `${org.id}_cli-1` : null;
+    await prisma.membership.create({ data: { userId:user.id, organizationId:org.id, role:u.role, entityId } });
   }
   const seeded = await seedDemo(prisma, org.id);
   console.log(`  ✓ organisation: ${org.name}`);
   console.log(`  ✓ ${seeded.records} records across ${config.resources.length} resources`);
   console.log(`  ✓ ${DEMO_USERS.length} demo users, notifications and audit trail`);
   console.log(`  ✓ ${config.modules.length} modules / ${config.resources.length} resources enabled`);
+  console.log(`  ✓ ${seeded.wallets} client wallets with a reconciled ledger`);
   // Sample attached documents so the Attachments panel is alive on first load
   const root = process.env.UPLOAD_ROOT || path.join(process.cwd(),'uploads');
   const dir = path.join(root, org.id);

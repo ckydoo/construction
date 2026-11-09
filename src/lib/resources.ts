@@ -6,6 +6,7 @@ export type FieldType = 'text'|'textarea'|'number'|'currency'|'percent'|'date'|'
 export type Field = {
   key: string; label: string; type: FieldType; required?: boolean; options?: string[];
   ref?: string; placeholder?: string; defaultValue?: unknown; hint?: string; wide?: boolean;
+  /** Derived from another module — never editable through the generic form. */ readOnly?: boolean;
 };
 export type ResourceDef = {
   id: string; label: string; singular: string; module: string; group: string; icon: string;
@@ -50,8 +51,8 @@ export const RESOURCES: ResourceDef[] = [
   // ---------------- WIN WORK ----------------
   d('clients','Clients','Client','crm','Win work','Handshake','CLI','name',
     'Client companies, their contacts, credit terms and relationship history.',
-    [T('name','Company name',{required:true,placeholder:'e.g. Westgate Properties (Pvt) Ltd'}),S('type','Client type',CLIENT_TYPES),T('registrationNo','Registration number'),T('industry','Industry'),E('email','Accounts email'),PH('phone','Phone'),T('city','City'),T('address','Physical address',{wide:true}),R('accountManager','Account manager','employees'),C('creditLimit','Credit limit (USD)'),N('paymentTerms','Payment terms (days)',{defaultValue:30}),TG('tags','Tags'),STS(['ACTIVE','PROSPECT','INACTIVE','BLACKLISTED'],'ACTIVE')],
-    ['number','name','type','city','phone','creditLimit','status'],{statusOptions:['ACTIVE','PROSPECT','INACTIVE','BLACKLISTED'],amountKey:'creditLimit'}),
+    [T('name','Company name',{required:true,placeholder:'e.g. Westgate Properties (Pvt) Ltd'}),S('type','Client type',CLIENT_TYPES),T('registrationNo','Registration number'),T('industry','Industry'),E('email','Accounts email'),PH('phone','Phone'),T('city','City'),T('address','Physical address',{wide:true}),R('accountManager','Account manager','employees'),C('creditLimit','Credit limit (USD)'),N('paymentTerms','Payment terms (days)',{defaultValue:30}),C('walletBalance','Wallet balance',{readOnly:true,hint:'Derived from the client wallet ledger'}),TG('tags','Tags'),STS(['ACTIVE','PROSPECT','INACTIVE','BLACKLISTED'],'ACTIVE')],
+    ['number','name','type','city','creditLimit','walletBalance','status'],{statusOptions:['ACTIVE','PROSPECT','INACTIVE','BLACKLISTED'],amountKey:'creditLimit'}),
 
   d('contacts','Contacts','Contact','crm','Win work','Contact','CON','name',
     'People at client, consultant and authority organisations.',
@@ -76,7 +77,7 @@ export const RESOURCES: ResourceDef[] = [
   // ---------------- PROJECT DELIVERY ----------------
   d('projects','Projects','Project','projects','Project delivery','HardHat','PRJ','name',
     'Project portfolio: contract value, programme, budget, team and health.',
-    [T('name','Project name',{required:true,placeholder:'e.g. Borrowdale Corporate Park – Phase 2'}),T('code','Project code'),R('clientId','Client','clients'),S('type','Project type',PROJECT_TYPES),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),T('location','Site location'),C('contractValue','Contract value'),C('budget','Approved budget'),C('costToDate','Cost to date'),P('progress','Physical progress (%)'),D('startDate','Start date'),D('endDate','Planned completion'),D('actualCompletion','Actual completion'),R('manager','Project manager','employees'),S('health','Health',['ON_TRACK','AT_RISK','DELAYED','ON_HOLD']),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope of works'),STS(PROJECT_STATUSES,'ACTIVE')],
+    [T('name','Project name',{required:true,placeholder:'e.g. Borrowdale Corporate Park – Phase 2'}),T('code','Project code'),R('clientId','Client','clients'),S('type','Project type',PROJECT_TYPES),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),T('location','Site location'),C('contractValue','Contract value'),C('budget','Approved budget'),C('costToDate','Cost to date'),C('fundedAmount','Funded from client wallet',{readOnly:true,hint:'Sum of active wallet allocations'}),C('remainingToFund','Remaining to fund',{readOnly:true}),P('progress','Physical progress (%)'),D('startDate','Start date'),D('endDate','Planned completion'),D('actualCompletion','Actual completion'),R('manager','Project manager','employees'),S('health','Health',['ON_TRACK','AT_RISK','DELAYED','ON_HOLD']),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope of works'),STS(PROJECT_STATUSES,'ACTIVE')],
     ['number','name','code','clientId','type','contractValue','progress','health','status'],{statusOptions:PROJECT_STATUSES,amountKey:'contractValue',dateKey:'startDate'}),
 
   d('tasks','Tasks & WBS','Task','projects','Project delivery','ListTodo','TSK','name',

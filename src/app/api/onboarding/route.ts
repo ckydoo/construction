@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { apiAuth } from '@/lib/auth';
 import { resolveWorkspace } from '@/lib/catalog';
+import { capabilityGuard } from '@/lib/guard';
 import { seedDemo } from '@/lib/seed-service';
 
 export async function GET() {
@@ -11,6 +12,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const a = await apiAuth(); if (!a) return NextResponse.json({ error:'Unauthorized' }, { status:401 });
+  const g = capabilityGuard(a.role,'settings.manage'); if (g) return g;
   try {
     const b = await req.json();
     const type = String(b.companyType||'GENERAL_CONTRACTOR');

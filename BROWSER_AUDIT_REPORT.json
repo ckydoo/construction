@@ -1,7 +1,7 @@
 {
   "base": "http://127.0.0.1:3000",
-  "checks": 20,
-  "passed": 20,
+  "checks": 28,
+  "passed": 28,
   "failed": 0,
   "results": [
     {
@@ -93,6 +93,46 @@
       "name": "delete via UI removes the QA record",
       "ok": true,
       "detail": "soft delete + toast"
+    },
+    {
+      "name": "wallet workspace opens from the sidebar",
+      "ok": true,
+      "detail": "9 client wallets, 11000000 available"
+    },
+    {
+      "name": "wallet drawer shows the reconciled ledger",
+      "ok": true,
+      "detail": "ledger entries + running balances visible"
+    },
+    {
+      "name": "UI top-up increases the wallet balance",
+      "ok": true,
+      "detail": "2950000 → 2951000"
+    },
+    {
+      "name": "UI project funding debits the wallet and writes the ledger",
+      "ok": true,
+      "detail": "balance 2950750 · allocation ledger entry visible"
+    },
+    {
+      "name": "wallet reversals restore the opening balance",
+      "ok": true,
+      "detail": "2 QA entries reversed · balance 2950000"
+    },
+    {
+      "name": "client detail shows wallet balance and cross-module links",
+      "ok": true,
+      "detail": "wallet balance + linked modules in the detail drawer"
+    },
+    {
+      "name": "role matrix and link integrity render in settings",
+      "ok": true,
+      "detail": "14-role matrix + live integrity check"
+    },
+    {
+      "name": "client portal role sees only its own wallet",
+      "ok": true,
+      "detail": "1 scoped wallet, no admin controls"
     },
     {
       "name": "no uncaught page errors",

@@ -9,7 +9,7 @@ import { money, num, date, ago, pct } from '@/lib/format';
 import { Button, Card, CardHead, Icon, Badge, StatusPill, Skeleton, CardSkeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart, Sparkline } from '@/components/Charts';
 
-type OV = { kpis:Record<string,number>; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string };
+type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string };
 
 function Kpi({label,value,sub,icon,tone='brand',spark,loading}:{label:string;value:string;sub?:string;icon:string;tone?:string;spark?:number[];loading?:boolean}){
   const tones:any={brand:'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400',green:'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',blue:'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400',red:'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'};
@@ -39,7 +39,13 @@ export default function DashboardPage(){
       <Kpi loading={isLoading} label="Contract value" value={money(k?.contractValue,'USD',true)} sub={`${money(k?.pipelineValue,'USD',true)} bid pipeline`} icon="Briefcase" tone="blue" spark={[12,14,13,17,19,22,26]}/>
       <Kpi loading={isLoading} label="Billed to date" value={money(k?.billed,'USD',true)} sub={`${money(k?.certifiedValue,'USD',true)} certified`} icon="Receipt" tone="green" spark={[4,6,7,9,11,13,16]}/>
       <Kpi loading={isLoading} label="Outstanding AR" value={money(k?.outstanding,'USD',true)} sub={`${money(k?.payables,'USD',true)} payables`} icon="TrendingUp" tone="red" spark={[10,9,11,8,12,10,9]}/>
+      <Kpi loading={isLoading} label="Client wallet balance" value={money(k?.walletBalance,'USD',true)} sub={`${money(k?.walletFunded,'USD',true)} allocated to projects`} icon="CreditCard" tone="green" spark={[6,7,9,9,11,12,14]}/>
     </div>
+    {!isLoading&&(data?.wallets||[]).length>0&&<Card className="overflow-hidden"><CardHead title="Client wallets" subtitle="Available prepaid funds per client · ledger-reconciled" action={<Link href={`/${org}/wallets`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">Manage wallets →</Link>}/>
+      <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-3">{(data?.wallets||[]).slice(0,6).map(w=><Link key={w.clientId} href={`/${org}/wallets?client=${encodeURIComponent(w.clientId)}`} className="flex items-center gap-3 bg-white px-4 py-3 transition hover:bg-slate-50 dark:bg-ink-900 dark:hover:bg-ink-800/60">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"><Icon name="Wallet" size={16}/></span>
+        <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{w.clientName}</p><p className="text-[10px] muted">Available to fund projects</p></div>
+        <span className="text-sm font-semibold tabular-nums">{money(w.balance,w.currency)}</span></Link>)}</div></Card>}
     <div className="grid gap-4 lg:grid-cols-3">
       <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Certified & invoiced revenue" subtitle="Last 6 months · client invoices raised" action={<Badge tone="green">{money(k?.billed,'USD',true)} total</Badge>}/>
         <div className="p-5 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[180px]"/>:series.length?<BarChart data={series} height={190}/>:<EmptyState compact icon="BarChart3" title="No invoices yet"/>}</div></Card>

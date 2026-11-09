@@ -8,7 +8,8 @@ const check = (ok: boolean, label: string) => {
   console.log(`${ok ? '  ok' : ' FAIL'}  ${label}`);
 };
 
-check(STARTER_MODULE_IDS.length === 12, `starter pack has 12 modules (got ${STARTER_MODULE_IDS.length})`);
+check(STARTER_MODULE_IDS.length === 13, `starter pack has 13 modules (got ${STARTER_MODULE_IDS.length})`);
+check(STARTER_MODULE_IDS.includes('wallets'), 'client wallets are part of the first-run essentials');
 check(new Set(STARTER_MODULE_IDS).size === STARTER_MODULE_IDS.length, 'starter pack has no duplicates');
 check(STARTER_MODULE_IDS.every(id => MODULES.some(m => m.id === id)), 'all starter ids exist in the catalogue');
 
@@ -20,7 +21,7 @@ for (const size of COMPANY_SIZES) {
 }
 
 const micro = resolveWorkspace({ companyType: 'GENERAL_CONTRACTOR', size: 'MICRO', qualifiers: [] });
-check(micro.modules.length === 12, `MICRO starts with exactly 12 modules (got ${micro.modules.length})`);
+check(micro.modules.length === STARTER_MODULE_IDS.length, `MICRO starts with exactly the essentials pack (got ${micro.modules.length})`);
 check(micro.resources.includes('clients') && micro.resources.includes('projects') && micro.resources.includes('arInvoices') && micro.resources.includes('payments'),
   'core chain clients → projects → invoices → payments is present');
 check(!micro.resources.includes('incidents') && !micro.resources.includes('equipment') && !micro.resources.includes('units'),
@@ -38,7 +39,7 @@ check(enterprise.modules.length >= 30, `enterprise still unlocks the broad pack 
 
 for (const t of COMPANY_TYPES) {
   const c = resolveWorkspace({ companyType: t.id, size: 'SMALL' });
-  if (c.modules.length < 12) fails.push(`${t.id} lost an essential module`);
+  if (c.modules.length < STARTER_MODULE_IDS.length) fails.push(`${t.id} lost an essential module`);
 }
 check(fails.length === 0, `${COMPANY_TYPES.length} company types all keep the essentials`);
 
