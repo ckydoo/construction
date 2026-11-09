@@ -1,7 +1,7 @@
 # BuildOps — live MVP status
 
 **Date:** 2026-11-07 (Africa/Harare)
-**Repository:** `git@github.com:ckydoo/construction.git` · `main` = `bb5ff0f`
+**Repository:** `git@github.com:ckydoo/construction.git` · `main`
 **Runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
