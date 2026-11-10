@@ -11,13 +11,13 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_xG4VW6abiEA665r5Qipu3sGirkm3` · state `READY` · `PROMOTED` |
-| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `8eb261a67d94a02c5a50dc3dfdf48f1d38771fe1` |
+| Deployment | `dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu` · state `READY` · `PROMOTED` |
+| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `3174c33aa43e520aff8550ab8f41c331a493d898` |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
 
-The build completed in ~59 seconds from the public GitHub commit; no source files were
+The build completes in about a minute from the public GitHub commit; no source files are
 re-uploaded manually. The GitHub repo is public, which is why a `git_source` deployment
 works without installing the Vercel GitHub App.
 
@@ -75,6 +75,20 @@ never printed in this document):
 | Storage QA: upload → Rev A → Rev B → list → download → delete ×2 | `201/201/200/200/200/200`, byte-identical download, `Rev B` marked latest, 0 attachments left |
 | Supabase cleanup after storage QA | 0 QA attachments, 0 QA storage objects, 4 QA audit rows removed, `live_records 616` |
 
+## Change log
+
+| Commit | Deployment | Change |
+|---|---|---|
+| `8eb261a` | `dpl_xG4VW6abiEA665r5Qipu3sGirkm3` | Initial production release of the MYLA visual refinement |
+| `039e619` | — | Documentation only (not deployed) |
+| `3174c33` | `dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu` | Removed numeric record-count badges and the “N modules” label from the sidebar; nav now shows labels only |
+
+The sidebar change was verified on the live URL with a real Chromium session:
+53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
+“N modules” text, on both the desktop sidebar and the mobile drawer, with 0 page
+errors. Evidence: `screenshots/production-sidebar-no-counts.png`,
+`screenshots/sidebar-no-counts-desktop.png`, `screenshots/sidebar-no-counts-mobile.png`.
+
 ## Redeploying
 
 The project has **no Git integration installed**, so pushing to GitHub does **not**
@@ -100,7 +114,7 @@ project with a GitHub `git_source`:
 Alternatively, install the Vercel GitHub App on the account and connect the repository
 in Project Settings → Git; that enables automatic preview/production deployments. Two
 early bootstrap deployments that failed before this Git-source path was established
-were deleted, so the project history contains only the successful production release.
+were deleted, so the project history contains only successful production releases.
 
 ## Deliberate non-changes
 
@@ -111,5 +125,6 @@ were deleted, so the project history contains only the successful production rel
   account-level settings for public signup remains a separate, authorised-later task.
 - No custom domain was added; `myla-construction-erp.vercel.app` is the Vercel-assigned
   production alias.
-- No `vercel.json`, no `TZ` override, no code or schema changes were made to deploy.
-  The deployed application is byte-for-byte the audited commit `8eb261a`.
+- No `vercel.json`, no `TZ` override and no schema/database changes were made. The
+  only source change since the initial release is the sidebar label cleanup in
+  `src/components/AppShell.tsx`; all APIs, RBAC, routing and business logic are untouched.

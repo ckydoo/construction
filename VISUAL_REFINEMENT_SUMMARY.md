@@ -74,13 +74,14 @@ There is no `lint` script in `package.json`; `next build` ran its built-in lint/
 **GitHub:** commit `8eb261a` (“Refine MYLA UX with authentic logo design system”) was
 pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 changed
 files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
-secret-like hits. A later commit adds the deployment documentation only.
+secret-like hits. Later commits add deployment documentation and a sidebar cleanup
+that removes numeric record-count badges and the “N modules” label.
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
-at **https://myla-construction-erp.vercel.app**, built from GitHub commit `8eb261a`
-via a `git_source` deployment (`dpl_xG4VW6abiEA665r5Qipu3sGirkm3`, `READY`, production,
-`iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment variables are set for
-all three targets, including write-only sensitive Supabase keys.
+at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
+(currently `3174c33`) via a `git_source` deployment (`dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu`,
+`READY`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
+variables are set for all three targets, including write-only sensitive Supabase keys.
 
 **Production verification:** login (valid and invalid credentials), dashboard, wallets,
 resource pages, meta/overview/integrity/wallets/records APIs, branded PDF generation,
