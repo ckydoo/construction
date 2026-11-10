@@ -29,18 +29,30 @@ The existing app already had a strong functional core: 49 connected resources, e
 - Applied consistent density and hierarchy across dashboard, list pages, project detail, reports, settings, wallets, onboarding, auth, modals and generated PDFs.
 - Added keyboard focus states, reduced-motion support, aria-labels for icon-only controls and dark-mode logo variants.
 
-## Later addition — in-app Documentation page
+## Later addition — in-app Documentation page & plain language
 
-`src/app/[org]/documentation/page.tsx` adds a sidebar-accessible, read-only guide with
-two hand-built inline SVG illustrations (a system/data map and a numbered dashboard
-anatomy) plus CSS flow strips for the request lifecycle, win work, project delivery,
-finance/wallets, document revisions and tenancy/RBAC. It uses only existing `Card`,
-`Badge` and `Icon` primitives and the existing Lucide exports — no new dependencies,
-no external images or CDNs, no gradients or blur. Diagrams have `role="img"` and
-descriptive `aria-label`s, render in light and dark mode, and scroll horizontally on
-small screens with a swipe hint. `scripts/design-qa.mjs` now audits 55 routes and
-captures a documentation screenshot. No APIs, schemas, auth, RBAC or business logic
-were touched by this addition.
+`src/app/[org]/documentation/page.tsx` is a sidebar-accessible, read-only guide.
+It opens with a six-step **business flow** (a client calls → price the work →
+agree & plan → do the work → bill for it → get paid & close), then an illustrated
+home screen, six everyday chains, a **Start small** section for a two-person
+workshop, plain-language access rules, a Zimbabwe glossary, a clickable section
+map and quick help. No IT architecture, acronyms or product jargon appears on the
+page. Two hand-built inline SVG illustrations have `role="img"` and descriptive
+`aria-label`s, render in light and dark mode, and scroll horizontally on small
+screens with a swipe hint. Only existing `Card`, `Badge` and `Icon` primitives and
+Lucide exports are used — no new dependencies, external images, gradients or blur.
+
+`TERMINOLOGY.md` defines the display-text-only wording layer applied across
+`src/lib/resources.ts`, `src/lib/catalog.ts`, `AppShell.tsx`,
+`OnboardingWizard.tsx`, the dashboard, reports, settings and wallets: plain words
+first, Zimbabwe/Southern African terms (USD + ZWG, 15% VAT, tax invoice, PAYE /
+NSSA, RTGS / mobile money, `(Pvt) Ltd` / CR14, stand, snag list, variation), and
+sidebar sections such as `Clients & quotes`, `Jobs & sites`, `Materials & suppliers`,
+`Staff & wages`, `Money & invoices`. Resource/module/role IDs, status values, field
+keys, API paths, SQL, RLS, the role matrix, validation and module derivation are
+unchanged. `scripts/design-qa.mjs` audits 55 routes and captures a documentation
+screenshot; `scripts/onboarding-audit.mjs` was updated for the new labels and
+passed 10/10.
 
 ## Files modified / added
 
@@ -71,9 +83,9 @@ On the exact build being published:
 | Supabase cleanup check | 0 QA organizations, 0 QA users, 0 QA invitations, last-owner trigger enabled |
 | Secret scan | Only the Git-ignored local `.env` matched; no tracked secret values |
 
-`design-qa` covered 54 routes at 1440×900 and 390×844, plus key routes at 1920×1080, 1024×768 and 768×1024. It verified 0px horizontal overflow, exact route titles, authentic logo loading, radius ≤ 12px on controls, zero gradient/blur classes, zero nested cards, visible keyboard focus, reduced-motion suppression, dark mode and zero console/page errors.
+`design-qa` covered 55 routes at 1440×900 and 390×844, plus key routes at 1920×1080, 1024×768 and 768×1024. It verified 0px horizontal overflow, exact route titles, authentic logo loading, radius ≤ 12px on controls, zero gradient/blur classes, zero nested cards, visible keyboard focus, reduced-motion suppression, dark mode and zero console/page errors.
 
-There is no `lint` script in `package.json`; `next build` ran its built-in lint/type validation. The dedicated **10/10 onboarding/tenancy/RBAC** suite was not re-run because onboarding, auth and derivation logic were unchanged; its historical result is in `ONBOARDING_AUDIT_REPORT.md`.
+There is no `lint` script in `package.json`; `next build` ran its built-in lint/type validation. The dedicated onboarding/tenancy/RBAC suite was re-run after the terminology pass and passed **10/10** (`ONBOARDING_AUDIT_REPORT.md`); QA organisations and Auth users were cleaned up (0/0). `npm run audit:core` also passed 10/10 — derivation logic is unchanged.
 
 ## Remaining issues
 
@@ -89,12 +101,12 @@ pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 ch
 files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
 secret-like hits. Later commits add deployment documentation, a sidebar cleanup
 that removes numeric record-count badges and the “N modules” label, and an in-app
-Documentation page with illustrated system and dashboard flows (`5e31dd9`, final wording
-at `a6cb9c9`).
+a plain-language business-flow guide and a Zimbabwe / Southern Africa terminology pass
+(`1aef83b`).
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
 at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
-(currently `a6cb9c9`) via a `git_source` deployment (`dpl_9rxRyLh9ri1mq4daYUCFhfPwMt1x`,
+(currently `1aef83b`) via a `git_source` deployment (`dpl_C4C7kSENehVwMBFEXBNBdgLz71wB`,
 `READY`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
 variables are set for all three targets, including write-only sensitive Supabase keys.
 

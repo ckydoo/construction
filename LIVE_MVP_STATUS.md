@@ -5,9 +5,14 @@
 **Date:** 2026-11-07 (Africa/Harare)
 **Repository:** `git@github.com:ckydoo/construction.git` · `main`
 **Production:** **https://myla-construction-erp.vercel.app** (Vercel, `iad1`, Node 26.x,
-built from commit `a6cb9c9`) · full detail in `PRODUCTION_DEPLOYMENT.md`
+built from commit `1aef83b`) · full detail in `PRODUCTION_DEPLOYMENT.md`
 **Local runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
+
+**Language:** plain, Zimbabwe / Southern Africa-first wording for very small
+industrial and construction companies (`TERMINOLOGY.md`). The in-app Documentation
+page now explains the **business flow** — client → quote → job → certificate →
+payment — rather than the software architecture.
 
 ## Green gates
 
@@ -20,7 +25,7 @@ built from commit `a6cb9c9`) · full detail in `PRODUCTION_DEPLOYMENT.md`
 | `npm run audit:onboarding` | **10/10 live signup/onboarding/tenancy/RBAC checks** |
 | Wallet invariant | `[]` |
 | GitHub push | Full history, 166 files in a fresh clone, no `.env`, 0 secret hits |
-| Visual QA | `node scripts/design-qa.mjs` **15/15** across 54 routes / five viewports |
+| Visual QA | `node scripts/design-qa.mjs` **15/15** across 55 routes / five viewports |
 | Vercel production build | `READY`, promoted, 9 env vars across all three targets |
 | Production smoke | Login, 8 pages/APIs, branded PDF and upload→revision→download→delete all passed |
 | Demo data | 616 records, 49 resources, 7 users, 34 modules, 6 wallets, 4 PDFs |
@@ -36,9 +41,22 @@ browser audit re-run **28/28**, and both generated and seeded PDFs contain the
 new identity. Final live state is 1 org, 7 memberships, 616 records, 0 QA users,
 `ok=true` integrity and `$11,000,000` wallet balance. See `BRAND.md`. The
 1211/1211 API and 22/22 core-derivation gates were re-run on the exact build that
-is now published; the 10/10 onboarding suite was not re-run because onboarding,
-auth and derivation logic were unchanged. Rebrand and visual-refinement files were
+is now published; the 10/10 onboarding suite was not re-run at that time because onboarding,
+auth and derivation logic were unchanged; it was later re-run **10/10** after the
+plain-language terminology pass. Rebrand and visual-refinement files were
 committed as `8eb261a`, pushed to GitHub and deployed to Vercel.
+
+**Latest release — plain-language business flow:** `1aef83b` rewrote the in-app
+Documentation page around the client → quote → job → certificate → payment flow and
+applied Zimbabwe / Southern African small-contractor wording across the product
+(`TERMINOLOGY.md`). Gates on that build: typecheck, `npm run build`, `npm run env:check`,
+`audit:core` 10/10, `audit:browser` 28/28, `design-qa` 15/15 across 55 routes,
+`audit:onboarding` **10/10** (re-run; QA orgs and Auth users cleaned up 0/0), reseed
+616/49/7/34/6/4, integrity `ok:true` / 616 records / 1627 refs / 0 broken refs and a
+`$11,000,000` clean wallet balance. The 1211/1211 API gate belongs to the initial
+release build; no API, schema, auth, RBAC, validation or derivation logic has changed
+since. Live verification: 8 documentation sections, 2 inline SVG diagrams, no IT
+jargon, 9 plain-language sidebar sections, 0 overflow and 0 errors.
 
 ## What “complete MVP” means now
 

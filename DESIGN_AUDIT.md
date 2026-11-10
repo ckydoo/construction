@@ -47,6 +47,6 @@ Visual refinement only. No changes to APIs, database schema, auth/RBAC, routing,
 - Rebuilt the dashboard as a compact five-KPI strip plus a client-wallet register, charts, portfolio health, attention list, audit trail and record counts.
 - Standardised buttons, inputs, badges, tabs, drawers, toasts, tables, empty/loading states and focus states; added active-filter chips/reset, numeric column alignment and tabular numerals.
 - Preserved every route, permission, API, validation rule, mutation, Supabase/RLS path, onboarding derivation and working table feature.
-- Added a dedicated `scripts/design-qa.mjs`: 15/15 checks covering 54 routes across five viewports, authentic logo loading, exact route titles, horizontal overflow, radius limits, gradient/blur/nested-card removal, keyboard focus, reduced motion, dark mode and console/page errors.
+- Added a dedicated `scripts/design-qa.mjs`: 15/15 checks covering 54 routes at that time (55 after the Documentation route was added) across five viewports, authentic logo loading, exact route titles, horizontal overflow, radius limits, gradient/blur/nested-card removal, keyboard focus, reduced motion, dark mode and console/page errors.
 
 Before/after screenshots: `screenshots/design-before/` and `screenshots/design-after/`.

@@ -57,9 +57,9 @@ After the logo-based visual refinement, the exact published build passed:
 
 - `npx tsc --noEmit`, `npm run build` and `npm run env:check`.
 - `npm run audit:browser`: **28/28 passed**, 0 console/page errors.
-- `node scripts/design-qa.mjs`: **15/15 passed** across 54 routes and five viewports, including authentic-logo loading, exact route titles, no horizontal overflow, restrained radii, no decorative gradients/blur/nested cards, visible keyboard focus, reduced-motion support and dark mode.
+- `node scripts/design-qa.mjs`: **15/15 passed** across 54 routes at that time (55 after the Documentation route was added) and five viewports, including authentic-logo loading, exact route titles, no horizontal overflow, restrained radii, no decorative gradients/blur/nested cards, visible keyboard focus, reduced-motion support and dark mode.
 - `npm run audit`: **1211/1211 API checks** and **22/22 core-derivation checks**.
 - Generated PDF smoke test: HTTP 200 `application/pdf`, with the embedded MYLA logo and correct MYLA metadata.
 - `npm run db:seed` restored the clean demo dataset; QA organizations/users/invitations were removed and the last-owner trigger was re-enabled.
 
-The **10/10 onboarding/tenancy/RBAC** gate was proven before this visual refinement and is documented in `ONBOARDING_AUDIT_REPORT.md`; it was not re-run because the refinement did not change onboarding, auth or derivation logic.
+The **10/10 onboarding/tenancy/RBAC** gate was proven before this visual refinement and is documented in `ONBOARDING_AUDIT_REPORT.md`; it was not re-run at that time because the refinement did not change onboarding, auth or derivation logic; it was later re-run **10/10** after the plain-language terminology pass (`TERMINOLOGY.md`).
