@@ -22,7 +22,11 @@ export async function GET(req: Request, { params }: Ctx) {
   const scope = await buildScope(a);
   const url = new URL(req.url);
   const qp = Object.fromEntries(url.searchParams);
-  if (qp.mode === 'refs') return NextResponse.json({ options: await refOptions(a.orgId, def, 300, scope) });
+  if (qp.mode === 'refs') {
+    const ids = qp.ids ? qp.ids.split(',').map(s=>s.trim()).filter(Boolean).slice(0, 500) : undefined;
+    const limit = Number(qp.limit) || 300;
+    return NextResponse.json({ options: await refOptions(a.orgId, def, limit, scope, qp.q, ids) });
+  }
   const result = await listRecords(a.orgId, def, {
     q: qp.q, status: qp.status, projectId: qp.projectId, page: Number(qp.page) || 1,
     pageSize: Number(qp.pageSize) || 25, sort: qp.sort, dir: (qp.dir as 'asc' | 'desc'),

@@ -32,7 +32,8 @@
     "prestart": "node scripts/ensure-env.mjs",
     "prestart:prod": "node scripts/ensure-env.mjs",
     "env:init": "node scripts/ensure-env.mjs",
-    "env:check": "node scripts/check-env.mjs"
+    "env:check": "node scripts/check-env.mjs",
+    "audit:projects": "node scripts/project-scale-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

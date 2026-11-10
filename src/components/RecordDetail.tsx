@@ -5,18 +5,19 @@ import * as Lucide from '@/components/lucide';
 import Link from 'next/link';
 import type { ResourceDef } from '@/lib/resources';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { Button, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
+import { Button, Card, CardHead, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
 import { money, num, date } from '@/lib/format';
 import { useToast } from './Providers';
 import type { RefOptions } from './RecordForm';
 
-export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,refs,canEdit,canRemove}:{
-  org:string; def:ResourceDef; row:any; open:boolean; onClose:()=>void; onEdit:()=>void; onDelete:()=>void;
-  refs:RefOptions; canEdit:boolean; canRemove:boolean;
+export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,refs,canEdit,canRemove,inline=false}:{
+  org:string; def:ResourceDef; row:any; open:boolean; onClose:()=>void; onEdit?:()=>void; onDelete?:()=>void;
+  refs:RefOptions; canEdit:boolean; canRemove:boolean; inline?:boolean;
 }){
+  const active=open||inline;
   const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({});
-  const {data,isLoading}=useQuery({ queryKey:['record',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}`)), enabled:open&&!!row?.id });
-  const {data:related}:any=useQuery({ queryKey:['related',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}/related`)), enabled:open&&!!row?.id });
+  const {data,isLoading}=useQuery({ queryKey:['record',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}`)), enabled:active&&!!row?.id });
+  const {data:related}:any=useQuery({ queryKey:['related',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}/related`)), enabled:active&&!!row?.id });
   async function addComment(){ if(!comment.trim())return; setSending(true);
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
     catch(e:any){ toast.push({tone:'error',title:'Could not post comment',description:e.message}); } finally{ setSending(false); }
@@ -70,8 +71,8 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     for(const g of out) g.items.sort((a:any,b:any)=>(b.revision||1)-(a.revision||1));
     return out;
   })();
-  return <Drawer open={open} onClose={onClose} title={row?.title||def.singular} subtitle={`${row?.number||''} · ${def.singular}`}
-    footer={<div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2"><a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>}>
+  const body = <>
+
     <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}</div></div>
     <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {def.fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'?'sm:col-span-2':''}>
@@ -124,5 +125,19 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
           </div>;
         })}</div>}
     </div>
-  </Drawer>;
+  </>;
+  const title=row?.title||def.singular;
+  const subtitle=`${row?.number||''} · ${def.singular}`;
+  const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2"><a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;
+  const inlineActions = <div className="flex flex-wrap gap-2">
+    <a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>
+    {canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}
+    {canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}
+  </div>;
+  if(inline) return <Card className="overflow-hidden">
+    <CardHead title={`${title} · record & files`} subtitle="Full project record, linked modules, comments and document revisions" action={inlineActions}/>
+    {body}
+  </Card>;
+  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer}>{body}</Drawer>;
+
 }

@@ -32,7 +32,7 @@
     {
       "name": "creating the workspace persists derivation and lands on an empty dashboard",
       "ok": true,
-      "detail": "qa-onboarding-mwa9uxwvvkcs · 22 modules · 0 seeded clients"
+      "detail": "qa-onboarding-mwads9w7nzft · 22 modules · 0 seeded clients"
     },
     {
       "name": "a second tenant cannot read the demo workspace",
@@ -55,13 +55,13 @@
       "detail": "0 page errors · 0 console errors"
     }
   ],
-  "company": "QA Onboarding mwa9uxwvvkcs",
-  "email": "qa-onboarding-mwa9uxwvvkcs@kestrelridge.co.zw",
-  "inviteEmail": "qa-invite-mwa9uxwvvkcs@kestrelridge.co.zw",
-  "slug": "qa-onboarding-mwa9uxwvvkcs",
-  "orgId": "de955095-afd0-48ea-aed8-418a948b30b2",
-  "ownerId": "c6e1ef08-8198-4c11-b659-2e8df482bcf0",
-  "inviteUserId": "3007702f-4110-4210-8b8e-f33278fdc3ae",
+  "company": "QA Onboarding mwads9w7nzft",
+  "email": "qa-onboarding-mwads9w7nzft@kestrelridge.co.zw",
+  "inviteEmail": "qa-invite-mwads9w7nzft@kestrelridge.co.zw",
+  "slug": "qa-onboarding-mwads9w7nzft",
+  "orgId": "fc28d365-8d60-4cd6-b2b9-93a22e1000e8",
+  "ownerId": "e0bfbf18-fc69-4908-81ce-2af314cdfb93",
+  "inviteUserId": "5ba31f8a-070e-4656-a3e1-ffee9040f8cb",
   "expectedModules": 22,
   "expectedPlan": "Professional",
   "expectedUserLimit": 60,

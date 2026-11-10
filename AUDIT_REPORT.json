@@ -1,6 +1,6 @@
 {
   "base": "http://127.0.0.1:3000",
-  "marker": "QAD83EAE",
+  "marker": "QABDAE10",
   "resources": 49,
   "modules": 34,
   "checks": 1211,
@@ -70,19 +70,19 @@
       "section": "crud:clients",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":\"QAD83EAE city\",\"name\":\"QAD83EAE clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qad83eae@example.co.zw\",\"phone\":"
+      "detail": "HTTP 201 {\"row\":{\"city\":\"QABDAE10 city\",\"name\":\"QABDAE10 clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qabdae10@example.co.zw\",\"phone\":"
     },
     {
       "section": "crud:clients",
       "check": "sequence number",
       "ok": true,
-      "detail": "CLI-0012"
+      "detail": "CLI-0025"
     },
     {
       "section": "crud:clients",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE clients vs QAD83EAE clients"
+      "detail": "QABDAE10 clients vs QABDAE10 clients"
     },
     {
       "section": "crud:clients",
@@ -100,19 +100,19 @@
       "section": "crud:clients",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"city\":\"QAD83EAE city\",\"name\":\"QAD83EAE UPDATED clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qad83eae@example.co.zw\","
+      "detail": "HTTP 200 {\"row\":{\"city\":\"QABDAE10 city\",\"name\":\"QABDAE10 UPDATED clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qabdae10@example.co.zw\","
     },
     {
       "section": "crud:clients",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAD83EAE registrationNo'): got QAD83EAE registrationNo"
+      "detail": "('registrationNo', 'QABDAE10 registrationNo'): got QABDAE10 registrationNo"
     },
     {
       "section": "crud:clients",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED clients"
+      "detail": "QABDAE10 UPDATED clients"
     },
     {
       "section": "crud:clients",
@@ -190,19 +190,19 @@
       "section": "crud:contacts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE contacts\",\"email\":\"qa.qad83eae@example.co.zw\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":\"+263 77"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 contacts\",\"email\":\"qa.qabdae10@example.co.zw\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":\"+263 77"
     },
     {
       "section": "crud:contacts",
       "check": "sequence number",
       "ok": true,
-      "detail": "CON-0011"
+      "detail": "CON-0014"
     },
     {
       "section": "crud:contacts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE contacts vs QAD83EAE contacts"
+      "detail": "QABDAE10 contacts vs QABDAE10 contacts"
     },
     {
       "section": "crud:contacts",
@@ -214,19 +214,19 @@
       "section": "crud:contacts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED contacts\",\"email\":\"qa.qad83eae@example.co.zw\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED contacts\",\"email\":\"qa.qabdae10@example.co.zw\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":"
     },
     {
       "section": "crud:contacts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('jobTitle', 'QAD83EAE jobTitle'): got QAD83EAE jobTitle"
+      "detail": "('jobTitle', 'QABDAE10 jobTitle'): got QABDAE10 jobTitle"
     },
     {
       "section": "crud:contacts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED contacts"
+      "detail": "QABDAE10 UPDATED contacts"
     },
     {
       "section": "crud:contacts",
@@ -298,19 +298,19 @@
       "section": "crud:leads",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE leads\",\"notes\":\"QAD83EAE notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-1\",\"stage\":\"IDENTIFIED\",\"value\":1"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 leads\",\"notes\":\"QABDAE10 notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\",\"value\":"
     },
     {
       "section": "crud:leads",
       "check": "sequence number",
       "ok": true,
-      "detail": "OPP-0007"
+      "detail": "OPP-0010"
     },
     {
       "section": "crud:leads",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE leads vs QAD83EAE leads"
+      "detail": "QABDAE10 leads vs QABDAE10 leads"
     },
     {
       "section": "crud:leads",
@@ -328,7 +328,7 @@
       "section": "crud:leads",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED leads\",\"notes\":\"QAD83EAE notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-1\",\"stage\":\"IDENTIFIED\",\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED leads\",\"notes\":\"QABDAE10 notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\","
     },
     {
       "section": "crud:leads",
@@ -340,7 +340,7 @@
       "section": "crud:leads",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED leads"
+      "detail": "QABDAE10 UPDATED leads"
     },
     {
       "section": "crud:leads",
@@ -418,19 +418,19 @@
       "section": "crud:estimates",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE estimates\",\"scope\":\"QAD83EAE notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-1\",\"markup\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 estimates\",\"scope\":\"QABDAE10 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-3\",\"markup\":"
     },
     {
       "section": "crud:estimates",
       "check": "sequence number",
       "ok": true,
-      "detail": "EST-0005"
+      "detail": "EST-0009"
     },
     {
       "section": "crud:estimates",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE estimates vs QAD83EAE estimates"
+      "detail": "QABDAE10 estimates vs QABDAE10 estimates"
     },
     {
       "section": "crud:estimates",
@@ -448,7 +448,7 @@
       "section": "crud:estimates",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED estimates\",\"scope\":\"QAD83EAE notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-1\",\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED estimates\",\"scope\":\"QABDAE10 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-3\",\""
     },
     {
       "section": "crud:estimates",
@@ -460,7 +460,7 @@
       "section": "crud:estimates",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED estimates"
+      "detail": "QABDAE10 UPDATED estimates"
     },
     {
       "section": "crud:estimates",
@@ -538,19 +538,19 @@
       "section": "crud:bids",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE bids\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"BID-0005\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\"clientId"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 bids\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"BID-0008\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\"clientId"
     },
     {
       "section": "crud:bids",
       "check": "sequence number",
       "ok": true,
-      "detail": "BID-0005"
+      "detail": "BID-0008"
     },
     {
       "section": "crud:bids",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE bids vs QAD83EAE bids"
+      "detail": "QABDAE10 bids vs QABDAE10 bids"
     },
     {
       "section": "crud:bids",
@@ -562,19 +562,19 @@
       "section": "crud:bids",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED bids\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"BID-0005\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED bids\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"BID-0008\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\""
     },
     {
       "section": "crud:bids",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('tenderNo', 'QAD83EAE tenderNo'): got QAD83EAE tenderNo"
+      "detail": "('tenderNo', 'QABDAE10 tenderNo'): got QABDAE10 tenderNo"
     },
     {
       "section": "crud:bids",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED bids"
+      "detail": "QABDAE10 UPDATED bids"
     },
     {
       "section": "crud:bids",
@@ -646,19 +646,19 @@
       "section": "crud:projects",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE projects\",\"type\":\"Commercial building\",\"scope\":\"QAD83EAE notes for scope\",\"budget\":123.45,\"health\":\"ON"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 projects\",\"type\":\"Commercial building\",\"scope\":\"QABDAE10 notes for scope\",\"budget\":123.45,\"health\":\"ON"
     },
     {
       "section": "crud:projects",
       "check": "sequence number",
       "ok": true,
-      "detail": "PRJ-0006"
+      "detail": "PRJ-0010"
     },
     {
       "section": "crud:projects",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE projects vs QAD83EAE projects"
+      "detail": "QABDAE10 projects vs QABDAE10 projects"
     },
     {
       "section": "crud:projects",
@@ -676,19 +676,19 @@
       "section": "crud:projects",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE UPDATED projects\",\"type\":\"Commercial building\",\"scope\":\"QAD83EAE notes for scope\",\"budget\":123.45,\"hea"
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 UPDATED projects\",\"type\":\"Commercial building\",\"scope\":\"QABDAE10 notes for scope\",\"budget\":123.45,\"hea"
     },
     {
       "section": "crud:projects",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAD83EAE code'): got QAD83EAE code"
+      "detail": "('code', 'QABDAE10 code'): got QABDAE10 code"
     },
     {
       "section": "crud:projects",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED projects"
+      "detail": "QABDAE10 UPDATED projects"
     },
     {
       "section": "crud:projects",
@@ -766,19 +766,19 @@
       "section": "crud:tasks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE tasks\",\"number\":\"TSK-0025\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QAD83EAE wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265-aa92-4e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 tasks\",\"number\":\"TSK-0029\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QABDAE10 wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265-aa92-4e"
     },
     {
       "section": "crud:tasks",
       "check": "sequence number",
       "ok": true,
-      "detail": "TSK-0025"
+      "detail": "TSK-0029"
     },
     {
       "section": "crud:tasks",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE tasks vs QAD83EAE tasks"
+      "detail": "QABDAE10 tasks vs QABDAE10 tasks"
     },
     {
       "section": "crud:tasks",
@@ -796,19 +796,19 @@
       "section": "crud:tasks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED tasks\",\"number\":\"TSK-0025\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QAD83EAE wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED tasks\",\"number\":\"TSK-0029\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QABDAE10 wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265"
     },
     {
       "section": "crud:tasks",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('wbsCode', 'QAD83EAE wbsCode'): got QAD83EAE wbsCode"
+      "detail": "('wbsCode', 'QABDAE10 wbsCode'): got QABDAE10 wbsCode"
     },
     {
       "section": "crud:tasks",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED tasks"
+      "detail": "QABDAE10 UPDATED tasks"
     },
     {
       "section": "crud:tasks",
@@ -886,19 +886,19 @@
       "section": "crud:contracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QAD83EAE contracts\",\"value\":123.45,\"number\":\"CTR-0007\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QABDAE10 contracts\",\"value\":123.45,\"number\":\"CTR-0011\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a"
     },
     {
       "section": "crud:contracts",
       "check": "sequence number",
       "ok": true,
-      "detail": "CTR-0007"
+      "detail": "CTR-0011"
     },
     {
       "section": "crud:contracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE contracts vs QAD83EAE contracts"
+      "detail": "QABDAE10 contracts vs QABDAE10 contracts"
     },
     {
       "section": "crud:contracts",
@@ -916,7 +916,7 @@
       "section": "crud:contracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QAD83EAE UPDATED contracts\",\"value\":123.45,\"number\":\"CTR-0007\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff"
+      "detail": "HTTP 200 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QABDAE10 UPDATED contracts\",\"value\":123.45,\"number\":\"CTR-0011\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff"
     },
     {
       "section": "crud:contracts",
@@ -928,7 +928,7 @@
       "section": "crud:contracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED contracts"
+      "detail": "QABDAE10 UPDATED contracts"
     },
     {
       "section": "crud:contracts",
@@ -1006,19 +1006,19 @@
       "section": "crud:changeOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE changeOrders\",\"amount\":123.45,\"number\":\"CO-0013\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92-4eff-a3"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 changeOrders\",\"amount\":123.45,\"number\":\"CO-0017\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92-4eff-a3"
     },
     {
       "section": "crud:changeOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "CO-0013"
+      "detail": "CO-0017"
     },
     {
       "section": "crud:changeOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE changeOrders vs QAD83EAE changeOrders"
+      "detail": "QABDAE10 changeOrders vs QABDAE10 changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1036,19 +1036,19 @@
       "section": "crud:changeOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED changeOrders\",\"amount\":123.45,\"number\":\"CO-0013\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED changeOrders\",\"amount\":123.45,\"number\":\"CO-0017\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92"
     },
     {
       "section": "crud:changeOrders",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('reference', 'QAD83EAE reference'): got QAD83EAE reference"
+      "detail": "('reference', 'QABDAE10 reference'): got QABDAE10 reference"
     },
     {
       "section": "crud:changeOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED changeOrders"
+      "detail": "QABDAE10 UPDATED changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1126,19 +1126,19 @@
       "section": "crud:rfis",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0019\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QAD83EAE specRef\",\"subject\":\"QAD83EAE rfis\",\"priority\":\"LOW\",\"question\":"
+      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0023\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QABDAE10 specRef\",\"subject\":\"QABDAE10 rfis\",\"priority\":\"LOW\",\"question\":"
     },
     {
       "section": "crud:rfis",
       "check": "sequence number",
       "ok": true,
-      "detail": "RFI-0019"
+      "detail": "RFI-0023"
     },
     {
       "section": "crud:rfis",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE rfis vs QAD83EAE rfis"
+      "detail": "QABDAE10 rfis vs QABDAE10 rfis"
     },
     {
       "section": "crud:rfis",
@@ -1156,19 +1156,19 @@
       "section": "crud:rfis",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"number\":\"RFI-0019\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QAD83EAE specRef\",\"subject\":\"QAD83EAE UPDATED rfis\",\"priority\":\"LOW\",\"qu"
+      "detail": "HTTP 200 {\"row\":{\"number\":\"RFI-0023\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QABDAE10 specRef\",\"subject\":\"QABDAE10 UPDATED rfis\",\"priority\":\"LOW\",\"qu"
     },
     {
       "section": "crud:rfis",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('specRef', 'QAD83EAE specRef'): got QAD83EAE specRef"
+      "detail": "('specRef', 'QABDAE10 specRef'): got QABDAE10 specRef"
     },
     {
       "section": "crud:rfis",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED rfis"
+      "detail": "QABDAE10 UPDATED rfis"
     },
     {
       "section": "crud:rfis",
@@ -1246,19 +1246,19 @@
       "section": "crud:submittals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0013\",\"status\":\"PENDING\",\"package\":\"QAD83EAE package\",\"projectId\":\"5eb6b265-a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0017\",\"status\":\"PENDING\",\"package\":\"QABDAE10 package\",\"projectId\":\"5eb6b265-a"
     },
     {
       "section": "crud:submittals",
       "check": "sequence number",
       "ok": true,
-      "detail": "SUB-0013"
+      "detail": "SUB-0017"
     },
     {
       "section": "crud:submittals",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE submittals vs QAD83EAE submittals"
+      "detail": "QABDAE10 submittals vs QABDAE10 submittals"
     },
     {
       "section": "crud:submittals",
@@ -1276,19 +1276,19 @@
       "section": "crud:submittals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0013\",\"status\":\"PENDING\",\"package\":\"QAD83EAE package\",\"projectId\":\"5e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0017\",\"status\":\"PENDING\",\"package\":\"QABDAE10 package\",\"projectId\":\"5e"
     },
     {
       "section": "crud:submittals",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('package', 'QAD83EAE package'): got QAD83EAE package"
+      "detail": "('package', 'QABDAE10 package'): got QABDAE10 package"
     },
     {
       "section": "crud:submittals",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED submittals"
+      "detail": "QABDAE10 UPDATED submittals"
     },
     {
       "section": "crud:submittals",
@@ -1366,19 +1366,19 @@
       "section": "crud:documents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE documents\",\"type\":\"Drawing\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"DOC-0021\",\"status\":\"DRAFT\",\"fileName\":\"QAD83EAE file"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 documents\",\"type\":\"Drawing\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"DOC-0024\",\"status\":\"DRAFT\",\"fileName\":\"QABDAE10 file"
     },
     {
       "section": "crud:documents",
       "check": "sequence number",
       "ok": true,
-      "detail": "DOC-0021"
+      "detail": "DOC-0024"
     },
     {
       "section": "crud:documents",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE documents vs QAD83EAE documents"
+      "detail": "QABDAE10 documents vs QABDAE10 documents"
     },
     {
       "section": "crud:documents",
@@ -1396,19 +1396,19 @@
       "section": "crud:documents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED documents\",\"type\":\"Drawing\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"DOC-0021\",\"status\":\"DRAFT\",\"fileName\":\"QAD83"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED documents\",\"type\":\"Drawing\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"DOC-0024\",\"status\":\"DRAFT\",\"fileName\":\"QABDA"
     },
     {
       "section": "crud:documents",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('drawingNo', 'QAD83EAE drawingNo'): got QAD83EAE drawingNo"
+      "detail": "('drawingNo', 'QABDAE10 drawingNo'): got QABDAE10 drawingNo"
     },
     {
       "section": "crud:documents",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED documents"
+      "detail": "QABDAE10 UPDATED documents"
     },
     {
       "section": "crud:documents",
@@ -1486,19 +1486,19 @@
       "section": "crud:dailyLogs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE dailyLogs\",\"delays\":\"QAD83EAE notes for delays\",\"number\":\"DL-0031\",\"status\":\"DRAFT\",\"weather\":\"Sunny\",\"ma"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 dailyLogs\",\"delays\":\"QABDAE10 notes for delays\",\"number\":\"DL-0035\",\"status\":\"DRAFT\",\"weather\":\"Sunny\",\"ma"
     },
     {
       "section": "crud:dailyLogs",
       "check": "sequence number",
       "ok": true,
-      "detail": "DL-0031"
+      "detail": "DL-0035"
     },
     {
       "section": "crud:dailyLogs",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE dailyLogs vs QAD83EAE dailyLogs"
+      "detail": "QABDAE10 dailyLogs vs QABDAE10 dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1516,7 +1516,7 @@
       "section": "crud:dailyLogs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED dailyLogs\",\"delays\":\"QAD83EAE notes for delays\",\"number\":\"DL-0031\",\"status\":\"DRAFT\",\"weather\":\"Su"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED dailyLogs\",\"delays\":\"QABDAE10 notes for delays\",\"number\":\"DL-0035\",\"status\":\"DRAFT\",\"weather\":\"Su"
     },
     {
       "section": "crud:dailyLogs",
@@ -1528,7 +1528,7 @@
       "section": "crud:dailyLogs",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED dailyLogs"
+      "detail": "QABDAE10 UPDATED dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1606,19 +1606,19 @@
       "section": "crud:meetings",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE meetings\",\"type\":\"Site progress\",\"agenda\":\"QAD83EAE notes for agenda\",\"number\":\"MTG-0009\",\"status\":\"SCHED"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 meetings\",\"type\":\"Site progress\",\"agenda\":\"QABDAE10 notes for agenda\",\"number\":\"MTG-0012\",\"status\":\"SCHED"
     },
     {
       "section": "crud:meetings",
       "check": "sequence number",
       "ok": true,
-      "detail": "MTG-0009"
+      "detail": "MTG-0012"
     },
     {
       "section": "crud:meetings",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE meetings vs QAD83EAE meetings"
+      "detail": "QABDAE10 meetings vs QABDAE10 meetings"
     },
     {
       "section": "crud:meetings",
@@ -1636,7 +1636,7 @@
       "section": "crud:meetings",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED meetings\",\"type\":\"Site progress\",\"agenda\":\"QAD83EAE notes for agenda\",\"number\":\"MTG-0009\",\"status"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED meetings\",\"type\":\"Site progress\",\"agenda\":\"QABDAE10 notes for agenda\",\"number\":\"MTG-0012\",\"status"
     },
     {
       "section": "crud:meetings",
@@ -1648,7 +1648,7 @@
       "section": "crud:meetings",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED meetings"
+      "detail": "QABDAE10 UPDATED meetings"
     },
     {
       "section": "crud:meetings",
@@ -1726,19 +1726,19 @@
       "section": "crud:punchLists",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0019\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QAD83EAE location"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0022\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QABDAE10 location"
     },
     {
       "section": "crud:punchLists",
       "check": "sequence number",
       "ok": true,
-      "detail": "PNC-0019"
+      "detail": "PNC-0022"
     },
     {
       "section": "crud:punchLists",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE punchLists vs QAD83EAE punchLists"
+      "detail": "QABDAE10 punchLists vs QABDAE10 punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1756,19 +1756,19 @@
       "section": "crud:punchLists",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0019\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QAD83EAE "
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0022\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QABDAE10 "
     },
     {
       "section": "crud:punchLists",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('location', 'QAD83EAE location'): got QAD83EAE location"
+      "detail": "('location', 'QABDAE10 location'): got QABDAE10 location"
     },
     {
       "section": "crud:punchLists",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED punchLists"
+      "detail": "QABDAE10 UPDATED punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1846,19 +1846,19 @@
       "section": "crud:permits",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE permits\",\"type\":\"Building permit\",\"number\":\"PMT-0009\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QAD83EAE authority\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 permits\",\"type\":\"Building permit\",\"number\":\"PMT-0012\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QABDAE10 authority\","
     },
     {
       "section": "crud:permits",
       "check": "sequence number",
       "ok": true,
-      "detail": "PMT-0009"
+      "detail": "PMT-0012"
     },
     {
       "section": "crud:permits",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE permits vs QAD83EAE permits"
+      "detail": "QABDAE10 permits vs QABDAE10 permits"
     },
     {
       "section": "crud:permits",
@@ -1876,19 +1876,19 @@
       "section": "crud:permits",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED permits\",\"type\":\"Building permit\",\"number\":\"PMT-0009\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QAD83EAE aut"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED permits\",\"type\":\"Building permit\",\"number\":\"PMT-0012\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QABDAE10 aut"
     },
     {
       "section": "crud:permits",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('authority', 'QAD83EAE authority'): got QAD83EAE authority"
+      "detail": "('authority', 'QABDAE10 authority'): got QABDAE10 authority"
     },
     {
       "section": "crud:permits",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED permits"
+      "detail": "QABDAE10 UPDATED permits"
     },
     {
       "section": "crud:permits",
@@ -1966,19 +1966,19 @@
       "section": "crud:vendors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":\"QAD83EAE city\",\"name\":\"QAD83EAE vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qad83eae@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"number\""
+      "detail": "HTTP 201 {\"row\":{\"city\":\"QABDAE10 city\",\"name\":\"QABDAE10 vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qabdae10@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"number\""
     },
     {
       "section": "crud:vendors",
       "check": "sequence number",
       "ok": true,
-      "detail": "VEN-0013"
+      "detail": "VEN-0016"
     },
     {
       "section": "crud:vendors",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE vendors vs QAD83EAE vendors"
+      "detail": "QABDAE10 vendors vs QABDAE10 vendors"
     },
     {
       "section": "crud:vendors",
@@ -1996,19 +1996,19 @@
       "section": "crud:vendors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"city\":\"QAD83EAE city\",\"name\":\"QAD83EAE UPDATED vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qad83eae@example.co.zw\",\"phone\":\"+263 77 000 0000\","
+      "detail": "HTTP 200 {\"row\":{\"city\":\"QABDAE10 city\",\"name\":\"QABDAE10 UPDATED vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qabdae10@example.co.zw\",\"phone\":\"+263 77 000 0000\","
     },
     {
       "section": "crud:vendors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAD83EAE registrationNo'): got QAD83EAE registrationNo"
+      "detail": "('registrationNo', 'QABDAE10 registrationNo'): got QABDAE10 registrationNo"
     },
     {
       "section": "crud:vendors",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED vendors"
+      "detail": "QABDAE10 UPDATED vendors"
     },
     {
       "section": "crud:vendors",
@@ -2086,19 +2086,19 @@
       "section": "crud:subcontractors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE subcontractors\",\"email\":\"qa.qad83eae@example.co.zw\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"S"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 subcontractors\",\"email\":\"qa.qabdae10@example.co.zw\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"S"
     },
     {
       "section": "crud:subcontractors",
       "check": "sequence number",
       "ok": true,
-      "detail": "SC-0009"
+      "detail": "SC-0012"
     },
     {
       "section": "crud:subcontractors",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE subcontractors vs QAD83EAE subcontractors"
+      "detail": "QABDAE10 subcontractors vs QABDAE10 subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2116,19 +2116,19 @@
       "section": "crud:subcontractors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED subcontractors\",\"email\":\"qa.qad83eae@example.co.zw\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"nu"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED subcontractors\",\"email\":\"qa.qabdae10@example.co.zw\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"nu"
     },
     {
       "section": "crud:subcontractors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QAD83EAE registrationNo'): got QAD83EAE registrationNo"
+      "detail": "('registrationNo', 'QABDAE10 registrationNo'): got QABDAE10 registrationNo"
     },
     {
       "section": "crud:subcontractors",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED subcontractors"
+      "detail": "QABDAE10 UPDATED subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2206,19 +2206,19 @@
       "section": "crud:requisitions",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE requisitions\",\"items\":\"QAD83EAE notes for items\",\"number\":\"MR-0011\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5eb6b265-a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 requisitions\",\"items\":\"QABDAE10 notes for items\",\"number\":\"MR-0014\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5eb6b265-a"
     },
     {
       "section": "crud:requisitions",
       "check": "sequence number",
       "ok": true,
-      "detail": "MR-0011"
+      "detail": "MR-0014"
     },
     {
       "section": "crud:requisitions",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE requisitions vs QAD83EAE requisitions"
+      "detail": "QABDAE10 requisitions vs QABDAE10 requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2236,7 +2236,7 @@
       "section": "crud:requisitions",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED requisitions\",\"items\":\"QAD83EAE notes for items\",\"number\":\"MR-0011\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED requisitions\",\"items\":\"QABDAE10 notes for items\",\"number\":\"MR-0014\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5e"
     },
     {
       "section": "crud:requisitions",
@@ -2248,7 +2248,7 @@
       "section": "crud:requisitions",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED requisitions"
+      "detail": "QABDAE10 UPDATED requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2326,19 +2326,19 @@
       "section": "crud:purchaseOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE purchaseOrders\",\"items\":\"QAD83EAE notes for items\",\"amount\":123.45,\"number\":\"PO-0017\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"curre"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 purchaseOrders\",\"items\":\"QABDAE10 notes for items\",\"amount\":123.45,\"number\":\"PO-0021\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"curre"
     },
     {
       "section": "crud:purchaseOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "PO-0017"
+      "detail": "PO-0021"
     },
     {
       "section": "crud:purchaseOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE purchaseOrders vs QAD83EAE purchaseOrders"
+      "detail": "QABDAE10 purchaseOrders vs QABDAE10 purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2356,7 +2356,7 @@
       "section": "crud:purchaseOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED purchaseOrders\",\"items\":\"QAD83EAE notes for items\",\"amount\":123.45,\"number\":\"PO-0017\",\"status\":\"DRAFT\",\"vatPct\":123.4"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED purchaseOrders\",\"items\":\"QABDAE10 notes for items\",\"amount\":123.45,\"number\":\"PO-0021\",\"status\":\"DRAFT\",\"vatPct\":123.4"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2368,7 +2368,7 @@
       "section": "crud:purchaseOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED purchaseOrders"
+      "detail": "QABDAE10 UPDATED purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2446,19 +2446,19 @@
       "section": "crud:goodsReceipts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE goodsReceipts\",\"items\":\"QAD83EAE notes for items\",\"number\":\"GRN-0011\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 goodsReceipts\",\"items\":\"QABDAE10 notes for items\",\"number\":\"GRN-0014\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff-a36d-5a"
     },
     {
       "section": "crud:goodsReceipts",
       "check": "sequence number",
       "ok": true,
-      "detail": "GRN-0011"
+      "detail": "GRN-0014"
     },
     {
       "section": "crud:goodsReceipts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE goodsReceipts vs QAD83EAE goodsReceipts"
+      "detail": "QABDAE10 goodsReceipts vs QABDAE10 goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2476,7 +2476,7 @@
       "section": "crud:goodsReceipts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED goodsReceipts\",\"items\":\"QAD83EAE notes for items\",\"number\":\"GRN-0011\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED goodsReceipts\",\"items\":\"QABDAE10 notes for items\",\"number\":\"GRN-0014\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2488,7 +2488,7 @@
       "section": "crud:goodsReceipts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED goodsReceipts"
+      "detail": "QABDAE10 UPDATED goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2566,19 +2566,19 @@
       "section": "crud:inventory",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"sku\":\"QAD83EAE sku\",\"name\":\"QAD83EAE inventory\",\"unit\":\"each\",\"number\":\"STK-0019\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5eb6b265-"
+      "detail": "HTTP 201 {\"row\":{\"sku\":\"QABDAE10 sku\",\"name\":\"QABDAE10 inventory\",\"unit\":\"each\",\"number\":\"STK-0022\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5eb6b265-"
     },
     {
       "section": "crud:inventory",
       "check": "sequence number",
       "ok": true,
-      "detail": "STK-0019"
+      "detail": "STK-0022"
     },
     {
       "section": "crud:inventory",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE inventory vs QAD83EAE inventory"
+      "detail": "QABDAE10 inventory vs QABDAE10 inventory"
     },
     {
       "section": "crud:inventory",
@@ -2596,19 +2596,19 @@
       "section": "crud:inventory",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"sku\":\"QAD83EAE sku\",\"name\":\"QAD83EAE UPDATED inventory\",\"unit\":\"each\",\"number\":\"STK-0019\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5"
+      "detail": "HTTP 200 {\"row\":{\"sku\":\"QABDAE10 sku\",\"name\":\"QABDAE10 UPDATED inventory\",\"unit\":\"each\",\"number\":\"STK-0022\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5"
     },
     {
       "section": "crud:inventory",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('sku', 'QAD83EAE sku'): got QAD83EAE sku"
+      "detail": "('sku', 'QABDAE10 sku'): got QABDAE10 sku"
     },
     {
       "section": "crud:inventory",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED inventory"
+      "detail": "QABDAE10 UPDATED inventory"
     },
     {
       "section": "crud:inventory",
@@ -2686,19 +2686,19 @@
       "section": "crud:warehouses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE warehouses\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0003\",\"status\":"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 warehouses\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0006\",\"status\":"
     },
     {
       "section": "crud:warehouses",
       "check": "sequence number",
       "ok": true,
-      "detail": "WH-0003"
+      "detail": "WH-0006"
     },
     {
       "section": "crud:warehouses",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE warehouses vs QAD83EAE warehouses"
+      "detail": "QABDAE10 warehouses vs QABDAE10 warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2716,19 +2716,19 @@
       "section": "crud:warehouses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE UPDATED warehouses\",\"notes\":\"QAD83EAE notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0003\",\""
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 UPDATED warehouses\",\"notes\":\"QABDAE10 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0006\",\""
     },
     {
       "section": "crud:warehouses",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAD83EAE code'): got QAD83EAE code"
+      "detail": "('code', 'QABDAE10 code'): got QABDAE10 code"
     },
     {
       "section": "crud:warehouses",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED warehouses"
+      "detail": "QABDAE10 UPDATED warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2806,19 +2806,19 @@
       "section": "crud:equipment",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE equipment\",\"number\":\"EQ-0029\",\"status\":\"AVAILABLE\",\"assetTag\":\"QAD83EAE assetTag\",\"category\":\"Excavator\",\"operator\":\"5eb6b265"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 equipment\",\"number\":\"EQ-0032\",\"status\":\"AVAILABLE\",\"assetTag\":\"QABDAE10 assetTag\",\"category\":\"Excavator\",\"operator\":\"5eb6b265"
     },
     {
       "section": "crud:equipment",
       "check": "sequence number",
       "ok": true,
-      "detail": "EQ-0029"
+      "detail": "EQ-0032"
     },
     {
       "section": "crud:equipment",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE equipment vs QAD83EAE equipment"
+      "detail": "QABDAE10 equipment vs QABDAE10 equipment"
     },
     {
       "section": "crud:equipment",
@@ -2836,19 +2836,19 @@
       "section": "crud:equipment",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED equipment\",\"number\":\"EQ-0029\",\"status\":\"AVAILABLE\",\"assetTag\":\"QAD83EAE assetTag\",\"category\":\"Excavator\",\"operator\":\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED equipment\",\"number\":\"EQ-0032\",\"status\":\"AVAILABLE\",\"assetTag\":\"QABDAE10 assetTag\",\"category\":\"Excavator\",\"operator\":\""
     },
     {
       "section": "crud:equipment",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('assetTag', 'QAD83EAE assetTag'): got QAD83EAE assetTag"
+      "detail": "('assetTag', 'QABDAE10 assetTag'): got QABDAE10 assetTag"
     },
     {
       "section": "crud:equipment",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED equipment"
+      "detail": "QABDAE10 UPDATED equipment"
     },
     {
       "section": "crud:equipment",
@@ -2926,19 +2926,19 @@
       "section": "crud:workOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"name\":\"QAD83EAE workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0009\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"LOW\",\"pro"
+      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"name\":\"QABDAE10 workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0012\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"LOW\",\"pro"
     },
     {
       "section": "crud:workOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "WO-0009"
+      "detail": "WO-0012"
     },
     {
       "section": "crud:workOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE workOrders vs QAD83EAE workOrders"
+      "detail": "QABDAE10 workOrders vs QABDAE10 workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -2956,7 +2956,7 @@
       "section": "crud:workOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"name\":\"QAD83EAE UPDATED workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0009\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"L"
+      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"name\":\"QABDAE10 UPDATED workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0012\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"L"
     },
     {
       "section": "crud:workOrders",
@@ -2968,7 +2968,7 @@
       "section": "crud:workOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED workOrders"
+      "detail": "QABDAE10 UPDATED workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -3046,19 +3046,19 @@
       "section": "crud:employees",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE employees\",\"email\":\"qa.qad83eae@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"number\":\"EMP-"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 employees\",\"email\":\"qa.qabdae10@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"number\":\"EMP-"
     },
     {
       "section": "crud:employees",
       "check": "sequence number",
       "ok": true,
-      "detail": "EMP-0041"
+      "detail": "EMP-0044"
     },
     {
       "section": "crud:employees",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE employees vs QAD83EAE employees"
+      "detail": "QABDAE10 employees vs QABDAE10 employees"
     },
     {
       "section": "crud:employees",
@@ -3076,19 +3076,19 @@
       "section": "crud:employees",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED employees\",\"email\":\"qa.qad83eae@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"numbe"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED employees\",\"email\":\"qa.qabdae10@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"numbe"
     },
     {
       "section": "crud:employees",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('employeeNo', 'QAD83EAE employeeNo'): got QAD83EAE employeeNo"
+      "detail": "('employeeNo', 'QABDAE10 employeeNo'): got QABDAE10 employeeNo"
     },
     {
       "section": "crud:employees",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED employees"
+      "detail": "QABDAE10 UPDATED employees"
     },
     {
       "section": "crud:employees",
@@ -3166,19 +3166,19 @@
       "section": "crud:departments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QAD83EAE code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-1\",\"name\":\"QAD83EAE departments\",\"number\":\"DEP-0009\",\"status\":\"ACTIVE\""
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QABDAE10 code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QABDAE10 departments\",\"number\":\"DEP-0012\",\"status\":\"ACTIVE"
     },
     {
       "section": "crud:departments",
       "check": "sequence number",
       "ok": true,
-      "detail": "DEP-0009"
+      "detail": "DEP-0012"
     },
     {
       "section": "crud:departments",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE departments vs QAD83EAE departments"
+      "detail": "QABDAE10 departments vs QABDAE10 departments"
     },
     {
       "section": "crud:departments",
@@ -3196,19 +3196,19 @@
       "section": "crud:departments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QAD83EAE code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-1\",\"name\":\"QAD83EAE UPDATED departments\",\"number\":\"DEP-0009\",\"status\":"
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QABDAE10 code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QABDAE10 UPDATED departments\",\"number\":\"DEP-0012\",\"status\""
     },
     {
       "section": "crud:departments",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAD83EAE code'): got QAD83EAE code"
+      "detail": "('code', 'QABDAE10 code'): got QABDAE10 code"
     },
     {
       "section": "crud:departments",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED departments"
+      "detail": "QABDAE10 UPDATED departments"
     },
     {
       "section": "crud:departments",
@@ -3286,19 +3286,19 @@
       "section": "crud:crews",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE crews\",\"size\":123.45,\"shift\":\"QAD83EAE shift\",\"trade\":\"General labour\",\"number\":\"CRW-0009\",\"status\":\"ACTIVE\",\"members\":\"QAD83"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 crews\",\"size\":123.45,\"shift\":\"QABDAE10 shift\",\"trade\":\"General labour\",\"number\":\"CRW-0012\",\"status\":\"ACTIVE\",\"members\":\"QABDA"
     },
     {
       "section": "crud:crews",
       "check": "sequence number",
       "ok": true,
-      "detail": "CRW-0009"
+      "detail": "CRW-0012"
     },
     {
       "section": "crud:crews",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE crews vs QAD83EAE crews"
+      "detail": "QABDAE10 crews vs QABDAE10 crews"
     },
     {
       "section": "crud:crews",
@@ -3316,7 +3316,7 @@
       "section": "crud:crews",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED crews\",\"size\":123.45,\"shift\":\"QAD83EAE shift\",\"trade\":\"General labour\",\"number\":\"CRW-0009\",\"status\":\"ACTIVE\",\"members"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED crews\",\"size\":123.45,\"shift\":\"QABDAE10 shift\",\"trade\":\"General labour\",\"number\":\"CRW-0012\",\"status\":\"ACTIVE\",\"members"
     },
     {
       "section": "crud:crews",
@@ -3328,7 +3328,7 @@
       "section": "crud:crews",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED crews"
+      "detail": "QABDAE10 UPDATED crews"
     },
     {
       "section": "crud:crews",
@@ -3406,19 +3406,19 @@
       "section": "crud:timesheets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE timesheets\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"TS-0041\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\":\"5eb6b2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 timesheets\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"TS-0045\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\":\"5eb6b2"
     },
     {
       "section": "crud:timesheets",
       "check": "sequence number",
       "ok": true,
-      "detail": "TS-0041"
+      "detail": "TS-0045"
     },
     {
       "section": "crud:timesheets",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE timesheets vs QAD83EAE timesheets"
+      "detail": "QABDAE10 timesheets vs QABDAE10 timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3436,7 +3436,7 @@
       "section": "crud:timesheets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED timesheets\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"TS-0041\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED timesheets\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"TS-0045\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\""
     },
     {
       "section": "crud:timesheets",
@@ -3448,7 +3448,7 @@
       "section": "crud:timesheets",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED timesheets"
+      "detail": "QABDAE10 UPDATED timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3526,19 +3526,19 @@
       "section": "crud:leaveRequests",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"days\":123.45,\"name\":\"QAD83EAE leaveRequests\",\"number\":\"LV-0009\",\"reason\":\"QAD83EAE notes for reason\",\"status\":\"PENDING\",\"endDate\":\"2026-11-07"
+      "detail": "HTTP 201 {\"row\":{\"days\":123.45,\"name\":\"QABDAE10 leaveRequests\",\"number\":\"LV-0012\",\"reason\":\"QABDAE10 notes for reason\",\"status\":\"PENDING\",\"endDate\":\"2026-11-07"
     },
     {
       "section": "crud:leaveRequests",
       "check": "sequence number",
       "ok": true,
-      "detail": "LV-0009"
+      "detail": "LV-0012"
     },
     {
       "section": "crud:leaveRequests",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE leaveRequests vs QAD83EAE leaveRequests"
+      "detail": "QABDAE10 leaveRequests vs QABDAE10 leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3556,7 +3556,7 @@
       "section": "crud:leaveRequests",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"days\":123.45,\"name\":\"QAD83EAE UPDATED leaveRequests\",\"number\":\"LV-0009\",\"reason\":\"QAD83EAE notes for reason\",\"status\":\"PENDING\",\"endDate\":\"20"
+      "detail": "HTTP 200 {\"row\":{\"days\":123.45,\"name\":\"QABDAE10 UPDATED leaveRequests\",\"number\":\"LV-0012\",\"reason\":\"QABDAE10 notes for reason\",\"status\":\"PENDING\",\"endDate\":\"20"
     },
     {
       "section": "crud:leaveRequests",
@@ -3568,7 +3568,7 @@
       "section": "crud:leaveRequests",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED leaveRequests"
+      "detail": "QABDAE10 UPDATED leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3646,19 +3646,19 @@
       "section": "crud:payRuns",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE payRuns\",\"netPay\":123.45,\"number\":\"PAY-0004\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\"periodEn"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 payRuns\",\"netPay\":123.45,\"number\":\"PAY-0007\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\"periodEn"
     },
     {
       "section": "crud:payRuns",
       "check": "sequence number",
       "ok": true,
-      "detail": "PAY-0004"
+      "detail": "PAY-0007"
     },
     {
       "section": "crud:payRuns",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE payRuns vs QAD83EAE payRuns"
+      "detail": "QABDAE10 payRuns vs QABDAE10 payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3676,7 +3676,7 @@
       "section": "crud:payRuns",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED payRuns\",\"netPay\":123.45,\"number\":\"PAY-0004\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED payRuns\",\"netPay\":123.45,\"number\":\"PAY-0007\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\""
     },
     {
       "section": "crud:payRuns",
@@ -3688,7 +3688,7 @@
       "section": "crud:payRuns",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED payRuns"
+      "detail": "QABDAE10 UPDATED payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3766,19 +3766,19 @@
       "section": "crud:expenses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE expenses\",\"amount\":123.45,\"number\":\"EXP-0013\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6b265-aa9"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 expenses\",\"amount\":123.45,\"number\":\"EXP-0016\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6b265-aa9"
     },
     {
       "section": "crud:expenses",
       "check": "sequence number",
       "ok": true,
-      "detail": "EXP-0013"
+      "detail": "EXP-0016"
     },
     {
       "section": "crud:expenses",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE expenses vs QAD83EAE expenses"
+      "detail": "QABDAE10 expenses vs QABDAE10 expenses"
     },
     {
       "section": "crud:expenses",
@@ -3796,7 +3796,7 @@
       "section": "crud:expenses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED expenses\",\"amount\":123.45,\"number\":\"EXP-0013\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED expenses\",\"amount\":123.45,\"number\":\"EXP-0016\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6"
     },
     {
       "section": "crud:expenses",
@@ -3808,7 +3808,7 @@
       "section": "crud:expenses",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED expenses"
+      "detail": "QABDAE10 UPDATED expenses"
     },
     {
       "section": "crud:expenses",
@@ -3886,19 +3886,19 @@
       "section": "crud:certifications",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE certifications\",\"type\":\"Trade test\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"CERT-0017\",\"status\":\"VALID\",\"employeeId\":\"5e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 certifications\",\"type\":\"Trade test\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"CERT-0020\",\"status\":\"VALID\",\"employeeId\":\"5e"
     },
     {
       "section": "crud:certifications",
       "check": "sequence number",
       "ok": true,
-      "detail": "CERT-0017"
+      "detail": "CERT-0020"
     },
     {
       "section": "crud:certifications",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE certifications vs QAD83EAE certifications"
+      "detail": "QABDAE10 certifications vs QABDAE10 certifications"
     },
     {
       "section": "crud:certifications",
@@ -3916,19 +3916,19 @@
       "section": "crud:certifications",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED certifications\",\"type\":\"Trade test\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"CERT-0017\",\"status\":\"VALID\",\"employe"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED certifications\",\"type\":\"Trade test\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"CERT-0020\",\"status\":\"VALID\",\"employe"
     },
     {
       "section": "crud:certifications",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('issuingBody', 'QAD83EAE issuingBody'): got QAD83EAE issuingBody"
+      "detail": "('issuingBody', 'QABDAE10 issuingBody'): got QABDAE10 issuingBody"
     },
     {
       "section": "crud:certifications",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED certifications"
+      "detail": "QABDAE10 UPDATED certifications"
     },
     {
       "section": "crud:certifications",
@@ -4006,19 +4006,19 @@
       "section": "crud:training",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QAD83EAE training\",\"type\":\"Induction\",\"number\":\"TRN-0009\",\"status\":\"PLANNED\",\"outcome\":\"COMPLETED\",\""
+      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QABDAE10 training\",\"type\":\"Induction\",\"number\":\"TRN-0012\",\"status\":\"PLANNED\",\"outcome\":\"COMPLETED\",\""
     },
     {
       "section": "crud:training",
       "check": "sequence number",
       "ok": true,
-      "detail": "TRN-0009"
+      "detail": "TRN-0012"
     },
     {
       "section": "crud:training",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE training vs QAD83EAE training"
+      "detail": "QABDAE10 training vs QABDAE10 training"
     },
     {
       "section": "crud:training",
@@ -4036,7 +4036,7 @@
       "section": "crud:training",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED training\",\"type\":\"Induction\",\"number\":\"TRN-0009\",\"status\":\"PLANNED\",\"outcome\":\"COMP"
+      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED training\",\"type\":\"Induction\",\"number\":\"TRN-0012\",\"status\":\"PLANNED\",\"outcome\":\"COMP"
     },
     {
       "section": "crud:training",
@@ -4048,7 +4048,7 @@
       "section": "crud:training",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED training"
+      "detail": "QABDAE10 UPDATED training"
     },
     {
       "section": "crud:training",
@@ -4126,19 +4126,19 @@
       "section": "crud:toolboxTalks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0011\",\"status\":\"SCHEDULED\",\"hazards\":\"QAD83EAE notes fo"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0014\",\"status\":\"SCHEDULED\",\"hazards\":\"QABDAE10 notes fo"
     },
     {
       "section": "crud:toolboxTalks",
       "check": "sequence number",
       "ok": true,
-      "detail": "TBT-0011"
+      "detail": "TBT-0014"
     },
     {
       "section": "crud:toolboxTalks",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE toolboxTalks vs QAD83EAE toolboxTalks"
+      "detail": "QABDAE10 toolboxTalks vs QABDAE10 toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4156,7 +4156,7 @@
       "section": "crud:toolboxTalks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0011\",\"status\":\"SCHEDULED\",\"hazards\":\"QAD83EAE "
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0014\",\"status\":\"SCHEDULED\",\"hazards\":\"QABDAE10 "
     },
     {
       "section": "crud:toolboxTalks",
@@ -4168,7 +4168,7 @@
       "section": "crud:toolboxTalks",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED toolboxTalks"
+      "detail": "QABDAE10 UPDATED toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4246,19 +4246,19 @@
       "section": "crud:incidents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0007\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QAD83EAE location\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0011\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QABDAE10 location\","
     },
     {
       "section": "crud:incidents",
       "check": "sequence number",
       "ok": true,
-      "detail": "INC-0007"
+      "detail": "INC-0011"
     },
     {
       "section": "crud:incidents",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE incidents vs QAD83EAE incidents"
+      "detail": "QABDAE10 incidents vs QABDAE10 incidents"
     },
     {
       "section": "crud:incidents",
@@ -4276,7 +4276,7 @@
       "section": "crud:incidents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0007\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QAD83EAE lo"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0011\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QABDAE10 lo"
     },
     {
       "section": "crud:incidents",
@@ -4288,7 +4288,7 @@
       "section": "crud:incidents",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED incidents"
+      "detail": "QABDAE10 UPDATED incidents"
     },
     {
       "section": "crud:incidents",
@@ -4366,19 +4366,19 @@
       "section": "crud:inspections",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0011\",\"status\":\"SCHEDULED\",\"actions\":\"QAD8"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0014\",\"status\":\"SCHEDULED\",\"actions\":\"QABD"
     },
     {
       "section": "crud:inspections",
       "check": "sequence number",
       "ok": true,
-      "detail": "INS-0011"
+      "detail": "INS-0014"
     },
     {
       "section": "crud:inspections",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE inspections vs QAD83EAE inspections"
+      "detail": "QABDAE10 inspections vs QABDAE10 inspections"
     },
     {
       "section": "crud:inspections",
@@ -4396,7 +4396,7 @@
       "section": "crud:inspections",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0011\",\"status\":\"SCHEDULED\",\"action"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0014\",\"status\":\"SCHEDULED\",\"action"
     },
     {
       "section": "crud:inspections",
@@ -4408,7 +4408,7 @@
       "section": "crud:inspections",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED inspections"
+      "detail": "QABDAE10 UPDATED inspections"
     },
     {
       "section": "crud:inspections",
@@ -4486,19 +4486,19 @@
       "section": "crud:ncrs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE ncrs\",\"number\":\"NCR-0009\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-1\",\"s"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 ncrs\",\"number\":\"NCR-0012\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\""
     },
     {
       "section": "crud:ncrs",
       "check": "sequence number",
       "ok": true,
-      "detail": "NCR-0009"
+      "detail": "NCR-0012"
     },
     {
       "section": "crud:ncrs",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE ncrs vs QAD83EAE ncrs"
+      "detail": "QABDAE10 ncrs vs QABDAE10 ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4516,7 +4516,7 @@
       "section": "crud:ncrs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED ncrs\",\"number\":\"NCR-0009\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED ncrs\",\"number\":\"NCR-0012\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_e"
     },
     {
       "section": "crud:ncrs",
@@ -4528,7 +4528,7 @@
       "section": "crud:ncrs",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED ncrs"
+      "detail": "QABDAE10 UPDATED ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4606,19 +4606,19 @@
       "section": "crud:itps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0009\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"projectId\":\"5eb"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0012\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"projectId\":\"5eb"
     },
     {
       "section": "crud:itps",
       "check": "sequence number",
       "ok": true,
-      "detail": "ITP-0009"
+      "detail": "ITP-0012"
     },
     {
       "section": "crud:itps",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE itps vs QAD83EAE itps"
+      "detail": "QABDAE10 itps vs QABDAE10 itps"
     },
     {
       "section": "crud:itps",
@@ -4636,19 +4636,19 @@
       "section": "crud:itps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0009\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"project"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0012\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"project"
     },
     {
       "section": "crud:itps",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('discipline', 'QAD83EAE discipline'): got QAD83EAE discipline"
+      "detail": "('discipline', 'QABDAE10 discipline'): got QABDAE10 discipline"
     },
     {
       "section": "crud:itps",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED itps"
+      "detail": "QABDAE10 UPDATED itps"
     },
     {
       "section": "crud:itps",
@@ -4726,19 +4726,19 @@
       "section": "crud:accounts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0025\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_acc-1\",\"st"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0028\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_acc-5\",\"st"
     },
     {
       "section": "crud:accounts",
       "check": "sequence number",
       "ok": true,
-      "detail": "ACC-0025"
+      "detail": "ACC-0028"
     },
     {
       "section": "crud:accounts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE accounts vs QAD83EAE accounts"
+      "detail": "QABDAE10 accounts vs QABDAE10 accounts"
     },
     {
       "section": "crud:accounts",
@@ -4756,19 +4756,19 @@
       "section": "crud:accounts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QAD83EAE code\",\"name\":\"QAD83EAE UPDATED accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0025\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_ac"
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QABDAE10 code\",\"name\":\"QABDAE10 UPDATED accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0028\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_ac"
     },
     {
       "section": "crud:accounts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QAD83EAE code'): got QAD83EAE code"
+      "detail": "('code', 'QABDAE10 code'): got QABDAE10 code"
     },
     {
       "section": "crud:accounts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED accounts"
+      "detail": "QABDAE10 UPDATED accounts"
     },
     {
       "section": "crud:accounts",
@@ -4846,19 +4846,19 @@
       "section": "crud:journals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0013\",\"period\":\"QAD83EAE period\",\"status\":\"DRAFT\","
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0016\",\"period\":\"QABDAE10 period\",\"status\":\"DRAFT\","
     },
     {
       "section": "crud:journals",
       "check": "sequence number",
       "ok": true,
-      "detail": "JNL-0013"
+      "detail": "JNL-0016"
     },
     {
       "section": "crud:journals",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE journals vs QAD83EAE journals"
+      "detail": "QABDAE10 journals vs QABDAE10 journals"
     },
     {
       "section": "crud:journals",
@@ -4876,7 +4876,7 @@
       "section": "crud:journals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE UPDATED journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0013\",\"period\":\"QAD83EAE period\",\"status\":"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 UPDATED journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0016\",\"period\":\"QABDAE10 period\",\"status\":"
     },
     {
       "section": "crud:journals",
@@ -4888,7 +4888,7 @@
       "section": "crud:journals",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED journals"
+      "detail": "QABDAE10 UPDATED journals"
     },
     {
       "section": "crud:journals",
@@ -4966,19 +4966,19 @@
       "section": "crud:budgets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE budgets\",\"number\":\"BUD-0016\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QAD83EAE costCode\",\"committed\":123.45,\"projectI"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 budgets\",\"number\":\"BUD-0019\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QABDAE10 costCode\",\"committed\":123.45,\"projectI"
     },
     {
       "section": "crud:budgets",
       "check": "sequence number",
       "ok": true,
-      "detail": "BUD-0016"
+      "detail": "BUD-0019"
     },
     {
       "section": "crud:budgets",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE budgets vs QAD83EAE budgets"
+      "detail": "QABDAE10 budgets vs QABDAE10 budgets"
     },
     {
       "section": "crud:budgets",
@@ -4996,19 +4996,19 @@
       "section": "crud:budgets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED budgets\",\"number\":\"BUD-0016\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QAD83EAE costCode\",\"committed\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED budgets\",\"number\":\"BUD-0019\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QABDAE10 costCode\",\"committed\":123.45,\""
     },
     {
       "section": "crud:budgets",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('costCode', 'QAD83EAE costCode'): got QAD83EAE costCode"
+      "detail": "('costCode', 'QABDAE10 costCode'): got QABDAE10 costCode"
     },
     {
       "section": "crud:budgets",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED budgets"
+      "detail": "QABDAE10 UPDATED budgets"
     },
     {
       "section": "crud:budgets",
@@ -5086,19 +5086,19 @@
       "section": "crud:arInvoices",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0015\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07\",\"clien"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0019\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07\",\"clien"
     },
     {
       "section": "crud:arInvoices",
       "check": "sequence number",
       "ok": true,
-      "detail": "INV-0015"
+      "detail": "INV-0019"
     },
     {
       "section": "crud:arInvoices",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE arInvoices vs QAD83EAE arInvoices"
+      "detail": "QABDAE10 arInvoices vs QABDAE10 arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5116,7 +5116,7 @@
       "section": "crud:arInvoices",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0015\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0019\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07"
     },
     {
       "section": "crud:arInvoices",
@@ -5128,7 +5128,7 @@
       "section": "crud:arInvoices",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED arInvoices"
+      "detail": "QABDAE10 UPDATED arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5206,19 +5206,19 @@
       "section": "crud:paymentApps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE paymentApps\",\"number\":\"PC-0009\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-1\",\"periodEnd\":\"2026-11"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 paymentApps\",\"number\":\"PC-0013\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-8\",\"periodEnd\":\"2026-11"
     },
     {
       "section": "crud:paymentApps",
       "check": "sequence number",
       "ok": true,
-      "detail": "PC-0009"
+      "detail": "PC-0013"
     },
     {
       "section": "crud:paymentApps",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE paymentApps vs QAD83EAE paymentApps"
+      "detail": "QABDAE10 paymentApps vs QABDAE10 paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5236,7 +5236,7 @@
       "section": "crud:paymentApps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED paymentApps\",\"number\":\"PC-0009\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-1\",\"periodEnd\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED paymentApps\",\"number\":\"PC-0013\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-8\",\"periodEnd\":"
     },
     {
       "section": "crud:paymentApps",
@@ -5248,7 +5248,7 @@
       "section": "crud:paymentApps",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED paymentApps"
+      "detail": "QABDAE10 UPDATED paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5326,19 +5326,19 @@
       "section": "crud:apBills",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0017\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026-11-07\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0020\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026-11-07\","
     },
     {
       "section": "crud:apBills",
       "check": "sequence number",
       "ok": true,
-      "detail": "BILL-0017"
+      "detail": "BILL-0020"
     },
     {
       "section": "crud:apBills",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE apBills vs QAD83EAE apBills"
+      "detail": "QABDAE10 apBills vs QABDAE10 apBills"
     },
     {
       "section": "crud:apBills",
@@ -5356,19 +5356,19 @@
       "section": "crud:apBills",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0017\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0020\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026"
     },
     {
       "section": "crud:apBills",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('vendorInvoiceNo', 'QAD83EAE vendorInvoiceNo'): got QAD83EAE vendorInvoiceNo"
+      "detail": "('vendorInvoiceNo', 'QABDAE10 vendorInvoiceNo'): got QABDAE10 vendorInvoiceNo"
     },
     {
       "section": "crud:apBills",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED apBills"
+      "detail": "QABDAE10 UPDATED apBills"
     },
     {
       "section": "crud:apBills",
@@ -5446,19 +5446,19 @@
       "section": "crud:payments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0015\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4eff-a36d"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0018\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4eff-a36d"
     },
     {
       "section": "crud:payments",
       "check": "sequence number",
       "ok": true,
-      "detail": "PYM-0015"
+      "detail": "PYM-0018"
     },
     {
       "section": "crud:payments",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE payments vs QAD83EAE payments"
+      "detail": "QABDAE10 payments vs QABDAE10 payments"
     },
     {
       "section": "crud:payments",
@@ -5476,7 +5476,7 @@
       "section": "crud:payments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0015\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0018\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4"
     },
     {
       "section": "crud:payments",
@@ -5488,7 +5488,7 @@
       "section": "crud:payments",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED payments"
+      "detail": "QABDAE10 UPDATED payments"
     },
     {
       "section": "crud:payments",
@@ -5566,19 +5566,19 @@
       "section": "crud:units",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"area\":123.45,\"name\":\"QAD83EAE units\",\"type\":\"Apartment\",\"block\":\"QAD83EAE block\",\"buyer\":\"QAD83EAE buyer\",\"number\":\"UN-0011\",\"status\":\"AVAILA"
+      "detail": "HTTP 201 {\"row\":{\"area\":123.45,\"name\":\"QABDAE10 units\",\"type\":\"Apartment\",\"block\":\"QABDAE10 block\",\"buyer\":\"QABDAE10 buyer\",\"number\":\"UN-0014\",\"status\":\"AVAILA"
     },
     {
       "section": "crud:units",
       "check": "sequence number",
       "ok": true,
-      "detail": "UN-0011"
+      "detail": "UN-0014"
     },
     {
       "section": "crud:units",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE units vs QAD83EAE units"
+      "detail": "QABDAE10 units vs QABDAE10 units"
     },
     {
       "section": "crud:units",
@@ -5596,19 +5596,19 @@
       "section": "crud:units",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"area\":123.45,\"name\":\"QAD83EAE UPDATED units\",\"type\":\"Apartment\",\"block\":\"QAD83EAE block\",\"buyer\":\"QAD83EAE buyer\",\"number\":\"UN-0011\",\"status\""
+      "detail": "HTTP 200 {\"row\":{\"area\":123.45,\"name\":\"QABDAE10 UPDATED units\",\"type\":\"Apartment\",\"block\":\"QABDAE10 block\",\"buyer\":\"QABDAE10 buyer\",\"number\":\"UN-0014\",\"status\""
     },
     {
       "section": "crud:units",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('block', 'QAD83EAE block'): got QAD83EAE block"
+      "detail": "('block', 'QABDAE10 block'): got QABDAE10 block"
     },
     {
       "section": "crud:units",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED units"
+      "detail": "QABDAE10 UPDATED units"
     },
     {
       "section": "crud:units",
@@ -5686,19 +5686,19 @@
       "section": "crud:rentalContracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0007\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-4eff-a36"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0010\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-4eff-a36"
     },
     {
       "section": "crud:rentalContracts",
       "check": "sequence number",
       "ok": true,
-      "detail": "RNT-0007"
+      "detail": "RNT-0010"
     },
     {
       "section": "crud:rentalContracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE rentalContracts vs QAD83EAE rentalContracts"
+      "detail": "QABDAE10 rentalContracts vs QABDAE10 rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5716,7 +5716,7 @@
       "section": "crud:rentalContracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0007\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0010\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-"
     },
     {
       "section": "crud:rentalContracts",
@@ -5728,7 +5728,7 @@
       "section": "crud:rentalContracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED rentalContracts"
+      "detail": "QABDAE10 UPDATED rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5806,19 +5806,19 @@
       "section": "crud:commissioning",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE commissioning\",\"number\":\"COM-0007\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f308"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 commissioning\",\"number\":\"COM-0010\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f308"
     },
     {
       "section": "crud:commissioning",
       "check": "sequence number",
       "ok": true,
-      "detail": "COM-0007"
+      "detail": "COM-0010"
     },
     {
       "section": "crud:commissioning",
       "check": "title derived",
       "ok": true,
-      "detail": "QAD83EAE commissioning vs QAD83EAE commissioning"
+      "detail": "QABDAE10 commissioning vs QABDAE10 commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5836,19 +5836,19 @@
       "section": "crud:commissioning",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QAD83EAE UPDATED commissioning\",\"number\":\"COM-0007\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QABDAE10 UPDATED commissioning\",\"number\":\"COM-0010\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a"
     },
     {
       "section": "crud:commissioning",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('systemCode', 'QAD83EAE systemCode'): got QAD83EAE systemCode"
+      "detail": "('systemCode', 'QABDAE10 systemCode'): got QABDAE10 systemCode"
     },
     {
       "section": "crud:commissioning",
       "check": "title updated",
       "ok": true,
-      "detail": "QAD83EAE UPDATED commissioning"
+      "detail": "QABDAE10 UPDATED commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5914,79 +5914,79 @@
       "section": "connectivity",
       "check": "client \u2192 project link",
       "ok": true,
-      "detail": "client=5e4b7bbc-9345-4516-abe7-c20016d7d798 project=cd171fab-cee9-425f-b0d0-e51c67777375"
+      "detail": "client=fad6f522-96e2-4e06-9323-8467ceab9b6c project=0ba3611a-712d-41c1-99b1-dd8d8a0108ae"
     },
     {
       "section": "connectivity",
       "check": "create estimates linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE estimates\",\"scope\":\"QAD83EAE notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 estimates\",\"scope\":\"QABDAE10 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-"
     },
     {
       "section": "connectivity",
       "check": "create contracts linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QAD83EAE contracts\",\"value\":123.45,\"number\":\"CTR-0010\",\"status\":\"DRAFT\",\"clientI"
+      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QABDAE10 contracts\",\"value\":123.45,\"number\":\"CTR-0014\",\"status\":\"DRAFT\",\"clientI"
     },
     {
       "section": "connectivity",
       "check": "create arInvoices linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0018\",\"status\":\"DRAFT\",\"vatPct\":123.45"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0022\",\"status\":\"DRAFT\",\"vatPct\":123.45"
     },
     {
       "section": "connectivity",
       "check": "create paymentApps linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE paymentApps\",\"number\":\"PC-0012\",\"status\":\"DRAFT\",\"clientId\":\"5e4b7bbc-9345-4516-abe7-c20016d7d7"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 paymentApps\",\"number\":\"PC-0016\",\"status\":\"DRAFT\",\"clientId\":\"fad6f522-96e2-4e06-9323-8467ceab9b"
     },
     {
       "section": "connectivity",
       "check": "create rfis linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0022\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QAD83EAE specRef\",\"subject\":\"QAD83EAE rfis"
+      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0026\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QABDAE10 specRef\",\"subject\":\"QABDAE10 rfis"
     },
     {
       "section": "connectivity",
       "check": "create submittals linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0016\",\"status\":\"PENDING\",\"package\":\"QAD83EAE pa"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0020\",\"status\":\"PENDING\",\"package\":\"QABDAE10 pa"
     },
     {
       "section": "connectivity",
       "check": "create changeOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE changeOrders\",\"amount\":123.45,\"number\":\"CO-0016\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"pro"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 changeOrders\",\"amount\":123.45,\"number\":\"CO-0020\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"pro"
     },
     {
       "section": "connectivity",
       "check": "create dailyLogs linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QAD83EAE dailyLogs\",\"delays\":\"QAD83EAE notes for delays\",\"number\":\"DL-0034\",\"status\""
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QABDAE10 dailyLogs\",\"delays\":\"QABDAE10 notes for delays\",\"number\":\"DL-0038\",\"status\""
     },
     {
       "section": "connectivity",
       "check": "create purchaseOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE purchaseOrders\",\"items\":\"QAD83EAE notes for items\",\"amount\":123.45,\"number\":\"PO-0020\",\"status\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 purchaseOrders\",\"items\":\"QABDAE10 notes for items\",\"amount\":123.45,\"number\":\"PO-0024\",\"status\":"
     },
     {
       "section": "connectivity",
       "check": "create timesheets linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE timesheets\",\"notes\":\"QAD83EAE notes for notes\",\"number\":\"TS-0044\",\"status\":\"DRAFT\",\"weekEnd\":\"2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 timesheets\",\"notes\":\"QABDAE10 notes for notes\",\"number\":\"TS-0048\",\"status\":\"DRAFT\",\"weekEnd\":\"2"
     },
     {
       "section": "connectivity",
       "check": "create incidents linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0010\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0014\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\""
     },
     {
       "section": "connectivity",
       "check": "create tasks linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QAD83EAE tasks\",\"number\":\"TSK-0028\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QAD83EAE wbsCode\",\"duration\":123.4"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QABDAE10 tasks\",\"number\":\"TSK-0032\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QABDAE10 wbsCode\",\"duration\":123.4"
     },
     {
       "section": "connectivity",
@@ -6076,7 +6076,7 @@
       "section": "connectivity",
       "check": "invalid project reference rejected",
       "ok": true,
-      "detail": "HTTP 400 {\"error\":\"Validation failed\",\"errors\":{\"projectId\":\"Project must link to an existing projects record\"}}"
+      "detail": "HTTP 400 {\"error\":\"Validation failed\",\"errors\":{\"projectId\":\"Job / project must link to an existing projects record\"}}"
     },
     {
       "section": "rbac",
@@ -6232,7 +6232,7 @@
       "section": "wallet",
       "check": "seeded demo wallets have activity",
       "ok": true,
-      "detail": "{'clientCount': 9, 'fundedWallets': 6, 'totalBalance': 11000000, 'totalToppedUp': 16453000, 'totalAllocated': 5450750, 'fundedProjects': 4}"
+      "detail": "{'clientCount': 9, 'fundedWallets': 6, 'totalBalance': 11000000, 'totalToppedUp': 16451000, 'totalAllocated': 5450250, 'fundedProjects': 4}"
     },
     {
       "section": "wallet",
@@ -6268,13 +6268,13 @@
       "section": "wallet",
       "check": "admin top-up",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"d016f0e0-7c04-40b2-84e4-b15409abaf51\",\"kind\":\"TOPUP\",\"note\":\"QA top-up"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"c82abd15-4977-4663-9f85-e480e87b9921\",\"kind\":\"TOPUP\",\"note\":\"QA top-up"
     },
     {
       "section": "wallet",
       "check": "top-up writes TOPUP ledger entry",
       "ok": true,
-      "detail": "d016f0e0-7c04-40b2-84e4-b15409abaf51"
+      "detail": "c82abd15-4977-4663-9f85-e480e87b9921"
     },
     {
       "section": "wallet",
@@ -6352,7 +6352,7 @@
       "section": "wallet",
       "check": "wallet funds own project",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950750,\"transaction\":{\"id\":\"59fc4976-d658-48e9-8c85-078495fe7d9d\",\"kind\":\"ALLOCATION\",\"note\":\"QAD8"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950750,\"transaction\":{\"id\":\"812b580f-ea9e-45a4-bc85-654255dfecba\",\"kind\":\"ALLOCATION\",\"note\":\"QABD"
     },
     {
       "section": "wallet",
@@ -6400,7 +6400,7 @@
       "section": "wallet",
       "check": "reversal credits wallet",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"5443acf3-48da-400a-8a09-ed1ba93ec4e8\",\"kind\":\"REVERSAL\",\"note\":\"QA rev"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"5e114d26-c7e9-48b4-b287-0c38657ac7f3\",\"kind\":\"REVERSAL\",\"note\":\"QA rev"
     },
     {
       "section": "wallet",
@@ -6418,7 +6418,7 @@
       "section": "wallet",
       "check": "top-up reversal restores starting balance",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950000,\"transaction\":{\"id\":\"97665807-0837-466f-aa56-2521f8ed6a8a\",\"kind\":\"REVERSAL\",\"note\":\"Revers"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950000,\"transaction\":{\"id\":\"032633f0-9613-4d35-9cfc-efae0e26407f\",\"kind\":\"REVERSAL\",\"note\":\"Revers"
     },
     {
       "section": "wallet",
@@ -6454,7 +6454,7 @@
       "section": "linkage",
       "check": "client links to contacts/projects/invoices",
       "ok": true,
-      "detail": "['arInvoices', 'contacts', 'bids', 'contracts', 'estimates', 'leads', 'payments', 'paymentApps', 'projects', 'rentalContracts']"
+      "detail": "['arInvoices', 'contacts', 'contracts', 'leads', 'projects', 'rentalContracts', 'paymentApps', 'payments', 'estimates', 'bids']"
     },
     {
       "section": "linkage",
@@ -6550,7 +6550,7 @@
       "section": "roles",
       "check": "ADMIN create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE ADMIN\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"numbe"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 ADMIN\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"numbe"
     },
     {
       "section": "roles",
@@ -6598,7 +6598,7 @@
       "section": "roles",
       "check": "PROJECT_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE PROJECT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 PROJECT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
     },
     {
       "section": "roles",
@@ -6646,7 +6646,7 @@
       "section": "roles",
       "check": "SITE_ENGINEER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE SITE_ENGINEER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 SITE_ENGINEER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
     },
     {
       "section": "roles",
@@ -6694,7 +6694,7 @@
       "section": "roles",
       "check": "FINANCE_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE FINANCE_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 FINANCE_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
     },
     {
       "section": "roles",
@@ -6742,7 +6742,7 @@
       "section": "roles",
       "check": "ACCOUNTANT create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE ACCOUNTANT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 ACCOUNTANT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
     },
     {
       "section": "roles",
@@ -6790,7 +6790,7 @@
       "section": "roles",
       "check": "HR_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE HR_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 HR_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
     },
     {
       "section": "roles",
@@ -6838,7 +6838,7 @@
       "section": "roles",
       "check": "PROCUREMENT create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE PROCUREMENT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 PROCUREMENT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,"
     },
     {
       "section": "roles",
@@ -6886,7 +6886,7 @@
       "section": "roles",
       "check": "SAFETY_OFFICER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE SAFETY_OFFICER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nu"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 SAFETY_OFFICER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nu"
     },
     {
       "section": "roles",
@@ -6934,7 +6934,7 @@
       "section": "roles",
       "check": "PLANT_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE PLANT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 PLANT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
     },
     {
       "section": "roles",
@@ -6982,7 +6982,7 @@
       "section": "roles",
       "check": "ESTIMATOR create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QAD83EAE ESTIMATOR\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QABDAE10 ESTIMATOR\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"n"
     },
     {
       "section": "roles",
@@ -7258,19 +7258,19 @@
       "section": "tenants",
       "check": "second workspace registration",
       "ok": true,
-      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders\",\"onboarded\":false}"
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-2\",\"onboarded\":false}"
     },
     {
       "section": "tenants",
       "check": "second workspace onboarding",
       "ok": true,
-      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders\",\"config\":{\"modules\":[\"dashboard\",\"company\",\"crm\",\"pipeline\",\"estimating\",\"projects"
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-2\",\"config\":{\"modules\":[\"dashboard\",\"company\",\"crm\",\"pipeline\",\"estimating\",\"projec"
     },
     {
       "section": "tenants",
       "check": "second workspace has its own slug",
       "ok": true,
-      "detail": "qa-other-builders"
+      "detail": "qa-other-builders-2"
     },
     {
       "section": "tenants",

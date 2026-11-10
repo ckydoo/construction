@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import * as Lucide from '@/components/lucide';
-import type { ResourceDef, Field } from '@/lib/resources';
+import { RESOURCE_MAP, type ResourceDef, type Field } from '@/lib/resources';
 import { Button, Drawer, Field as FWrap, Icon, Toggle } from './ui';
+import SearchSelect from './SearchSelect';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
 
@@ -17,9 +18,9 @@ export function initialValues(def:ResourceDef, row?:any, defaultProjectId?:strin
   return v;
 }
 
-export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defaultProjectId,submitting,serverErrors}:{
+export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defaultProjectId,submitting,serverErrors,org}:{
   def:ResourceDef; open:boolean; onClose:()=>void; onSubmit:(v:Record<string,any>)=>void;
-  initial?:any; refs:RefOptions; defaultProjectId?:string; submitting?:boolean; serverErrors?:Record<string,string>;
+  initial?:any; refs:RefOptions; defaultProjectId?:string; submitting?:boolean; serverErrors?:Record<string,string>; org:string;
 }){
   const [values,setValues]=useState<Record<string,any>>({});
   const [errors,setErrors]=useState<Record<string,string>>({});
@@ -48,7 +49,9 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
       case 'select': return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">Select…</option>{(f.options||[]).map(o=><option key={o} value={o}>{o.replace(/_/g,' ')}</option>)}</select>;
       case 'ref': {
         const opts=refs[f.ref||'']||[];
-        return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">— None —</option>{opts.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>;
+        return <SearchSelect org={org} resource={f.ref||''} value={v??''} onChange={x=>set(f.key,x)}
+          label={f.label} placeholder={`Search ${(RESOURCE_MAP[f.ref||'']?.singular||f.label).toLowerCase()} by name or number…`}
+          initialLabel={opts.find(o=>o.value===v)?.label}/>;
       }
       case 'boolean': return <div className="flex h-9 items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
       case 'tags': return <input className={common} value={Array.isArray(v)?v.join(', '):v??''} onChange={e=>set(f.key,e.target.value)} placeholder="Comma separated tags"/>;

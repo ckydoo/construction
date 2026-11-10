@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -7,16 +7,43 @@ import { apiGet, orgApi } from '@/lib/client';
 import { money, date, pct, num } from '@/lib/format';
 import { Card, CardHead, Button, Icon, Badge, StatusPill, Skeleton, Tabs, ProgressBar, EmptyState } from '@/components/ui';
 import ResourceTable from '@/components/ResourceTable';
+import RecordDetail from '@/components/RecordDetail';
+import { RESOURCE_MAP } from '@/lib/resources';
+import { canWrite, canDelete } from '@/lib/catalog';
+import type { RefOptions } from '@/components/RecordForm';
 
 const TABS=[
   {id:'overview',label:'Overview'},{id:'schedule',label:'Schedule'},{id:'commercial',label:'Commercial'},
-  {id:'documents',label:'Documents & RFIs'},{id:'site',label:'Site ops'},{id:'hse',label:'HSE & quality'},{id:'team',label:'Team & plant'},
+  {id:'documents',label:'Documents & RFIs'},{id:'site',label:'Site ops'},{id:'hse',label:'HSE & quality'},
+  {id:'team',label:'Team & plant'},{id:'record',label:'Record & files'},
 ];
 export default function ProjectPage(){
   const {org,id}=useParams<{org:string;id:string}>();
   const [tab,setTab]=useState('overview');
   const {data,isLoading}=useQuery({queryKey:['project',org,id],queryFn:()=>apiGet(orgApi(org,`projects/${id}`))});
+  const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const p=data?.project, t=data?.totals, g=data?.grouped||{};
+  const role=meta?.role||'ADMIN';
+  const canEdit=canWrite(role,'projects'), canRemove=canDelete(role);
+  const refTargets=useMemo(()=>Array.from(new Set(
+    RESOURCE_MAP.projects.fields.filter(f=>f.type==='ref').map(f=>f.ref!)
+  )),[]);
+  const refIds=useMemo(()=>{
+    const out:Record<string,string[]>={};
+    for(const target of refTargets){
+      const keys=RESOURCE_MAP.projects.fields.filter(f=>f.type==='ref'&&f.ref===target).map(f=>f.key);
+      const ids=keys.map(k=>String((p||{})[k]||'')).filter(Boolean);
+      if(ids.length) out[target]=Array.from(new Set(ids)).slice(0,150);
+    }
+    return out;
+  },[p,refTargets]);
+  const {data:refs}:any=useQuery<RefOptions>({queryKey:['projectRefs',org,id,refIds],queryFn:async()=>{
+    const entries=await Promise.all(Object.entries(refIds).map(async ([target,ids])=>{
+      try{const d:any=await apiGet(orgApi(org,`records/${target}?mode=refs&ids=${encodeURIComponent(ids.join(','))}`));return [target,d.options] as const;}
+      catch{return [target,[]] as const;}
+    }));
+    return Object.fromEntries(entries);
+  },enabled:Object.keys(refIds).length>0,staleTime:60_000});
   if(isLoading) return <div className="space-y-4"><Skeleton className="h-10 w-1/2"/><div className="grid gap-4 sm:grid-cols-4">{Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-28"/>)}</div><Skeleton className="h-96"/></div>;
   if(!p) return <Card><EmptyState icon="HardHat" title="Project not found" description="This project may have been deleted." action={<Link href={`/${org}/m/projects`}><Button variant="primary">Back to projects</Button></Link>}/></Card>;
   const margin=Number(p.contractValue||0)-Number(p.costToDate||0);
@@ -53,5 +80,7 @@ export default function ProjectPage(){
     {tab==='site'&&<div className="space-y-4"><ResourceTable org={org} resource="dailyLogs" embedded fixedProjectId={id}/><ResourceTable org={org} resource="punchLists" embedded fixedProjectId={id}/><ResourceTable org={org} resource="meetings" embedded fixedProjectId={id}/></div>}
     {tab==='hse'&&<div className="space-y-4"><ResourceTable org={org} resource="incidents" embedded fixedProjectId={id}/><ResourceTable org={org} resource="inspections" embedded fixedProjectId={id}/><ResourceTable org={org} resource="toolboxTalks" embedded fixedProjectId={id}/></div>}
     {tab==='team'&&<div className="space-y-4"><ResourceTable org={org} resource="timesheets" embedded fixedProjectId={id}/><ResourceTable org={org} resource="crews" embedded fixedProjectId={id}/><ResourceTable org={org} resource="equipment" embedded fixedProjectId={id}/></div>}
+    {tab==='record'&&<RecordDetail org={org} def={RESOURCE_MAP.projects} row={p} open={false} inline onClose={()=>{}}
+      refs={refs||{}} canEdit={canEdit} canRemove={canRemove}/>}
   </div>;
 }

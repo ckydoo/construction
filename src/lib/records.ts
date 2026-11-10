@@ -79,36 +79,72 @@ export async function notify(orgId: string, title: string, body: string, kind = 
 
 export type ListParams = { q?:string; status?:string; projectId?:string; page?:number; pageSize?:number; sort?:string; dir?:'asc'|'desc'; all?:boolean };
 
+/** PostgREST `or`/`ilike` syntax uses commas, parens and wildcards as control characters. */
+function safeLike(input:string){
+  return input.replace(/[,()%*\\'"]/g,' ').replace(/\s+/g,' ').trim().slice(0,80);
+}
+/** One trigram-indexed column holds title, number and every data value. */
+function searchOr(needle:string){
+  const like=safeLike(needle);
+  return like ? `search_text.ilike.*${like}*` : '';
+}
+const DB_SORT:Record<string,string> = {
+  id:'id', createdAt:'created_at', updatedAt:'updated_at', title:'title',
+  status:'status', number:'number', projectId:'project_id',
+};
+
 export async function listRecords(orgId:string, def:ResourceDef, p:ListParams, scope?:Scope) {
-  const recs = await fetchAll('records', q => {
-    let x = q.eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null);
-    if (p.status && p.status !== 'ALL') x = x.eq('status', p.status);
-    if (p.projectId && p.projectId !== 'ALL') x = x.eq('project_id', p.projectId);
-    return x;
+  const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
+  const page = Math.max(Number(p.page)||1, 1);
+  const q = (p.q || '').trim();
+  const sortKey = p.sort || 'createdAt';
+  const dbSort = DB_SORT[sortKey];
+  // Fast path: push filter, search, ordering, count and the page window into
+  // Postgres. RLS applies to the cookie-bound client; the JS scope check is
+  // kept as defence in depth on the returned page.
+  const serverPage = !p.all && !!dbSort;
+  if (serverPage) {
+    const sb = await supabase();
+    let query = sb.from('records').select('*', { count:'exact' })
+      .eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null);
+    if (p.status && p.status !== 'ALL') query = query.eq('status', p.status);
+    if (p.projectId && p.projectId !== 'ALL') query = query.eq('project_id', p.projectId);
+    const or = searchOr(q);
+    if (or) query = query.or(or);
+    query = query.order(dbSort, { ascending: p.dir === 'asc', nullsFirst:false })
+      .order('id', { ascending:true })
+      .range((page-1)*pageSize, page*pageSize-1);
+    const { data, error, count } = await query;
+    if (error) dbError(error);
+    const rows = (data||[]).map(toRow).filter(r => !scope?.kind || rowAllowed(scope, def.id, r));
+    const total = count ?? rows.length;
+    return { rows, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
+  }
+  // Fallback: JSON-field sorting, CSV / full export and exact portal scoping.
+  const recs = await fetchAll('records', x => {
+    let y = x.eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null);
+    if (p.status && p.status !== 'ALL') y = y.eq('status', p.status);
+    if (p.projectId && p.projectId !== 'ALL') y = y.eq('project_id', p.projectId);
+    return y;
   });
   let rows = recs.map(toRow);
-  const q = (p.q || '').trim().toLowerCase();
-  if (q) rows = rows.filter(r => `${r.title || ''} ${r.number || ''} ${JSON.stringify(r)}`.toLowerCase().includes(q));
+  const needle = q.toLowerCase();
+  if (needle) rows = rows.filter(r => `${r.title || ''} ${r.number || ''} ${JSON.stringify(r)}`.toLowerCase().includes(needle));
   if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r));
-
-  const baseColumns = ['id','createdAt','updatedAt','title','status','number','projectId'];
-  if (p.sort && !baseColumns.includes(p.sort)) {
-    const key = p.sort;
+  if (sortKey && !DB_SORT[sortKey]) {
     rows.sort((a,b)=>{
-      const av=a[key], bv=b[key];
+      const av=a[sortKey], bv=b[sortKey];
       if (typeof av==='number' && typeof bv==='number') return p.dir==='asc'?av-bv:bv-av;
       return p.dir==='asc'?String(av??'').localeCompare(String(bv??'')):String(bv??'').localeCompare(String(av??''));
     });
   } else {
-    const key = p.sort || 'createdAt';
+    const key = sortKey;
     rows.sort((a,b)=>{
       const av=String(a[key]??''), bv=String(b[key]??'');
       return p.dir==='asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     });
   }
   const total = rows.length;
-  const pageSize = Math.min(Math.max(Number(p.pageSize)||25, 1), 500);
-  const page = Math.max(Number(p.page)||1, 1);
   const window = p.all ? rows : rows.slice((page-1)*pageSize, page*pageSize);
   return { rows: window, total, page, pageSize, pages:Math.max(1,Math.ceil(total/pageSize)) };
 }
@@ -125,13 +161,24 @@ export async function getRecord(orgId:string, resourceId:string, id:string, scop
   return row;
 }
 
-export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope) {
-  const recs = await fetchAll('records', q => q.eq('organization_id', orgId)
-    .eq('resource', def.id).is('deleted_at', null), 'id,title,number,data,project_id');
-  let rows = recs.map(r => ({ value:r.id, label:r.title || r.number || r.id,
+export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope, q?:string, ids?:string[]) {
+  const sb = await supabase();
+  const cap = Math.min(Math.max(Number(limit)||300, 1), 500);
+  let query = sb.from('records').select('id,title,number,data,project_id')
+    .eq('organization_id', orgId).eq('resource', def.id).is('deleted_at', null);
+  if (ids && ids.length) {
+    query = query.in('id', ids.slice(0, 500));
+  } else {
+    const or = searchOr(q || '');
+    if (or) query = query.or(or);
+    query = query.order('title', { ascending:true }).order('id', { ascending:true }).range(0, cap-1);
+  }
+  const { data:recs, error } = await query;
+  if (error) dbError(error);
+  let rows = (recs||[]).map(r => ({ value:r.id, label:r.title || r.number || r.id,
     _row:{ id:r.id, ...(r.data||{}), projectId:r.project_id } }));
   if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r._row));
-  return rows.slice(0, limit).map(r => ({ value:r.value, label:r.label }));
+  return rows.map(r => ({ value:r.value, label:r.label }));
 }
 
 export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>) {

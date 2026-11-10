@@ -11,6 +11,8 @@ import { Button, Icon, Badge, StatusPill, Skeleton, TableSkeleton, EmptyState, C
 import { useToast } from './Providers';
 import RecordForm, { type RefOptions } from './RecordForm';
 import RecordDetail from './RecordDetail';
+import SearchSelect from './SearchSelect';
+import { useRouter } from 'next/navigation';
 
 type ListData = { rows:any[]; total:number; page:number; pages:number; pageSize:number };
 const PAGE_SIZE=25;
@@ -33,8 +35,8 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
   if(f.type==='tags') return <div className="flex gap-1">{(Array.isArray(v)?v:[v]).slice(0,2).map((t:string)=><Badge key={t} tone="blue">{t}</Badge>)}</div>;
   if(f.type==='ref'){
     const label=(refs[f.ref||'']||[]).find(o=>o.value===v)?.label;
-    if(f.key==='projectId'&&label) return <Link href={`/${org}/projects/${v}`} onClick={e=>e.stopPropagation()} className="max-w-[160px] truncate text-brand-700 hover:underline dark:text-brand-300">{label}</Link>;
-    return <span className="max-w-[170px] truncate text-ink-600 dark:text-slate-300">{label||'—'}</span>;
+    if(f.key==='projectId') return <Link href={`/${org}/projects/${encodeURIComponent(String(v))}`} onClick={e=>e.stopPropagation()} className="max-w-[160px] truncate text-brand-700 hover:underline dark:text-brand-300">{label||String(v).slice(-8)}</Link>;
+    return <span className="max-w-[170px] truncate text-ink-600 dark:text-slate-300">{label||String(v).slice(-8)}</span>;
   }
   if(f.key==='health') return <Badge tone={v==='ON_TRACK'?'green':v==='AT_RISK'?'amber':'red'}>{String(v).replace(/_/g,' ')}</Badge>;
   if(f.type==='textarea') return <span className="block max-w-[210px] truncate muted">{String(v)}</span>;
@@ -45,7 +47,7 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
 export default function ResourceTable({org,resource,embedded=false,fixedProjectId,initialOpenId,initialNew=false}:{
   org:string; resource:string; embedded?:boolean; fixedProjectId?:string; initialOpenId?:string|null; initialNew?:boolean;
 }){
-  const def=RESOURCE_MAP[resource]; const qc=useQueryClient(); const toast=useToast();
+  const def=RESOURCE_MAP[resource]; const qc=useQueryClient(); const toast=useToast(); const router=useRouter();
   const [page,setPage]=useState(1), [qInput,setQInput]=useState(''), [q,setQ]=useState('');
   const [status,setStatus]=useState('ALL'), [projectFilter,setProjectFilter]=useState(fixedProjectId||'ALL');
   const [sort,setSort]=useState(''), [dir,setDir]=useState<'asc'|'desc'>('desc');
@@ -60,7 +62,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const enabled=!meta||meta.config?.resources?.includes(resource);
   const refTargets=useMemo(()=>Array.from(new Set(def?.fields.filter(f=>f.type==='ref').map(f=>f.ref!)||[])),[def]);
   const {data:refs}=useQuery<RefOptions>({ queryKey:['refs',org,resource], queryFn:async()=>{
-    const entries=await Promise.all(refTargets.map(async r=>{ try{const d=await apiGet(orgApi(org,`records/${r}?mode=refs`));return [r,d.options];}catch{return [r,[]];} }));
+    const entries=await Promise.all(refTargets.map(async r=>{ try{const d=await apiGet(orgApi(org,`records/${r}?mode=refs&limit=25`));return [r,d.options];}catch{return [r,[]];} }));
     return Object.fromEntries(entries);
   }, enabled:!!def, staleTime:60_000 });
   useEffect(()=>{const t=setTimeout(()=>{setQ(qInput);setPage(1);},280);return()=>clearTimeout(t);},[qInput]);
@@ -70,14 +72,46 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const url=orgApi(org,`records/${resource}?${new URLSearchParams({page:String(page),pageSize:String(PAGE_SIZE),q,status,projectId:projectFilter,sort,dir}).toString()}`);
   const {data,isLoading,isFetching,refetch}=useQuery<ListData>({queryKey:listKey,queryFn:()=>apiGet(url),enabled:!!def&&enabled,placeholderData:(p:any)=>p});
   const rows=data?.rows||[];
+  // Resolve labels for the IDs actually on screen. This keeps large linked
+  // registers accurate without loading every option into the browser.
+  const rowRefValues=useMemo(()=>{
+    const fields=def?.fields||[];
+    const out:Record<string,string[]>={};
+    for(const target of refTargets){
+      const keys=fields.filter(f=>f.type==='ref'&&f.ref===target).map(f=>f.key);
+      const ids=Array.from(new Set(rows.flatMap(r=>keys.map(k=>String(r[k]||'')).filter(Boolean))));
+      if(projectFilter!=='ALL'&&target==='projects') ids.push(projectFilter);
+      if(ids.length) out[target]=Array.from(new Set(ids)).slice(0,150);
+    }
+    return out;
+  },[def,refTargets,rows,projectFilter]);
+  const {data:rowRefs}=useQuery<RefOptions>({queryKey:['rowRefs',org,resource,rowRefValues],queryFn:async()=>{
+    const entries=await Promise.all(Object.entries(rowRefValues).map(async ([target,ids])=>{
+      try{const d=await apiGet(orgApi(org,`records/${target}?mode=refs&ids=${encodeURIComponent(ids.join(','))}`));return [target,d.options] as const;}
+      catch{return [target,[]] as const;}
+    }));
+    return Object.fromEntries(entries);
+  },enabled:!!def&&enabled&&Object.keys(rowRefValues).length>0,staleTime:60_000});
+  const mergedRefs:RefOptions=useMemo(()=>{
+    const out:RefOptions={};
+    for(const target of refTargets){
+      const map=new Map<string,string>();
+      for(const o of refs?.[target]||[]) map.set(o.value,o.label);
+      for(const o of rowRefs?.[target]||[]) map.set(o.value,o.label);
+      out[target]=Array.from(map,([value,label])=>({value,label}));
+    }
+    return out;
+  },[refTargets,refs,rowRefs]);
 
   useEffect(()=>{ if(initialNew){setEditing(null);setFormOpen(true);} },[initialNew]);
   useEffect(()=>{
     if(!initialOpenId) return;
+    // Every project opens its full 360° page; the side drawer is for registers.
+    if(resource==='projects'){ router.replace(`/${org}/projects/${encodeURIComponent(initialOpenId)}`); return; }
     const found=rows.find(r=>r.id===initialOpenId);
     if(found) setDetailRow(found);
     else apiGet(orgApi(org,`records/${resource}/${initialOpenId}`)).then(d=>setDetailRow(d.row)).catch(()=>{});
-  },[initialOpenId]); // eslint-disable-line
+  },[initialOpenId,resource,org,router]); // eslint-disable-line
 
   const invalidate=()=>{ qc.invalidateQueries({queryKey:['records',org,resource]}); qc.invalidateQueries({queryKey:['meta',org]}); };
   const createMut=useMutation({ mutationFn:(values:any)=>apiSend(orgApi(org,`records/${resource}`),'POST',values),
@@ -122,7 +156,11 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const toggleAll=()=>setSelected(s=>{const n=new Set(s);if(allSelected)rows.forEach(r=>n.delete(r.id));else rows.forEach(r=>n.add(r.id));return n;});
   const toggleOne=(id:string)=>setSelected(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
   const csvHref=orgApi(org,`records/${resource}?mode=csv&${new URLSearchParams({q,status,projectId:projectFilter}).toString()}`);
-  const projectOpts=refs?.projects||[];
+  const projectOpts=mergedRefs.projects||[];
+  const openRow=(r:any)=>{
+    if(resource==='projects'){router.push(`/${org}/projects/${encodeURIComponent(r.id)}`);return;}
+    setDetailRow(r);
+  };
 
   return <div className={embedded?'':'space-y-4'}>
     {!embedded&&<div className="flex flex-wrap items-start justify-between gap-3">
@@ -138,7 +176,10 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       <div className="flex flex-wrap items-center gap-2 border-b divider p-2.5">
         <div className="relative min-w-[200px] flex-1"><Lucide.Search size={15} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" value={qInput} onChange={e=>setQInput(e.target.value)} placeholder={`Search ${def.label.toLowerCase()}…`}/></div>
         {def.statusOptions&&<select className="select w-auto min-w-[140px]" value={status} onChange={e=>{setStatus(e.target.value);setPage(1);}}><option value="ALL">All statuses</option>{def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>}
-        {def.projectScoped&&!fixedProjectId&&<select className="select w-auto min-w-[160px]" value={projectFilter} onChange={e=>{setProjectFilter(e.target.value);setPage(1);}}><option value="ALL">All projects</option>{projectOpts.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>}
+        {def.projectScoped&&!fixedProjectId&&<div className="w-[210px] min-w-[180px]"><SearchSelect org={org} resource="projects" label="Filter by project"
+          value={projectFilter==='ALL'?'':projectFilter} onChange={v=>{setProjectFilter(v||'ALL');setPage(1);}}
+          placeholder="Search all projects…" pageSize={25}
+          initialLabel={projectOpts.find(o=>o.value===projectFilter)?.label}/></div>}
         {(q||status!=='ALL'||(projectFilter!=='ALL'&&!fixedProjectId))&&<Button variant="ghost" size="sm" className="h-8 px-2 text-[11px]" icon="X" onClick={()=>{setQInput('');setQ('');setStatus('ALL');setProjectFilter(fixedProjectId||'ALL');setPage(1);}}>Clear</Button>}
         <span className="ml-auto hidden text-xs muted sm:block">{data?.total??0} records</span>
       </div>
@@ -169,13 +210,14 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
             rows.length===0?<tr><td colSpan={cols.length+2}><EmptyState compact icon={def.icon} title={q||status!=='ALL'?'No matching records':`No ${def.label.toLowerCase()} yet`}
               description={q||status!=='ALL'?'Try a different search or clear your filters.':`Create your first ${def.singular.toLowerCase()} to get started, or load sample data to look around.`}
               action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={()=>{setEditing(null);setFormOpen(true);}}>New {def.singular}</Button>{!q&&<Link href={`/${org}/settings`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
-            rows.map(r=><tr key={r.id} onClick={()=>setDetailRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
+            rows.map(r=><tr key={r.id} onClick={()=>openRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
                 {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{...r,status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
-                  {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={refs||{}} org={org}/>}
+                  {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={mergedRefs} org={org}/>}
               </td>)}
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
+                {resource==='projects'&&<Link href={`/${org}/projects/${encodeURIComponent(r.id)}`} aria-label={`Open full page for ${r.title||r.number}`} title="Open full project page" className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700"><Lucide.ExternalLink size={14}/></Link>}
                 {canEdit&&<button aria-label={`Edit ${r.title||r.number}`} onClick={()=>{setEditing(r);setServerErrors(undefined);setFormOpen(true);}} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
                 {canRemove&&<button aria-label={`Delete ${r.title||r.number}`} onClick={()=>setConfirm({ids:[r.id],label:r.title||r.number})} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Delete"><Lucide.Trash2 size={14}/></button>}
               </div></td>
@@ -189,10 +231,10 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       </div>
     </Card>
 
-    {canEdit&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={refs||{}} defaultProjectId={fixedProjectId}
+    {canEdit&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={mergedRefs} defaultProjectId={fixedProjectId} org={org}
       submitting={createMut.isPending||updateMut.isPending} serverErrors={serverErrors}
       onSubmit={(values)=>editing?updateMut.mutate({id:editing.id,values}):createMut.mutate(values)}/>}
-    {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={refs||{}} canEdit={canEdit} canRemove={canRemove}
+    {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={mergedRefs} canEdit={canEdit} canRemove={canRemove}
       onEdit={()=>{setEditing(detailRow);setDetailRow(null);setFormOpen(true);}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={bulkMut.isPending||deleteMut.isPending}
       title={`Delete ${confirm?.label||'record'}?`} description="This record will be moved to the recycle bin (soft delete). You can restore it from the database."

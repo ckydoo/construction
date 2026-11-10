@@ -19,15 +19,18 @@ export function visibleResources(a: AuthCtx): string[] {
 export async function buildScope(a: AuthCtx): Promise<Scope> {
   if (!isExternal(a.role) || !a.entityId) return FULL_SCOPE;
   const kind: 'client' | 'subcontractor' = a.role === 'CLIENT_EXTERNAL' ? 'client' : 'subcontractor';
+  const own = String(a.entityId).replace(/["\\]/g,'');
   if (kind === 'client') {
     const projects = await fetchAll('records', q => q
-      .eq('organization_id', a.orgId).eq('resource', 'projects').is('deleted_at', null), 'id,data');
+      .eq('organization_id', a.orgId).eq('resource', 'projects').is('deleted_at', null)
+      .or(`data->>clientId.eq."${own}"`), 'id,data');
     return { kind, entityId: a.entityId,
       projectIds: projects.filter(p => dataOf(p.data).clientId === a.entityId).map(p => p.id) };
   }
+  const or = ['counterparty','submittedBy','subcontractorId'].map(k=>`data->>${k}.eq."${own}"`).join(',');
   const [contracts, submittals] = await Promise.all([
-    fetchAll('records', q => q.eq('organization_id', a.orgId).eq('resource', 'contracts').is('deleted_at', null), 'id,project_id,data'),
-    fetchAll('records', q => q.eq('organization_id', a.orgId).eq('resource', 'submittals').is('deleted_at', null), 'id,project_id,data'),
+    fetchAll('records', q => q.eq('organization_id', a.orgId).eq('resource', 'contracts').is('deleted_at', null).or(or), 'id,project_id,data'),
+    fetchAll('records', q => q.eq('organization_id', a.orgId).eq('resource', 'submittals').is('deleted_at', null).or(or), 'id,project_id,data'),
   ]);
   const ids = [...contracts, ...submittals]
     .filter(r => {
@@ -70,8 +73,8 @@ export async function allowedRecordIds(scope: Scope, orgId: string, resources: s
   return out;
 }
 
-export async function rowsForScoped(a: AuthCtx, scope: Scope, resource: string) {
-  const rows = await rowsFor(a.orgId, resource);
+export async function rowsForScoped(a: AuthCtx, scope: Scope, resource: string, projectId?: string) {
+  const rows = await rowsFor(a.orgId, resource, projectId);
   return scope.kind ? rows.filter(r => rowAllowed(scope, resource, r)) : rows;
 }
 

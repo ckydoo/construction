@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const related = ['tasks', 'contracts', 'changeOrders', 'rfis', 'submittals', 'documents', 'dailyLogs', 'meetings', 'punchLists', 'permits', 'budgets', 'arInvoices', 'paymentApps', 'purchaseOrders', 'timesheets', 'incidents', 'inspections', 'ncrs', 'equipment', 'crews', 'expenses']
     .filter(r => a.config.resources.includes(r) && canRead(a.role, r));
   const grouped: Record<string, any[]> = {};
-  await Promise.all(related.map(async r => { grouped[r] = await rowsForScoped(a, scope, r); }));
+  await Promise.all(related.map(async r => { grouped[r] = await rowsForScoped(a, scope, r, id); }));
   for (const k of Object.keys(grouped)) grouped[k] = grouped[k].filter(x => x.projectId === id);
   const budgets = grouped.budgets || [], invoices = grouped.arInvoices || [], apps = grouped.paymentApps || [];
   const sum = (rows: any[], key: string) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);

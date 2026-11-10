@@ -1,8 +1,11 @@
 import { fetchAll } from './fetch';
 
-export async function rowsFor(orgId: string, resource: string): Promise<Record<string, any>[]> {
-  const recs = await fetchAll('records', q => q
-    .eq('organization_id', orgId).eq('resource', resource).is('deleted_at', null));
+export async function rowsFor(orgId: string, resource: string, projectId?: string): Promise<Record<string, any>[]> {
+  const recs = await fetchAll('records', q => {
+    let x = q.eq('organization_id', orgId).eq('resource', resource).is('deleted_at', null);
+    if (projectId) x = x.eq('project_id', projectId);
+    return x;
+  });
   return recs.map(r => ({
     ...(r.data || {}),
     id: r.id, number: r.number, title: r.title, status: r.status,
