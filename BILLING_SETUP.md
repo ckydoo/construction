@@ -1,9 +1,11 @@
 # MYLA subscription setup & go-live checklist
 
-**Current state: SHADOW MODE.** The complete billing system is built and deployed,
+**Current state: SHADOW MODE.** The complete billing system is built and deployed as
+commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` / deployment `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`,
 but `BILLING_ENABLED=false` on Vercel production, preview and development. No live
 card is charged, no workspace is locked, and no live Stripe/Paynow request is made.
-`BILLING_QA_MODE=false` and `PAYNOW_MOCK=false` are also set on Vercel.
+`BILLING_QA_MODE=false` and `PAYNOW_MOCK=false` are also set on Vercel. Post-promotion
+production smoke passed **17/17** checks; see `SUBSCRIPTION_SHADOW_RELEASE.md`.
 
 ## Product contract
 

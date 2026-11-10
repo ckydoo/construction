@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_66k3jB3Uc6fST34Esw4uSTxniTCf` · state `READY` · `PROMOTED` · `timeToReady 68.5s` |
-| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `fa2a960d1e35aef850a449ffac2e584508fc495c` (docs-only commits may be ahead on `main`) |
+| Deployment | `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn` · state `READY` · `PROMOTED` · `timeToReady 49.1s` |
+| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` (docs-only commits may be ahead on `main`) |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -21,7 +21,28 @@ The build completes in about a minute from the public GitHub commit; no source f
 re-uploaded manually. The GitHub repo is public, which is why a `git_source` deployment
 works without installing the Vercel GitHub App.
 
-## Current release — tenant-branded financial documents, editable line items and strict module visibility
+## Current release — organisation subscriptions in shadow mode
+
+Production code is commit `3b811f0` / `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f`,
+deployed with an explicit Vercel `git_source` SHA as
+`dpl_4w94S2ryvm6WLV3uamSydyp2zbTn` (`READY`, `PROMOTED`, `timeToReady 49.1s`).
+
+This release builds the complete Stripe + Paynow Zimbabwe subscription system but keeps
+it **off** in production: `BILLING_ENABLED=false`, `BILLING_QA_MODE=false` and
+`PAYNOW_MOCK=false` are set on Vercel. Nobody is charged or locked. USD 9/29/99 per
+organisation/month Starter/Pro/Enterprise applies everywhere; a 14-day card-required
+Stripe Checkout trial, trial-end Paynow switch, monthly Paynow invoices, 3-day grace,
+hard lock, Owner/Admin Billing UI and grandfathered comped orgs are implemented. See
+`SUBSCRIPTION_SHADOW_RELEASE.md` and `BILLING_SETUP.md`.
+
+Post-promotion production smoke: **17/17** — login, meta, billing, overview, projects,
+integrity, dashboard and Billing page all `200`; meta still exposes 34 modules/49
+resources; billing mode is `off`; existing org is `comped`; 9/29/99 plans present; QA and
+Paynow mock routes are `404` in production; authorised cron returns `200` with billing
+skipped. `npm run audit:billing` passed **10/10** locally with Stripe-test-compatible
+signed webhooks and a Paynow mock; QA orgs/users/mock events cleaned to `0/0/0`.
+
+## Previous release — tenant-branded financial documents, editable line items and strict module visibility
 
 Production code is commit `fa2a960` / `fa2a960d1e35aef850a449ffac2e584508fc495c`, deployed with an
 explicit Vercel `git_source` SHA as `dpl_66k3jB3Uc6fST34Esw4uSTxniTCf`. It is `READY`, `PROMOTED`

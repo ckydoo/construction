@@ -2,6 +2,8 @@
 
 **Date:** 2026-11-07 (Africa/Harare) · **Mode:** `BILLING_ENABLED=false` in production
 
+**Production deployment:** commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` → `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`, `READY` / `PROMOTED`, `timeToReady 49.1s`.
+
 This release adds the complete organisation-level subscription system requested for
 MYLA, but deliberately keeps live charging and locking switched off until live
 Stripe/Paynow credentials, price/webhook IDs and legal-entity confirmation are available.
@@ -71,7 +73,9 @@ manual-review alert. No automatic refund is attempted.
   `comped`.
 - Live billing tables: `2` comped subscriptions, `0` invoices after cleanup.
 - Production Vercel environment: `BILLING_ENABLED=false`, `BILLING_QA_MODE=false`,
-  `PAYNOW_MOCK=false`, `CRON_SECRET` set.
+  `PAYNOW_MOCK=false`, `CRON_SECRET` set; Vercel Cron `/api/cron/billing` registered daily at 02:00 UTC.
+- Production smoke after promotion: **17/17** checks passed — all key app/API pages `200`,
+  meta 34/49, billing mode `off`, comped access, 9/29/99 plans, QA/mock routes `404`, cron `200`.
 
 ## Not done / outstanding
 
