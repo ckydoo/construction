@@ -66,6 +66,14 @@ const migrations = path.join(root, 'supabase', 'migrations');
 if (!fs.existsSync(migrations)) errors.push('supabase/migrations is missing — the schema cannot be applied.');
 else notes.push(`Supabase migrations: ${fs.readdirSync(migrations).filter(f => f.endsWith('.sql')).length} SQL files (apply with \`npx supabase db push\`).`);
 
+const billingOn = get('BILLING_ENABLED').toLowerCase() === 'true';
+if (billingOn && !get('STRIPE_SECRET_KEY').startsWith('sk_live_'))
+  errors.push('BILLING_ENABLED=true requires a live Stripe secret key. Keep it false until go-live credentials are ready.');
+if (billingOn && !isSet(get('STRIPE_WEBHOOK_SECRET')))
+  errors.push('BILLING_ENABLED=true requires STRIPE_WEBHOOK_SECRET.');
+if (billingOn && !isSet(get('PAYNOW_INTEGRATION_ID')))
+  warnings.push('Paynow credentials are empty; Paynow checkout will be unavailable until they are added.');
+
 if (get('NODE_ENV') === 'production') {
   if (!get('NEXT_PUBLIC_APP_URL').startsWith('https://')) warnings.push('NEXT_PUBLIC_APP_URL should be an HTTPS URL in production.');
   if (!isSet(service)) warnings.push('Server-side actions (registration, invites, seeding) need SUPABASE_SERVICE_ROLE_KEY in production.');
@@ -77,6 +85,7 @@ const groups = {
   Email: ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','RESEND_API_KEY','SENDGRID_API_KEY'],
   'SMS/WhatsApp': ['TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_FROM_NUMBER','TWILIO_MESSAGING_SERVICE_SID','WHATSAPP_BUSINESS_ACCOUNT_ID','WHATSAPP_BUSINESS_PHONE_ID','WHATSAPP_ACCESS_TOKEN'],
   Payments: ['PAYNOW_INTEGRATION_ID','PAYNOW_INTEGRATION_KEY','PAYNOW_RETURN_URL','PAYNOW_RESULT_URL','STRIPE_SECRET_KEY','NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY','STRIPE_WEBHOOK_SECRET','PAYPAL_CLIENT_ID','PAYPAL_CLIENT_SECRET'],
+  Subscriptions: ['BILLING_ENABLED','BILLING_QA_MODE','PAYNOW_MOCK','BILLING_CRON_SECRET','STRIPE_PRICE_STARTER','STRIPE_PRICE_PRO','STRIPE_PRICE_ENTERPRISE','STRIPE_PORTAL_CONFIGURATION'],
   'Maps/weather': ['GOOGLE_MAPS_API_KEY','NEXT_PUBLIC_GOOGLE_MAPS_API_KEY','OPENWEATHER_API_KEY'],
   SSO: ['GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET','MICROSOFT_CLIENT_ID','MICROSOFT_CLIENT_SECRET','MICROSOFT_TENANT_ID'],
   Accounting: ['XERO_CLIENT_ID','XERO_CLIENT_SECRET','XERO_TENANT_ID','XERO_WEBHOOK_SIGNING_KEY','QUICKBOOKS_CLIENT_ID','QUICKBOOKS_CLIENT_SECRET','QUICKBOOKS_REALM_ID','SAGE_CLIENT_ID','SAGE_CLIENT_SECRET'],
@@ -93,6 +102,7 @@ console.log(`  Supabase URL     ${isSet(url) ? 'configured' : 'not set'}`);
 console.log(`  Anon key         ${isSet(anon) ? 'configured' : 'not set'}`);
 console.log(`  Service-role key ${isSet(service) ? 'configured' : 'not set'}`);
 console.log(`  Storage driver   ${get('STORAGE_DRIVER') || 'supabase'}`);
+console.log(`  Live billing     ${get('BILLING_ENABLED').toLowerCase() === 'true' ? 'ENABLED' : 'disabled (shadow mode)'}`);
 console.log(`  Optional integration slots configured: ${configured.length ? configured.join(', ') : 'none yet'}`);
 for (const n of notes) console.log(`  note    ${n}`);
 for (const w of warnings) console.log(`  WARN    ${w}`);

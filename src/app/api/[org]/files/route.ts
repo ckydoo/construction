@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { getResource } from '@/lib/resources';
-import { writeGuard, readGuard, capabilityGuard } from '@/lib/guard';
+import { writeGuard, readGuard, capabilityGuard, billingGuard } from '@/lib/guard';
 import { buildScope, visibleResources, allowedRecordIds } from '@/lib/access';
 import { getRecord, createRecord, logActivity } from '@/lib/records';
 import { resolveFolderKey } from '@/lib/folders';
@@ -37,13 +37,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     resource = 'documents';
     const def = getResource(resource);
     if (!def) return NextResponse.json({ error: 'Documents module is not enabled' }, { status: 404 });
-    const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'files.upload'); if (g) return g;
+    const g = billingGuard(a, { write: true }) || writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'files.upload'); if (g) return g;
     const safe = safeFileName(file.name);
     const created = await createRecord(a.orgId, a.userId, a.name, def, {
       name: safe, projectId: resolved.projectId, type: resolved.documentType,
       fileName: safe, revision: 'A', issuedDate: new Date().toISOString().slice(0, 10), status: 'CURRENT',
-    });
-    if (!created.ok) return NextResponse.json({ error: 'Could not create the document register entry', errors: created.errors }, { status: 400 });
+    }, a.config.limits);
+    if (!created.ok) return NextResponse.json({ error: 'Could not create the document register entry', errors: created.errors }, { status: created.status || 400 });
     recordId = created.row.id;
   }
 

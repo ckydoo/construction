@@ -5,6 +5,7 @@ import { canRead, canWrite, canDelete, canCapability, type Capability } from './
 import { moduleEnabled, resourceFullyEnabled } from './module-visibility';
 
 type Config = { resources: string[]; modules?: string[] };
+type BillingAccess = { access?: boolean; writable?: boolean; readOnly?: boolean; status?: string };
 const deny = (message: string, status = 403) => NextResponse.json({ error: message }, { status });
 
 export function guardResource(config: Config, resource: string) {
@@ -38,5 +39,14 @@ export function deleteGuard(config: Config, role: string, resource: string) {
 
 export function capabilityGuard(role: string, cap: Capability) {
   if (!canCapability(role, cap)) return deny('Your role is not permitted to do that');
+  return null;
+}
+
+
+/** Defence in depth behind the middleware hard-lock and plan entitlement filter. */
+export function billingGuard(a: { billing?: BillingAccess } | null, options: { write?: boolean } = {}) {
+  if (!a?.billing) return null;
+  if (!a.billing.access) return deny('A paid MYLA subscription is required. Your data has not been deleted.', 402);
+  if (options.write && !a.billing.writable) return deny('This workspace is read-only while payment is overdue.', 402);
   return null;
 }

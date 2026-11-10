@@ -16,7 +16,7 @@ type Meta = {
   org:any; config:{modules:string[];resources:string[];flags:Record<string,boolean>;limits:any;plan:string;localePack:string};
   modules:any[]; resources:any[]; roles:any[]; role:string; user:any; memberships:any[];
   users:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; companyTypes:any[]; sizes:any[];
-  permissions?:any; walletEnabled?:boolean; entityId?:string|null;
+  permissions?:any; walletEnabled?:boolean; entityId?:string|null; billing?:any;
 };
 
 const SPECIAL = [
@@ -26,9 +26,10 @@ const SPECIAL = [
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports', module:'reports' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
+  { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', settings:'Settings',
+  dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', settings:'Settings', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -55,6 +56,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
       if((s as any).resource && !resourceFullyEnabled(meta.config,(s as any).resource)) continue;
       if((s as any).cap && !canCapability(role,(s as any).cap)) continue;
+      if((s as any).adminOnly && !['OWNER','ADMIN'].includes(role)) continue;
       (groups[s.group] ||= []).push({...s});
     }
     for(const r of meta.resources){
@@ -85,7 +87,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <Logo variant="lockup" autoDark className="h-6 w-auto max-w-[190px]" title={`${BRAND.name} · ${BRAND.motto}`}/>
       <button aria-label="Close navigation" className="rounded-md p-1 text-slate-400 lg:hidden" onClick={()=>setMobileOpen(false)}><Lucide.X size={18}/></button>
     </div>
-    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.config.plan} plan</span></div>}
+    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.billing?.enabled ? meta.billing.plan : meta.config.plan} plan</span>{meta.billing?.comped&&<span className="ml-auto text-[10px] muted">comped</span>}</div>}
     <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
       {isLoading&&<div className="space-y-2 px-2 py-2">{Array.from({length:12}).map((_,i)=><Skeleton key={i} className="h-7 w-full"/>)}</div>}
       {navGroups.map(g=><div key={g.group} className="mb-4">
@@ -137,10 +139,18 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
           {userOpen&&<div className="panel absolute right-0 top-10 z-30 w-56 p-2"><div className="border-b divider px-2 py-2"><p className="text-xs font-semibold">{meta?.user?.name||userName}</p><p className="truncate text-[11px] muted">{meta?.user?.email||userEmail}</p></div>
             <div className="mt-1 flex items-center gap-2 rounded-md bg-slate-50 px-2 py-2 text-[11px] muted dark:bg-ink-950/50"><Icon name="ShieldCheck" size={14}/><span className="flex-1">{ROLES.find(r=>r.id===role)?.label || role.replace(/_/g,' ')}</span>{meta?.permissions?.scoped&&<Badge tone="violet">Own jobs only</Badge>}</div>
             {canCapability(meta?.role||'ADMIN','settings.view')&&<Link href={`/${orgSlug}/settings`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="Settings" size={14}/>Workspace settings</Link>}
+            {['OWNER','ADMIN'].includes(meta?.role||'')&&<Link href={`/${orgSlug}/billing`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="CreditCard" size={14}/>Billing & subscription</Link>}
             <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"><Icon name="LogOut" size={14}/>Sign out</button></div>}
         </div>
       </header>
-      <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
+        {meta?.billing?.enabled && pathname!==`/${orgSlug}/billing` && (meta.billing.needsPayment||meta.billing.readOnly||meta.billing.status==='trialing')&&
+          <div className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-xs ${meta.billing.needsPayment?'border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200':meta.billing.readOnly?'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200':'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-200'}`}>
+            <span className="font-medium">{meta.billing.needsPayment?'Payment required — workspace data is preserved and read-only.':meta.billing.readOnly?'Payment overdue — the workspace is read-only during the 3-day grace period.':`Free trial active — no charge until ${meta.billing.trialEndsAt?new Date(meta.billing.trialEndsAt).toLocaleDateString('en-GB'):'trial end'}.`}</span>
+            {['OWNER','ADMIN'].includes(meta?.role||'')&&<Link href={`/${orgSlug}/billing`} className="font-semibold underline">Open billing</Link>}
+          </div>}
+        {children}
+      </main>
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex h-12 items-center justify-around border-t divider bg-white dark:bg-ink-900 lg:hidden">
         {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view'}].filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}

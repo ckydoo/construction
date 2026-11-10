@@ -8,6 +8,7 @@ import { fetchAll } from './fetch';
 import { type ResourceDef, type Field } from './resources';
 import { rowAllowed, type Scope } from './access';
 import { normaliseLines, financialTotalsPatch } from './financial';
+import { projectLimitMessage } from './billing-limits';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
 
@@ -183,7 +184,9 @@ export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope
   return rows.map(r => ({ value:r.value, label:r.label }));
 }
 
-export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>) {
+export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}) {
+  const limitMessage = await projectLimitMessage(orgId, def.id, limits);
+  if (limitMessage) return { ok:false as const, errors:{ _: limitMessage }, status:402 as const };
   const v = validate(def, { ...input, ...financialTotalsPatch(def.id, input, normaliseLines(input.items)) });
   const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
   if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };

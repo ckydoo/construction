@@ -6,6 +6,11 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { supabase, supabaseAdmin, hasSupabaseConfig } from './supabase';
 import { resolveWorkspace, type WorkspaceConfig } from './catalog';
+import { billingActive, getSubscription } from './billing';
+import {
+  billingAllowsAccess, billingAllowsWrite, entitledLimits, entitledModules,
+  entitledResources, isPlanId, type BillingStatus, type PlanId,
+} from './billing-plans';
 
 export type Membership = { orgId: string; orgSlug: string; orgName: string; role: string; entityId: string | null };
 export type AuthCtx = {
@@ -13,6 +18,13 @@ export type AuthCtx = {
   orgId: string; orgName: string; orgSlug: string; onboarded: boolean;
   org: any; config: WorkspaceConfig; entityId: string | null;
   memberships: Membership[];
+  billing?: BillingAccess;
+};
+
+export type BillingAccess = {
+  status: BillingStatus; planId: PlanId; access: boolean; writable: boolean;
+  readOnly: boolean; comped: boolean; trialEndsAt: string | null;
+  currentPeriodEnd: string | null; graceUntil: string | null;
 };
 
 type OrgRow = Record<string, any>;
@@ -38,6 +50,30 @@ export function parseOrgConfig(org: any): WorkspaceConfig {
     size: org?.size || 'SMALL',
     qualifiers: [],
   });
+}
+
+function applyPlanEntitlements(config: WorkspaceConfig, planId: PlanId): WorkspaceConfig {
+  return {
+    ...config,
+    modules: entitledModules(planId, Array.isArray(config.modules) ? config.modules : []),
+    resources: entitledResources(planId, Array.isArray(config.resources) ? config.resources : []),
+    limits: entitledLimits(planId, config.limits || {}),
+  };
+}
+
+async function hydrateBilling(a: AuthCtx): Promise<AuthCtx> {
+  if (!billingActive()) return a;
+  const sub = await getSubscription(a.orgId);
+  const status: BillingStatus = sub?.status || 'trial_required';
+  const planId: PlanId = isPlanId(sub?.plan_id) ? sub.plan_id : 'STARTER';
+  a.billing = {
+    status, planId, access: billingAllowsAccess(status), writable: billingAllowsWrite(status),
+    readOnly: billingAllowsAccess(status) && !billingAllowsWrite(status), comped: status === 'comped',
+    trialEndsAt: sub?.trial_ends_at || null, currentPeriodEnd: sub?.current_period_end || null,
+    graceUntil: sub?.grace_until || null,
+  };
+  a.config = applyPlanEntitlements(a.config, planId);
+  return a;
 }
 
 export async function getAuth(): Promise<AuthCtx | null> {
@@ -66,7 +102,7 @@ export async function getAuth(): Promise<AuthCtx | null> {
   }));
   const primary = memberships[0];
   const org = orgView(rows[0].organizations || {});
-  return {
+  const ctx: AuthCtx = {
     userId: u.id,
     name: profile?.name || String(u.user_metadata?.name || u.email || 'User').split('@')[0],
     email: profile?.email || u.email || '',
@@ -75,19 +111,21 @@ export async function getAuth(): Promise<AuthCtx | null> {
     orgId: org.id, orgName: org.name, orgSlug: org.slug, onboarded: org.onboarded,
     org, config: parseOrgConfig(org), entityId: primary.entityId, memberships,
   };
+  return hydrateBilling(ctx);
 }
 
 export async function requireAuth(): Promise<AuthCtx> {
   const a = await getAuth(); if (!a) redirect('/login'); return a;
 }
 
-function switchOrg(a: AuthCtx, m: Membership, orgRaw: any): void {
+async function switchOrg(a: AuthCtx, m: Membership, orgRaw: any): Promise<void> {
   if (!m || !orgRaw || m.orgId === a.orgId) return;
   const org = orgView(orgRaw);
   Object.assign(a, {
     orgId: org.id, orgName: org.name, orgSlug: org.slug, role: m.role,
     entityId: m.entityId, onboarded: org.onboarded, org, config: parseOrgConfig(org),
   });
+  await hydrateBilling(a);
 }
 
 async function membershipRows(userId: string): Promise<any[]> {
@@ -103,7 +141,7 @@ export async function requireOrg(slug: string): Promise<AuthCtx> {
   if (!m) redirect(`/${a.orgSlug}/dashboard`);
   if (m.orgId !== a.orgId) {
     const row = (await membershipRows(a.userId)).find(r => r.organization_id === m.orgId);
-    if (row) switchOrg(a, m, row.organizations);
+    if (row) await switchOrg(a, m, row.organizations);
   }
   if (!a.onboarded) redirect('/onboarding');
   return a;
@@ -118,7 +156,7 @@ export async function apiAuth(slug?: string): Promise<AuthCtx | null> {
     if (m.orgId !== a.orgId) {
       const row = (await membershipRows(a.userId)).find(r => r.organization_id === m.orgId);
       if (!row) return null;
-      switchOrg(a, m, row.organizations);
+      await switchOrg(a, m, row.organizations);
     }
   }
   return a;

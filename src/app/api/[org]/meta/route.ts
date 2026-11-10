@@ -9,6 +9,7 @@ import { countsByResource } from '@/lib/queries';
 import { visibleResources, buildScope, rowAllowed } from '@/lib/access';
 import { fetchAll } from '@/lib/fetch';
 import { auditView, notificationView } from '@/lib/views';
+import { publicBilling } from '@/lib/billing';
 
 export async function GET(req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
@@ -34,7 +35,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     .eq('organization_id', a.orgId);
   if (!full) memberQuery = memberQuery.eq('user_id', a.userId);
 
-  const [members, notifications, audit, counts, clientRecs, employeeRecs] = await Promise.all([
+  const [members, notifications, audit, counts, clientRecs, employeeRecs, billing] = await Promise.all([
     memberQuery,
     external ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(30),
     external ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(25),
@@ -45,6 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     full ? sb.from('records').select('id,number,title').eq('organization_id', a.orgId)
       .eq('resource', 'employees').is('deleted_at', null)
       .order('created_at', { ascending: true }).limit(500) : Promise.resolve({ data: [] }),
+    publicBilling(a.orgId, a.role),
   ]);
 
   // memberships.user_id points at auth.users, not public.profiles, so PostgREST
@@ -86,15 +88,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
       country: a.org.country, baseCurrency: a.org.baseCurrency, companyType: a.org.companyType, size: a.org.size,
       headcount: a.org.headcount, plan: a.config.plan, limits: a.config.limits,
       currency: a.config.currency || null, company: normaliseCompanyProfile(a.config.company, a.org) },
-    config: a.config, modules: exposedModules, resources: exposedResources,
+    config: a.config, billing, modules: exposedModules, resources: exposedResources,
     roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
     user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor },
     memberships: a.memberships,
     users,
-    clients: (clientRecs.data || []).map(c => ({ id: c.id, label: c.title || c.number || c.id })),
-    employees: (employeeRecs.data || []).map(e => ({ id: e.id, label: e.title || e.number || e.id })),
+    clients: (clientRecs.data || []).map((c: any) => ({ id: c.id, label: c.title || c.number || c.id })),
+    employees: (employeeRecs.data || []).map((e: any) => ({ id: e.id, label: e.title || e.number || e.id })),
     entityId: a.entityId,
     notifications: (notifications.data || [])
       .filter((n: any) => (!restricted || !n.user_id || n.user_id === a.userId) && hrefVisible(n.href, a.config))

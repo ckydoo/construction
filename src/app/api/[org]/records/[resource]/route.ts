@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
-import { readGuard, writeGuard, capabilityGuard } from '@/lib/guard';
+import { readGuard, writeGuard, capabilityGuard, billingGuard } from '@/lib/guard';
 import { buildScope } from '@/lib/access';
 import { listRecords, createRecord, refOptions } from '@/lib/records';
 import { csvCell } from '@/lib/format';
@@ -46,9 +46,9 @@ export async function POST(req: Request, { params }: Ctx) {
   const { a, def, resource } = await ctx(params);
   if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!def) return NextResponse.json({ error: 'Unknown resource' }, { status: 404 });
-  const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.create'); if (g) return g;
+  const g = billingGuard(a, { write: true }) || writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.create'); if (g) return g;
   const body = await req.json();
-  const result = await createRecord(a.orgId, a.userId, a.name, def, body);
-  if (!result.ok) return NextResponse.json({ error: 'Validation failed', errors: result.errors }, { status: 400 });
+  const result = await createRecord(a.orgId, a.userId, a.name, def, body, a.config.limits);
+  if (!result.ok) return NextResponse.json({ error: 'Validation failed', errors: result.errors }, { status: result.status || 400 });
   return NextResponse.json({ row: result.row }, { status: 201 });
 }

@@ -6,7 +6,8 @@ import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
 import { normaliseCompanyProfile } from '@/lib/company';
 import { getResource } from '@/lib/resources';
 import { createRecord, logActivity } from '@/lib/records';
-import { writeGuard, capabilityGuard } from '@/lib/guard';
+import { writeGuard, capabilityGuard, billingGuard } from '@/lib/guard';
+import { userLimitMessage } from '@/lib/billing-limits';
 import { seedDemo, clearDemo } from '@/lib/seed-service';
 import { fetchAll } from '@/lib/fetch';
 
@@ -27,6 +28,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     return NextResponse.json({ ok: true });
   }
   if (!adminOnly(a.role)) return NextResponse.json({ error: 'Only owners and admins can change settings' }, { status: 403 });
+  const bg = billingGuard(a, { write: true }); if (bg) return bg;
 
   if (b.action === 'updateOrg') {
     const wantsCurrency = b.baseCurrency !== undefined;
@@ -169,6 +171,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
   const { org } = await params;
   const a = await apiAuth(org); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   if (!adminOnly(a.role)) return NextResponse.json({ error: 'Only owners and admins can do this' }, { status: 403 });
+  const bg = billingGuard(a, { write: true }); if (bg) return bg;
   const b = await req.json();
   const sb = await supabase();
 
@@ -178,6 +181,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     const role = String(b.role || 'VIEWER');
     if (!ROLES.some(r => r.id === role)) return NextResponse.json({ error: 'Unknown role' }, { status: 400 });
     if (role === 'OWNER' && a.role !== 'OWNER') return NextResponse.json({ error: 'Only an owner can invite another owner' }, { status: 403 });
+    const limitError = await userLimitMessage(a.orgId, a.config.limits);
+    if (limitError) return NextResponse.json({ error: limitError }, { status: 402 });
     if (!hasServiceKey()) return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is required to create team accounts.' }, { status: 503 });
     const admin = supabaseAdmin();
     const { data: profile } = await admin.from('profiles').select('id').eq('email', email).maybeSingle();
@@ -233,7 +238,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.create'); if (g) return g;
     const rows: Record<string, any>[] = b.rows || []; let ok = 0, failed = 0;
     for (const row of rows.slice(0, 200)) {
-      const r = await createRecord(a.orgId, a.userId, a.name, def, row);
+      const r = await createRecord(a.orgId, a.userId, a.name, def, row, a.config.limits);
       if (r.ok) ok++; else failed++;
     }
     return NextResponse.json({ ok: true, message: `Imported ${ok} records${failed ? `, ${failed} skipped (validation)` : ''}` });
