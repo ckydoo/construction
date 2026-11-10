@@ -100,14 +100,14 @@ There is no `lint` script in `package.json`; `next build` ran its built-in lint/
 pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 changed
 files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
 secret-like hits. Later commits add deployment documentation, a sidebar cleanup
-that removes numeric record-count badges and the “N modules” label, and an in-app
-a plain-language business-flow guide and a Zimbabwe / Southern Africa terminology pass
-(`1aef83b`).
+that removes numeric record-count badges and the “N modules” label, an in-app
+plain-language business-flow guide and a Zimbabwe / Southern Africa terminology pass
+(`1aef83b`), and the full project-detail / larger-data release (`c6b39e2`).
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
 at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
-(currently `1aef83b`) via a `git_source` deployment (`dpl_C4C7kSENehVwMBFEXBNBdgLz71wB`,
-`READY`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
+(currently `c6b39e2`) via a `git_source` deployment (`dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`,
+`READY` / `PROMOTED`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
 variables are set for all three targets, including write-only sensitive Supabase keys.
 
 **Production verification:** login (valid and invalid credentials), dashboard, wallets,

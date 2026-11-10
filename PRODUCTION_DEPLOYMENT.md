@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_C4C7kSENehVwMBFEXBNBdgLz71wB` · state `READY` · `PROMOTED` |
-| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `1aef83bf09238f021a0b29bdb602cc19ff90c5c4` |
+| Deployment | `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` · state `READY` · `PROMOTED` · `timeToReady 63.1s` |
+| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `c6b39e26e75e6ea387f92b0703dfd4c75b32fa9e` |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -91,6 +91,8 @@ never printed in this document):
 | `a6cb9c9` | `dpl_9rxRyLh9ri1mq4daYUCFhfPwMt1x` | Corrected two diagram labels from “modules” to “resources” (49 resources / 34 modules); no functional change |
 | `6ce1fb2` | — | Documentation only (not deployed) |
 | `1aef83b` | `dpl_C4C7kSENehVwMBFEXBNBdgLz71wB` | Rewrote Documentation as a plain-language **business flow** and applied Zimbabwe/African small-contractor terminology across the sidebar, onboarding, dashboard, reports, settings and wallets |
+| `f830ea6` | — | Documentation-only closeout (not deployed) |
+| `c6b39e2` | `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` | Opened every project as a full detail page with an eighth **Record & files** tab, added server-backed searchable dropdowns, pushed paging/filter/search/count into Postgres, and applied additive search/reference indexes |
 
 The sidebar change was verified on the live URL with a real Chromium session:
 53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
@@ -159,6 +161,12 @@ a large contractor; **Start small** keeps only the client → quote → job → 
 payment chain. Other African countries can be added later through country/currency
 configuration.
 
+## Project detail & larger-data release
+
+Commit `c6b39e2` (deployment `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`) is the current production build. Clicking a project row, its **open full page** action, a command-palette result or a `?open=` link now opens `/{org}/projects/{id}` — never the side drawer. The full page gained an eighth **Record & files** tab with all project fields, linked modules, comments, attachments and PDF. All `ref` fields and project filters use a debounced, server-backed combobox. Register lists now page, filter, search, sort and count in Postgres; reverse links and project 360 filter at the database; and additive trigram/reference indexes were applied to Supabase. See `SCALABILITY_RELEASE.md` and `PROJECT_SCALE_AUDIT_REPORT.md`.
+
+That build re-ran every gate: `npm run audit` **1211/1211** + **22/22** core, browser **28/28**, design **15/15** across 55 routes, onboarding **10/10** (QA orgs/users `0/0`), dedicated project QA **8/8** locally and **8/8** against the live alias, `env:check` OK, integrity `ok:true` 616 records / 1627 refs / 0 broken refs / 0 wallet mismatches, and a clean `$11,000,000` wallet balance. Production Chromium screenshots are in `screenshots/production-project-*.png`.
+
 ## Deliberate non-changes
 
 - Supabase Auth `site_url` remains `http://localhost:3000`, the redirect allow-list is
@@ -168,9 +176,12 @@ configuration.
   account-level settings for public signup remains a separate, authorised-later task.
 - No custom domain was added; `myla-construction-erp.vercel.app` is the Vercel-assigned
   production alias.
-- No `vercel.json`, no `TZ` override and no schema/database changes were made. Source
-  changes since the initial release are the sidebar label cleanup, the new
-  documentation route/link, and a display-text-only plain-language/terminology pass.
+- No `vercel.json`, no `TZ` override and no auth, RLS, RBAC, validation or derivation
+  changes were made. The `c6b39e2` release added two **additive, idempotent**
+  Supabase migrations for search/reference indexes and a maintained `search_text`
+  column; no existing table column, policy, resource ID, module ID, role ID, status
+  value, field key, API path or RLS policy was altered. The new indexes and search
+  column are documented in `SCALABILITY_RELEASE.md` and `supabase/migrations/`.
   **Resource IDs, module IDs, role IDs, status values, field keys, API paths, SQL,
   RLS policies, the role matrix, validation rules and module derivation logic are
   unchanged** — see `TERMINOLOGY.md`. The documentation page is read-only and uses no

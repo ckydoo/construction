@@ -1,6 +1,6 @@
 # Project detail & larger-data release
 
-**Date:** 2026-11-07 (Africa/Harare) · **Status:** code complete, verified locally; production rollout recorded in `PRODUCTION_DEPLOYMENT.md`.
+**Date:** 2026-11-07 (Africa/Harare) · **Status:** **LIVE** at https://myla-construction-erp.vercel.app · Vercel `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` (`READY` / `PROMOTED`) from commit `c6b39e26e75e6ea387f92b0703dfd4c75b32fa9e`.
 
 ## What changed
 
@@ -37,3 +37,7 @@
 | Client portal scoping | 1 project, 1 client, 1 wallet; no admin data exposed |
 
 Dedicated evidence: `PROJECT_SCALE_AUDIT_REPORT.md`, `screenshots/project-detail-full-page.png`, `screenshots/project-detail-record-files.png`, `screenshots/project-searchable-dropdown.png`, `screenshots/project-searchable-filter.png`.
+
+## Production verification
+
+`AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:projects` passed **8/8** against the promoted alias: project row click → full page, no drawer; eight tabs and inline record/files panels; `?open=` redirect; server-backed searchable form dropdown; searchable project filter; DB-side paging; 0 console/page errors. Production screenshots: `screenshots/production-project-detail-full-page.png`, `production-project-detail-record-files.png`, `production-project-searchable-dropdown.png`, `production-project-searchable-filter.png`. Live login, documentation, integrity, wallets, paged projects, `mode=refs&q=West` and global search all returned `200` with the expected payloads.

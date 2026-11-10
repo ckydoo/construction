@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:3000",
+  "base": "https://myla-construction-erp.vercel.app",
   "org": "kestrel-ridge",
   "total": 8,
   "passed": 8,
