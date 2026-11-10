@@ -14,14 +14,22 @@ const RESERVED = new Set([
 ]);
 const SAFE_METHODS = new Set(['GET','HEAD','OPTIONS']);
 
+const truthy = (value: unknown) => String(value || '').trim().toLowerCase() === 'true';
+
 function billingMode(): 'off' | 'qa' | 'live' | 'misconfigured' {
-  const enabled = String(process.env.BILLING_ENABLED || '').trim().toLowerCase() === 'true';
+  const enabled = truthy(process.env.BILLING_ENABLED);
   const vercel = String(process.env.VERCEL || '') === '1'
     || /vercel\.app/i.test(String(process.env.NEXT_PUBLIC_APP_URL || ''));
-  const qa = String(process.env.BILLING_QA_MODE || '').trim().toLowerCase() === 'true' && !vercel;
+  const qa = truthy(process.env.BILLING_QA_MODE) && !vercel;
   if (!enabled) return qa ? 'qa' : 'off';
   if (qa) return 'qa';
-  return String(process.env.STRIPE_SECRET_KEY || '').trim().startsWith('sk_live_') ? 'live' : 'misconfigured';
+  const token = String(process.env.DPO_COMPANY_TOKEN || '').trim();
+  const service = String(process.env.DPO_SERVICE_TYPE || '').trim()
+    || String(process.env.DPO_SERVICE_TYPE_NAME || '').trim();
+  const callback = String(process.env.DPO_CALLBACK_SECRET || '').trim();
+  const push = String(process.env.DPO_PUSH_SECRET || '').trim();
+  const liveReady = truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
+  return liveReady ? 'live' : 'misconfigured';
 }
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   for (const cookie of from.cookies.getAll()) to.cookies.set(cookie);
@@ -60,7 +68,7 @@ export async function middleware(request: NextRequest) {
 
   if (mode === 'misconfigured') {
     return copyCookies(response, NextResponse.json({
-      error: 'Billing is misconfigured. BILLING_ENABLED=true requires a live Stripe secret key; no charge or lock has been applied.',
+      error: 'Billing is misconfigured. BILLING_ENABLED=true requires DPO_LIVE_MODE=true, a live DPO CompanyToken/ServiceType, callback secret and push secret; no charge or lock has been applied.',
     }, { status: 503 }));
   }
   if (!session.data?.user) return response; // route handlers return 401 themselves

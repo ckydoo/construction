@@ -1,6 +1,11 @@
 /* Server-only billing state. No payment credentials, card data or lock decision
  * are exposed to the browser. All writes use the service-role client because
- * billing state is authoritative and must never be editable through RLS. */
+ * billing state is authoritative and must never be editable through RLS.
+ *
+ * Active rails: DPO Pay by Network (primary, tokenised recurring after the first
+ * customer-present payment) and optional Paynow Zimbabwe (manual monthly invoice).
+ * Stripe is no longer used because a Zimbabwe-registered entity cannot receive
+ * native Stripe payouts. Historic Stripe columns are retained but never written. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { supabaseAdmin } from './supabase';
 import {
@@ -10,12 +15,14 @@ import {
 } from './billing-plans';
 
 export type BillingMode = 'off' | 'qa' | 'live' | 'misconfigured';
+export type BillingGateway = 'none' | 'stripe' | 'paynow' | 'dpo' | 'mock';
+export type BillingProvider = 'stripe' | 'paynow' | 'dpo' | 'mock';
 
 export type BillingSubscription = {
   organization_id: string;
   plan_id: PlanId;
   status: BillingStatus;
-  gateway: 'none' | 'stripe' | 'paynow';
+  gateway: BillingGateway;
   paynow_preferred: boolean;
   comped_reason: string | null;
   trial_ends_at: string | null;
@@ -29,6 +36,12 @@ export type BillingSubscription = {
   stripe_cancelled_at: string | null;
   last_stripe_charge_period_start: string | null;
   paynow_last_reference: string | null;
+  dpo_customer_email: string | null;
+  dpo_customer_token: string | null;
+  dpo_subscription_token: string | null;
+  dpo_last_transaction_token: string | null;
+  dpo_last_reference: string | null;
+  dpo_tokenised_at: string | null;
   last_payment_at: string | null;
   cancelled_at: string | null;
   metadata: Record<string, any>;
@@ -42,7 +55,7 @@ export type BillingInvoice = {
   invoice_number: string;
   reference: string;
   plan_id: PlanId;
-  gateway: 'stripe' | 'paynow' | 'mock';
+  gateway: BillingProvider;
   amount_usd: string | number;
   currency: string;
   status: 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
@@ -68,56 +81,87 @@ export type BillingInvoice = {
 const truthy = (value: unknown) => String(value || '').trim().toLowerCase() === 'true';
 
 export function qaEnvironmentAllowed(): boolean {
-  // `next start` sets NODE_ENV=production even on a laptop. QA is allowed there,
-  // but never on a Vercel deployment (where BILLING_QA_MODE stays false anyway).
+  // QA is allowed on a local `next start` but never on a Vercel deployment.
   if (String(process.env.VERCEL || '') === '1') return false;
   if (/vercel\.app/i.test(String(process.env.NEXT_PUBLIC_APP_URL || ''))) return false;
   return true;
+}
+
+function dpoLiveReady(): boolean {
+  const token = String(process.env.DPO_COMPANY_TOKEN || '').trim();
+  const service = String(process.env.DPO_SERVICE_TYPE || '').trim()
+    || String(process.env.DPO_SERVICE_TYPE_NAME || '').trim();
+  const callback = String(process.env.DPO_CALLBACK_SECRET || '').trim();
+  const push = String(process.env.DPO_PUSH_SECRET || '').trim();
+  return truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
 }
 
 export function billingMode(): BillingMode {
   const qa = truthy(process.env.BILLING_QA_MODE) && qaEnvironmentAllowed();
   if (!truthy(process.env.BILLING_ENABLED)) return qa ? 'qa' : 'off';
   if (qa) return 'qa';
-  const secret = String(process.env.STRIPE_SECRET_KEY || '').trim();
-  // An explicit production switch without a LIVE Stripe key is a misconfiguration,
-  // never a silent charge. Use BILLING_QA_MODE locally for sk_test_ keys.
-  if (!secret || !secret.startsWith('sk_live_')) return 'misconfigured';
-  return 'live';
+  // An explicit production switch without a deliberate DPO live configuration
+  // is a misconfiguration, never a silent charge. DPO production and sandbox
+  // share one endpoint, so DPO_LIVE_MODE=true is mandatory.
+  return dpoLiveReady() ? 'live' : 'misconfigured';
 }
 export function billingActive(): boolean {
   const mode = billingMode();
   return mode === 'qa' || mode === 'live';
 }
 export function liveChargesAllowed(): boolean { return billingMode() === 'live'; }
-export function paynowMockEnabled(): boolean { return billingMode() === 'qa' && truthy(process.env.PAYNOW_MOCK); }
-export function stripeMockEnabled(): boolean {
-  return billingMode() === 'qa' && !String(process.env.STRIPE_SECRET_KEY || '').trim().startsWith('sk_test_');
+export function dpoMockEnabled(): boolean {
+  return billingMode() === 'qa' && truthy(process.env.DPO_MOCK);
+}
+export function paynowMockEnabled(): boolean {
+  return billingMode() === 'qa' && truthy(process.env.PAYNOW_MOCK);
+}
+export function primaryGateway(): BillingGateway {
+  return dpoMockEnabled() ? 'mock' : 'dpo';
+}
+export function dpoProvider(): BillingProvider {
+  return dpoMockEnabled() ? 'mock' : 'dpo';
+}
+/** Choose the invoice rail for a subscription. QA always uses the local mock. */
+export function invoiceGateway(sub: BillingSubscription): BillingProvider {
+  const cfg = billingConfig();
+  if (cfg.mode === 'qa') return 'mock';
+  if (sub.paynow_preferred && cfg.paynowReady) return 'paynow';
+  return 'dpo';
 }
 
 export function billingConfig() {
   const mode = billingMode();
-  const stripeSecret = String(process.env.STRIPE_SECRET_KEY || '').trim();
   const paynowKey = String(process.env.PAYNOW_INTEGRATION_KEY || '').trim();
   const mockKey = String(process.env.BILLING_QA_KEY || 'myla-paynow-mock-key');
+  const dpoCompanyToken = String(process.env.DPO_COMPANY_TOKEN || '').trim();
+  const dpoServiceType = String(process.env.DPO_SERVICE_TYPE || '').trim();
+  const dpoServiceTypeName = String(process.env.DPO_SERVICE_TYPE_NAME || '').trim();
+  const dpoCallbackSecret = String(process.env.DPO_CALLBACK_SECRET || '').trim();
+  const dpoPushSecret = String(process.env.DPO_PUSH_SECRET || '').trim();
+  const dpoLiveMode = truthy(process.env.DPO_LIVE_MODE);
+  const dpoRecurringEnabled = truthy(process.env.DPO_RECURRING_ENABLED);
+  const dpoMock = dpoMockEnabled();
+  const paynowMock = paynowMockEnabled();
+  const dpoReady = mode === 'qa'
+    ? dpoMock
+    : Boolean(dpoLiveMode && dpoCompanyToken && (dpoServiceType || dpoServiceTypeName) && dpoCallbackSecret && dpoPushSecret);
   return {
     mode, active: mode === 'qa' || mode === 'live', trialDays: TRIAL_DAYS, graceDays: GRACE_DAYS,
     currency: BILLING_CURRENCY, taxIncluded: false, stripeTaxEnabled: false,
-    stripeSecret, stripeWebhookSecret: String(process.env.STRIPE_WEBHOOK_SECRET || '').trim(),
-    stripePrices: {
-      STARTER: String(process.env.STRIPE_PRICE_STARTER || '').trim(),
-      PRO: String(process.env.STRIPE_PRICE_PRO || '').trim(),
-      ENTERPRISE: String(process.env.STRIPE_PRICE_ENTERPRISE || '').trim(),
-    } as Record<PlanId, string>,
-    stripePortalConfiguration: String(process.env.STRIPE_PORTAL_CONFIGURATION || '').trim(),
+    dpoApiUrl: String(process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/').trim(),
+    dpoPaymentUrlTemplate: String(process.env.DPO_PAYMENT_URL_TEMPLATE || 'https://secure.3gdirectpay.com/payv2.php?ID={token}').trim(),
+    dpoCompanyToken, dpoServiceType, dpoServiceTypeName,
+    dpoCallbackSecret, dpoPushSecret, dpoLiveMode, dpoRecurringEnabled,
+    dpoMock, dpoReady,
     paynowId: String(process.env.PAYNOW_INTEGRATION_ID || '').trim(),
     paynowKey, paynowEffectiveKey: paynowKey || mockKey,
     paynowInitiateUrl: String(process.env.PAYNOW_INITIATE_URL || 'https://www.paynow.co.zw/interface/initiatetransaction').trim(),
     paynowReturnUrl: String(process.env.PAYNOW_RETURN_URL || '').trim(),
     paynowResultUrl: String(process.env.PAYNOW_RESULT_URL || '').trim(),
-    paynowMock: paynowMockEnabled(),
-    paynowReady: mode === 'qa' ? paynowMockEnabled() : Boolean(String(process.env.PAYNOW_INTEGRATION_ID || '').trim() && paynowKey),
-    stripeReady: mode === 'qa' ? !stripeMockEnabled() : Boolean(stripeSecret && String(process.env.STRIPE_WEBHOOK_SECRET || '').trim()),
+    paynowMock,
+    paynowReady: mode === 'qa' ? paynowMock : Boolean(String(process.env.PAYNOW_INTEGRATION_ID || '').trim() && paynowKey),
+    stripeCheckoutAvailable: false,
     cronSecret: String(process.env.BILLING_CRON_SECRET || process.env.CRON_SECRET || '').trim(),
     qaSecret: String(process.env.BILLING_QA_SECRET || '').trim(),
   };
@@ -165,8 +209,8 @@ function normalizeStatus(value: unknown): BillingStatus {
   const allowed: BillingStatus[] = ['trial_required','trialing','active','past_due','grace','switch_pending','locked','cancelled','comped'];
   return allowed.includes(value as BillingStatus) ? value as BillingStatus : 'trial_required';
 }
-function normalizeGateway(value: unknown): 'none' | 'stripe' | 'paynow' {
-  return value === 'stripe' || value === 'paynow' ? value : 'none';
+function normalizeGateway(value: unknown): BillingGateway {
+  return value === 'stripe' || value === 'paynow' || value === 'dpo' || value === 'mock' ? value : 'none';
 }
 
 export function normalizeSubscription(row: any): BillingSubscription {
@@ -182,6 +226,12 @@ export function normalizeSubscription(row: any): BillingSubscription {
     stripe_cancelled_at: iso(row.stripe_cancelled_at),
     last_stripe_charge_period_start: iso(row.last_stripe_charge_period_start),
     paynow_last_reference: row.paynow_last_reference || null,
+    dpo_customer_email: row.dpo_customer_email || null,
+    dpo_customer_token: row.dpo_customer_token || null,
+    dpo_subscription_token: row.dpo_subscription_token || null,
+    dpo_last_transaction_token: row.dpo_last_transaction_token || null,
+    dpo_last_reference: row.dpo_last_reference || null,
+    dpo_tokenised_at: iso(row.dpo_tokenised_at),
     last_payment_at: iso(row.last_payment_at), cancelled_at: iso(row.cancelled_at),
     metadata: (row.metadata && typeof row.metadata === 'object') ? row.metadata : {},
     created_at: iso(row.created_at) || new Date().toISOString(),
@@ -194,6 +244,15 @@ export async function getOrgSlug(orgId: string): Promise<string | null> {
     .select('slug').eq('id', orgId).maybeSingle();
   if (error) throw new Error(error.message);
   return data?.slug || null;
+}
+
+/** ISO-3166 alpha-2 country from onboarding, for optional DPO customer fields. */
+export async function getOrgCountry(orgId: string): Promise<string | null> {
+  const { data, error } = await supabaseAdmin().from('organizations')
+    .select('country').eq('id', orgId).maybeSingle();
+  if (error) throw new Error(error.message);
+  const country = String(data?.country || '').trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(country) ? country : null;
 }
 
 export async function getSubscription(orgId: string): Promise<BillingSubscription | null> {
@@ -242,7 +301,7 @@ export async function getInvoiceByReference(reference: string): Promise<BillingI
 
 /** One invoice per organisation, gateway and period. Safe under webhook retries. */
 export async function findOrCreateInvoice(input: {
-  orgId: string; planId: PlanId; gateway: 'stripe' | 'paynow' | 'mock';
+  orgId: string; planId: PlanId; gateway: BillingProvider;
   periodStart: Date | string; periodEnd: Date | string; dueAt?: Date | string;
   reference?: string; gatewayReference?: string; hostedUrl?: string | null; pollUrl?: string | null;
   metadata?: Record<string, any>;
@@ -290,9 +349,9 @@ export async function updateInvoice(id: string, patch: Partial<BillingInvoice>):
   return data as BillingInvoice;
 }
 
-export async function recordWebhookEvent(provider: 'stripe' | 'paynow' | 'mock', eventId: string, eventType: string, payload: any): Promise<boolean> {
+export async function recordWebhookEvent(provider: BillingProvider, eventId: string, eventType: string, payload: any): Promise<boolean> {
   // Claim, not just insert: an event whose processing did not finish (e.g. a
-  // Paynow poll that timed out) must be retryable with the identical payload.
+  // pending verification) must be retryable with the identical payload.
   const { data, error } = await supabaseAdmin().from('billing_webhook_events')
     .upsert({ provider, event_id: eventId, event_type: eventType, payload: payload || {} },
       { onConflict: 'provider,event_id' })
@@ -300,7 +359,7 @@ export async function recordWebhookEvent(provider: 'stripe' | 'paynow' | 'mock',
   if (error) throw new Error(error.message);
   return !data?.processed_at;
 }
-export async function markWebhookProcessed(provider: string, eventId: string): Promise<void> {
+export async function markWebhookProcessed(provider: BillingProvider, eventId: string): Promise<void> {
   await supabaseAdmin().from('billing_webhook_events')
     .update({ processed_at: new Date().toISOString() })
     .eq('provider', provider).eq('event_id', eventId);
@@ -326,11 +385,14 @@ export async function notifyBilling(orgId: string, title: string, body: string, 
 export type PublicBilling = {
   enabled: boolean; mode: BillingMode; plans: typeof PLANS; currency: string;
   trialDays: number; graceDays: number; taxIncluded: boolean; stripeTaxEnabled: boolean;
-  status: BillingStatus; plan: PlanId; priceUsd: number; gateway: string;
+  trialRequiresCard: boolean; dpoAvailable: boolean; dpoCheckoutAvailable: boolean;
+  dpoRecurringEnabled: boolean; dpoTokenised: boolean; paynowAvailable: boolean;
+  stripeCheckoutAvailable: boolean; stripeCustomerPortal: boolean;
+  status: BillingStatus; plan: PlanId; priceUsd: number; gateway: BillingGateway;
   access: boolean; writable: boolean; readOnly: boolean; needsPayment: boolean;
   canManage: boolean; paynowPreferred: boolean; trialEndsAt: string | null;
   currentPeriodEnd: string | null; graceUntil: string | null; switchDeadline: string | null;
-  comped: boolean; stripeCustomerPortal: boolean; paynowAvailable: boolean;
+  comped: boolean;
 };
 
 export async function publicBilling(orgId: string, role: string): Promise<PublicBilling> {
@@ -343,6 +405,11 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
   return {
     enabled: cfg.active, mode: cfg.mode, plans: PLANS, currency: BILLING_CURRENCY,
     trialDays: TRIAL_DAYS, graceDays: GRACE_DAYS, taxIncluded: false, stripeTaxEnabled: false,
+    trialRequiresCard: false,
+    dpoAvailable: cfg.dpoReady, dpoCheckoutAvailable: cfg.dpoReady,
+    dpoRecurringEnabled: cfg.dpoRecurringEnabled, dpoTokenised: Boolean(sub?.dpo_subscription_token),
+    paynowAvailable: cfg.paynowReady,
+    stripeCheckoutAvailable: false, stripeCustomerPortal: false,
     status, plan, priceUsd: PLAN_MAP[plan].priceUsd, gateway: sub?.gateway || 'none',
     access, writable, readOnly: access && !writable, needsPayment: cfg.active && !access,
     canManage: role === 'OWNER' || role === 'ADMIN',
@@ -350,14 +417,12 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
     trialEndsAt: sub?.trial_ends_at || null, currentPeriodEnd: sub?.current_period_end || null,
     graceUntil: sub?.grace_until || null, switchDeadline: sub?.switch_deadline || null,
     comped: status === 'comped',
-    stripeCustomerPortal: Boolean(cfg.stripeReady && sub?.stripe_customer_id),
-    paynowAvailable: cfg.paynowReady,
   };
 }
 
 export async function requireBillingManage(orgId: string, role: string): Promise<void> {
   if (role !== 'OWNER' && role !== 'ADMIN') throw new Error('Only owners and administrators can manage billing.');
-  if (!billingActive()) throw new Error('Billing is in shadow mode. Add live keys and set BILLING_ENABLED=true to enable checkout.');
+  if (!billingActive()) throw new Error('Billing is in shadow mode. Add live DPO credentials, set DPO_LIVE_MODE=true and BILLING_ENABLED=true to enable checkout.');
   void orgId;
 }
 

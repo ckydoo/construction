@@ -91,7 +91,7 @@ export function entitledLimits(plan: PlanId, configured: { users?: number; proje
   };
 }
 
-/** Price in minor units for Stripe and two-decimal fixed notation for Paynow. */
+/** Price in minor units and two-decimal fixed notation for DPO Pay / Paynow. */
 export function planAmountMinor(plan: PlanId): number { return Math.round(PLAN_MAP[plan].priceUsd * 100); }
 export function planAmountFixed(plan: PlanId): string { return PLAN_MAP[plan].priceUsd.toFixed(2); }
 export function planLabel(plan: PlanId): string { return PLAN_MAP[plan].name; }

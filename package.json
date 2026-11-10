@@ -37,7 +37,8 @@
     "rbac:staff": "tsx scripts/staff-defs.ts > /tmp/staff-defs.json && python3 scripts/gen-staff-scope.py",
     "audit:features": "node scripts/feature-audit.mjs",
     "audit:finance": "node scripts/finance-module-audit.mjs",
-    "audit:billing": "node scripts/billing-audit.mjs"
+    "audit:billing": "node scripts/billing-audit.mjs",
+    "audit:dpo-prod": "node scripts/dpo-production-smoke.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
@@ -48,8 +49,7 @@
     "next": "^15.1.3",
     "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "stripe": "^19.3.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

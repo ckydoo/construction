@@ -1,16 +1,16 @@
-/* Paynow Zimbabwe monthly checkout / invoice flow.
+/* Paynow Zimbabwe fallback monthly checkout / invoice flow.
  * No tokenisation or silent autodebit is used: each month the customer pays a
  * customer-present Paynow transaction. Hash verification, exact reference and
- * amount matching, polling confirmation and webhook idempotency are mandatory. */
+ * amount matching, polling confirmation and webhook idempotency are mandatory.
+ * Stripe is no longer used. */
 import { createHash } from 'node:crypto';
 import {
-  addDays, addMonths, baseUrl, billingActive, billingConfig, billingError,
-  findOrCreateInvoice, getInvoiceByReference, getSubscription, iso,
-  markWebhookProcessed, notifyBilling, paynowMockEnabled, recordBillingEvent,
-  recordWebhookEvent, shortHash, updateInvoice, upsertSubscription, safeHashEqual,
+  baseUrl, billingActive, billingConfig, billingError, getInvoiceByReference,
+  markWebhookProcessed, paynowMockEnabled, recordBillingEvent,
+  recordWebhookEvent, safeHashEqual, shortHash, updateInvoice,
   type BillingInvoice, type BillingSubscription,
 } from './billing';
-import { cancelStripeForPaynowPayment } from './stripe-billing';
+import { activatePaidInvoice, markInvoiceFailed } from './billing-lifecycle';
 import { PLAN_MAP, planAmountFixed, type PlanId } from './billing-plans';
 
 type FormPair = [string, string];
@@ -183,8 +183,6 @@ export async function processPaynowWebhook(raw: string, req?: Request) {
   const status = String(parsed.map.status || '').toLowerCase();
   const paidStatuses = ['paid','awaiting delivery','delivered'];
   const failedStatuses = ['cancelled','disputed','refunded'];
-  const sub = await getSubscription(invoice.organization_id);
-  if (!sub) billingError('Subscription record not found.', 404);
 
   if (paidStatuses.includes(status)) {
     // Polling confirmation is mandatory in live mode; mock mode polls its local
@@ -195,55 +193,20 @@ export async function processPaynowWebhook(raw: string, req?: Request) {
       await recordBillingEvent(invoice.organization_id, 'paynow_poll_failed', eventId, 'Paynow payment not yet confirmed by poll URL.');
       return { ok: false, retry: true, reason: 'poll_confirmation_failed' };
     }
-    const { conflict } = await cancelStripeForPaynowPayment(sub, invoice.period_start);
-    await updateInvoice(invoice.id, {
-      status: 'paid', paid_at: iso(new Date()), raw_status: parsed.map.status,
-      gateway_reference: parsed.map.paynowreference || invoice.gateway_reference,
-      poll_url: pollUrl || invoice.poll_url,
+    await activatePaidInvoice(invoice, {
+      gateway: provider,
+      gatewayReference: parsed.map.paynowreference || invoice.gateway_reference,
+      rawStatus: parsed.map.status,
     });
-    await upsertSubscription(invoice.organization_id, {
-      status: 'active', gateway: 'paynow', plan_id: invoice.plan_id,
-      current_period_start: invoice.period_start, current_period_end: invoice.period_end,
-      grace_until: null, switch_deadline: null, cancelled_at: null,
-      last_payment_at: iso(new Date()), paynow_last_reference: reference,
-      stripe_cancelled_at: sub.stripe_cancelled_at || (sub.stripe_subscription_id ? iso(new Date()) : null),
-      metadata: { ...(sub.metadata || {}), switchInitiated: false },
-    });
-    await notifyBilling(invoice.organization_id, 'Payment received',
-      `Your MYLA ${PLAN_MAP[invoice.plan_id].name} subscription is active until ${new Date(invoice.period_end).toLocaleDateString('en-GB')}. No data was changed.`,
-      'SUCCESS', '/billing');
-    await recordBillingEvent(invoice.organization_id, 'paynow_paid', reference, `Paid USD ${amount}.`);
-    if (conflict) {
-      await notifyBilling(invoice.organization_id, 'Duplicate-payment review required',
-        'Stripe and Paynow both recorded a payment for one period. Contact support so one charge can be refunded; access remains active.',
-        'ALERT', '/billing');
-      await recordBillingEvent(invoice.organization_id, 'double_billing_alert', reference, 'Stripe and Paynow paid invoices overlap.');
-    }
-  } else if (failedStatuses.includes(status)) {
-    const nextStatus = status === 'refunded' ? 'refunded' : status === 'cancelled' ? 'cancelled' : 'failed';
-    await updateInvoice(invoice.id, {
-      status: nextStatus, failed_at: iso(new Date()), raw_status: parsed.map.status,
-      failure_reason: `Paynow status ${parsed.map.status}`,
-    });
-    await upsertSubscription(invoice.organization_id, {
-      status: 'past_due', grace_until: iso(addDays(new Date(), 3)),
-    });
-    await notifyBilling(invoice.organization_id, 'Paynow payment not completed',
-      'Your workspace stays read-only for three days while you retry the invoice. No data is deleted.',
-      'WARNING', '/billing');
-  } else {
-    await updateInvoice(invoice.id, { raw_status: parsed.map.status || null });
+    await markWebhookProcessed(provider, eventId);
+    return { ok: true, status: parsed.map.status, invoice: invoice.reference };
   }
+  if (failedStatuses.includes(status)) {
+    await markInvoiceFailed(invoice, `Paynow status ${parsed.map.status}`, parsed.map.status);
+    await markWebhookProcessed(provider, eventId);
+    return { ok: true, status: parsed.map.status, failed: true, invoice: invoice.reference };
+  }
+  await updateInvoice(invoice.id, { raw_status: parsed.map.status || null });
   await markWebhookProcessed(provider, eventId);
   return { ok: true, status: parsed.map.status, invoice: invoice.reference };
-}
-
-/** Create the next monthly Paynow invoice. No autodebit: the customer pays it. */
-export async function createRenewalInvoice(sub: BillingSubscription, periodStart: Date | string) {
-  const gateway = paynowMockEnabled() ? 'mock' : 'paynow';
-  return findOrCreateInvoice({
-    orgId: sub.organization_id, planId: sub.plan_id, gateway,
-    periodStart, periodEnd: addMonths(periodStart, 1), dueAt: periodStart,
-    metadata: { renewal: true, autodebit: false },
-  });
 }

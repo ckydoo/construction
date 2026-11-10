@@ -53,6 +53,6 @@ npm run db:seed            # creates Auth users + demo data
 
 ## 4. Optional connector slots (not wired yet)
 
-Sections 3–10 of `.env.example` name slots for S3/R2, email/SMTP, SMS/WhatsApp, PayNow/Stripe/PayPal, maps/weather, Google/Microsoft SSO, Xero/QuickBooks/Sage, webhooks, Slack/Teams, Sentry and OpenAI. Adding a value does **not** enable a feature; tell me which connector to wire and I'll implement it.
+Sections 3–10 of `.env.example` name slots for S3/R2, email/SMTP, SMS/WhatsApp, DPO Pay by Network, Paynow Zimbabwe, PayPal, maps/weather, Google/Microsoft SSO, Xero/QuickBooks/Sage, webhooks, Slack/Teams, Sentry and OpenAI. Stripe is no longer used by subscriptions: a Zimbabwe-registered entity cannot receive native Stripe payouts. Adding a value does **not** enable a feature; tell me which connector to wire and I'll implement it.
 
 **Removed with the Supabase rewrite:** `DATABASE_URL`, `SEED_DEMO`, `UPLOAD_ROOT`, `SESSION_SECRET`. There is no local SQLite database, no disk upload root and no custom session table. Supabase Auth owns sessions; Postgres owns all data; Supabase Storage owns binaries.

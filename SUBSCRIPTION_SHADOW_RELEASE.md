@@ -1,5 +1,11 @@
 # MYLA subscription system — shadow release
 
+> **SUPERSEDED (2026-11-07):** This Stripe + Paynow **card-required trial** release is
+> historical only. The active implementation is `SUBSCRIPTION_DPO_RELEASE.md` and
+> `BILLING_SETUP.md`: DPO Pay by Network is primary, the trial is 14 days with **no
+> card**, Paynow is an optional manual fallback, and Stripe is removed from the
+> production path. Do not use the Stripe go-live steps below.
+
 **Date:** 2026-11-07 (Africa/Harare) · **Mode:** `BILLING_ENABLED=false` in production
 
 **Production deployment:** commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` → `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`, `READY` / `PROMOTED`, `timeToReady 49.1s`.

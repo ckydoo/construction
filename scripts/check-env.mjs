@@ -67,12 +67,20 @@ if (!fs.existsSync(migrations)) errors.push('supabase/migrations is missing — 
 else notes.push(`Supabase migrations: ${fs.readdirSync(migrations).filter(f => f.endsWith('.sql')).length} SQL files (apply with \`npx supabase db push\`).`);
 
 const billingOn = get('BILLING_ENABLED').toLowerCase() === 'true';
-if (billingOn && !get('STRIPE_SECRET_KEY').startsWith('sk_live_'))
-  errors.push('BILLING_ENABLED=true requires a live Stripe secret key. Keep it false until go-live credentials are ready.');
-if (billingOn && !isSet(get('STRIPE_WEBHOOK_SECRET')))
-  errors.push('BILLING_ENABLED=true requires STRIPE_WEBHOOK_SECRET.');
+if (billingOn && get('DPO_LIVE_MODE').toLowerCase() !== 'true')
+  errors.push('BILLING_ENABLED=true requires explicit DPO_LIVE_MODE=true. Keep both false until DPO merchant approval and live credentials are ready.');
+if (billingOn && !isSet(get('DPO_COMPANY_TOKEN')))
+  errors.push('BILLING_ENABLED=true requires a live DPO_COMPANY_TOKEN.');
+if (billingOn && !(isSet(get('DPO_SERVICE_TYPE')) || isSet(get('DPO_SERVICE_TYPE_NAME'))))
+  errors.push('BILLING_ENABLED=true requires DPO_SERVICE_TYPE or DPO_SERVICE_TYPE_NAME.');
+if (billingOn && !isSet(get('DPO_CALLBACK_SECRET')))
+  errors.push('BILLING_ENABLED=true requires DPO_CALLBACK_SECRET.');
+if (billingOn && !isSet(get('DPO_PUSH_SECRET')))
+  errors.push('BILLING_ENABLED=true requires DPO_PUSH_SECRET.');
+if (billingOn && get('DPO_RECURRING_ENABLED').toLowerCase() !== 'true')
+  warnings.push('DPO_RECURRING_ENABLED is false; renewals will require customer-present payment.');
 if (billingOn && !isSet(get('PAYNOW_INTEGRATION_ID')))
-  warnings.push('Paynow credentials are empty; Paynow checkout will be unavailable until they are added.');
+  warnings.push('Optional Paynow fallback credentials are empty; DPO Pay remains the primary gateway.');
 
 if (get('NODE_ENV') === 'production') {
   if (!get('NEXT_PUBLIC_APP_URL').startsWith('https://')) warnings.push('NEXT_PUBLIC_APP_URL should be an HTTPS URL in production.');
@@ -84,8 +92,8 @@ const groups = {
   'S3/R2 storage': ['S3_ENDPOINT','S3_REGION','S3_BUCKET','S3_ACCESS_KEY_ID','S3_SECRET_ACCESS_KEY','S3_PUBLIC_BASE_URL','R2_ACCOUNT_ID','R2_ACCESS_KEY_ID','R2_SECRET_ACCESS_KEY','R2_BUCKET','R2_PUBLIC_BASE_URL'],
   Email: ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','RESEND_API_KEY','SENDGRID_API_KEY'],
   'SMS/WhatsApp': ['TWILIO_ACCOUNT_SID','TWILIO_AUTH_TOKEN','TWILIO_FROM_NUMBER','TWILIO_MESSAGING_SERVICE_SID','WHATSAPP_BUSINESS_ACCOUNT_ID','WHATSAPP_BUSINESS_PHONE_ID','WHATSAPP_ACCESS_TOKEN'],
-  Payments: ['PAYNOW_INTEGRATION_ID','PAYNOW_INTEGRATION_KEY','PAYNOW_RETURN_URL','PAYNOW_RESULT_URL','STRIPE_SECRET_KEY','NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY','STRIPE_WEBHOOK_SECRET','PAYPAL_CLIENT_ID','PAYPAL_CLIENT_SECRET'],
-  Subscriptions: ['BILLING_ENABLED','BILLING_QA_MODE','PAYNOW_MOCK','BILLING_CRON_SECRET','STRIPE_PRICE_STARTER','STRIPE_PRICE_PRO','STRIPE_PRICE_ENTERPRISE','STRIPE_PORTAL_CONFIGURATION'],
+  Payments: ['PAYNOW_INTEGRATION_ID','PAYNOW_INTEGRATION_KEY','PAYNOW_RETURN_URL','PAYNOW_RESULT_URL','DPO_COMPANY_TOKEN','DPO_SERVICE_TYPE','DPO_SERVICE_TYPE_NAME','DPO_API_URL','DPO_PAYMENT_URL_TEMPLATE','DPO_CALLBACK_SECRET','DPO_PUSH_SECRET','PAYPAL_CLIENT_ID','PAYPAL_CLIENT_SECRET'],
+  Subscriptions: ['BILLING_ENABLED','BILLING_QA_MODE','PAYNOW_MOCK','DPO_MOCK','DPO_LIVE_MODE','DPO_RECURRING_ENABLED','BILLING_CRON_SECRET','BILLING_QA_SECRET','BILLING_QA_KEY'],
   'Maps/weather': ['GOOGLE_MAPS_API_KEY','NEXT_PUBLIC_GOOGLE_MAPS_API_KEY','OPENWEATHER_API_KEY'],
   SSO: ['GOOGLE_CLIENT_ID','GOOGLE_CLIENT_SECRET','MICROSOFT_CLIENT_ID','MICROSOFT_CLIENT_SECRET','MICROSOFT_TENANT_ID'],
   Accounting: ['XERO_CLIENT_ID','XERO_CLIENT_SECRET','XERO_TENANT_ID','XERO_WEBHOOK_SIGNING_KEY','QUICKBOOKS_CLIENT_ID','QUICKBOOKS_CLIENT_SECRET','QUICKBOOKS_REALM_ID','SAGE_CLIENT_ID','SAGE_CLIENT_SECRET'],

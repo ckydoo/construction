@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { billingAdmin, billingConfigPublic, billingFailure, billingMutationError } from '@/lib/billing-api';
-import { getInvoices, getSubscription, iso, notifyBilling, publicBilling, recordBillingEvent, upsertSubscription } from '@/lib/billing';
-import { initiateTrialEndSwitch, scheduleStripeCancellation } from '@/lib/stripe-billing';
+import {
+  billingConfig, getInvoices, getSubscription, iso, notifyBilling, publicBilling,
+  recordBillingEvent, upsertSubscription,
+} from '@/lib/billing';
+import { cancelSubscription, startNoCardTrial } from '@/lib/billing-lifecycle';
+import { revokeDpoCard } from '@/lib/dpo-billing';
 import { isPlanId } from '@/lib/billing-plans';
 
 export const runtime = 'nodejs';
@@ -32,34 +36,36 @@ export async function POST(req: Request, { params }: Ctx) {
 
     if (action === 'selectPlan') {
       if (!isPlanId(b.planId)) return NextResponse.json({ error: 'Choose Starter, Pro or Enterprise.' }, { status: 400 });
-      if (sub.status !== 'trial_required') return NextResponse.json({ error: 'Choose a plan before starting the trial; use the Stripe portal for later changes.' }, { status: 409 });
+      if (sub.status !== 'trial_required') return NextResponse.json({ error: 'Choose a plan before starting the no-card trial.' }, { status: 409 });
       const next = await upsertSubscription(a.orgId, { plan_id: b.planId });
       return NextResponse.json({ ok: true, subscription: next });
     }
+
+    if (action === 'startTrial') {
+      const planId = b.planId && isPlanId(b.planId) ? b.planId : sub.plan_id;
+      const next = await startNoCardTrial(sub, planId, a.email);
+      return NextResponse.json({ ok: true, subscription: next, message: '14-day no-card trial started.' });
+    }
+
     if (action === 'setPaynowPreference') {
       const usePaynow = b.usePaynow === true;
-      if (!['trial_required','trialing','switch_pending'].includes(sub.status))
-        return NextResponse.json({ error: 'Paynow can be selected before the first Stripe charge.' }, { status: 409 });
-      if (!usePaynow && sub.status === 'switch_pending')
-        return NextResponse.json({ error: 'The trial-end Paynow switch is already in progress.' }, { status: 409 });
+      const cfg = billingConfig();
+      if (usePaynow && !cfg.paynowReady)
+        return NextResponse.json({ error: 'Paynow credentials are not configured; DPO Pay remains the primary gateway.' }, { status: 409 });
+      if (!['trial_required','trialing','grace'].includes(sub.status) || sub.last_payment_at)
+        return NextResponse.json({ error: 'The local Paynow fallback can only be selected before the first paid period.' }, { status: 409 });
       const next = await upsertSubscription(a.orgId, { paynow_preferred: usePaynow });
-      if (usePaynow && next.status === 'trialing' && next.trial_ends_at
-          && new Date(next.trial_ends_at).getTime() - Date.now() <= 4 * 86400 * 1000) {
-        await initiateTrialEndSwitch(next, next.trial_ends_at);
-      }
-      return NextResponse.json({ ok: true, subscription: await getSubscription(a.orgId) });
+      await recordBillingEvent(a.orgId, 'paynow_preference_changed', iso(new Date()),
+        usePaynow ? 'Paynow fallback selected before first payment.' : 'DPO Pay selected before first payment.');
+      return NextResponse.json({ ok: true, subscription: next });
     }
+
     if (action === 'cancel') {
-      if (sub.gateway === 'stripe') await scheduleStripeCancellation(sub);
-      else await upsertSubscription(a.orgId, {
-        cancelled_at: iso(new Date()),
-        metadata: { ...(sub.metadata || {}), cancelAtPeriodEnd: true, cancellationRequestedAt: new Date().toISOString() },
-        ...(sub.status === 'trial_required' ? { status: 'cancelled' } : {}),
-      });
-      await notifyBilling(a.orgId, 'Cancellation scheduled',
-        'Your subscription will end at the close of the current paid period. All workspace data stays intact.', 'INFO', '/billing');
-      return NextResponse.json({ ok: true, subscription: await getSubscription(a.orgId) });
+      const next = await cancelSubscription(sub);
+      await revokeDpoCard(sub);
+      return NextResponse.json({ ok: true, subscription: next });
     }
+
     if (action === 'contactSales') {
       await upsertSubscription(a.orgId, {
         metadata: { ...(sub.metadata || {}), contactSalesRequestedAt: new Date().toISOString() },
@@ -69,6 +75,7 @@ export async function POST(req: Request, { params }: Ctx) {
         'Our team will contact you about onboarding, custom branding and priority support. No payment details are requested here.', 'INFO', '/billing');
       return NextResponse.json({ ok: true, message: 'Enterprise request recorded. Our team will contact you.' });
     }
+
     return NextResponse.json({ error: 'Unknown billing action.' }, { status: 400 });
   } catch (e) { return billingFailure(e); }
 }

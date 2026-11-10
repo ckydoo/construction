@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { billingAdmin, billingFailure, billingMutationError } from '@/lib/billing-api';
 import { getInvoices, getSubscription } from '@/lib/billing';
+import { startDpoCheckout } from '@/lib/dpo-billing';
 import { startPaynowCheckout } from '@/lib/paynow-billing';
 
 export const runtime = 'nodejs';
@@ -17,10 +18,19 @@ export async function POST(req: Request, { params }: Ctx) {
     const invoices = await getInvoices(a.orgId, 100);
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return NextResponse.json({ error: 'Invoice not found.' }, { status: 404 });
-    if (invoice.gateway !== 'paynow' && invoice.gateway !== 'mock')
-      return NextResponse.json({ error: 'This invoice is not a Paynow invoice.' }, { status: 400 });
+    if (!['dpo','mock','paynow'].includes(invoice.gateway))
+      return NextResponse.json({ error: 'This invoice is not a DPO/Paynow invoice.' }, { status: 400 });
     const sub = await getSubscription(a.orgId);
     if (!sub) return NextResponse.json({ error: 'Billing subscription not found.' }, { status: 404 });
+    const dpoInvoice = Boolean(invoice.metadata?.dpo)
+      || (!sub.paynow_preferred && (invoice.gateway === 'dpo' || invoice.gateway === 'mock'));
+    if (dpoInvoice) {
+      const result = await startDpoCheckout({
+        req, orgId: a.orgId, slug: a.orgSlug, planId: invoice.plan_id,
+        email: a.email, name: a.name, invoice, sub,
+      });
+      return NextResponse.json({ ok: true, ...result });
+    }
     const result = await startPaynowCheckout({
       req, orgId: a.orgId, slug: a.orgSlug, planId: invoice.plan_id,
       email: a.email, invoice, sub,

@@ -13,9 +13,9 @@ export function billingMutationError(): NextResponse | null {
   const mode = billingMode();
   if (mode === 'qa' || mode === 'live') return null;
   if (mode === 'misconfigured') return NextResponse.json({
-    error: 'Billing is misconfigured: BILLING_ENABLED=true requires a live Stripe secret key. No charge or lock has been applied.',
+    error: 'Billing is misconfigured: BILLING_ENABLED=true requires DPO_LIVE_MODE=true, a live DPO CompanyToken/ServiceType, callback secret and push secret. No charge or lock has been applied.',
   }, { status: 503 });
-  return NextResponse.json({ error: 'Billing is in shadow mode. Add live keys and set BILLING_ENABLED=true to enable checkout.' }, { status: 409 });
+  return NextResponse.json({ error: 'Billing is in shadow mode. Add live DPO credentials, set DPO_LIVE_MODE=true and BILLING_ENABLED=true to enable checkout.' }, { status: 409 });
 }
 export function billingFailure(e: any): NextResponse {
   return NextResponse.json({ error: e?.message || 'Billing request failed' }, { status: e?.status || 500 });
@@ -25,7 +25,11 @@ export function billingConfigPublic() {
   return {
     mode: cfg.mode, active: cfg.active, currency: cfg.currency,
     trialDays: cfg.trialDays, graceDays: cfg.graceDays,
-    taxIncluded: cfg.taxIncluded, stripeTaxEnabled: cfg.stripeTaxEnabled,
-    paynowAvailable: cfg.paynowReady, stripeCheckoutAvailable: cfg.stripeReady || cfg.mode === 'qa',
+    taxIncluded: cfg.taxIncluded,
+    trialRequiresCard: false,
+    dpoAvailable: cfg.dpoReady, dpoCheckoutAvailable: cfg.dpoReady,
+    dpoRecurringEnabled: cfg.dpoRecurringEnabled,
+    paynowAvailable: cfg.paynowReady,
+    stripeCheckoutAvailable: false,
   };
 }

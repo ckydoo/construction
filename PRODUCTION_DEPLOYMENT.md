@@ -21,26 +21,40 @@ The build completes in about a minute from the public GitHub commit; no source f
 re-uploaded manually. The GitHub repo is public, which is why a `git_source` deployment
 works without installing the Vercel GitHub App.
 
-## Current release — organisation subscriptions in shadow mode
+## Current release — DPO Pay subscriptions in shadow mode
 
-Production code is commit `3b811f0` / `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f`,
-deployed with an explicit Vercel `git_source` SHA as
-`dpl_4w94S2ryvm6WLV3uamSydyp2zbTn` (`READY`, `PROMOTED`, `timeToReady 49.1s`).
+**Deployment:** pending explicit-SHA Vercel deploy. `SUBSCRIPTION_DPO_RELEASE.md` and
+`DPO_PRODUCTION_SMOKE.md` will carry the exact commit, deployment ID and post-promotion
+smoke results. Until that deployment is promoted, live production code remains the
+historical Stripe/Paynow shadow release `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` /
+`dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`.
 
-This release builds the complete Stripe + Paynow Zimbabwe subscription system but keeps
-it **off** in production: `BILLING_ENABLED=false`, `BILLING_QA_MODE=false` and
-`PAYNOW_MOCK=false` are set on Vercel. Nobody is charged or locked. USD 9/29/99 per
-organisation/month Starter/Pro/Enterprise applies everywhere; a 14-day card-required
-Stripe Checkout trial, trial-end Paynow switch, monthly Paynow invoices, 3-day grace,
-hard lock, Owner/Admin Billing UI and grandfathered comped orgs are implemented. See
-`SUBSCRIPTION_SHADOW_RELEASE.md` and `BILLING_SETUP.md`.
+This release replaces the card-required Stripe Checkout trial with **DPO Pay by
+Network** as the primary rail, a **14-day no-card trial**, optional tokenised monthly
+renewals, and Paynow Zimbabwe as an optional customer-present fallback. Stripe is
+removed from the production path and the `stripe` npm dependency is uninstalled.
+Production billing stays **off**: `BILLING_ENABLED=false`, `BILLING_QA_MODE=false`,
+`PAYNOW_MOCK=false`, `DPO_MOCK=false` and `DPO_LIVE_MODE=false`/absent. Nobody is
+charged or locked. USD 9/29/99 per organisation/month applies everywhere; existing
+orgs remain grandfathered comped. See `SUBSCRIPTION_DPO_RELEASE.md`,
+`BILLING_SETUP.md` and `SUBSCRIPTION_QA_REPORT.md`.
 
-Post-promotion production smoke: **17/17** — login, meta, billing, overview, projects,
-integrity, dashboard and Billing page all `200`; meta still exposes 34 modules/49
-resources; billing mode is `off`; existing org is `comped`; 9/29/99 plans present; QA and
-Paynow mock routes are `404` in production; authorised cron returns `200` with billing
-skipped. `npm run audit:billing` passed **10/10** locally with Stripe-test-compatible
-signed webhooks and a Paynow mock; QA orgs/users/mock events cleaned to `0/0/0`.
+Local verification before deployment: `npm run env:check`, `npx tsc --noEmit` and
+`NODE_ENV=production npm run build` clean; `npm run audit:billing` **10/10** with a
+zero-network DPO v6 mock; QA orgs/users/mock events/billing events cleaned to
+`0/0/0/0`; live Supabase migration `dpo_pay_subscriptions_v1` verified. No Vercel
+environment variables were added or changed. Production smoke is pending deployment.
+
+## Previous release — Stripe/Paynow card-required trial shadow mode (superseded)
+
+Production code was commit `3b811f0` / `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f`,
+deployed as `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn` (`READY`, `PROMOTED`,
+`timeToReady 49.1s`). It built a Stripe Checkout trial plus a trial-end Paynow switch,
+but `BILLING_ENABLED=false` kept it off. Post-promotion smoke passed **17/17** and
+local `npm run audit:billing` passed **10/10** with Stripe-test-compatible signed
+webhooks and a Paynow mock. `SUBSCRIPTION_SHADOW_RELEASE.md` is now historical only;
+the user chose DPO Pay because a Zimbabwe-registered entity cannot receive native
+Stripe payouts.
 
 ## Previous release — tenant-branded financial documents, editable line items and strict module visibility
 

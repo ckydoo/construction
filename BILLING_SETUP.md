@@ -1,11 +1,12 @@
-# MYLA subscription setup & go-live checklist
+# MYLA subscription setup & go-live checklist — DPO Pay by Network
 
-**Current state: SHADOW MODE.** The complete billing system is built and deployed as
-commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` / deployment `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`,
-but `BILLING_ENABLED=false` on Vercel production, preview and development. No live
-card is charged, no workspace is locked, and no live Stripe/Paynow request is made.
-`BILLING_QA_MODE=false` and `PAYNOW_MOCK=false` are also set on Vercel. Post-promotion
-production smoke passed **17/17** checks; see `SUBSCRIPTION_SHADOW_RELEASE.md`.
+**Current state: SHADOW MODE.** The DPO Pay subscription system is built and verified,
+but `BILLING_ENABLED=false` on Vercel production, preview and development.
+`BILLING_QA_MODE=false`, `DPO_MOCK=false`, `DPO_LIVE_MODE=false` and `PAYNOW_MOCK=false`
+are also off or absent. Nobody is charged, no card is collected at trial start, no
+workspace is locked, and no live DPO/Paynow request is made. See
+`SUBSCRIPTION_DPO_RELEASE.md` for the release record and `PRODUCTION_DEPLOYMENT.md`
+for the exact deployed commit/deployment.
 
 ## Product contract
 
@@ -16,98 +17,121 @@ production smoke passed **17/17** checks; see `SUBSCRIPTION_SHADOW_RELEASE.md`.
 | Enterprise | **USD 99 / organisation / month** | Unlimited | Unlimited | Everything in Pro, onboarding, priority support, custom branding, contact sales |
 
 The same three prices apply everywhere; there is no Africa/regional price book or gating.
-Settlement is USD. ZWG is **display only** through the existing FX settings. Prices are
-exclusive of VAT/tax and Stripe Tax is not auto-enabled. Monthly billing only in v1.
+Settlement is USD. ZWG/ZAR are **display only** through the existing FX settings. Prices
+are exclusive of VAT/tax. Monthly billing only in v1.
 
-All new organisations get a **14-day card-required trial on Stripe Checkout**:
-`trial_period_days=14`, `payment_method_collection=always`, no initial charge and a
-zero-value trial invoice. Zimbabwe/Paynow tenants may opt to switch at trial end;
-Stripe is cancelled at period end **before its first charge**, then one Paynow invoice
-covers the same period. If they do not switch, Stripe charges normally. Stripe remains
-the canonical automatic subscription gateway. Paynow uses **customer-present monthly
-checkout/invoice**; tokenisation and silent autodebit are deliberately not used until
-merchant approval exists. Failed renewals are read-only for a 3-day grace period and
-then hard-locked. No data is ever deleted. Existing organisations are grandfathered
-active/comped with no expiry.
+All new organisations get a **14-day NO-CARD trial**: no payment method is collected and
+no invoice is created until the trial ends. At trial end the daily sweep creates one
+invoice for the next paid period and starts a **3-day read-only grace**. The customer
+pays that invoice on the DPO Pay hosted page (`AllowRecurrent=1`). MYLA treats
+`verifyToken` plus exact amount/currency/reference matching as the source of truth;
+DPO push/redirect callbacks are doorbells only. With merchant-approved Super Wallet
+tokenisation, MYLA can save a subscription token and charge later renewals through
+`createToken` + `chargeTokenRecurrent`. Paynow Zimbabwe is an **optional manual
+fallback** with customer-present monthly invoices; no silent autodebit is assumed.
+Failed renewals are read-only for three days and then hard-locked. No data is ever
+deleted. Existing organisations are grandfathered active/comped with no expiry.
 
 ## What is implemented
 
 - Tables: `billing_subscriptions`, `billing_invoices`, `billing_webhook_events`,
-  `billing_events`; migration `supabase/migrations/20261111100000_billing_subscriptions.sql`
-  and live Supabase migration `billing_subscriptions_shadow_v1`.
-- RLS: Owner/Admin read only; all writes use the service-role server client. No browser
-  client can alter billing state. A trigger seeds every new organisation as
-  `trial_required`; all pre-existing organisations were inserted as `comped`.
+  `billing_events`. Additive live migration `dpo_pay_subscriptions_v1` adds DPO/mock
+  gateways, six `dpo_*` columns, an index and no-card-trial seed metadata; local file
+  `supabase/migrations/20261112100000_dpo_pay_subscriptions.sql`.
+- RLS: Owner/Admin read only; all writes use the service-role server client. A trigger
+  seeds every new organisation as `trial_required`; all pre-existing organisations are
+  `comped`.
 - Enforcement: `src/middleware.ts` hard-locks org pages/APIs, leaving `/billing` and
-  `/api/[org]/meta` reachable. `src/lib/auth.ts` intersects modules/resources/limits
-  with the purchased plan; API write guards, user/project limits and the AppShell
+  `/api/[org]/meta` reachable. API write guards, user/project limits and the AppShell
   banner provide defence in depth.
-- Owner/Admin UI: `src/app/[org]/billing/page.tsx`, plus Billing links in the sidebar
-  and account menu.
-- Stripe: Checkout trial, customer portal, subscription/invoice webhooks,
-  `trial_will_end` switch, automatic renewal state and 3-day grace.
-- Paynow: SHA-512 hash verification, exact reference/amount matching, poll URL
-  confirmation with host allowlist, idempotent webhook claims, monthly invoices and
-  reminders. `tokenize` is never sent.
+- Owner/Admin UI: `src/app/[org]/billing/page.tsx`, plan cards, invoice table,
+  no-card trial start, Paynow fallback preference, cancellation and contact sales.
+- DPO Pay: `src/lib/dpo-billing.ts` builds v6 XML for `createToken`, `verifyToken`,
+  `getSubscriptionToken`, `chargeTokenRecurrent` and `deleteCard`; callback HMAC and
+  push-secret checks; hosted checkout URL template; exact USD amount/reference checks;
+  idempotent webhook claims; one persisted charge attempt per invoice.
+- Paynow: SHA-512 hash verification, exact reference/amount checks, poll confirmation,
+  idempotent webhook claims, monthly invoices and reminders. `tokenize` is never sent.
 - Cron: `vercel.json` calls `/api/cron/billing` daily at 02:00 UTC with Vercel's
-  `CRON_SECRET` bearer token. It creates one renewal invoice per period, sends
-  reminders, expires grace and locks; replaying it is idempotent.
-- Double-billing guards: one invoice per `(organisation, gateway, period_start)`,
-  `cancel_at_period_end` before the Stripe first charge, defensive Stripe cancellation
-  on Paynow payment, paid-invoice overlap alerts and idempotent webhook/event tables.
-- QA: `npm run audit:billing` uses Stripe-test-mode-compatible signed webhook events
-  and a local Paynow mock. `SUBSCRIPTION_QA_REPORT.md` records **10/10 passing checks**.
+  `CRON_SECRET` bearer token. The sweep is idempotent: one invoice per
+  `(organisation, gateway, period_start)`, one recurring charge attempt per invoice,
+  and replay-safe state transitions.
+- Stripe: removed from the production path. The `stripe` npm dependency is gone;
+  checkout/portal/switch/webhook routes are explicit `410` stubs. Historic Stripe
+  columns are retained but never written. A Zimbabwe-registered entity cannot receive
+  native Stripe payouts, so Stripe is not a go-live prerequisite.
+- QA: `scripts/billing-audit.mjs` uses a local DPO v6 mock and a production smoke
+  script; `scripts/check-env.mjs` and `.env.example` document the DPO slots.
+  `SUBSCRIPTION_QA_REPORT.md` records the local **10/10** DPO checks.
 
 ## Go-live prerequisites — NOT yet supplied
 
-1. **Confirm the Stripe legal entity and supported-country bank account.** Zimbabwe is
-   not assumed to be a native Stripe merchant-account country; Stripe Tax coverage is
-   not payment processing. A supported entity/bank account must be confirmed with Stripe.
-2. Add live Stripe credentials to Vercel:
-   `STRIPE_SECRET_KEY=sk_live_...`, `STRIPE_WEBHOOK_SECRET=whsec_...`,
-   optionally stable `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PRO`,
-   `STRIPE_PRICE_ENTERPRISE` and `STRIPE_PORTAL_CONFIGURATION`. If price IDs are omitted,
-   Checkout creates recurring `price_data` from the plan catalogue.
-3. Configure a Stripe webhook to `https://myla-construction-erp.vercel.app/api/webhooks/stripe`
-   for `checkout.session.completed`, `customer.subscription.created|updated|deleted`,
-   `customer.subscription.trial_will_end`, `invoice.paid` and `invoice.payment_failed`.
-4. Add Paynow Zimbabwe `PAYNOW_INTEGRATION_ID` and `PAYNOW_INTEGRATION_KEY`. Do **not**
-   enable `tokenize=true` or recurring Express Checkout until Paynow approves the
-   merchant for tokenisation. Set `PAYNOW_RESULT_URL` to
-   `https://myla-construction-erp.vercel.app/api/webhooks/paynow` and a suitable
-   `PAYNOW_RETURN_URL`.
-5. Confirm VAT/tax treatment. Prices are exclusive; Stripe Tax remains off. Enable it
-   manually only after registration advice.
-6. Set `BILLING_ENABLED=true` **only after** all of the above and a fresh staging QA run.
-   Keep `BILLING_QA_MODE=false` and `PAYNOW_MOCK=false` in production. A production
-   switch to `BILLING_ENABLED=true` without `sk_live_...` is treated as `misconfigured`
-   and fails closed; it never silently charges.
-7. Redeploy the exact commit SHA via Vercel `git_source` after changing environment
-   variables, then smoke-test `/api/[org]/billing`, `/api/[org]/meta`, a Stripe test
-   Checkout and a Paynow test invoice.
+1. **Confirm the DPO merchant account and Zimbabwe payout route.** Obtain written
+   confirmation of the contracting entity, supported settlement currencies (USD, and
+   whether ZWG/ZAR are needed), NOSTRO/bank payout route, fees, refunds and chargebacks.
+2. **Confirm VAT/tax treatment.** Prices are exclusive; no automatic tax engine is
+   enabled. Decide whether MYLA, DPO or an external accountant issues tax invoices.
+3. **Confirm Super Wallet / recurring tokenisation approval.** Do not set
+   `DPO_RECURRING_ENABLED=true` until DPO approves the merchant for tokenised recurrent
+   charges. Without it, renewals remain customer-present.
+4. **Confirm the hosted payment page URL.** DPO docs currently show `payv2.php`,
+   `payv3.php` and `pay.asp` in different places. Ask DPO for the exact production URL
+   and set `DPO_PAYMENT_URL_TEMPLATE` accordingly.
+5. **Add live DPO credentials to Vercel** (production, preview and development as
+   appropriate):
+   `DPO_COMPANY_TOKEN`, `DPO_SERVICE_TYPE` or `DPO_SERVICE_TYPE_NAME`,
+   `DPO_API_URL`, `DPO_PAYMENT_URL_TEMPLATE`, `DPO_CALLBACK_SECRET`,
+   `DPO_PUSH_SECRET`. Never paste a sandbox CompanyToken into a live slot: sandbox and
+   production share one API endpoint, and the token selects the environment.
+6. **Register the DPO push URL** with DPO as
+   `https://myla-construction-erp.vercel.app/api/webhooks/dpo?push_secret=<DPO_PUSH_SECRET>`,
+   and ensure the browser return URL can reach `/api/webhooks/dpo?source=return&...`.
+   The push body is unsigned; MYLA verifies the secret and then calls `verifyToken`.
+7. **Run a fresh staging QA** with real DPO sandbox credentials, a sandbox hosted
+   checkout, `verifyToken`, `getSubscriptionToken`, `chargeTokenRecurrent`, a declined
+   payment, a cancelled payment and a replayed push callback.
+8. **Only after explicit approval**, set `DPO_LIVE_MODE=true` and `BILLING_ENABLED=true`
+   together. Keep `BILLING_QA_MODE=false`, `DPO_MOCK=false` and `PAYNOW_MOCK=false` in
+   production. A production switch to `BILLING_ENABLED=true` without
+   `DPO_LIVE_MODE=true` and the live DPO secrets is treated as `misconfigured` and
+   fails closed; it never silently charges.
+9. **Redeploy the exact commit SHA** via Vercel `git_source` after any environment
+   change, then run `npm run audit:dpo-prod` and a manual sandbox/test payment smoke.
+10. Optional Paynow fallback: add `PAYNOW_INTEGRATION_ID`, `PAYNOW_INTEGRATION_KEY`,
+    `PAYNOW_RETURN_URL` and `PAYNOW_RESULT_URL`. Do **not** enable Paynow tokenisation
+    or Express Checkout recurring autodebit without separate Paynow approval.
 
 ## Local QA
 
 ```bash
-# .env must contain Supabase URL/anon/service keys and BILLING_QA_SECRET
-BILLING_QA_MODE=true PAYNOW_MOCK=true BILLING_ENABLED=false PORT=3001 npm run start:prod
+npm run env:check
+npx tsc --noEmit
+NODE_ENV=production npm run build
+NODE_ENV=production BILLING_ENABLED=false BILLING_QA_MODE=true \
+  DPO_MOCK=true DPO_RECURRING_ENABLED=true PAYNOW_MOCK=false \
+  DPO_LIVE_MODE=false npx next start -H 0.0.0.0 -p 3001
 AUDIT_BASE=http://127.0.0.1:3001 npm run audit:billing
 ```
 
-QA mode is ignored on Vercel (`VERCEL=1` or a `vercel.app` app URL). The QA routes are
-404 in production. The generated `/tmp/billing-qa-cleanup.sql` removes the throwaway
-organisation/user; the verified production state after the latest run was `qa_orgs 0`,
-`qa_users 0`, `mock_events 0`.
+The local `.env` must contain Supabase URL/anon/service keys and `BILLING_QA_SECRET`.
+QA mode is ignored on Vercel (`VERCEL=1` or a `vercel.app` app URL); QA routes return
+`404` in production. The generated `/tmp/billing-qa-cleanup.sql` removes the throwaway
+organisation/user. After the final run, live billing tables were verified as
+`qa_orgs 0`, `qa_users 0`, `mock_events 0`, `comped 2`, `subscriptions 2`,
+`invoices 0`, `billing_events 0`.
 
 ## Webhook/cron endpoints
 
 | Path | Purpose |
 |---|---|
-| `/api/webhooks/stripe` | Signature-verified Stripe subscription lifecycle |
-| `/api/webhooks/paynow` | Hash-verified Paynow status updates |
-| `/api/cron/billing` | Daily reminders, renewals, grace expiry and hard lock |
-| `/api/[org]/billing` | Owner/Admin state + plan/gateway/cancel/contact-sales actions |
-| `/api/[org]/billing/checkout` | Start 14-day Stripe Checkout trial |
-| `/api/[org]/billing/switch` | Opt into the trial-end Paynow switch |
-| `/api/[org]/billing/pay` | Start a pending Paynow monthly checkout |
-| `/api/[org]/billing/portal` | Stripe customer portal session |
+| `/api/webhooks/dpo` | GET browser return (HMAC) and POST push payment (secret); both call `verifyToken` |
+| `/api/webhooks/paynow` | Hash-verified Paynow status updates and poll confirmation |
+| `/api/cron/billing` | Daily reminders, first/renewal invoices, tokenised charges, grace expiry and hard lock |
+| `/api/[org]/billing` | Owner/Admin state + `selectPlan`, `startTrial`, `setPaynowPreference`, `cancel`, `contactSales` |
+| `/api/[org]/billing/pay` | Start DPO hosted checkout or optional Paynow invoice checkout |
+| `/api/[org]/billing/checkout` | `410` — Stripe Checkout removed |
+| `/api/[org]/billing/portal` | `410` — Stripe portal removed |
+| `/api/[org]/billing/switch` | `410` — Stripe→Paynow switch removed |
+| `/api/webhooks/stripe` | `410` — Stripe webhooks disabled |
+| `/api/qa/billing/dpo` | Local QA only; `404` in production |
+| `/api/qa/billing/dpo-checkout` | Local QA only; `404` in production |
