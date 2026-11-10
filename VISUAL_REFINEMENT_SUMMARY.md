@@ -89,11 +89,12 @@ pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 ch
 files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
 secret-like hits. Later commits add deployment documentation, a sidebar cleanup
 that removes numeric record-count badges and the “N modules” label, and an in-app
-Documentation page with illustrated system and dashboard flows (`5e31dd9`).
+Documentation page with illustrated system and dashboard flows (`5e31dd9`, final wording
+at `a6cb9c9`).
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
 at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
-(currently `5e31dd9`) via a `git_source` deployment (`dpl_KTQ13fJnhbfW2RTteszBApaamJc4`,
+(currently `a6cb9c9`) via a `git_source` deployment (`dpl_9rxRyLh9ri1mq4daYUCFhfPwMt1x`,
 `READY`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
 variables are set for all three targets, including write-only sensitive Supabase keys.
 

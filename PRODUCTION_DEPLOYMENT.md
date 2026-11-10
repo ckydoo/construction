@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_KTQ13fJnhbfW2RTteszBApaamJc4` · state `READY` · `PROMOTED` |
-| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `5e31dd9d94f6ce1e765ae2d148b4ac65e1cd7555` |
+| Deployment | `dpl_9rxRyLh9ri1mq4daYUCFhfPwMt1x` · state `READY` · `PROMOTED` |
+| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `a6cb9c90fca3178382479be7f876c04526293558` |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -85,6 +85,8 @@ never printed in this document):
 | `3174c33` | `dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu` | Removed numeric record-count badges and the “N modules” label from the sidebar; nav now shows labels only |
 | `1927c0f` | — | Documentation only (not deployed) |
 | `5e31dd9` | `dpl_KTQ13fJnhbfW2RTteszBApaamJc4` | Added an in-app **Documentation** page to the sidebar with illustrated system/data/dashboard flows and business process diagrams |
+| `874dd43` | — | Documentation only (not deployed) |
+| `a6cb9c9` | `dpl_9rxRyLh9ri1mq4daYUCFhfPwMt1x` | Corrected two diagram labels from “modules” to “resources” (49 resources / 34 modules); no functional change |
 
 The sidebar change was verified on the live URL with a real Chromium session:
 53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
