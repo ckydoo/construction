@@ -78,7 +78,7 @@ function SystemMap() {
     <text x={32} y={130} fontSize={10} className={C.muted}>one shared workspace.</text>
     <DiagramBox x={234} y={48} w={250} h={146} title="MYLA application" sub="Next.js 15 · server-rendered" accent />
     <Chip x={248} y={100} w={222} label="App shell & navigation" />
-    <Chip x={248} y={130} w={222} label="49 connected modules" />
+    <Chip x={248} y={130} w={222} label="49 connected resources" />
     <Chip x={248} y={160} w={222} label="API routes + RBAC guards" />
     <DiagramBox x={524} y={48} w={250} h={146} title="Supabase" sub="One project, many workspaces" accent />
     <Chip x={538} y={100} w={222} label="Auth · sessions · cookies" />
@@ -271,7 +271,7 @@ export default function DocumentationPage() {
         <SystemMap />
         <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            ['Application', 'Next.js 15 server components, shared UI and 49 module definitions.'],
+            ['Application', 'Next.js 15 server components, shared UI and 49 resource definitions.'],
             ['Guards', 'Every API route resolves the caller, the organisation, the role and the visible scope.'],
             ['Data', 'Supabase Auth, Postgres with row-level security, and a private Storage bucket.'],
             ['Reporting', 'Live KPIs, standard reports, CSV exports and generated MYLA-branded PDFs.'],
