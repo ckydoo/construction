@@ -27,12 +27,12 @@
     {
       "name": "step 5 derives the module pack and an explicit add-on",
       "ok": true,
-      "detail": "21 → 22 modules · 13 core · demo data off"
+      "detail": "21 → 22 modules · 13 basic · demo data off"
     },
     {
       "name": "creating the workspace persists derivation and lands on an empty dashboard",
       "ok": true,
-      "detail": "qa-onboarding-mw9k8utxwbit · 22 modules · 0 seeded clients"
+      "detail": "qa-onboarding-mwa9uxwvvkcs · 22 modules · 0 seeded clients"
     },
     {
       "name": "a second tenant cannot read the demo workspace",
@@ -55,13 +55,13 @@
       "detail": "0 page errors · 0 console errors"
     }
   ],
-  "company": "QA Onboarding mw9k8utxwbit",
-  "email": "qa-onboarding-mw9k8utxwbit@kestrelridge.co.zw",
-  "inviteEmail": "qa-invite-mw9k8utxwbit@kestrelridge.co.zw",
-  "slug": "qa-onboarding-mw9k8utxwbit",
-  "orgId": "9039fb8d-64cf-4602-a7a7-306f867bdf12",
-  "ownerId": "bbc4ea70-828d-4414-b156-394d085a748e",
-  "inviteUserId": "80790ced-7e6f-4744-9109-e457fc14a150",
+  "company": "QA Onboarding mwa9uxwvvkcs",
+  "email": "qa-onboarding-mwa9uxwvvkcs@kestrelridge.co.zw",
+  "inviteEmail": "qa-invite-mwa9uxwvvkcs@kestrelridge.co.zw",
+  "slug": "qa-onboarding-mwa9uxwvvkcs",
+  "orgId": "de955095-afd0-48ea-aed8-418a948b30b2",
+  "ownerId": "c6e1ef08-8198-4c11-b659-2e8df482bcf0",
+  "inviteUserId": "3007702f-4110-4210-8b8e-f33278fdc3ae",
   "expectedModules": 22,
   "expectedPlan": "Professional",
   "expectedUserLimit": 60,

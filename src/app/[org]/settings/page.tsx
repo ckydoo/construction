@@ -9,7 +9,14 @@ import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, Con
 import { useToast } from '@/components/Providers';
 import { date, num } from '@/lib/format';
 
-const TABS=[{id:'general',label:'General'},{id:'modules',label:'Modules'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
+const CAP_LABELS:Record<string,string> = {
+  'records.create':'Add records','records.update':'Edit records','records.delete':'Delete records',
+  'files.upload':'Attach files','files.delete':'Remove files','comments.create':'Add comments',
+  'exports':'Download CSV','settings.view':'See settings','settings.manage':'Change settings',
+  'users.manage':'Manage people','project360':'See the whole job','integrity':'Check links',
+  'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
+};
+const TABS=[{id:'general',label:'General'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
 
 export default function SettingsPage(){
   const {org}=useParams<{org:string}>(); const qc=useQueryClient(); const toast=useToast();
@@ -42,9 +49,9 @@ export default function SettingsPage(){
       return Object.fromEntries(heads.map((h,i)=>[h,cells[i]??'']));});
   }
   if(isLoading) return <div className="space-y-4"><Skeleton className="h-10 w-1/3"/><Skeleton className="h-96"/></div>;
-  if(!caps.includes('settings.view')) return <Card><EmptyState icon="ShieldCheck" title="Settings are restricted" description={`Your role (${(meta?.role||'').replace(/_/g,' ')}) can use the workspace modules but cannot change workspace settings. Ask an owner or administrator if you need a different role.`}/></Card>;
+  if(!caps.includes('settings.view')) return <Card><EmptyState icon="ShieldCheck" title="Settings are restricted" description={`Your role (${ROLES.find(r=>r.id===meta?.role)?.label || (meta?.role||'').replace(/_/g,' ')}) can use the everyday sections but cannot change settings. Ask an owner or administrator if you need a different role.`}/></Card>;
   return <div className="space-y-4">
-    <div><h1 className="heading">Workspace settings</h1><p className="caption mt-1">Manage your company profile, enabled modules, team access and data.</p></div>
+    <div><h1 className="heading">Settings</h1><p className="caption mt-1">Company details, which sections are on, who can use them, and your data.</p></div>
     <Tabs tabs={TABS} active={tab} onChange={setTab}/>
 
     {tab==='general'&&<Card><CardHead title="Company details" subtitle="Used on invoices, reports and documents"/>
@@ -59,9 +66,9 @@ export default function SettingsPage(){
       </form></Card>}
 
     {tab==='modules'&&<div className="space-y-4">
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Module manager</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} modules enabled · changes take effect immediately across the sidebar and route guards.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">Focus mode keeps the essentials pack — one connected chain from clients to cash. Turn the full pack back on whenever you need the rest. Individual toggles below still work either way.</p></div>
-        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>All modules</Button></div></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Sections on your sidebar</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} sections on · changes show on the sidebar straight away.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">A very small company can start with just clients, quotes, jobs and money. Switch the rest on whenever you need it. The switches below still work either way.</p></div>
+        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Everything on</Button></div></Card>
       {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} enabled`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
@@ -85,10 +92,10 @@ export default function SettingsPage(){
           <select className="select w-auto min-w-[190px]" value={u.role} disabled={!caps.includes('users.manage')||u.id===meta.user.id}
             onChange={e=>send('setRole',{userId:u.id,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
           {u.role.endsWith('_EXTERNAL')&&<select className="select w-auto min-w-[160px]" value={u.entityId||''} disabled={!caps.includes('users.manage')}
-            onChange={e=>send('setScope',{userId:u.id,entityId:e.target.value||null})}><option value="">No client scope</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select>}
+            onChange={e=>send('setScope',{userId:u.id,entityId:e.target.value||null})}><option value="">Whole company</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select>}
           {caps.includes('users.manage')&&u.role!=='OWNER'&&u.id!==meta.user.id&&<Button variant="ghost" size="sm" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:`Remove ${u.name}?`,desc:'Their workspace access and sessions will be revoked.',action:'removeUser',body:{userId:u.id},method:'PATCH'})}>Remove</Button>}
           <span className="hidden text-[11px] muted sm:block">Joined {date(u.joined)}</span></div>)}</div></Card>
-      <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle="Server-enforced on every API route — changing a role takes effect immediately"/>
+      <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle="Checked every time someone saves — a change takes effect immediately"/>
         <div className="overflow-x-auto"><table className="w-full text-left text-[13px]"><thead className="border-y divider bg-slate-50 muted dark:bg-ink-950/50"><tr><th className="table-th">Role</th><th className="table-th text-right">Read</th><th className="table-th text-right">Write</th><th className="table-th">Delete</th><th className="table-th">Wallets</th><th className="table-th">Scope</th></tr></thead>
           <tbody className="divide-y divider">{ROLES.map(r=>{const rule=ROLE_RULES[r.id]; const reads=(meta.config.resources||[]).filter((x:string)=>canRead(r.id,x)).length; const writes=(meta.config.resources||[]).filter((x:string)=>canWrite(r.id,x)).length;
             const w=(rule.capabilities as string[]).filter((c:string)=>c.startsWith('wallet.')).map((c:string)=>c.split('.')[1]).join(', ')||'none';
@@ -97,20 +104,20 @@ export default function SettingsPage(){
               <td className="table-td text-right"><Badge tone={writes?'blue':'slate'}>{writes}</Badge></td>
               <td className="table-td">{canDelete(r.id)?<Badge tone="amber">Yes</Badge>:<Badge tone="slate">No</Badge>}</td>
               <td className="table-td"><span className="text-[11px] muted">{w}</span></td>
-              <td className="table-td">{rule.scoped?<Badge tone="violet">Own client</Badge>:<Badge tone="green">Workspace</Badge>}</td></tr>;})}</tbody></table></div></Card>
-      <Card><CardHead title="Your access" subtitle={`Signed in as ${meta.role.replace(/_/g,' ')}`}/><div className="flex flex-wrap gap-1.5 p-5">{caps.map(c=><Badge key={c} tone="blue">{c}</Badge>)}</div></Card></div>}
+              <td className="table-td">{rule.scoped?<Badge tone="violet">Own jobs only</Badge>:<Badge tone="green">Whole company</Badge>}</td></tr>;})}</tbody></table></div></Card>
+      <Card><CardHead title="Your access" subtitle={`Signed in as ${meta.role.replace(/_/g,' ')}`}/><div className="flex flex-wrap gap-1.5 p-5">{caps.map(c=><Badge key={c} tone="blue">{CAP_LABELS[c]||c}</Badge>)}</div></Card></div>}
 
-    {tab==='setup'&&<div className="space-y-4"><Card><CardHead title="Re-run workspace derivation" subtitle="Changing type or size recalculates your module pack, flags and plan limits"/>
+    {tab==='setup'&&<div className="space-y-4"><Card><CardHead title="Recalculate your sections" subtitle="Changing your type or size works out which sections appear again"/>
       <div className="space-y-5 p-5"><div><p className="label">Company type</p><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{COMPANY_TYPES.map(t=><button key={t.id} onClick={()=>setType(t.id)} className={`flex items-center gap-2 rounded-lg border p-2.5 text-left text-xs transition ${type===t.id?'border-brand-400 bg-brand-50 dark:bg-brand-500/10':'divider'}`}><Icon name={t.icon} size={15}/>{t.label}</button>)}</div></div>
       <div><p className="label">Company size</p><div className="flex flex-wrap gap-2">{COMPANY_SIZES.map(s=><button key={s.id} onClick={()=>setSize(s.id)} className={`rounded-lg border px-3 py-2 text-xs transition ${size===s.id?'border-brand-400 bg-brand-50 dark:bg-brand-500/10':'divider'}`}><span className="font-semibold">{s.label}</span><span className="ml-1.5 muted">{s.range}</span></button>)}</div></div>
-      <div><p className="label">Work-style qualifiers</p><div className="flex flex-wrap gap-2">{QUALIFIERS.map(q=><button key={q.id} onClick={()=>setQuals(v=>v.includes(q.id)?v.filter(x=>x!==q.id):[...v,q.id])} className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] transition ${quals.includes(q.id)?'border-brand-400 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{quals.includes(q.id)?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{q.label}</button>)}</div></div>
-      <Button variant="primary" loading={busy} icon="RefreshCw" onClick={()=>send('reconfigure',{companyType:type,size,qualifiers:quals},'POST')}>Recalculate modules</Button></div></Card></div>}
+      <div><p className="label">How you work</p><div className="flex flex-wrap gap-2">{QUALIFIERS.map(q=><button key={q.id} onClick={()=>setQuals(v=>v.includes(q.id)?v.filter(x=>x!==q.id):[...v,q.id])} className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] transition ${quals.includes(q.id)?'border-brand-400 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{quals.includes(q.id)?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{q.label}</button>)}</div></div>
+      <Button variant="primary" loading={busy} icon="RefreshCw" onClick={()=>send('reconfigure',{companyType:type,size,qualifiers:quals},'POST')}>Update my sections</Button></div></Card></div>}
 
     {tab==='data'&&<div className="space-y-4">
-      <Card><CardHead title="Demo dataset" subtitle="616 realistic records across 49 resources — projects, people, POs, invoices, timesheets, RFIs, safety and more"/>
+      <Card><CardHead title="Sample data" subtitle="616 sample records — jobs, staff, orders, tax invoices, time sheets, site queries, safety and more"/>
         <div className="flex flex-wrap items-center justify-between gap-3 p-5"><p className="max-w-lg text-xs muted">This replaces all existing business records in this workspace with the demo dataset. Perfect for evaluating every screen with live, reconciled data.</p>
           <Button variant="primary" icon="Database" loading={busy} onClick={()=>setConfirm({title:'Replace data with demo dataset?',desc:'All existing records in this workspace will be deleted and replaced with 616 demo records.',action:'seedDemo'})}>Load demo data</Button></div></Card>
-      <Card><CardHead title="Import CSV" subtitle="Paste a CSV with a header row matching field keys (e.g. name,status,amount)"/>
+      <Card><CardHead title="Import CSV" subtitle="Paste a CSV with a header row (for example name,status,amount)"/>
         <div className="grid gap-4 p-5 sm:grid-cols-[220px_1fr]"><Field label="Target resource"><select className="select" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{meta.resources.filter((r:any)=>meta.config.resources.includes(r.id)).map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
           <Field label="CSV data"><textarea className="input min-h-[100px] font-mono text-xs" value={csv} onChange={e=>setCsv(e.target.value)} placeholder={'name,type,city,status\nNew Client,Private developer,Harare,ACTIVE'}/></Field>
           <div className="sm:col-span-2"><Button variant="primary" icon="Upload" loading={busy} onClick={()=>{const rows=parseCsv(csv);if(!rows.length){toast.push({tone:'error',title:'No rows found',description:'Include a header row and at least one data row.'});return;}send('importCsv',{resource:csvResource,rows},'POST');}}>Import rows</Button></div></div></Card>
@@ -127,7 +134,7 @@ export default function SettingsPage(){
         {integrity&&<div className="border-t divider px-5 py-3"><Badge tone={integrity.ok?'green':'red'}>{integrity.ok?'All links healthy':'Integrity issues found'}</Badge><span className="ml-2 text-[11px] muted">{integrity.checkedRecords} records · {integrity.wallets} wallets · checked {date(integrity.generatedAt)}</span></div>}</Card>}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {[['Plan',meta.config.plan],['Modules enabled',num(meta.config.modules.length)],['Resource types',num(meta.config.resources.length)],['User limit',num(meta.config.limits.users)],['Project limit',num(meta.config.limits.projects)],['Storage',`${num(meta.config.limits.storageMb/1000)} GB`],['Regional pack',meta.config.localePack],['Currency',meta.org.baseCurrency]].map(([l,v])=><Card key={String(l)} className="p-4"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1.5 text-lg font-semibold">{v}</p></Card>)}</div>
-      <Card><CardHead title="Feature flags" subtitle="Derived from your company size and work-style answers"/>
+      <Card><CardHead title="Extra options" subtitle="Based on your company size and your answers"/>
         <div className="flex flex-wrap gap-2 p-5">{Object.entries(meta.config.flags).map(([k,v])=><Badge key={k} tone={v?'green':'slate'}>{k.replace(/([A-Z])/g,' $1').trim()}</Badge>)}</div></Card>
       <Card className="overflow-hidden"><CardHead title="Audit log" subtitle="Most recent workspace actions"/>
         <div className="divide-y divider">{meta.audit.slice(0,12).map((a:any)=><div key={a.id} className="flex flex-wrap items-center gap-3 px-5 py-2.5"><span className="text-xs font-medium">{a.actor}</span><span className="min-w-0 flex-1 truncate text-xs muted">{a.detail}</span><Badge tone={a.action==='DELETE'?'red':'slate'}>{a.action}</Badge><span className="text-[11px] muted">{date(a.createdAt)}</span></div>)}</div></Card></div>}

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { canRead, canWrite, canCapability } from '@/lib/catalog';
+import { canRead, canWrite, canCapability, ROLES } from '@/lib/catalog';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
 import Logo from './Logo';
@@ -21,12 +21,12 @@ type Meta = {
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard' },
   { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation' },
-  { id:'wallets', label:'Client wallets', group:'Finance', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
-  { id:'reports', label:'Reports & BI', group:'Insights', icon:'BarChart3', href:'/reports' },
-  { id:'settings', label:'Settings', group:'Administration', icon:'Settings', href:'/settings', cap:'settings.view' },
+  { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
+  { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports' },
+  { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  dashboard:'Dashboard', documentation:'Documentation', wallets:'Client wallets', reports:'Reports & BI', settings:'Settings',
+  dashboard:'Dashboard', documentation:'Documentation', wallets:'Client wallets', reports:'Reports', settings:'Settings',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -59,7 +59,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       if(!canRead(role,r.id)) continue;
       (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,group:r.group});
     }
-    const order=['Overview','Win work','Project delivery','Supply chain','People & HR','Safety & quality','Finance','Insights','Administration'];
+    const order=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Settings'];
     return order.filter(g=>groups[g]?.length).map(g=>({group:g,items:groups[g]}));
   },[meta]);
   const { data:search } = useQuery<any>({ queryKey:['search',orgSlug,pq], queryFn:()=>apiGet(orgApi(orgSlug,`search?q=${encodeURIComponent(pq)}`)), enabled:palette&&pq.trim().length>=2 });
@@ -67,7 +67,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
   const pageTitle=useMemo(()=>{
     const seg=pathname.split('/').filter(Boolean);
     if(seg.length<=2) return SPECIAL_TITLES[seg[1]||''] || 'Dashboard';
-    if(seg[1]==='m') return meta?.resources.find(r=>r.id===seg[2])?.label || 'Module';
+    if(seg[1]==='m') return meta?.resources.find(r=>r.id===seg[2])?.label || 'Section';
     if(seg[1]==='projects') return 'Project detail';
     return seg[1].charAt(0).toUpperCase()+seg[1].slice(1);
   },[pathname,meta]);
@@ -97,7 +97,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     <div className="shrink-0 border-t divider p-2.5">
       <div className="flex items-center gap-2.5 rounded-md px-2 py-1.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-semibold text-white" style={{background:meta?.user?.avatarColor||'#51697B'}}>{(meta?.user?.name||userName).split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span>
-        <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-ink-800 dark:text-slate-200">{meta?.user?.name||userName}</p><p className="truncate text-[10px] muted">{role.replace(/_/g,' ')}</p></div>
+        <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-ink-800 dark:text-slate-200">{meta?.user?.name||userName}</p><p className="truncate text-[10px] muted">{ROLES.find(r=>r.id===role)?.label || role.replace(/_/g,' ')}</p></div>
       </div>
     </div>
   </div>;
@@ -131,7 +131,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="relative">
           <button aria-label="Account menu" className="btn-ghost btn-icon" onClick={()=>{setUserOpen(v=>!v);setNotifOpen(false);}}><span className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-semibold text-white" style={{background:meta?.user?.avatarColor||'#51697B'}}>{(meta?.user?.name||userName).split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span></button>
           {userOpen&&<div className="panel absolute right-0 top-10 z-30 w-56 p-2"><div className="border-b divider px-2 py-2"><p className="text-xs font-semibold">{meta?.user?.name||userName}</p><p className="truncate text-[11px] muted">{meta?.user?.email||userEmail}</p></div>
-            <div className="mt-1 flex items-center gap-2 rounded-md bg-slate-50 px-2 py-2 text-[11px] muted dark:bg-ink-950/50"><Icon name="ShieldCheck" size={14}/><span className="flex-1">{role.replace(/_/g,' ')}</span>{meta?.permissions?.scoped&&<Badge tone="violet">Scoped</Badge>}</div>
+            <div className="mt-1 flex items-center gap-2 rounded-md bg-slate-50 px-2 py-2 text-[11px] muted dark:bg-ink-950/50"><Icon name="ShieldCheck" size={14}/><span className="flex-1">{ROLES.find(r=>r.id===role)?.label || role.replace(/_/g,' ')}</span>{meta?.permissions?.scoped&&<Badge tone="violet">Own jobs only</Badge>}</div>
             {canCapability(meta?.role||'ADMIN','settings.view')&&<Link href={`/${orgSlug}/settings`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="Settings" size={14}/>Workspace settings</Link>}
             <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"><Icon name="LogOut" size={14}/>Sign out</button></div>}
         </div>
@@ -147,12 +147,12 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     {palette&&<div className="fixed inset-0 z-[70] flex items-start justify-center p-4 pt-[12vh]">
       <div className="absolute inset-0 bg-ink-950/50" onClick={()=>setPalette(false)}/>
       <div className="card relative w-full max-w-xl overflow-hidden rounded-2xl shadow-panel">
-        <div className="flex items-center gap-3 border-b divider px-4 py-3"><Lucide.Search size={18} className="text-slate-400"/><input autoFocus value={pq} onChange={e=>setPq(e.target.value)} placeholder="Search projects, clients, invoices, RFIs…" className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"/><kbd className="rounded border divider px-1.5 py-0.5 text-[10px] muted">ESC</kbd></div>
+        <div className="flex items-center gap-3 border-b divider px-4 py-3"><Lucide.Search size={18} className="text-slate-400"/><input autoFocus value={pq} onChange={e=>setPq(e.target.value)} placeholder="Search jobs, clients, invoices, site queries…" className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"/><kbd className="rounded border divider px-1.5 py-0.5 text-[10px] muted">ESC</kbd></div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
           {pq.trim().length<2&&<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Jump to</p>{navGroups.flatMap(g=>g.items).slice(0,9).map((it:any)=><Link key={it.id} href={`/${orgSlug}${it.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={it.icon} size={16} className="text-slate-400"/><span className="flex-1">{it.label}</span><span className="text-[10px] muted">{it.group}</span></Link>)}</>}
           {pq.trim().length>=2&&<>{!search?<div className="flex justify-center py-8"><Spinner/></div>:search.results.length===0?<p className="py-8 text-center text-xs muted">No records match “{pq}”</p>:<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">{search.results.length} results</p>{search.results.map((r:any)=><Link key={r.id} href={`/${orgSlug}${r.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={meta?.resources.find(x=>x.id===r.resource)?.icon||'FileText'} size={16} className="text-slate-400"/><div className="min-w-0 flex-1"><p className="truncate text-[13px] font-medium">{r.title}</p><p className="text-[11px] muted">{r.resourceLabel} · {r.number}</p></div>{r.status&&<Badge tone="slate">{r.status.replace(/_/g,' ')}</Badge>}</Link>)}</>}</>}
         </div>
-        <div className="flex items-center justify-between border-t divider bg-slate-50 px-4 py-2 text-[10px] muted dark:bg-ink-950/40"><span>⌘K to toggle · Enter to open</span><span>{meta?.config?.modules.length||0} modules enabled</span></div>
+        <div className="flex items-center justify-between border-t divider bg-slate-50 px-4 py-2 text-[10px] muted dark:bg-ink-950/40"><span>⌘K to toggle · Enter to open</span><span>{meta?.config?.modules.length||0} sections in your workspace</span></div>
       </div>
     </div>}
   </div>;

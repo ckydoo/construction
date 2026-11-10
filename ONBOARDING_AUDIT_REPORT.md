@@ -8,15 +8,15 @@
 | company profile step accepts legal entity, country and currency | PASS | legal name · ZA · ZAR → step 2 |
 | company type and size feed the derivation engine | PASS | INDUSTRIAL_EPC · MID · 85 people · $10M–$50M |
 | qualifiers visibly unlock feature flags | PASS | 4 qualifiers → 5+ live flags |
-| step 5 derives the module pack and an explicit add-on | PASS | 21 → 22 modules · 13 core · demo data off |
-| creating the workspace persists derivation and lands on an empty dashboard | PASS | qa-onboarding-mw9k8utxwbit · 22 modules · 0 seeded clients |
+| step 5 derives the module pack and an explicit add-on | PASS | 21 → 22 modules · 13 basic · demo data off |
+| creating the workspace persists derivation and lands on an empty dashboard | PASS | qa-onboarding-mwa9uxwvvkcs · 22 modules · 0 seeded clients |
 | a second tenant cannot read the demo workspace | PASS | API 401 · page redirects to own workspace |
 | sign out and sign back in keep the onboarded session | PASS | Supabase Auth session → dashboard, no re-onboarding |
 | team invite, role edit, invited sign-in and last-owner protection | PASS | VIEWER invite → PROJECT_MANAGER · last owner protected · temp-password sign-in |
 | no uncaught page errors or unexpected console errors | PASS | 0 page errors · 0 console errors |
 
-Workspace: `QA Onboarding mw9k8utxwbit` · `qa-onboarding-mw9k8utxwbit@kestrelridge.co.zw` · slug `qa-onboarding-mw9k8utxwbit`.
-Derived pack: **22 modules**, plan **Professional**, user limit **60**, with 13 essentials plus type/size/qualifier/add-on layers. Demo data was left OFF so the new workspace starts with an empty state.
+Workspace: `QA Onboarding mwa9uxwvvkcs` · `qa-onboarding-mwa9uxwvvkcs@kestrelridge.co.zw` · slug `qa-onboarding-mwa9uxwvvkcs`.
+Derived pack: **22 modules**, plan **Professional**, user limit **60**, with 13 basics plus type/size/qualifier/add-on layers. Demo data was left OFF so the new workspace starts with an empty state.
 
 Unexpected console errors: 0 · Uncaught page errors: 0.
 Screenshots: `screenshots/17-onboarding-signup.png` … `21-team-roles.png`.

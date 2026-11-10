@@ -78,8 +78,8 @@ export function buildDemo(orgId:string) {
     'Blessing Kandemiri','Shingirai Mugabe','Patience Goredema','Donald Mhlanga','Shelter Mpofu',
     'Washington Chirwa','Mildred Katsande','Edmore Jena','Machona Chitura',
   ];
-  const titles = ['Project Manager','Senior Site Engineer','Quantity Surveyor','Finance Manager','HR Manager','Procurement Manager','HSE Manager','Site Agent','Foreman','General Foreman','Plant Manager','Contracts Manager','Estimator','Accountant','Storekeeper'];
-  const depts = ['Projects','Engineering','Commercial / QS','Finance','HR & Admin','Procurement','HSE','Plant & Equipment','Site Operations','Estimating'];
+  const titles = ['Project Manager','Senior Site Engineer','Quantity Surveyor','Finance Manager','HR Manager','Procurement Manager','Safety Manager','Site Agent','Foreman','General Foreman','Plant Manager','Contracts Manager','Estimator','Accountant','Storekeeper'];
+  const depts = ['Projects','Engineering','Commercial / QS','Finance','HR & Admin','Procurement','Safety','Plant & Equipment','Site Operations','Estimating'];
   const trades = ['General labour','Carpentry','Masonry','Steel fixing','Electrical','Mechanical','Plumbing','Welding','Plant operation','Concrete'];
   const employeeIds = names.map((n,i)=>add('employees',`emp-${i+1}`,{
     name:n, employeeNo:`KR-${String(1001+i)}`, email:`${n.toLowerCase().replace(/[^a-z]+/g,'.')}@kestrelridge.co.zw`,
@@ -228,9 +228,9 @@ export function buildDemo(orgId:string) {
   });
   const docTypes=['Drawing','Specification','Method statement','Report','Contract','Correspondence','O&M manual'];
   for(let i=0;i<20;i++) add('documents',`doc-${i+1}`,{
-    name:pick(['General arrangement – Level 2','Structural foundation layout','MEP coordination drawing','Site establishment plan','Concrete pour method statement','Progress report','HSE site plan','Fire strategy drawing','As-built survey','O&M manual draft'])+` (${i+1})`,
+    name:pick(['General arrangement – Level 2','Structural foundation layout','MEP coordination drawing','Site establishment plan','Concrete pour method statement','Progress report','Site safety plan','Fire strategy drawing','As-built survey','Handover manual draft'])+` (${i+1})`,
     projectId:`${orgId}_prj-${(i%4)+1}`, drawingNo:`KR-${ri(100,999)}-${pick(['A','E','S','M','C'])}`, revision:pick(['A','B','C','Rev 01','Rev 02']),
-    type:pick(docTypes), discipline:pick(['Architectural','Structural','Civil','Mechanical','Electrical','HSE','Commercial']),
+    type:pick(docTypes), discipline:pick(['Architectural','Structural','Civil','Mechanical','Electrical','Safety','Commercial']),
     fileName:`KR-${ri(1000,9999)}-${pick(['GA','STR','MEP'])}-${pick(['A','B','C'])}.pdf`, issuedDate:off(-ri(5,200)), issuedBy:empRef(),
     notes:'Controlled copy issued to site and consultant.', status:pick(['CURRENT','CURRENT','FOR_REVIEW','SUPERSEDED','DRAFT']),
   });
@@ -246,7 +246,7 @@ export function buildDemo(orgId:string) {
     name:`${pick(['Site progress meeting','Technical coordination','Safety committee','Commercial review']) } #${i+1}`,
     projectId:`${orgId}_prj-${(i%3)+1}`, date:off(-ri(2,90)), location:pick(['Site office','Client offices','MS Teams']),
     type:pick(['Site progress','Technical','Safety','Commercial','Client']), attendees:'PM, Client Rep, Engineer, QS, Site Agent, HSE Officer',
-    agenda:'Progress, programme, RFIs, variations, HSE and commercial status.', minutes:'Programme reviewed; two-week lookahead issued; RFI 014 escalated.',
+    agenda:'Progress, programme, site queries, variations, safety and commercial status.', minutes:'Programme reviewed; two-week lookahead issued; site query 014 escalated.',
     actions:'QS to submit VO-007 by Friday; procurement to expedite cable trays.', chairedBy:`${orgId}_emp-2`, status:i<2?'SCHEDULED':'MINUTES_ISSUED',
   });
   for(let i=0;i<18;i++) add('punchLists',`pnc-${i+1}`,{
@@ -268,7 +268,7 @@ export function buildDemo(orgId:string) {
   for(let i=0;i<10;i++) add('requisitions',`mr-${i+1}`,{
     name:`${pick(['Cement 32.5R – 500 bags','Rebar Y16 – 12 tonnes','Electrical cable 4mm² – 2,000m','Concrete blocks – 8,000','Copper piping 22mm','Diesel 5,000 litres','Scaffold couplers – 600','Structural steel beams – 9t'])}`,
     projectId:`${orgId}_prj-${(i%3)+1}`, requestedBy:empRef(), requiredDate:off(ri(-30,45)), priority:pick(['LOW','MEDIUM','HIGH']),
-    estimatedValue:money(1800,180000), items:'See attached BOQ extract.', justification:'Required for the current two-week lookahead.',
+    estimatedValue:money(1800,180000), items:'See attached bill of quantities (BOQ) extract.', justification:'Required for the current two-week lookahead.',
     status:pick(['DRAFT','SUBMITTED','APPROVED','ORDERED']),
   });
   const poIds:string[]=[];
@@ -328,13 +328,13 @@ export function buildDemo(orgId:string) {
   const certTypes=['Trade test','Safety induction','First aid','Working at height','Confined space','Crane / rigging','Driver licence','Plant operator','Professional registration'];
   for(let i=0;i<16;i++) add('certifications',`cert-${i+1}`,{
     name:`${pick(certTypes)} – ${names[i].split(' ')[0]}`, employeeId:`${orgId}_emp-${i+1}`, type:certTypes[i%certTypes.length],
-    issuingBody:pick(['NSSA','SAZ','Zimbabwe Institution of Engineers','Red Cross','Internal HSE']), referenceNo:`CERT-${ri(10000,99999)}`,
+    issuingBody:pick(['NSSA','SAZ','Zimbabwe Institution of Engineers','Red Cross','Internal safety']), referenceNo:`CERT-${ri(10000,99999)}`,
     issuedDate:off(-ri(200,1000)), expiryDate:off(ri(-40,300)), notes:'Copy on personnel file.',
     status:i<3?'EXPIRING':i===3?'EXPIRED':'VALID',
   });
   for(let i=0;i<8;i++) add('training',`trn-${i+1}`,{
     name:pick(['Site safety induction','Working at height refresher','First aid Level 1','Supervisory skills','ISO 45001 awareness','Concrete testing','Lifting & rigging','ERP system training']),
-    type:pick(['Induction','HSE','Technical','Supervisory','Compliance','Software']), date:off(-ri(5,200)), provider:pick(['NSSA','Internal HSE','SAZ','External consultant']),
+    type:pick(['Induction','Safety','Technical','Supervisory','Compliance','Software']), date:off(-ri(5,200)), provider:pick(['NSSA','Internal safety','SAZ','External consultant']),
     attendees:`${ri(8,40)} site personnel`, attendeeCount:ri(8,40), cost:money(200,6500), outcome:pick(['COMPLETED','PASSED','FAILED']),
     status:pick(['COMPLETED','PLANNED','IN_PROGRESS']),
   });
@@ -368,7 +368,7 @@ export function buildDemo(orgId:string) {
     name:pick(['Concrete cover below specification','Incorrect rebar spacing','Unapproved material substitution','Incomplete weld documentation','Damaged waterproofing membrane','Missing test certificate']),
     projectId:`${orgId}_prj-${(i%3)+1}`, raisedDate:off(-ri(2,100)), category:pick(['Workmanship','Material','Design','Documentation','Testing','Supplier']),
     severity:pick(['MINOR','MAJOR','CRITICAL']), raisedBy:`${orgId}_emp-2`, assignedTo:`${orgId}_sub-${(i%8)+1}`,
-    description:'Non-conformance raised during inspection against approved ITP.', correctiveAction:'Rework, re-inspect and submit revised method statement.',
+    description:'Fault raised during a site check against the approved checklist.', correctiveAction:'Rework, re-inspect and submit revised method statement.',
     closeDate:i%3===0?off(-ri(1,20)):null, status:pick(['OPEN','INVESTIGATING','REWORK','CLOSED']),
   });
   for(let i=0;i<8;i++) add('itps',`itp-${i+1}`,{
@@ -393,7 +393,7 @@ export function buildDemo(orgId:string) {
   }));
   for(let i=0;i<12;i++){
     const amt=money(4000,280000);
-    add('journals',`jnl-${i+1}`,{ name:pick(['Monthly cost allocation','Accrual – subcontract certificates','VAT control posting','Payroll allocation to projects','Plant hire recharge','Materials issue to WBS']),
+    add('journals',`jnl-${i+1}`,{ name:pick(['Monthly cost allocation','Accrual – subcontract certificates','VAT control posting','Payroll allocation to projects','Plant hire recharge','Materials issued to a job']),
       date:off(-ri(5,180)), period:pick(['2026-08','2026-09','2026-10','2026-11']), accountId:`${orgId}_acc-${ri(1,accountsDefs.length)}`,
       projectId:`${orgId}_prj-${(i%3)+1}`, debit:amt, credit:amt, currency:'USD', narration:'Posted by finance after supporting documents verified.',
       preparedBy:`${orgId}_emp-3`, status:pick(['POSTED','POSTED','DRAFT']),
@@ -401,7 +401,7 @@ export function buildDemo(orgId:string) {
   }
   for(let i=0;i<15;i++){
     const ob=money(180000,4200000), actual=Math.round(ob*(0.25+rnd()*0.8));
-    add('budgets',`bud-${i+1}`,{ name:`${pick(['Labour','Materials','Plant','Subcontract','Preliminaries','Contingency'])} – WBS ${ri(1,9)}.${ri(1,6)}`,
+    add('budgets',`bud-${i+1}`,{ name:`${pick(['Labour','Materials','Plant','Subcontract','Preliminaries','Contingency'])} – Job phase ${ri(1,9)}.${ri(1,6)}`,
       projectId:`${orgId}_prj-${(i%3)+1}`, costCode:`${ri(5000,5900)}`, category:pick(['Labour','Materials','Plant','Subcontract','Preliminaries','Overhead','Contingency']),
       originalBudget:ob, approvedVariations:money(0,180000), committed:Math.round(ob*(0.6+rnd()*0.45)), actualToDate:actual,
       forecastToComplete:Math.round(ob*(0.9+rnd()*0.35)), variancePct:Math.round((actual/ob-1)*100), status:pick(['APPROVED','REVISED','DRAFT']),
@@ -463,28 +463,28 @@ export function buildDemo(orgId:string) {
 
   // ---------- Notifications / audit / comments ----------
   const notifications = [
-    ['Change order awaiting approval','VO-007 submitted for Borrowdale Corporate Park – Phase 2','WARNING','/m/changeOrders'],
+    ['Variation awaiting approval','VO-007 submitted for Borrowdale Corporate Park – Phase 2','WARNING','/m/changeOrders'],
     ['Certification expiring','3 competency certificates expire within 30 days','WARNING','/m/certifications'],
-    ['Overdue RFI','RFI-0011 passed its due date on Pomona Industrial Plant Expansion','ALERT','/m/rfis'],
+    ['Overdue site query','Site query 0011 passed its due date on Pomona Industrial Plant Expansion','ALERT','/m/rfis'],
     ['Low stock alert','4 store items are below reorder level','WARNING','/m/inventory'],
     ['Payment received','Client receipt cleared for TI-2026-4412','SUCCESS','/m/payments'],
     ['Incident closed','Corrective actions verified for INC-0003','SUCCESS','/m/incidents'],
-    ['Timesheet approval','6 timesheets are waiting for your approval','INFO','/m/timesheets'],
+    ['Time sheet approval','6 time sheets are waiting for your approval','INFO','/m/timesheets'],
     ['New bid invited','Tender documents available for Chitungwiza Trunk Sewer','INFO','/m/leads'],
     ['Service due','5 plant assets have maintenance due this month','WARNING','/m/equipment'],
     ['Toolbox talk scheduled','Working at height session at Borrowdale site tomorrow','INFO','/m/toolboxTalks'],
     ['Permit expiring','Road authority work permit expires in 14 days','WARNING','/m/permits'],
-    ['Monthly report ready','October 2026 CVR report is available','INFO','/reports'],
+    ['Monthly report ready','October 2026 job cost report is available','INFO','/reports'],
   ].map((n,i)=>({ organizationId:orgId, title:n[0], body:n[1], kind:n[2], href:n[3], read:i>7, createdAt:new Date(BASE.getTime()-i*ri(3,14)*3600000) }));
   const auditActions = [
-    ['Tendai Muchengeti','APPROVE','changeOrders','Approved change order VO-006 (USD 184,000)'],
+    ['Tendai Muchengeti','APPROVE','changeOrders','Approved variation VO-006 (USD 184,000)'],
     ['Farai Nyamayaro','CREATE','arInvoices','Issued tax invoice TI-2026-4412'],
     ['Rutendo Chikomba','UPDATE','projects','Updated progress on Pomona Industrial Plant Expansion to 34%'],
     ['Bright Moyo','CREATE','incidents','Logged near miss at Borrowdale site'],
-    ['Kudzai Mapfumo','CREATE','purchaseOrders','Raised PO-0014 for structural steel'],
+    ['Kudzai Mapfumo','CREATE','purchaseOrders','Raised order PO-0014 for structural steel'],
     ['Nomsa Dube','UPDATE','leaveRequests','Approved annual leave for Simbarashe Gono'],
     ['Farai Nyamayaro','POST','journals','Posted October 2026 cost allocation journal'],
-    ['Rutendo Chikomba','CREATE','rfis','Raised RFI-0016 – structural opening at Grid C/4'],
+    ['Rutendo Chikomba','CREATE','rfis','Raised site query 0016 – structural opening at Grid C/4'],
     ['Tendai Muchengeti','UPDATE','contracts','Executed subcontract with Vantage Mechanical'],
     ['Bright Moyo','CREATE','toolboxTalks','Recorded working-at-height toolbox talk'],
     ['Kudzai Mapfumo','CREATE','goodsReceipts','Received delivery DN-4481'],
@@ -500,7 +500,7 @@ export function buildDemo(orgId:string) {
     ['co-1','Tendai Muchengeti','Approved, please include in Certificate 09.'],
     ['co-2','Rutendo Chikomba','Revised quantities attached, QS to verify.'],
     ['inc-1','Bright Moyo','Toolbox talk delivered to all crews on 14 October.'],
-    ['po-1','Kudzai Mapfumo','Delivery split into two batches; GRN raised for batch 1.'],
+    ['po-1','Kudzai Mapfumo','Delivery split into two batches; delivery note raised for batch 1.'],
     ['inv-1','Farai Nyamayaro','Reminder sent to client accounts on 3 November.'],
   ].map(c=>({ organizationId:orgId, recordId:`${orgId}_${c[0]}`, authorName:c[1], body:c[2], createdAt:new Date(BASE.getTime()-ri(1,80)*86400000) }));
 

@@ -86,7 +86,7 @@ function Inner(){
   const active=rows.find(w=>w.clientId===selected);
   return <div className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="heading">Client wallets</h1><p className="caption mt-1">Admin-funded prepaid accounts · clients allocate to their own projects · every movement is on an immutable ledger.</p></div>
+      <div><h1 className="heading">Client wallets</h1><p className="caption mt-1">Money clients pay in advance, kept per client, put on their own jobs and recorded every step.</p></div>
       <div className="flex items-center gap-2"><Badge tone="slate">{meta.role.replace(/_/g,' ')}</Badge>
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16}/></Button>
         <Link href={`/${org}/m/clients`}><Button variant="outline" size="sm" icon="Handshake">Clients</Button></Link></div>
@@ -103,7 +103,7 @@ function Inner(){
       ].map(([l,v,sub])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 truncate text-[20px] font-semibold tabular-nums tracking-tight text-ink-900 dark:text-white">{v}</p><p className="caption mt-0.5">{sub}</p></Card>)}
     </div>
     <Card className="overflow-hidden">
-      <CardHead title="All client wallets" subtitle={`${rows.length} clients · balances reconcile to the ledger`} action={<Badge tone="green">Ledger-backed</Badge>}/>
+      <CardHead title="All client wallets" subtitle={`${rows.length} clients · balances checked against the record`} action={<Badge tone="green">Every move recorded</Badge>}/>
       {rows.length===0?<div className="p-5"><EmptyState compact icon="CreditCard" title="No clients yet" description="Create a client first, then add funds to its wallet."/></div>:
       <div className="overflow-x-auto"><table className="w-full text-left text-[13px]"><thead className="border-y divider bg-slate-50 muted dark:bg-ink-950/50">
         <tr><th className="table-th">Client</th><th className="table-th text-right">Wallet balance</th><th className="table-th text-right">Topped up</th><th className="table-th text-right">Allocated</th><th className="table-th hidden text-right sm:table-cell">Projects</th><th className="table-th hidden md:table-cell">Last activity</th><th className="table-th"/></tr></thead>
@@ -121,17 +121,17 @@ function Inner(){
     <Drawer open={!!selected} onClose={()=>setSelected(null)} width="max-w-3xl"
       title={active?.clientName||detail?.client.name||'Client wallet'}
       subtitle={active?.clientNumber?`${active.clientNumber} · prepaid client account`:'Prepaid client account'}
-      footer={<div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[11px] muted">Balance is derived from the append-only ledger.</p><div className="flex gap-2">{canAllocate&&<Button variant="primary" size="sm" icon="ArrowUpRight" onClick={()=>setTab('fund')}>Fund a project</Button>}{canTopup&&<Button variant="outline" size="sm" icon="Plus" onClick={()=>setTab('topup')}>Add funds</Button>}</div></div>}>
+      footer={<div className="flex flex-wrap items-center justify-between gap-2"><p className="text-[11px] muted">The balance comes from the record of every movement.</p><div className="flex gap-2">{canAllocate&&<Button variant="primary" size="sm" icon="ArrowUpRight" onClick={()=>setTab('fund')}>Fund a project</Button>}{canTopup&&<Button variant="outline" size="sm" icon="Plus" onClick={()=>setTab('topup')}>Add funds</Button>}</div></div>}>
       {detailLoading||!detail?<div className="space-y-3 p-5"><Skeleton className="h-24"/><Skeleton className="h-60"/></div>:
       <div className="space-y-4">
         <div className="grid gap-3 px-5 pt-5 sm:grid-cols-3">
-          <div className="rounded-md border divider bg-slate-50 p-3.5 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wider muted">Amount left</p><p className="mt-1 text-2xl font-semibold tracking-tight">{money(detail.wallet.balance,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.totals.transactions} ledger entries</p></div>
-          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Total added</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(detail.totals.toppedUp,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">Admin deposits</p></div>
+          <div className="rounded-md border divider bg-slate-50 p-3.5 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wider muted">Amount left</p><p className="mt-1 text-2xl font-semibold tracking-tight">{money(detail.wallet.balance,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.totals.transactions} recorded movements</p></div>
+          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Total added</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(detail.totals.toppedUp,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">Deposits</p></div>
           <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Active funding</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(detail.totals.allocated,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.projects.filter(p=>p.fundedAmount>0).length} projects</p></div>
         </div>
         <div className="px-5"><Tabs tabs={[{id:'ledger',label:'Ledger',count:detail.ledger.length},{id:'projects',label:'Projects',count:detail.projects.length},...(canTopup?[{id:'topup',label:'Add funds'}]:[]),...(canAllocate?[{id:'fund',label:'Fund a project'}]:[])]} active={tab} onChange={setTab}/></div>
         {tab==='ledger'&&<div className="px-5 pb-5">
-          {!detail.ledger.length?<EmptyState compact icon="Receipt" title="No wallet activity yet" description="An owner, admin or finance manager can add the first deposit."/>:
+          {!detail.ledger.length?<EmptyState compact icon="Receipt" title="No wallet activity yet" description="An owner, administrator or accounts person can add the first deposit."/>:
           <div className="overflow-hidden rounded-md border divider"><table className="w-full text-left text-[13px]"><thead className="border-b divider bg-slate-50 muted dark:bg-ink-950/50"><tr><th className="table-th">Entry</th><th className="table-th">Details</th><th className="table-th text-right">Amount</th><th className="table-th text-right">Balance</th><th className="table-th"/></tr></thead>
             <tbody className="divide-y divider">{detail.ledger.map(t=><tr key={t.id} className={t.reversedAt?'opacity-55':''}>
               <td className="table-th"><Badge tone={KINDS[t.kind]?.tone||'slate'}>{KINDS[t.kind]?.label||t.kind}</Badge><p className="mt-1 text-[10px] muted">{date(t.createdAt)}</p></td>
@@ -163,7 +163,7 @@ function Inner(){
       </div>}
     </Drawer>
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={busy} confirmLabel="Reverse entry"
-      title="Reverse this allocation?" description={`${money(Math.abs(confirm?.tx.amount||0),data?.currency||'USD')} will be credited back to the wallet and deducted from the project's funded total. Ledger entries are never deleted.`}
+      title="Reverse this allocation?" description={`${money(Math.abs(confirm?.tx.amount||0),data?.currency||'USD')} will be credited back to the wallet and deducted from the project's funded total. Recorded movements are never deleted.`}
       onConfirm={()=>confirm&&act('reverse',{transactionId:confirm.tx.id},Math.abs(confirm.tx.amount))}/>
   </div>;
 }

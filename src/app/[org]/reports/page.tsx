@@ -9,35 +9,35 @@ import { Card, CardHead, Button, Icon, Badge, Skeleton, EmptyState, Field } from
 import { BarChart, DonutChart } from '@/components/Charts';
 
 const REPORTS = [
-  { group:'Commercial', items:[
-    {title:'Project portfolio summary',desc:'Every project with contract value, cost, progress and health',resource:'projects',icon:'HardHat'},
-    {title:'Bid pipeline & win rate',desc:'Opportunities by stage, probability and expected value',resource:'leads',icon:'Target'},
-    {title:'Estimate vs award analysis',desc:'All estimates with build-ups, markup and outcome',resource:'estimates',icon:'Calculator'},
-    {title:'Contracts & variations register',desc:'Prime contracts and approved change orders',resource:'changeOrders',icon:'FileSignature'},
+  { group:'Clients & jobs', items:[
+    {title:'All your jobs',desc:'Every job with value, cost, progress and how it is going',resource:'projects',icon:'HardHat'},
+    {title:'Enquiries & chances of winning',desc:'Work you are quoting for, by stage and expected value',resource:'leads',icon:'Target'},
+    {title:'Quotes & what we won',desc:'Every quote with cost, markup and whether you won it',resource:'estimates',icon:'Calculator'},
+    {title:'Contracts & extras',desc:'Signed contracts and approved variations',resource:'changeOrders',icon:'FileSignature'},
   ]},
-  { group:'Financial', items:[
-    {title:'Accounts receivable ageing',desc:'Client invoices, due dates, amounts paid and overdue items',resource:'arInvoices',icon:'Receipt'},
-    {title:'Accounts payable & commitments',desc:'Supplier bills and purchase order commitments',resource:'apBills',icon:'FileInput'},
-    {title:'Payment certificates & retention',desc:'Gross certified, retention held, advances and net due',resource:'paymentApps',icon:'Landmark'},
-    {title:'Budget vs actual (CVR)',desc:'Cost code budget, committed, actual and variance',resource:'budgets',icon:'PieChart'},
-    {title:'Cash movements',desc:'All client receipts and supplier payments',resource:'payments',icon:'Banknote'},
-    {title:'General ledger journals',desc:'Posted and draft journals by period and account',resource:'journals',icon:'BookOpen'},
+  { group:'Money', items:[
+    {title:'Who owes you money',desc:'Client invoices, due dates, what is paid and what is late',resource:'arInvoices',icon:'Receipt'},
+    {title:'Who you owe',desc:'Supplier bills and orders you have placed',resource:'apBills',icon:'FileInput'},
+    {title:'Certificates & retention',desc:'Work certified, retention held, advances and net due',resource:'paymentApps',icon:'Landmark'},
+    {title:'Budget vs actual',desc:'What you planned, committed and actually spent',resource:'budgets',icon:'PieChart'},
+    {title:'Money in & out',desc:'Client receipts and payments to suppliers',resource:'payments',icon:'Banknote'},
+    {title:'Accounting entries',desc:'Posted and draft entries by month and account',resource:'journals',icon:'BookOpen'},
   ]},
-  { group:'Operations', items:[
-    {title:'Procurement status',desc:'Requisitions, purchase orders and goods received',resource:'purchaseOrders',icon:'ShoppingCart'},
-    {title:'Plant & equipment utilisation',desc:'Asset register, hour meters, service due dates',resource:'equipment',icon:'Truck'},
-    {title:'Inventory valuation',desc:'Stock on hand, reorder levels and stock value',resource:'inventory',icon:'Package'},
-    {title:'RFI & submittal status',desc:'Open, overdue and closed technical communications',resource:'rfis',icon:'MessageCircleQuestion'},
-    {title:'Programme & WBS status',desc:'Tasks, planned vs actual dates and progress',resource:'tasks',icon:'ListTodo'},
-    {title:'Daily site production',desc:'Manpower, plant, weather and delays by day',resource:'dailyLogs',icon:'NotebookPen'},
+  { group:'Site & materials', items:[
+    {title:'Orders & deliveries',desc:'Material requests, orders and goods received',resource:'purchaseOrders',icon:'ShoppingCart'},
+    {title:'Plant & equipment',desc:'Machine register, hours used and next service',resource:'equipment',icon:'Truck'},
+    {title:'Stock value',desc:'Stock on hand, reorder levels and its value',resource:'inventory',icon:'Package'},
+    {title:'Site queries & approvals',desc:'Open, late and answered questions from site',resource:'rfis',icon:'MessageCircleQuestion'},
+    {title:'Job programme & tasks',desc:'Tasks, planned vs actual dates and progress',resource:'tasks',icon:'ListTodo'},
+    {title:'Daily site diary',desc:'People on site, plant, weather and delays by day',resource:'dailyLogs',icon:'NotebookPen'},
   ]},
-  { group:'People & HSE', items:[
-    {title:'Workforce register',desc:'Employees, departments, grades and contract status',resource:'employees',icon:'UsersRound'},
-    {title:'Timesheet & labour cost',desc:'Hours, overtime and allocated labour cost',resource:'timesheets',icon:'Clock'},
-    {title:'Payroll history',desc:'Gross, statutory deductions and net pay by period',resource:'payRuns',icon:'Wallet'},
-    {title:'Certification expiry',desc:'Competency tickets, licences and renewal status',resource:'certifications',icon:'GraduationCap'},
-    {title:'HSE incident & CAPA',desc:'Incidents, severity, root cause and corrective actions',resource:'incidents',icon:'ShieldCheck'},
-    {title:'Quality inspections & NCRs',desc:'Inspection scores, findings and non-conformances',resource:'inspections',icon:'BadgeCheck'},
+  { group:'People & safety', items:[
+    {title:'Staff register',desc:'Staff, teams, grades and contract status',resource:'employees',icon:'UsersRound'},
+    {title:'Time sheets & labour cost',desc:'Hours, overtime and labour cost per job',resource:'timesheets',icon:'Clock'},
+    {title:'Wages history',desc:'Gross pay, PAYE / NSSA deductions and take-home pay',resource:'payRuns',icon:'Wallet'},
+    {title:'Trade certificate expiry',desc:'Trade tickets, licences and renewals',resource:'certifications',icon:'GraduationCap'},
+    {title:'Incidents & follow-up',desc:'Incidents, severity, root cause and actions taken',resource:'incidents',icon:'ShieldCheck'},
+    {title:'Site checks & faults',desc:'Check scores, findings and rework',resource:'inspections',icon:'BadgeCheck'},
   ]},
 ];
 export default function ReportsPage(){
@@ -52,19 +52,19 @@ export default function ReportsPage(){
   const defs=meta?.resources||[];
   const statuses=(defs.find((d:any)=>d.id===builderResource)?.statusOptions)||[];
   return <div className="space-y-4">
-    <div><h1 className="heading">Reports & business intelligence</h1><p className="mt-1 caption">Standard reports built from live workspace records. Export any view to CSV for Excel or your accounting system.</p></div>
+    <div><h1 className="heading">Reports</h1><p className="mt-1 caption">Ready-made lists from your own records. Download any view as a CSV for Excel or your bookkeeper.</p></div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {isLoading?Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-24"/>):[
-        ['Total records',num(Object.values(ov?.counts||{}).reduce((a:number,b:any)=>a+Number(b),0))],['Contract value',money(ov?.kpis?.contractValue,'USD',true)],['Safety score',pct(ov?.kpis?.safetyScore)],['Open RFIs',num(ov?.kpis?.openRfis)],
+        ['Records kept',num(Object.values(ov?.counts||{}).reduce((a:number,b:any)=>a+Number(b),0))],['Value of jobs',money(ov?.kpis?.contractValue,'USD',true)],['Safety score',pct(ov?.kpis?.safetyScore)],['Open site queries',num(ov?.kpis?.openRfis)],
       ].map(([l,v])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 text-[20px] font-semibold tabular-nums">{v}</p></Card>)}
     </div>
     <div className="grid gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Revenue trend" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
-      <Card className="overflow-hidden"><CardHead title="Cost mix" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
+      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed over time" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
+      <Card className="overflow-hidden"><CardHead title="Where costs went" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
     </div>
-    <Card><CardHead title="Custom report builder" subtitle="Pick a dataset and filter, then export"/>
+    <Card><CardHead title="Make your own list" subtitle="Choose a list, filter it, then download"/>
       <div className="grid gap-4 p-4 sm:grid-cols-3">
-        <Field label="Dataset"><select className="select" value={builderResource} onChange={e=>{setBuilderResource(e.target.value);setBuilderStatus('ALL');}}>{defs.filter((d:any)=>meta?.config?.resources?.includes(d.id)).map((d:any)=><option key={d.id} value={d.id}>{d.label}</option>)}</select></Field>
+        <Field label="List"><select className="select" value={builderResource} onChange={e=>{setBuilderResource(e.target.value);setBuilderStatus('ALL');}}>{defs.filter((d:any)=>meta?.config?.resources?.includes(d.id)).map((d:any)=><option key={d.id} value={d.id}>{d.label}</option>)}</select></Field>
         <Field label="Status filter"><select className="select" value={builderStatus} onChange={e=>setBuilderStatus(e.target.value)}><option value="ALL">All statuses</option>{statuses.map((s:string)=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select></Field>
         <div className="flex items-end gap-2"><a className="flex-1" href={orgApi(org,`records/${builderResource}?mode=csv&status=${builderStatus}`)} download><Button variant="primary" className="w-full" icon="Download">Export CSV</Button></a><Link href={`/${org}/m/${builderResource}?status=${builderStatus}`}><Button icon="Table2">Open</Button></Link></div>
       </div>

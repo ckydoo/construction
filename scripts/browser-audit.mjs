@@ -222,7 +222,7 @@ await check('dark mode toggles the root class', async () => {
 
 await check('command palette opens with Ctrl+K', async () => {
   await page.keyboard.press('Control+k');
-  await page.locator('input[placeholder="Search projects, clients, invoices, RFIs…"]').waitFor({ timeout: 5000 });
+  await page.locator('input[placeholder="Search jobs, clients, invoices, site queries…"]').waitFor({ timeout: 5000 });
   await page.screenshot({ path: path.join(SHOTS, '09-command-palette.png') });
   await page.keyboard.press('Escape');
   return 'palette open + ESC closes';

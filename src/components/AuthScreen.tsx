@@ -9,10 +9,10 @@ import * as Lucide from '@/components/lucide';
 
 const DEMO = [
   {label:'Owner', email:'owner@kestrelridge.co.zw', role:'OWNER'},
-  {label:'Project manager', email:'pm@kestrelridge.co.zw', role:'PROJECT_MANAGER'},
+  {label:'Job manager', email:'pm@kestrelridge.co.zw', role:'PROJECT_MANAGER'},
   {label:'Finance', email:'finance@kestrelridge.co.zw', role:'FINANCE_MANAGER'},
-  {label:'HSE', email:'safety@kestrelridge.co.zw', role:'SAFETY_OFFICER'},
-  {label:'Client portal', email:'client@westgate.co.zw', role:'CLIENT_EXTERNAL'},
+  {label:'Safety', email:'safety@kestrelridge.co.zw', role:'SAFETY_OFFICER'},
+  {label:'Client view', email:'client@westgate.co.zw', role:'CLIENT_EXTERNAL'},
 ];
 const PASSWORD='Demo@1234';
 
@@ -22,12 +22,12 @@ function BrandPanel(){
     <div className="relative"><Logo variant="full" light className="w-full max-w-[420px]" title={`${BRAND.name} · ${BRAND.motto}`}/></div>
     <div className="relative max-w-md">
       <div className="mb-5 h-0.5 w-10 bg-brand-500"/>
-      <h1 className="text-[28px] font-semibold leading-[1.2] tracking-tight text-white">One workspace for projects, people and money.</h1>
-      <p className="mt-3 text-[13px] leading-relaxed text-slate-300">From tender to handover — bids, sites, plant, safety and finance connected for construction and industrial teams from micro to enterprise.</p>
+      <h1 className="text-[28px] font-semibold leading-[1.2] tracking-tight text-white">One place for your jobs, your team and your money.</h1>
+      <p className="mt-3 text-[13px] leading-relaxed text-slate-300">From first quote to handover — quotes, sites, plant, safety and money connected for small workshops and large contractors alike.</p>
     </div>
     <div className="relative">
       <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
-        {[['33','modules'],['49','resources'],['616','demo records']].map(([n,l])=><div key={l}><p className="text-lg font-semibold tabular-nums text-white">{n}</p><p className="text-[11px] text-slate-400">{l}</p></div>)}
+        {[['34','sections'],['49','lists'],['616','sample records']].map(([n,l])=><div key={l}><p className="text-lg font-semibold tabular-nums text-white">{n}</p><p className="text-[11px] text-slate-400">{l}</p></div>)}
       </div>
       <p className="mt-6 text-[11px] text-slate-500">© 2026 {BRAND.name} · Harare, Zimbabwe</p>
     </div>

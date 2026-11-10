@@ -9,13 +9,31 @@ import Logo from './Logo';
 import * as Lucide from '@/components/lucide';
 
 const STEPS = [
-  { id:1, title:'Company profile', desc:'The basics about your organisation' },
-  { id:2, title:'Company type', desc:'What kind of work you do' },
-  { id:3, title:'Company size', desc:'How big your team is today' },
-  { id:4, title:'How you work', desc:'Delivery model and requirements' },
-  { id:5, title:'Your workspace', desc:'Start small, add what you need' },
+  { id:1, title:'Your company', desc:'A few details about your company' },
+  { id:2, title:'Type of work', desc:'What kind of work you do' },
+  { id:3, title:'Team size', desc:'How many people work here' },
+  { id:4, title:'How you work', desc:'Anything special about how you work' },
+  { id:5, title:'Ready to go', desc:'Start small, add what you need' },
 ];
 const HEADCOUNTS:Record<string,number>={MICRO:6,SMALL:28,MID:85,LARGE:520,ENTERPRISE:1400};
+const FLAG_LABELS:Record<string,string> = {
+  subcontractorPrequal:'Check subcontractors before giving them work',
+  bimIntegration:'Design-and-build drawings',
+  certifiedPayroll:'Certified wage records',
+  offlineFieldApp:'Site teams working offline',
+  barcodeAssets:'Barcode / asset tags for plant',
+  consolidation:'Combine several companies',
+  multiCurrency:'Trade in USD and ZWG',
+  hseAdvanced:'Formal safety reporting',
+  clientPortal:'Clients can log in',
+  esignature:'Electronic approvals',
+  equipmentRental:'Plant hire',
+  unitSales:'Selling stands / units',
+  regulatedHse:'Formal safety rules',
+  publicSector:'Government clients',
+  industrial:'Industrial / plant work',
+};
+
 const COUNTRIES=['ZW','ZA','ZM','BW','MW','MZ','KE','NG','GB','US','AE','OTHER'];
 
 export default function OnboardingWizard({initialName,userName}:{initialName:string;userName:string}){
@@ -62,7 +80,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     <header className="border-b divider bg-white dark:bg-ink-900">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
         <Logo variant="lockup" autoDark className="h-7 w-auto" title={`${BRAND.name} · ${BRAND.motto}`}/>
-        <div className="flex items-center gap-3"><span className="hidden text-xs muted sm:block">{BRAND.motto} Setting up workspace for {userName}</span><button onClick={async()=>{await apiSend('/api/auth/logout','POST');router.push('/login');router.refresh();}} className="text-xs font-medium muted hover:text-ink-900 dark:hover:text-white">Sign out</button></div>
+        <div className="flex items-center gap-3"><span className="hidden text-xs muted sm:block">{BRAND.motto} Setting up MYLA for {userName}</span><button onClick={async()=>{await apiSend('/api/auth/logout','POST');router.push('/login');router.refresh();}} className="text-xs font-medium muted hover:text-ink-900 dark:hover:text-white">Sign out</button></div>
       </div>
     </header>
     <div className="mx-auto flex max-w-6xl gap-8 px-5 py-8">
@@ -76,7 +94,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           </li>;})}</ol>
         <div className="mt-6 rounded-md border divider bg-slate-50 p-3.5 dark:border-ink-700 dark:bg-ink-950/40">
           <p className="text-xs font-semibold text-ink-900 dark:text-white">Essentials first</p>
-          <p className="mt-1 caption mt-1">Every workspace starts with the connected essentials pack — including client wallets. Your answers and add-ons decide what else appears — switch more on whenever you are ready in Settings.</p>
+          <p className="mt-1 caption mt-1">Every company starts with the everyday basics — including money clients pay in advance. Your answers decide what else appears; switch more on whenever you are ready in Settings.</p>
         </div>
       </aside>
       <main className="min-w-0 flex-1">
@@ -87,12 +105,12 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           <p className="mt-1 text-sm muted">{STEPS[step-1].desc}</p>
 
           {step===1&&<div className="mt-6 grid gap-5 sm:grid-cols-2">
-            <Field label="Company / trading name" required><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Ridgeway Constructors"/></Field>
-            <Field label="Legal name"><input className="input" value={legalName} onChange={e=>setLegalName(e.target.value)} placeholder="…(Pvt) Ltd"/></Field>
-            <Field label="Registration number"><input className="input" value={regNumber} onChange={e=>setRegNumber(e.target.value)} placeholder="2019/012345/07"/></Field>
+            <Field label="Trading name" required><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Ridgeway Constructors"/></Field>
+            <Field label="Registered name"><input className="input" value={legalName} onChange={e=>setLegalName(e.target.value)} placeholder="…(Pvt) Ltd"/></Field>
+            <Field label="Company reg. / CR14 no."><input className="input" value={regNumber} onChange={e=>setRegNumber(e.target.value)} placeholder="2019/012345/07"/></Field>
             <Field label="Country"><select className="select" value={country} onChange={e=>setCountry(e.target.value)}>{COUNTRIES.map(c=><option key={c} value={c}>{({ZW:'Zimbabwe',ZA:'South Africa',ZM:'Zambia',BW:'Botswana',MW:'Malawi',MZ:'Mozambique',KE:'Kenya',NG:'Nigeria',GB:'United Kingdom',US:'United States',AE:'United Arab Emirates',OTHER:'Other'} as any)[c]}</option>)}</select></Field>
-            <Field label="Base currency"><select className="select" value={baseCurrency} onChange={e=>setBaseCurrency(e.target.value)}>{['USD','ZWG','ZAR','EUR','GBP'].map(c=><option key={c}>{c}</option>)}</select></Field>
-            <div className="rounded-md border border-dashed divider bg-slate-50/60 p-4 text-xs muted dark:bg-ink-950/40 sm:col-span-2"><span className="font-semibold text-ink-700 dark:text-slate-200">Regional pack: Zimbabwe / Southern Africa</span><br/>VAT at 15%, USD + ZWG multi-currency, NEC / FIDIC / JBCC contract forms, NSSA & PAYE payroll concepts and local tax invoice numbering.</div>
+            <Field label="Main currency"><select className="select" value={baseCurrency} onChange={e=>setBaseCurrency(e.target.value)}>{[['USD','USD – US dollars'],['ZWG','ZWG – Zimbabwe Gold'],['ZAR','ZAR – South African rand'],['EUR','EUR – euro'],['GBP','GBP – pound']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
+            <div className="rounded-md border border-dashed divider bg-slate-50/60 p-4 text-xs muted dark:bg-ink-950/40 sm:col-span-2"><span className="font-semibold text-ink-700 dark:text-slate-200">Ready for Zimbabwe &amp; Southern Africa</span><br/>15% VAT, USD and ZWG, tax invoices, NSSA &amp; PAYE, RTGS / mobile-money payments and NEC / FIDIC / JBCC contract forms. A two-person workshop uses the same system as a large contractor.</div>
           </div>}
 
           {step===2&&<div className="mt-6 grid gap-3 sm:grid-cols-2">{COMPANY_TYPES.map(t=>{
@@ -112,47 +130,47 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
                 <p className="mt-3 border-t divider pt-2 text-[11px] muted">Up to {s.users.toLocaleString()} users</p>
               </button>;})}</div>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <Field label="Approximate headcount"><input className="input" type="number" min={1} value={headcount} onChange={e=>setHeadcount(e.target.value)}/></Field>
-              <Field label="Annual revenue band"><select className="select" value={revenueBand} onChange={e=>setRevenueBand(e.target.value)}>{['< $1M','$1M – $10M','$10M – $50M','$50M – $100M','$100M+'].map(v=><option key={v}>{v}</option>)}</select></Field>
+              <Field label="About how many people work here?"><input className="input" type="number" min={1} value={headcount} onChange={e=>setHeadcount(e.target.value)}/></Field>
+              <Field label="Yearly turnover (roughly)"><select className="select" value={revenueBand} onChange={e=>setRevenueBand(e.target.value)}>{[['< $1M','Under US$1 million'],['$1M – $10M','US$1–10 million'],['$10M – $50M','US$10–50 million'],['$50M – $100M','US$50–100 million'],['$100M+','Over US$100 million']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
             </div>
           </div>}
 
           {step===4&&<div className="mt-6">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider muted">Select everything that applies — each choice can switch on extra modules</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider muted">Tick what applies — each one may add a section you can use</p>
             <div className="grid gap-2.5 sm:grid-cols-2">{QUALIFIERS.map(q=>{
               const on=qualifiers.includes(q.id);
               return <button key={q.id} onClick={()=>toggleQ(q.id)} className={`flex items-center gap-3 rounded-md border px-3.5 py-3 text-left text-sm transition ${on?'border-brand-500 bg-brand-50/40 dark:bg-brand-500/10':'divider bg-white dark:bg-ink-900'}`}>
                 <span className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border ${on?'border-brand-500 bg-brand-500 text-ink-950':'border-slate-300 dark:border-ink-600'}`}>{on&&<Lucide.Check size={12}/>}</span><span className="text-ink-800 dark:text-slate-200">{q.label}</span>
               </button>;})}</div>
             <div className="mt-6 rounded-md border divider bg-slate-50/60 p-4 dark:bg-ink-950/40">
-              <p className="text-xs font-semibold text-ink-800 dark:text-slate-200">What these unlock</p>
-              <div className="mt-2.5 flex flex-wrap gap-1.5">{Object.entries(config.flags).filter(([,v])=>v).map(([k])=><Badge key={k} tone="blue">{k.replace(/([A-Z])/g,' $1').trim()}</Badge>)}</div>
+              <p className="text-xs font-semibold text-ink-800 dark:text-slate-200">What this adds</p>
+              <div className="mt-2.5 flex flex-wrap gap-1.5">{Object.entries(config.flags).filter(([,v])=>v).map(([k])=><Badge key={k} tone="blue">{FLAG_LABELS[k] || k.replace(/([A-Z])/g,' $1').trim()}</Badge>)}</div>
             </div>
           </div>}
 
           {step===5&&<div className="mt-6 space-y-5">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[['Modules',config.modules.length],['Resources',config.resources.length],['Users',config.limits.users.toLocaleString()],['Plan',config.plan]].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3.5 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">{v}</p></div>)}
+              {[['Sections',config.modules.length],['Lists',config.resources.length],['People',config.limits.users.toLocaleString()],['Plan',config.plan]].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3.5 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">{v}</p></div>)}
             </div>
             <div className="rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
-              <p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} essential modules — one connected chain from clients to cash</p>
-              <p className="mt-1 text-[11px] leading-relaxed muted">Clients → leads → estimates & bids → projects → contracts → documents → invoices & payments, plus people and reporting. Everything else is optional below, and can be enabled later in Settings → Modules.</p>
+              <p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
+              <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → drawings → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p>
             </div>
             <div>
-              <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">Your module pack</p><span className="text-xs muted">{config.modules.length} enabled</span></div>
+              <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">What is switched on</p><span className="text-xs muted">{config.modules.length} on</span></div>
               <div className="max-h-64 space-y-3 overflow-y-auto rounded-md border divider p-4">{Object.entries(byGroup).map(([group,mods])=><div key={group}>
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider muted">{group}</p>
-                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}{starter.has(m.id)&&<span className="ml-0.5 rounded bg-emerald-600/15 px-1 text-[9px] font-bold uppercase">core</span>}</span>)}</div>
+                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}{starter.has(m.id)&&<span className="ml-0.5 rounded bg-emerald-600/15 px-1 text-[9px] font-bold uppercase">basic</span>}</span>)}</div>
               </div>)}</div>
             </div>
             {optional.length>0&&<div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink-900 dark:text-white">Optional add-ons <span className="font-normal muted">({optional.length} available)</span></p>
-                <div className="flex gap-2"><button onClick={()=>setAddons(MODULES.map(m=>m.id))} className="text-[11px] font-medium text-brand-700 hover:underline dark:text-brand-300">Enable all</button><button onClick={()=>{setAddons([]);setQualifiers([]);}} className="text-[11px] font-medium muted hover:underline">Reset to essentials</button></div></div>
+                <div className="flex gap-2"><button onClick={()=>setAddons(MODULES.map(m=>m.id))} className="text-[11px] font-medium text-brand-700 hover:underline dark:text-brand-300">Switch everything on</button><button onClick={()=>{setAddons([]);setQualifiers([]);}} className="text-[11px] font-medium muted hover:underline">Start small again</button></div></div>
               <div className="max-h-48 overflow-y-auto rounded-md border divider p-3"><div className="flex flex-wrap gap-2">{optional.map(m=>{
               const on=addons.includes(m.id);
               return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition ${on?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div></div>}
             <div className="flex items-center justify-between gap-4 rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
-              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Load realistic demo data</p><p className="mt-0.5 text-xs muted">616 records: 5 projects, 42 employees, POs, invoices, timesheets, RFIs, safety events and more.</p></div>
+              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with sample data</p><p className="mt-0.5 text-xs muted">616 sample records: 5 jobs, 42 staff, orders, tax invoices, time sheets, site queries, safety events and more.</p></div>
               <Toggle checked={loadDemo} onChange={setLoadDemo}/>
             </div>
             {error&&<p className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{error}</p>}
@@ -161,10 +179,10 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           <div className="mt-6 flex items-center justify-between border-t divider pt-5">
             <Button variant="ghost" onClick={()=>setStep(s=>Math.max(1,s-1))} disabled={step===1} icon="ArrowLeft">Back</Button>
             {step<5?<Button variant="primary" disabled={!canNext} onClick={()=>setStep(s=>s+1)}>Continue<Lucide.ArrowRight size={15}/></Button>
-              :<Button variant="primary" loading={loading} onClick={finish} icon="Rocket">Create workspace</Button>}
+              :<Button variant="primary" loading={loading} onClick={finish} icon="Rocket">Open my company</Button>}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs muted">You can enable or disable any module later in <strong>Settings → Modules</strong>.</p>
+        <p className="mt-4 text-center text-xs muted">You can switch sections on or off any time in <strong>Settings</strong>.</p>
       </main>
     </div>
   </div>;

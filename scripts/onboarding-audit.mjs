@@ -110,7 +110,7 @@ try {
     await page.locator('input[type=password]').fill(password);
     await page.locator('form').getByRole('button', { name: /Create account & continue/ }).click();
     await page.waitForURL(/\/onboarding/, { timeout: 30000 });
-    await page.getByRole('heading', { name: 'Company profile' }).waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: 'Your company' }).waitFor({ timeout: 15000 });
     await page.screenshot({ path: path.join(SHOTS, '17-onboarding-signup.png') });
     return `new session → ${new URL(page.url()).pathname}`;
   });
@@ -123,50 +123,50 @@ try {
     await selects.nth(0).selectOption('ZA');
     await selects.nth(1).selectOption('ZAR');
     await page.getByRole('button', { name: /Continue/ }).click();
-    await page.getByRole('heading', { name: 'Company type' }).waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: 'Type of work' }).waitFor({ timeout: 15000 });
     return 'legal name · ZA · ZAR → step 2';
   });
 
   await check('company type and size feed the derivation engine', async () => {
-    await page.getByRole('button', { name: /Industrial \/ EPC/ }).click();
+    await page.getByRole('button', { name: /Industrial & plant works/ }).click();
     await page.getByRole('button', { name: /Continue/ }).click();
-    await page.getByRole('heading', { name: 'Company size' }).waitFor({ timeout: 15000 });
-    await page.locator('main .card button').filter({ hasText: 'Mid-sized' }).first().click();
+    await page.getByRole('heading', { name: 'Team size' }).waitFor({ timeout: 15000 });
+    await page.locator('main .card button').filter({ hasText: '51–200 people' }).first().click();
     await page.locator('main .card input[type=number]').fill('85');
-    await page.locator('main .card select.select').first().selectOption({ label: '$10M – $50M' });
+    await page.locator('main .card select.select').first().selectOption({ label: 'US$10–50 million' });
     await page.getByRole('button', { name: /Continue/ }).click();
     await page.getByRole('heading', { name: 'How you work' }).waitFor({ timeout: 15000 });
     return 'INDUSTRIAL_EPC · MID · 85 people · $10M–$50M';
   });
 
   await check('qualifiers visibly unlock feature flags', async () => {
-    for (const label of ['Multiple legal entities', 'Own plant & equipment fleet', 'Client / subcontractor portal', 'Design–build / EPC contracts']) {
+    for (const label of ['More than one registered company', 'We own our plant & equipment', 'Clients can log in to see their jobs', 'Design-and-build contracts']) {
       await page.locator('main .card button').filter({ hasText: label }).first().click();
     }
     const text = await page.locator('main .card').innerText();
-    for (const flag of ['consolidation', 'multi Currency', 'barcode Assets', 'bim Integration', 'client Portal']) {
+    for (const flag of ['Combine several companies', 'Trade in USD and ZWG', 'Barcode / asset tags for plant', 'Design-and-build drawings', 'Clients can log in']) {
       assert(new RegExp(flag, 'i').test(text), `missing derived flag ${flag}`);
     }
     await page.screenshot({ path: path.join(SHOTS, '18-onboarding-qualifiers.png') });
     await page.getByRole('button', { name: /Continue/ }).click();
-    await page.getByRole('heading', { name: 'Your workspace' }).waitFor({ timeout: 15000 });
+    await page.getByRole('heading', { name: 'Ready to go' }).waitFor({ timeout: 15000 });
     return '4 qualifiers → 5+ live flags';
   });
 
   await check('step 5 derives the module pack and an explicit add-on', async () => {
-    assert.equal(await metric(page, 'Modules'), String(expectedNoAddon.modules.length), 'base module count');
+    assert.equal(await metric(page, 'Sections'), String(expectedNoAddon.modules.length), 'base module count');
     assert.equal(await metric(page, 'Plan'), expected.plan, 'plan');
-    assert.equal(await metric(page, 'Users'), String(expected.limits.users), 'user limit');
-    const coreBadges = await page.locator('main .card span').filter({ hasText: /^core$/ }).count();
-    assert.equal(coreBadges, 13, 'core module badges');
-    await page.getByRole('button', { name: /Rental & dispatch/ }).click();
-    assert.equal(await metric(page, 'Modules'), String(expected.modules.length), 'module count after add-on');
+    assert.equal(await metric(page, 'People'), String(expected.limits.users), 'user limit');
+    const coreBadges = await page.locator('main .card span').filter({ hasText: /^basic$/ }).count();
+    assert.equal(coreBadges, 13, 'basic section badges');
+    await page.getByRole('button', { name: /Plant hire & dispatch/ }).click();
+    assert.equal(await metric(page, 'Sections'), String(expected.modules.length), 'module count after add-on');
     const toggle = page.locator('main .card button[aria-pressed]').last();
     assert.equal(await toggle.getAttribute('aria-pressed'), 'true', 'demo-data toggle starts on');
     await toggle.click();
     assert.equal(await toggle.getAttribute('aria-pressed'), 'false', 'demo-data toggle off');
     await page.screenshot({ path: path.join(SHOTS, '19-onboarding-modules.png') });
-    return `${expectedNoAddon.modules.length} → ${expected.modules.length} modules · 13 core · demo data off`;
+    return `${expectedNoAddon.modules.length} → ${expected.modules.length} modules · 13 basic · demo data off`;
   });
 
   await check('creating the workspace persists derivation and lands on an empty dashboard', async () => {
@@ -175,7 +175,7 @@ try {
     assert.equal(pre.body.org.onboarded, false, 'starts un-onboarded');
     qaSlug = pre.body.org.slug;
     assert(qaSlug, 'missing slug');
-    await page.getByRole('button', { name: /Create workspace/ }).click();
+    await page.getByRole('button', { name: /Open my company/ }).click();
     await page.waitForURL(new RegExp(`/${qaSlug}/dashboard`), { timeout: 30000 });
     const { status, body: meta } = await json(page, `${BASE}/api/${qaSlug}/meta`);
     assert.equal(status, 200, 'meta');
@@ -204,10 +204,10 @@ try {
     // (portal, integrations) live in config/flags, while modules with registers
     // expose those registers as nav items.
     const sidebar = await page.locator('aside').first().textContent() || '';
-    assert(/Rental contracts/.test(sidebar), 'explicit add-on resource missing from sidebar');
-    assert(/Commissioning packages/.test(sidebar), 'type-defining resource missing from sidebar');
-    assert(/Equipment & fleet/.test(sidebar), 'qualifier-derived resource missing from sidebar');
-    assert(!/Units \/ plots & sales/.test(sidebar), 'disabled module leaked into sidebar');
+    assert(/Leases & rentals/.test(sidebar), 'explicit add-on resource missing from sidebar');
+    assert(/Handover packs/.test(sidebar), 'type-defining resource missing from sidebar');
+    assert(/Plant & equipment/.test(sidebar), 'qualifier-derived resource missing from sidebar');
+    assert(!/Stands, units & sales/.test(sidebar), 'disabled module leaked into sidebar');
     return `${qaSlug} · ${expected.modules.length} modules · 0 seeded clients`;
   });
 
@@ -249,11 +249,11 @@ try {
     assert.equal(invited.role, 'VIEWER', 'initial invite role');
     inviteUserId = invited.id;
 
-    const row = page.locator('div.flex.flex-wrap.items-center.gap-3.px-5.py-3').filter({ hasText: inviteEmail }).first();
+    const row = page.locator('div.flex.flex-wrap.items-center.gap-3').filter({ hasText: inviteEmail }).first();
     await row.locator('select').first().selectOption('PROJECT_MANAGER');
     const meta3 = await waitForMeta(page, m => m.users.find(u => u.email === inviteEmail)?.role === 'PROJECT_MANAGER', 'role update');
     assert.equal(meta3.users.find(u => u.email === inviteEmail).role, 'PROJECT_MANAGER', 'role edit');
-    const ownerRow = page.locator('div.flex.flex-wrap.items-center.gap-3.px-5.py-3').filter({ hasText: email }).first();
+    const ownerRow = page.locator('div.flex.flex-wrap.items-center.gap-3').filter({ hasText: email }).first();
     assert(await ownerRow.locator('select').first().isDisabled(), 'owner could edit own role');
 
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -309,7 +309,7 @@ try {
   };
   fs.writeFileSync(REPORT_JSON, `${JSON.stringify(report, null, 2)}\n`);
   const rows = results.map(r => `| ${r.name.replace(/\|/g, '\\|')} | ${r.ok ? 'PASS' : 'FAIL'} | ${String(r.detail).replace(/\|/g, '\\|').replace(/\n/g, ' ')} |`).join('\n');
-  fs.writeFileSync(REPORT_MD, `# MYLA live onboarding / tenancy audit\n\n**${passed}/${results.length} checks passed** — real Chromium against \`${BASE}\`, backed by the live Supabase project.\n\n| Check | Result | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${company}\` · \`${email}\` · slug \`${qaSlug || 'n/a'}\`.\nDerived pack: **${expected.modules.length} modules**, plan **${expected.plan}**, user limit **${expected.limits.users}**, with 13 essentials plus type/size/qualifier/add-on layers. Demo data was left OFF so the new workspace starts with an empty state.\n\nUnexpected console errors: ${consoleErrors.length} · Uncaught page errors: ${pageErrors.length}.\nScreenshots: \`screenshots/17-onboarding-signup.png\` … \`21-team-roles.png\`.\n\n## Cleanup\n\nThis suite creates two throwaway Auth users (\`qa-onboarding-*\` / \`qa-invite-*\`) and one workspace. Run the generated \`${path.relative(ROOT, CLEANUP_SQL)}\` through the Supabase SQL editor or connector; it temporarily disables the last-owner trigger, cascades the QA organization and deletes the QA Auth users, then re-enables the trigger. It never touches the seeded Kestrel Ridge workspace.\n`);
+  fs.writeFileSync(REPORT_MD, `# MYLA live onboarding / tenancy audit\n\n**${passed}/${results.length} checks passed** — real Chromium against \`${BASE}\`, backed by the live Supabase project.\n\n| Check | Result | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${company}\` · \`${email}\` · slug \`${qaSlug || 'n/a'}\`.\nDerived pack: **${expected.modules.length} modules**, plan **${expected.plan}**, user limit **${expected.limits.users}**, with 13 basics plus type/size/qualifier/add-on layers. Demo data was left OFF so the new workspace starts with an empty state.\n\nUnexpected console errors: ${consoleErrors.length} · Uncaught page errors: ${pageErrors.length}.\nScreenshots: \`screenshots/17-onboarding-signup.png\` … \`21-team-roles.png\`.\n\n## Cleanup\n\nThis suite creates two throwaway Auth users (\`qa-onboarding-*\` / \`qa-invite-*\`) and one workspace. Run the generated \`${path.relative(ROOT, CLEANUP_SQL)}\` through the Supabase SQL editor or connector; it temporarily disables the last-owner trigger, cascades the QA organization and deletes the QA Auth users, then re-enables the trigger. It never touches the seeded Kestrel Ridge workspace.\n`);
   fs.writeFileSync(CLEANUP_SQL, `-- Generated by scripts/onboarding-audit.mjs on ${new Date().toISOString()}\n-- Run via the Supabase SQL editor / connector on project oeadisqfuyhelppinaxw.\n-- Slug: ${qaSlug || 'qa-onboarding-*'} · owner: ${email} · invite: ${inviteEmail}\nalter table public.memberships disable trigger memberships_protect_last_owner;\ndelete from public.organizations where slug like 'qa-onboarding-%';\ndelete from auth.users where email like 'qa-onboarding-%@kestrelridge.co.zw' or email like 'qa-invite-%@kestrelridge.co.zw';\nalter table public.memberships enable trigger memberships_protect_last_owner;\nselect (select count(*) from public.organizations where slug like 'qa-onboarding-%') as qa_orgs,\n       (select count(*) from auth.users where email like 'qa-onboarding-%@kestrelridge.co.zw' or email like 'qa-invite-%@kestrelridge.co.zw') as qa_users;\n`);
   console.log(`\n=== ONBOARDING AUDIT: ${passed}/${results.length} passed ===`);
   console.log(`Cleanup SQL: ${CLEANUP_SQL}`);
