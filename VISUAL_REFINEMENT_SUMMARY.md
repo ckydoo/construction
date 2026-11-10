@@ -29,6 +29,19 @@ The existing app already had a strong functional core: 49 connected resources, e
 - Applied consistent density and hierarchy across dashboard, list pages, project detail, reports, settings, wallets, onboarding, auth, modals and generated PDFs.
 - Added keyboard focus states, reduced-motion support, aria-labels for icon-only controls and dark-mode logo variants.
 
+## Later addition — in-app Documentation page
+
+`src/app/[org]/documentation/page.tsx` adds a sidebar-accessible, read-only guide with
+two hand-built inline SVG illustrations (a system/data map and a numbered dashboard
+anatomy) plus CSS flow strips for the request lifecycle, win work, project delivery,
+finance/wallets, document revisions and tenancy/RBAC. It uses only existing `Card`,
+`Badge` and `Icon` primitives and the existing Lucide exports — no new dependencies,
+no external images or CDNs, no gradients or blur. Diagrams have `role="img"` and
+descriptive `aria-label`s, render in light and dark mode, and scroll horizontally on
+small screens with a swipe hint. `scripts/design-qa.mjs` now audits 55 routes and
+captures a documentation screenshot. No APIs, schemas, auth, RBAC or business logic
+were touched by this addition.
+
 ## Files modified / added
 
 **Design foundation:** `tailwind.config.ts`, `src/app/globals.css`, `src/app/layout.tsx`, `src/app/icon.png`, `src/components/Logo.tsx`, `src/lib/brand-assets.ts`, `public/brand/*`, `BRAND.md`, `DESIGN_AUDIT.md`.
@@ -74,12 +87,13 @@ There is no `lint` script in `package.json`; `next build` ran its built-in lint/
 **GitHub:** commit `8eb261a` (“Refine MYLA UX with authentic logo design system”) was
 pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 changed
 files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
-secret-like hits. Later commits add deployment documentation and a sidebar cleanup
-that removes numeric record-count badges and the “N modules” label.
+secret-like hits. Later commits add deployment documentation, a sidebar cleanup
+that removes numeric record-count badges and the “N modules” label, and an in-app
+Documentation page with illustrated system and dashboard flows (`5e31dd9`).
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
 at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
-(currently `3174c33`) via a `git_source` deployment (`dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu`,
+(currently `5e31dd9`) via a `git_source` deployment (`dpl_KTQ13fJnhbfW2RTteszBApaamJc4`,
 `READY`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
 variables are set for all three targets, including write-only sensitive Supabase keys.
 

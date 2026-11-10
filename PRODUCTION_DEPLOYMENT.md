@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu` · state `READY` · `PROMOTED` |
-| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `3174c33aa43e520aff8550ab8f41c331a493d898` |
+| Deployment | `dpl_KTQ13fJnhbfW2RTteszBApaamJc4` · state `READY` · `PROMOTED` |
+| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `5e31dd9d94f6ce1e765ae2d148b4ac65e1cd7555` |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -64,6 +64,7 @@ never printed in this document):
 | `POST /api/auth/login` (demo owner) | `200` `{ok:true, slug:"kestrel-ridge", role:"OWNER"}` |
 | `POST /api/auth/login` (bad password) | `401` `Incorrect email or password.` |
 | `GET /kestrel-ridge/dashboard` | `200`, MYLA shell, dashboard content |
+| `GET /kestrel-ridge/documentation` | `200`, exact `Documentation` header, 2 inline SVG diagrams, 7 sections, sidebar link present, 0 overflow, 0 console/page errors (verified again on the live URL) |
 | `GET /kestrel-ridge/wallets` | `200` |
 | `GET /kestrel-ridge/m/clients` | `200`, correct "Clients" title |
 | `GET /api/kestrel-ridge/meta` | `200` (93 KB workspace metadata) |
@@ -82,12 +83,26 @@ never printed in this document):
 | `8eb261a` | `dpl_xG4VW6abiEA665r5Qipu3sGirkm3` | Initial production release of the MYLA visual refinement |
 | `039e619` | — | Documentation only (not deployed) |
 | `3174c33` | `dpl_7F9Y6g1JMjpuwvnm9FAoK8P1rJbu` | Removed numeric record-count badges and the “N modules” label from the sidebar; nav now shows labels only |
+| `1927c0f` | — | Documentation only (not deployed) |
+| `5e31dd9` | `dpl_KTQ13fJnhbfW2RTteszBApaamJc4` | Added an in-app **Documentation** page to the sidebar with illustrated system/data/dashboard flows and business process diagrams |
 
 The sidebar change was verified on the live URL with a real Chromium session:
 53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
 “N modules” text, on both the desktop sidebar and the mobile drawer, with 0 page
 errors. Evidence: `screenshots/production-sidebar-no-counts.png`,
 `screenshots/sidebar-no-counts-desktop.png`, `screenshots/sidebar-no-counts-mobile.png`.
+
+The documentation release was verified against the live alias with a real Chromium
+session: exact `Documentation` header and `h1`, `Documentation` present in the
+sidebar (54 nav items total), 2 accessible inline SVG diagrams, 7 anchored sections,
+0 horizontal overflow on desktop and mobile, 0 nested cards, 0 radius violations,
+0 gradients and 0 console/page errors; `/api/kestrel-ridge/integrity` returned `200`.
+Local gates: `npx tsc --noEmit`, `npm run build`, `npm run audit:browser` `28/28`,
+`node scripts/design-qa.mjs` `15/15` (now 55 routes), `npm run env:check`, reseed
+(616/49/7/34/6/4) and integrity `ok:true` / 616 records / 1627 refs / 0 broken refs.
+Evidence: `screenshots/production-documentation.png`,
+`screenshots/production-documentation-mobile.png`, `screenshots/documentation-page.png`,
+`screenshots/documentation-dark.png`, `screenshots/design-after/documentation.png`.
 
 ## Redeploying
 
@@ -125,6 +140,8 @@ were deleted, so the project history contains only successful production release
   account-level settings for public signup remains a separate, authorised-later task.
 - No custom domain was added; `myla-construction-erp.vercel.app` is the Vercel-assigned
   production alias.
-- No `vercel.json`, no `TZ` override and no schema/database changes were made. The
-  only source change since the initial release is the sidebar label cleanup in
-  `src/components/AppShell.tsx`; all APIs, RBAC, routing and business logic are untouched.
+- No `vercel.json`, no `TZ` override and no schema/database changes were made. Source
+  changes since the initial release are the sidebar label cleanup and the new
+  documentation route/link in `src/components/AppShell.tsx` and
+  `src/app/[org]/documentation/page.tsx`; all APIs, RBAC, existing routing and business
+  logic are untouched. The documentation page is read-only and uses no new dependencies.

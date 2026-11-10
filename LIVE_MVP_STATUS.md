@@ -5,7 +5,7 @@
 **Date:** 2026-11-07 (Africa/Harare)
 **Repository:** `git@github.com:ckydoo/construction.git` · `main`
 **Production:** **https://myla-construction-erp.vercel.app** (Vercel, `iad1`, Node 26.x,
-built from commit `3174c33`) · full detail in `PRODUCTION_DEPLOYMENT.md`
+built from commit `5e31dd9`) · full detail in `PRODUCTION_DEPLOYMENT.md`
 **Local runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
