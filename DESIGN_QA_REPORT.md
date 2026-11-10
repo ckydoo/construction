@@ -6,12 +6,12 @@
 |---|---|---|
 | PASS | owner signs in | kestrel-ridge/dashboard |
 | PASS | metadata exposes the full connected module set | 49 resources · 34 modules |
-| PASS | large desktop: 4 routes, no overflow / decoration / stale titles | 1920×1080 · 4 routes · max overflow 0px |
-| PASS | desktop: 54 routes, no overflow / decoration / stale titles | 1440×900 · 54 routes · max overflow 0px |
-| PASS | laptop: 4 routes, no overflow / decoration / stale titles | 1024×768 · 4 routes · max overflow 0px |
-| PASS | tablet: 4 routes, no overflow / decoration / stale titles | 768×1024 · 4 routes · max overflow 0px |
-| PASS | mobile: 54 routes, no overflow / decoration / stale titles | 390×844 · 54 routes · max overflow 0px |
-| PASS | desktop after screenshots captured | 7 views |
+| PASS | large desktop: 5 routes, no overflow / decoration / stale titles | 1920×1080 · 5 routes · max overflow 0px |
+| PASS | desktop: 55 routes, no overflow / decoration / stale titles | 1440×900 · 55 routes · max overflow 0px |
+| PASS | laptop: 5 routes, no overflow / decoration / stale titles | 1024×768 · 5 routes · max overflow 0px |
+| PASS | tablet: 5 routes, no overflow / decoration / stale titles | 768×1024 · 5 routes · max overflow 0px |
+| PASS | mobile: 55 routes, no overflow / decoration / stale titles | 390×844 · 55 routes · max overflow 0px |
+| PASS | desktop after screenshots captured | 8 views |
 | PASS | detail drawer after screenshot captured | drawer open |
 | PASS | mobile / tablet / wide dashboard after screenshots captured | 3 viewports |
 | PASS | authentic MYLA logo loads on fresh login views | 3 logo variants |

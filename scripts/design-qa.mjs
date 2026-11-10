@@ -40,6 +40,7 @@ page.on('pageerror', e => pageErrors.push(e.message));
 
 const special = [
   { path: `/${ORG}/dashboard`, title: 'Dashboard' },
+  { path: `/${ORG}/documentation`, title: 'Documentation' },
   { path: `/${ORG}/reports`, title: 'Reports & BI' },
   { path: `/${ORG}/settings`, title: 'Settings' },
   { path: `/${ORG}/wallets`, title: 'Client wallets' },
@@ -158,6 +159,7 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   const shotRoutes = [
     ['dashboard', `/${ORG}/dashboard`],
+    ['documentation', `/${ORG}/documentation`],
     ['clients', `/${ORG}/m/clients`],
     ['projects', `/${ORG}/m/projects`],
     ['reports', `/${ORG}/reports`],

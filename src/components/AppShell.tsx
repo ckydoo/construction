@@ -20,12 +20,13 @@ type Meta = {
 
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard' },
+  { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation' },
   { id:'wallets', label:'Client wallets', group:'Finance', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports & BI', group:'Insights', icon:'BarChart3', href:'/reports' },
   { id:'settings', label:'Settings', group:'Administration', icon:'Settings', href:'/settings', cap:'settings.view' },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  dashboard:'Dashboard', wallets:'Client wallets', reports:'Reports & BI', settings:'Settings',
+  dashboard:'Dashboard', documentation:'Documentation', wallets:'Client wallets', reports:'Reports & BI', settings:'Settings',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
