@@ -156,6 +156,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const drawRight = (s: string, xRight: number, yPos: number, size: number, f: any, color = INK) => {
     const text = safe(s); page.drawText(text, { x: xRight - f.widthOfTextAtSize(text, size), y: yPos, size, font: f, color });
   };
+  // Keep the tenant identity inside its own column so long legal names, VAT
+  // numbers and contact details never collide with the document number/date.
+  const fitText = (s: string, max: number, size: number, f: any) => {
+    const text = safe(s);
+    if (f.widthOfTextAtSize(text, size) <= max) return text;
+    let clipped = text;
+    while (clipped && f.widthOfTextAtSize(`${clipped}...`, size) > max) clipped = clipped.slice(0, -1);
+    return `${clipped.trimEnd()}...`;
+  };
   const drawText = (s: string, size: number, f: any, color = INK) => drawAt(s, M, y, size, f, color);
   const drawWrapped = (text: string, x: number, max: number, size: number, f: any, color = INK, lineHeight = 13) => {
     const ls = wrap(text, max, size, f);
@@ -173,6 +182,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     page.drawRectangle({ x: 0, y: A4H - 3, width: A4W, height: 3, color: NAVY });
     if (first) {
       const nameX = logo ? M + 125 : M + 70;
+      const leftW = A4W - M - nameX - 100;
       if (logo) {
         const scale = Math.min(110 / logo.width, 52 / logo.height);
         const w = logo.width * scale, h = logo.height * scale;
@@ -181,10 +191,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
         page.drawRectangle({ x: M, y: A4H - 70, width: 54, height: 44, color: NAVY });
         drawAt(companyInitials(company.displayName), M + 10, A4H - 44, 16, bold, WHITE);
       }
-      drawAt(company.displayName, nameX, A4H - 28, 13, bold, NAVY);
-      drawAt([company.legalName, company.registrationNo ? `Reg: ${company.registrationNo}` : '', company.taxNo ? `VAT: ${company.taxNo}` : ''].filter(Boolean).join(' · '), nameX, A4H - 44, 7.5, font, MUTED);
-      drawAt([company.address, company.email, company.phone].filter(Boolean).join(' · '), nameX, A4H - 56, 7, font, MUTED);
-      drawAt([company.website].filter(Boolean).join(' · '), nameX, A4H - 66, 7, font, MUTED);
+      let nameSize = 13;
+      while (nameSize > 10 && bold.widthOfTextAtSize(company.displayName, nameSize) > leftW) nameSize -= 0.5;
+      drawAt(fitText(company.displayName, leftW, nameSize, bold), nameX, A4H - 28, nameSize, bold, NAVY);
+      const identity = [company.legalName, company.registrationNo ? `Reg: ${company.registrationNo}` : ''].filter(Boolean).join(' | ');
+      const registered = [company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ');
+      const contact = [company.email, company.phone].filter(Boolean).join(' | ');
+      drawAt(fitText(identity, leftW, 7.2, font), nameX, A4H - 42, 7.2, font, MUTED);
+      drawAt(fitText(registered, leftW, 7, font), nameX, A4H - 52, 7, font, MUTED);
+      drawAt(fitText(contact, leftW, 7, font), nameX, A4H - 62, 7, font, MUTED);
+      if (company.website) drawAt(fitText(company.website, leftW, 7, font), nameX, A4H - 72, 7, font, MUTED);
       drawRight(docCfg.title, A4W - M, A4H - 28, 11, bold, NAVY);
       drawRight(`${docCfg.numberLabel} ${docNo}`, A4W - M, A4H - 44, 8, font, MUTED);
       drawRight(docDate, A4W - M, A4H - 56, 8, font, MUTED);
