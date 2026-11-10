@@ -9,13 +9,13 @@
 | company type and size feed the derivation engine | PASS | INDUSTRIAL_EPC · MID · 85 people · $10M–$50M |
 | qualifiers visibly unlock feature flags | PASS | 4 qualifiers → 5+ live flags |
 | step 5 derives the module pack and an explicit add-on | PASS | 21 → 22 modules · 13 basic · demo data off |
-| creating the workspace persists derivation and lands on an empty dashboard | PASS | qa-onboarding-mwads9w7nzft · 22 modules · 0 seeded clients |
+| creating the workspace persists derivation and lands on an empty dashboard | PASS | qa-onboarding-mwajdb7l1ncq · 22 modules · 0 seeded clients |
 | a second tenant cannot read the demo workspace | PASS | API 401 · page redirects to own workspace |
 | sign out and sign back in keep the onboarded session | PASS | Supabase Auth session → dashboard, no re-onboarding |
 | team invite, role edit, invited sign-in and last-owner protection | PASS | VIEWER invite → PROJECT_MANAGER · last owner protected · temp-password sign-in |
 | no uncaught page errors or unexpected console errors | PASS | 0 page errors · 0 console errors |
 
-Workspace: `QA Onboarding mwads9w7nzft` · `qa-onboarding-mwads9w7nzft@kestrelridge.co.zw` · slug `qa-onboarding-mwads9w7nzft`.
+Workspace: `QA Onboarding mwajdb7l1ncq` · `qa-onboarding-mwajdb7l1ncq@kestrelridge.co.zw` · slug `qa-onboarding-mwajdb7l1ncq`.
 Derived pack: **22 modules**, plan **Professional**, user limit **60**, with 13 basics plus type/size/qualifier/add-on layers. Demo data was left OFF so the new workspace starts with an empty state.
 
 Unexpected console errors: 0 · Uncaught page errors: 0.

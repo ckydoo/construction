@@ -17,6 +17,7 @@ from collections import defaultdict
 
 import requests
 import requests.sessions
+from requests.packages.urllib3.util import Timeout as WallClockTimeout
 
 # Lightweight progress log + a hard wall-clock deadline. The live Supabase
 # stack occasionally leaves a chunked response open and keeps the read timeout
@@ -33,13 +34,19 @@ signal.signal(signal.SIGALRM, _on_alarm)
 def _traced_request(self, method, url, **kw):
     with open(AUDIT_TRACE, 'a') as _f:
         _f.write(f'{time.time():.3f} {method} {url}\n')
+    # A chunked upstream response can keep resetting a per-read timeout. Give
+    # urllib3 a hard total wall-clock deadline as well as connect/read limits;
+    # idempotent GETs get one retry on a fresh connection pool.
+    kw['timeout'] = WallClockTimeout(total=25, connect=5, read=20)
     attempts = 2 if str(method).upper() == 'GET' else 1
     for attempt in range(attempts):
-        signal.setitimer(signal.ITIMER_REAL, 60)
+        signal.setitimer(signal.ITIMER_REAL, 30)
         try:
             return _orig_request(self, method, url, **kw)
         except (_HardTimeout, requests.exceptions.Timeout) as e:
             if attempt + 1 < attempts:
+                try: self.close()
+                except Exception: pass
                 continue
             raise requests.exceptions.Timeout(f'hard deadline / retry exhausted: {e}')
         finally:
@@ -420,7 +427,7 @@ check(sec, 'wallets are one-per-client', len({w['clientId'] for w in wdata.get('
 check(sec, 'seeded demo wallets have activity', wdata.get('summary', {}).get('fundedWallets', 0) >= 4, wdata.get('summary'))
 check(sec, 'balance equals toppedUp minus allocated plus reversals',
       all(abs(w['balance'] - (w['toppedUp'] - w['allocated'] + w['reversed'])) < 0.005 for w in wdata.get('wallets', [])), '')
-seed_balance = sum(w['balance'] for w in wdata.get('wallets', []))
+seed_balance = sum(w.get('baseBalance', w['balance']) for w in wdata.get('wallets', []))
 
 # Find the client the demo portal user belongs to, and one of its projects.
 portal_client = None
@@ -591,11 +598,16 @@ for role in ROLE_IDS:
         ws = rr.json().get('wallets', [])
         check(sec, 'portal sees only its own wallet', len(ws) == 1 and ws[0]['clientId'] == portal_client, str([w['clientId'] for w in ws]))
         check(sec, 'portal cannot read another wallet', req(ss, 'GET', f'wallets/{other_project or "x"}').status_code in (403, 404), '')
-    # Capabilities via invalid payloads (no money moves)
+    # Capabilities via invalid payloads (no money moves). New QA members are
+    # unassigned internal staff, so row scoping correctly denies the portal
+    # client's wallet before amount validation is reached.
+    staff_restricted = not role.endswith('_EXTERNAL') and role not in ('OWNER', 'ADMIN')
+    expected_topup = 400 if ('wallet.topup' in caps and not staff_restricted) else 403
+    expected_allocate = 400 if ('wallet.allocate' in caps and not staff_restricted) else 403
     rr = req(ss, 'POST', wpath, json={'action': 'topup', 'amount': -1})
-    check(sec, f'{role} wallet.topup capability', rr.status_code == (400 if 'wallet.topup' in caps else 403), f'HTTP {rr.status_code}')
+    check(sec, f'{role} wallet.topup capability', rr.status_code == expected_topup, f'HTTP {rr.status_code}')
     rr = req(ss, 'POST', wpath, json={'action': 'allocate', 'amount': -1, 'projectId': portal_project})
-    check(sec, f'{role} wallet.allocate capability', rr.status_code == (400 if 'wallet.allocate' in caps else 403), f'HTTP {rr.status_code}')
+    check(sec, f'{role} wallet.allocate capability', rr.status_code == expected_allocate, f'HTTP {rr.status_code}')
     # Settings / role management
     rr = req(ss, 'PATCH', 'settings', json={'action': 'setRole', 'userId': 'x', 'role': 'ADMIN'})
     expected_manage = 'users.manage' in caps

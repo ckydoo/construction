@@ -50,14 +50,17 @@ export default function ReportsPage(){
   const groups=['All',...REPORTS.map(g=>g.group)];
   const items=REPORTS.flatMap(g=>g.items.map(i=>({...i,group:g.group}))).filter(i=>group==='All'||i.group===group);
   const defs=meta?.resources||[];
+  const base=ov?.currency||'USD'; const fx=ov?.fx;
   const statuses=(defs.find((d:any)=>d.id===builderResource)?.statusOptions)||[];
   return <div className="space-y-4">
     <div><h1 className="heading">Reports</h1><p className="mt-1 caption">Ready-made lists from your own records. Download any view as a CSV for Excel or your bookkeeper.</p></div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {isLoading?Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-24"/>):[
-        ['Records kept',num(Object.values(ov?.counts||{}).reduce((a:number,b:any)=>a+Number(b),0))],['Value of jobs',money(ov?.kpis?.contractValue,'USD',true)],['Safety score',pct(ov?.kpis?.safetyScore)],['Open site queries',num(ov?.kpis?.openRfis)],
+        ['Records kept',num(Object.values(ov?.counts||{}).reduce((a:number,b:any)=>a+Number(b),0))],['Value of jobs',money(ov?.kpis?.contractValue,base,true)],['Safety score',pct(ov?.kpis?.safetyScore)],['Open site queries',num(ov?.kpis?.openRfis)],
       ].map(([l,v])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 text-[20px] font-semibold tabular-nums">{v}</p></Card>)}
     </div>
+    {fx&&fx.enabled.length>1&&<Card><CardHead title="Money by currency" subtitle={`Converted to ${base} for reporting · manual rates from Settings`}/>
+      <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-4">{fx.enabled.map((c:string)=>{const row=(fx.byCurrency||[]).find((x:any)=>x.currency===c);return <div key={c} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-[11px] font-semibold uppercase muted">{c}{c===fx.base?' · base':''}</p><p className="mt-1 text-[15px] font-semibold tabular-nums">{money(row?.amount||0,c,true)}</p><p className="text-[10px] muted">{c===fx.base?'As entered':`${money(row?.baseAmount||0,fx.base,true)} in ${fx.base}`}</p></div>;})}</div></Card>}
     <div className="grid gap-4 lg:grid-cols-3">
       <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed over time" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
       <Card className="overflow-hidden"><CardHead title="Where costs went" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>

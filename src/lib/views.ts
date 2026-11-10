@@ -12,7 +12,7 @@ export const attachmentView = (a: any) => ({
   fileName: a.file_name, storedName: a.stored_name, mime: a.mime, size: a.size,
   uploadedById: a.uploaded_by_id, uploadedByName: a.uploaded_by_name,
   documentKey: a.document_key, revision: a.revision, revisionLabel: a.revision_label,
-  isLatest: a.is_latest, note: a.note, createdAt: a.created_at,
+  isLatest: a.is_latest, note: a.note, folderKey: a.folder_key ?? null, createdAt: a.created_at,
 });
 
 export const auditView = (a: any) => ({

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { readGuard, deleteGuard, capabilityGuard } from '@/lib/guard';
 import { buildScope, visibleResources, allowedRecordIds } from '@/lib/access';
 import { logActivity } from '@/lib/records';
+import { resolveFolderKey } from '@/lib/folders';
 import { storageBucket } from '@/lib/files';
 
 async function visibleAttachment(a: any, id: string) {
@@ -17,6 +18,9 @@ async function visibleAttachment(a: any, id: string) {
   if (scope.kind) {
     const ids = await allowedRecordIds(scope, a.orgId, visibleResources(a));
     if (!ids.has(att.record_id)) return { error: NextResponse.json({ error: 'File not found' }, { status: 404 }) };
+    if (att.folder_key && !(await resolveFolderKey(a, scope, String(att.folder_key)))) {
+      return { error: NextResponse.json({ error: 'File not found' }, { status: 404 }) };
+    }
   }
   return { att };
 }

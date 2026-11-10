@@ -6,6 +6,7 @@ import { getRecord } from '@/lib/records';
 import { readGuard, capabilityGuard } from '@/lib/guard';
 import { buildScope } from '@/lib/access';
 import { money, date } from '@/lib/format';
+import { normaliseCurrencyConfig, toBase, hasRate } from '@/lib/currency';
 import { BRAND } from '@/lib/brand';
 import { MYLA_PDF_LOGO_PNG_BASE64 } from '@/lib/brand-assets';
 
@@ -22,6 +23,7 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
   const row:any = await getRecord(a.orgId,resource,id,scope);
   if(!row) return NextResponse.json({error:'Record not found'},{status:404});
   const orgRow = a.org;
+  const cfg = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
   const isCert = resource==='paymentApps';
   const isInvoice = resource==='arInvoices' || resource==='apInvoices';
   const docKind = isCert?'CERTIFICATE':isInvoice?'INVOICE':'DOCUMENT';
@@ -93,7 +95,11 @@ export async function GET(_req:Request,{params}:{params:Promise<{org:string;reso
       y-=14;
       page.drawRectangle({x:A4W-M-230,y:y-42,width:230,height:44,color:rgb(0.98,0.96,0.92)});
       page.drawText('TOTAL',{x:A4W-M-218,y:y-18,size:8,font:bold,color:MUTED});
-      page.drawText(money(amount,row.currency||orgRow?.baseCurrency||'USD'),{x:A4W-M-218,y:y-35,size:14,font:bold,color:INK});
+      const docCurrency=String(row.currency||cfg.base).toUpperCase();
+      page.drawText(money(amount,docCurrency),{x:A4W-M-218,y:y-35,size:14,font:bold,color:INK});
+      if(docCurrency!==cfg.base&&hasRate(docCurrency,cfg)){
+        page.drawText(`Reporting total: ${money(toBase(amount,docCurrency,cfg),cfg.base)} (1 ${cfg.base} = ${cfg.rates[docCurrency]} ${docCurrency})`,{x:M,y:y-35,size:8,font,color:MUTED});
+      }
       y-=46;
     }
   }

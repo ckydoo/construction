@@ -105,7 +105,7 @@ export function ConfirmDialog({open,onClose,onConfirm,title,description,confirmL
   if(!open)return null;
   return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div className="absolute inset-0 bg-ink-950/50" onClick={onClose}/>
-    <div className="card relative w-full max-w-md animate-fadein rounded-2xl p-5 shadow-panel">
+    <div className="card relative w-full max-w-md animate-fadein rounded-xl p-5 shadow-panel">
       <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 dark:border-red-500/20 dark:bg-red-500/10"><Lucide.TriangleAlert size={18}/></div>
       <h3 className="section-title">{title}</h3>
       {description&&<p className="caption mt-1.5">{description}</p>}

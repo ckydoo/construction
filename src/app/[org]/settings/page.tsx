@@ -4,10 +4,11 @@ import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability } from '@/lib/catalog';
+import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
+import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
 import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, ConfirmDialog, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Providers';
-import { date, num } from '@/lib/format';
+import { date, num, money } from '@/lib/format';
 
 const CAP_LABELS:Record<string,string> = {
   'records.create':'Add records','records.update':'Edit records','records.delete':'Delete records',
@@ -16,23 +17,30 @@ const CAP_LABELS:Record<string,string> = {
   'users.manage':'Manage people','project360':'See the whole job','integrity':'Check links',
   'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
 };
-const TABS=[{id:'general',label:'General'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
+const TABS=[{id:'general',label:'General'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
 
 export default function SettingsPage(){
   const {org}=useParams<{org:string}>(); const qc=useQueryClient(); const toast=useToast();
   const [tab,setTab]=useState('general');
   const {data:meta,isLoading}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const [form,setForm]=useState<any>({}); const [saving,setSaving]=useState(false);
-  const [invite,setInvite]=useState<any>({name:'',email:'',role:'VIEWER',entityId:''});
+  const [invite,setInvite]=useState<any>({name:'',email:'',role:'VIEWER',entityId:'',staffEmployeeId:''});
   const [type,setType]=useState(''), [size,setSize]=useState(''), [quals,setQuals]=useState<string[]>([]);
   const [confirm,setConfirm]=useState<null|{title:string;desc:string;action:string;body?:any;method?:'PATCH'|'POST'}>(null);
   const [busy,setBusy]=useState(false); const [msg,setMsg]=useState('');
   const [csv,setCsv]=useState(''); const [csvResource,setCsvResource]=useState('clients');
-  useEffect(()=>{ if(meta){setForm({name:meta.org.name,legalName:meta.org.legalName||'',regNumber:meta.org.regNumber||'',country:meta.org.country,baseCurrency:meta.org.baseCurrency,headcount:meta.org.headcount||''});setType(meta.org.companyType||'GENERAL_CONTRACTOR');setSize(meta.org.size||'SMALL');} },[meta]);
+  const [currencyForm,setCurrencyForm]=useState<any>(null);
+  const [fxExample,setFxExample]=useState('1000');
+  useEffect(()=>{ if(meta){
+    setForm({name:meta.org.name,legalName:meta.org.legalName||'',regNumber:meta.org.regNumber||'',country:meta.org.country,baseCurrency:meta.org.baseCurrency,headcount:meta.org.headcount||''});
+    setType(meta.org.companyType||'GENERAL_CONTRACTOR');setSize(meta.org.size||'SMALL');
+    setCurrencyForm(normaliseCurrencyConfig(meta.org.currency, meta.org.baseCurrency));
+  } },[meta]);
   const grouped=useMemo(()=>{const g:Record<string,any[]>={};for(const m of meta?.modules||[])(g[m.group]||=[]).push(m);return g;},[meta]);
   const caps:string[]=meta?.permissions?.capabilities||[];
   const {data:integrity,isFetching:integrityLoading}:any=useQuery({queryKey:['integrity',org],queryFn:()=>apiGet(orgApi(org,'integrity')),enabled:tab==='system'&&caps.includes('integrity')});
   const enabled=new Set(meta?.config?.modules||[]);
+  const exampleCurrency = CURRENCY_CODES.find(c => c !== currencyForm?.base) || 'USD';
 
   async function send(action:string,body:any={},method:'PATCH'|'POST'='PATCH'){
     setBusy(true);setMsg('');
@@ -60,10 +68,37 @@ export default function SettingsPage(){
         <Field label="Legal name"><input className="input" value={form.legalName||''} onChange={e=>setForm({...form,legalName:e.target.value})}/></Field>
         <Field label="Registration number"><input className="input" value={form.regNumber||''} onChange={e=>setForm({...form,regNumber:e.target.value})}/></Field>
         <Field label="Country"><input className="input" value={form.country||''} onChange={e=>setForm({...form,country:e.target.value})}/></Field>
-        <Field label="Base currency"><select className="select" value={form.baseCurrency||'USD'} onChange={e=>setForm({...form,baseCurrency:e.target.value})}>{['USD','ZWG','ZAR','EUR','GBP'].map(c=><option key={c}>{c}</option>)}</select></Field>
+        <Field label="Base currency"><select className="select" value={form.baseCurrency||'USD'} onChange={e=>setForm({...form,baseCurrency:e.target.value})}>{CURRENCY_CODES.map(c=><option key={c} value={c}>{c} · {CURRENCY_LABELS[c]}</option>)}</select></Field>
         <Field label="Headcount"><input className="input" type="number" value={form.headcount||''} onChange={e=>setForm({...form,headcount:e.target.value})}/></Field>
         <div className="sm:col-span-2"><Button type="submit" variant="primary" loading={saving} icon="Save">Save changes</Button></div>
       </form></Card>}
+
+    {tab==='currency'&&currencyForm&&<div className="space-y-4">
+      <Card><CardHead title="Currencies & exchange rates" subtitle="Records keep the currency they were entered in; reports show totals in your base currency"/>
+        <div className="space-y-5 p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Base / reporting currency" hint="All dashboard, report and wallet totals convert into this currency."><select className="select" disabled={!caps.includes('settings.manage')} value={currencyForm.base} onChange={e=>{
+              setCurrencyForm(switchCurrencyBase(currencyForm, e.target.value));
+            }}>{CURRENCY_CODES.map(c=><option key={c} value={c}>{c} · {CURRENCY_LABELS[c]}</option>)}</select></Field>
+            <div className="rounded-md border divider bg-slate-50 p-3 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Try a conversion</p>
+              <div className="mt-2 flex items-center gap-2"><input className="input w-32" type="number" value={fxExample} onChange={e=>setFxExample(e.target.value)}/><span className="text-xs muted">{exampleCurrency} =</span><span className="text-sm font-semibold">{money(toBase(Number(fxExample)||0,exampleCurrency,currencyForm),currencyForm.base)}</span></div>
+              <p className="mt-1.5 text-[10px] muted">Manual reporting rates — not live market rates.</p></div>
+          </div>
+          <div><p className="label">Currencies you use</p><div className="mt-1.5 flex flex-wrap gap-2">{CURRENCY_CODES.map(c=><label key={c} className={`flex items-center gap-2 rounded-md border px-3 py-2 text-xs ${currencyForm.enabled.includes(c)?'border-brand-400 bg-brand-50 dark:bg-brand-500/10':'divider'}`}>
+            <input type="checkbox" className="h-3.5 w-3.5 accent-brand-500" disabled={!caps.includes('settings.manage')||c===currencyForm.base} checked={currencyForm.enabled.includes(c)}
+              onChange={e=>setCurrencyForm({...currencyForm,enabled:e.target.checked?[...currencyForm.enabled,c]:currencyForm.enabled.filter((x:string)=>x!==c)})}/>
+            <span className="font-semibold">{c}</span><span className="muted">{CURRENCY_LABELS[c]}</span>{c===currencyForm.base&&<span className="text-[10px] text-brand-700 dark:text-brand-300">base</span>}</label>)}</div></div>
+          <div><p className="label">Exchange rates</p><p className="mt-0.5 text-[11px] muted">How many units of each currency make one {currencyForm.base}? Update these whenever your bookkeeper changes the rate.</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{CURRENCY_CODES.filter(c=>c!==currencyForm.base).map(c=><Field key={c} label={`1 ${currencyForm.base} = ? ${c}`}><input className="input" type="number" min="0.000001" step="0.01" disabled={!caps.includes('settings.manage')||!currencyForm.enabled.includes(c)} value={currencyForm.rates[c]??''} onChange={e=>setCurrencyForm({...currencyForm,rates:{...currencyForm.rates,[c]:Number(e.target.value)}})}/></Field>)}</div></div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t divider pt-4">
+            <p className="text-[11px] muted">{currencyForm.updatedAt?`Last saved by ${currencyForm.updatedBy||'an administrator'} on ${date(currencyForm.updatedAt)}.`:'Using the default starter rates. Save your own rates before reporting in more than one currency.'}</p>
+            {caps.includes('settings.manage')&&<Button variant="primary" icon="Save" loading={busy} onClick={()=>send('updateCurrency',{currency:currencyForm,baseCurrency:currencyForm.base})}>Save currencies</Button>}
+          </div>
+        </div></Card>
+      <Card><CardHead title="How conversion works" subtitle="Clear, reversible and auditable"/><div className="grid gap-3 p-4 sm:grid-cols-3">
+        {[['1','Keep the original','Invoices, orders, budgets, wallets and PDFs keep the currency they were entered in.'],['2','Convert for reporting','Dashboards, reports, wallet summaries and job 360 totals are added up in '+currencyForm.base+'.'],['3','Audit the rate','Every rate change is written to the workspace activity log with the person who saved it.']].map(([n,t,d])=><div key={n} className="rounded-md border divider p-3"><span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-100 text-xs font-semibold dark:bg-ink-800">{n}</span><p className="mt-2 text-xs font-semibold">{t}</p><p className="mt-1 text-[11px] leading-relaxed muted">{d}</p></div>)}
+      </div></Card>
+    </div>}
 
     {tab==='modules'&&<div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Sections on your sidebar</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} sections on · changes show on the sidebar straight away.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
@@ -81,9 +116,10 @@ export default function SettingsPage(){
         <Field label="Full name"><input className="input" value={invite.name} onChange={e=>setInvite({...invite,name:e.target.value})} placeholder="Jane Moyo"/></Field>
         <Field label="Work email"><input className="input" type="email" value={invite.email} onChange={e=>setInvite({...invite,email:e.target.value})} placeholder="jane@company.co.zw"/></Field>
         <Field label="Role"><select className="select" value={invite.role} onChange={e=>setInvite({...invite,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
-        <Button variant="primary" loading={busy} icon="UserPlus" onClick={()=>send('invite',invite,'POST').then(()=>setInvite({name:'',email:'',role:'VIEWER',entityId:''}))}>Add user</Button>
+        <Button variant="primary" loading={busy} icon="UserPlus" onClick={()=>send('invite',invite,'POST').then(()=>setInvite({name:'',email:'',role:'VIEWER',entityId:'',staffEmployeeId:''}))}>Add user</Button>
       </div>
       {invite.role.endsWith('_EXTERNAL')&&<div className="border-t divider px-4 py-3"><Field label="Link to client (portal scope)" hint="Portal users only see this client's records, projects and wallet."><select className="select" value={invite.entityId} onChange={e=>setInvite({...invite,entityId:e.target.value})}><option value="">Select a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></Field></div>}
+      {!invite.role.endsWith('_EXTERNAL')&&!isFullAccess(invite.role)&&<div className="border-t divider px-4 py-3"><Field label="Link to staff member (job assignment)" hint="This account will see its department plus the jobs assigned to this staff member."><select className="select" value={invite.staffEmployeeId} onChange={e=>setInvite({...invite,staffEmployeeId:e.target.value})}><option value="">No job assignment yet…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select></Field></div>}
       </Card>
       <Card className="overflow-hidden"><CardHead title="Team members" subtitle={`${meta.users.length} users in this workspace`}/>
         <div className="divide-y divider">{meta.users.map((u:any)=><div key={u.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
@@ -93,6 +129,8 @@ export default function SettingsPage(){
             onChange={e=>send('setRole',{userId:u.id,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
           {u.role.endsWith('_EXTERNAL')&&<select className="select w-auto min-w-[160px]" value={u.entityId||''} disabled={!caps.includes('users.manage')}
             onChange={e=>send('setScope',{userId:u.id,entityId:e.target.value||null})}><option value="">Whole company</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select>}
+          {!u.role.endsWith('_EXTERNAL')&&!isFullAccess(u.role)&&<select className="select w-auto min-w-[180px]" value={u.staffEmployeeId||''} disabled={!caps.includes('users.manage')}
+            onChange={e=>send('setStaffEmployee',{userId:u.id,employeeId:e.target.value||null})}><option value="">Job assignment…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select>}
           {caps.includes('users.manage')&&u.role!=='OWNER'&&u.id!==meta.user.id&&<Button variant="ghost" size="sm" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:`Remove ${u.name}?`,desc:'Their workspace access and sessions will be revoked.',action:'removeUser',body:{userId:u.id},method:'PATCH'})}>Remove</Button>}
           <span className="hidden text-[11px] muted sm:block">Joined {date(u.joined)}</span></div>)}</div></Card>
       <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle="Checked every time someone saves — a change takes effect immediately"/>
@@ -104,7 +142,7 @@ export default function SettingsPage(){
               <td className="table-td text-right"><Badge tone={writes?'blue':'slate'}>{writes}</Badge></td>
               <td className="table-td">{canDelete(r.id)?<Badge tone="amber">Yes</Badge>:<Badge tone="slate">No</Badge>}</td>
               <td className="table-td"><span className="text-[11px] muted">{w}</span></td>
-              <td className="table-td">{rule.scoped?<Badge tone="violet">Own jobs only</Badge>:<Badge tone="green">Whole company</Badge>}</td></tr>;})}</tbody></table></div></Card>
+              <td className="table-td">{rule.scoped?<Badge tone="violet">Own client / jobs</Badge>:isFullAccess(r.id)?<Badge tone="green">Whole company</Badge>:<Badge tone="blue">Department + own jobs</Badge>}</td></tr>;})}</tbody></table></div></Card>
       <Card><CardHead title="Your access" subtitle={`Signed in as ${meta.role.replace(/_/g,' ')}`}/><div className="flex flex-wrap gap-1.5 p-5">{caps.map(c=><Badge key={c} tone="blue">{CAP_LABELS[c]||c}</Badge>)}</div></Card></div>}
 
     {tab==='setup'&&<div className="space-y-4"><Card><CardHead title="Recalculate your sections" subtitle="Changing your type or size works out which sections appear again"/>

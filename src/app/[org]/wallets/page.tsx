@@ -10,11 +10,11 @@ import { useToast } from '@/components/Providers';
 
 type WalletRow = {
   clientId:string; clientName:string; clientNumber:string|null; clientStatus:string|null;
-  walletId:string|null; currency:string; balance:number; toppedUp:number; allocated:number;
+  walletId:string|null; currency:string; balance:number; baseBalance:number; baseToppedUp:number; baseNetAllocated:number; toppedUp:number; allocated:number;
   reversed:number; netAllocated:number; projectCount:number; lastActivity:string|null; txCount:number;
 };
 type WalletsData = {
-  wallets:WalletRow[]; currency:string; role:string; scoped:string|null;
+  wallets:WalletRow[]; currency:string; baseCurrency?:string; fx?:any; role:string; scoped:string|null;
   summary:{ clientCount:number; fundedWallets:number; totalBalance:number; totalToppedUp:number; totalAllocated:number; fundedProjects:number };
 };
 type LedgerTx = { id:string; kind:string; amount:number; balanceAfter:number; currency:string; projectId:string|null;
@@ -60,11 +60,18 @@ function Inner(){
     if(!selected) return;
     setBusy(true);
     const prev=qc.getQueryData(['wallets',org]);
-    if(delta) qc.setQueryData(['wallets',org],(old:any)=>old?{
-      ...old,
-      wallets:old.wallets.map((w:WalletRow)=>w.clientId===selected?{...w,balance:Math.max(0,w.balance+delta)}:w),
-      summary:{...old.summary,totalBalance:old.summary.totalBalance+delta},
-    }:old);
+    if(delta) qc.setQueryData(['wallets',org],(old:any)=>{
+      if(!old) return old;
+      const w=old.wallets.find((x:WalletRow)=>x.clientId===selected);
+      const rate=Number(old.fx?.rates?.[detail?.wallet.currency||w?.currency||'USD'])||1;
+      const baseDelta=delta/rate;
+      return {...old,
+        wallets:old.wallets.map((x:WalletRow)=>x.clientId===selected?{
+          ...x, balance:Math.max(0,x.balance+delta), baseBalance:Math.max(0,x.baseBalance+baseDelta),
+        }:x),
+        summary:{...old.summary,totalBalance:old.summary.totalBalance+baseDelta},
+      };
+    });
     try{
       const r:any=await apiSend(orgApi(org,`wallets/${selected}`),'POST',{action,...body});
       toast.push({tone:'success',title:action==='topup'?'Funds added':action==='allocate'?'Project funded':'Entry reversed',
@@ -83,6 +90,7 @@ function Inner(){
   if(!caps.includes('wallet.read')) return <Card><EmptyState icon="Lock" title="Access restricted" description={`Your role (${meta.role.replace(/_/g,' ')}) does not include client wallet access. Ask an owner or administrator to change your role.`}/></Card>;
 
   const s=data?.summary, rows=data?.wallets||[];
+  const base=data?.baseCurrency||data?.currency||'USD'; const fx=data?.fx;
   const active=rows.find(w=>w.clientId===selected);
   return <div className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -96,12 +104,14 @@ function Inner(){
         :'Read-only wallet access. Contact an administrator for funding changes.'}
     </div>}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {[['Available balance',money(s?.totalBalance,data?.currency||'USD'),'Across all client wallets','Wallet','brand'],
-        ['Funded to projects',money(s?.totalAllocated,data?.currency||'USD'),`${num(s?.fundedProjects)} projects funded`,'ArrowUpRight','blue'],
-        ['Total topped up',money(s?.totalToppedUp,data?.currency||'USD'),'All-time admin deposits','Landmark','green'],
+      {[['Available balance',money(s?.totalBalance,base),'Across all client wallets','Wallet','brand'],
+        ['Funded to projects',money(s?.totalAllocated,base),`${num(s?.fundedProjects)} projects funded`,'ArrowUpRight','blue'],
+        ['Total topped up',money(s?.totalToppedUp,base),'All-time admin deposits','Landmark','green'],
         ['Active wallets',`${num(s?.fundedWallets)} / ${num(s?.clientCount)}`,'Clients with wallet activity','CreditCard','violet'],
       ].map(([l,v,sub])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 truncate text-[20px] font-semibold tabular-nums tracking-tight text-ink-900 dark:text-white">{v}</p><p className="caption mt-0.5">{sub}</p></Card>)}
     </div>
+    {fx&&fx.byCurrency?.length>1&&<Card><CardHead title={`Balances in ${base}`} subtitle="Each wallet keeps its own currency; totals use the manual rates in Settings → Currencies"/>
+      <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-4">{fx.byCurrency.map((x:any)=><div key={x.currency} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-[11px] font-semibold uppercase muted">{x.currency}{x.currency===fx.base?' · base':''}</p><p className="mt-1 text-[15px] font-semibold tabular-nums">{money(x.amount,x.currency,true)}</p><p className="text-[10px] muted">{x.currency===fx.base?'As entered':`${money(x.baseAmount,fx.base,true)} in ${fx.base}`}</p></div>)}</div></Card>}
     <Card className="overflow-hidden">
       <CardHead title="All client wallets" subtitle={`${rows.length} clients · balances checked against the record`} action={<Badge tone="green">Every move recorded</Badge>}/>
       {rows.length===0?<div className="p-5"><EmptyState compact icon="CreditCard" title="No clients yet" description="Create a client first, then add funds to its wallet."/></div>:
@@ -163,7 +173,7 @@ function Inner(){
       </div>}
     </Drawer>
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={busy} confirmLabel="Reverse entry"
-      title="Reverse this allocation?" description={`${money(Math.abs(confirm?.tx.amount||0),data?.currency||'USD')} will be credited back to the wallet and deducted from the project's funded total. Recorded movements are never deleted.`}
+      title="Reverse this allocation?" description={`${money(Math.abs(confirm?.tx.amount||0),confirm?.tx.currency||data?.currency||'USD')} will be credited back to the wallet and deducted from the project's funded total. Recorded movements are never deleted.`}
       onConfirm={()=>confirm&&act('reverse',{transactionId:confirm.tx.id},Math.abs(confirm.tx.amount))}/>
   </div>;
 }

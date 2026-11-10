@@ -41,6 +41,7 @@ page.on('pageerror', e => pageErrors.push(e.message));
 const special = [
   { path: `/${ORG}/dashboard`, title: 'Dashboard' },
   { path: `/${ORG}/documentation`, title: 'Documentation' },
+  { path: `/${ORG}/library`, title: 'Document library' },
   { path: `/${ORG}/reports`, title: 'Reports' },
   { path: `/${ORG}/settings`, title: 'Settings' },
   { path: `/${ORG}/wallets`, title: 'Client wallets' },
@@ -160,6 +161,7 @@ try {
   const shotRoutes = [
     ['dashboard', `/${ORG}/dashboard`],
     ['documentation', `/${ORG}/documentation`],
+    ['library', `/${ORG}/library`],
     ['clients', `/${ORG}/m/clients`],
     ['projects', `/${ORG}/m/projects`],
     ['reports', `/${ORG}/reports`],

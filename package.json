@@ -33,7 +33,9 @@
     "prestart:prod": "node scripts/ensure-env.mjs",
     "env:init": "node scripts/ensure-env.mjs",
     "env:check": "node scripts/check-env.mjs",
-    "audit:projects": "node scripts/project-scale-audit.mjs"
+    "audit:projects": "node scripts/project-scale-audit.mjs",
+    "rbac:staff": "tsx scripts/staff-defs.ts > /tmp/staff-defs.json && python3 scripts/gen-staff-scope.py",
+    "audit:features": "node scripts/feature-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

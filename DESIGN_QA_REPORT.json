@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T07:40:53.828Z",
+  "generatedAt": "2026-11-10T10:22:49.874Z",
   "base": "http://127.0.0.1:3000",
   "summary": {
     "passed": 15,
@@ -19,34 +19,34 @@
       "detail": "49 resources · 34 modules"
     },
     {
-      "name": "large desktop: 5 routes, no overflow / decoration / stale titles",
+      "name": "large desktop: 6 routes, no overflow / decoration / stale titles",
       "ok": true,
-      "detail": "1920×1080 · 5 routes · max overflow 0px"
+      "detail": "1920×1080 · 6 routes · max overflow 0px"
     },
     {
-      "name": "desktop: 55 routes, no overflow / decoration / stale titles",
+      "name": "desktop: 56 routes, no overflow / decoration / stale titles",
       "ok": true,
-      "detail": "1440×900 · 55 routes · max overflow 0px"
+      "detail": "1440×900 · 56 routes · max overflow 0px"
     },
     {
-      "name": "laptop: 5 routes, no overflow / decoration / stale titles",
+      "name": "laptop: 6 routes, no overflow / decoration / stale titles",
       "ok": true,
-      "detail": "1024×768 · 5 routes · max overflow 0px"
+      "detail": "1024×768 · 6 routes · max overflow 0px"
     },
     {
-      "name": "tablet: 5 routes, no overflow / decoration / stale titles",
+      "name": "tablet: 6 routes, no overflow / decoration / stale titles",
       "ok": true,
-      "detail": "768×1024 · 5 routes · max overflow 0px"
+      "detail": "768×1024 · 6 routes · max overflow 0px"
     },
     {
-      "name": "mobile: 55 routes, no overflow / decoration / stale titles",
+      "name": "mobile: 56 routes, no overflow / decoration / stale titles",
       "ok": true,
-      "detail": "390×844 · 55 routes · max overflow 0px"
+      "detail": "390×844 · 56 routes · max overflow 0px"
     },
     {
       "name": "desktop after screenshots captured",
       "ok": true,
-      "detail": "8 views"
+      "detail": "9 views"
     },
     {
       "name": "detail drawer after screenshot captured",

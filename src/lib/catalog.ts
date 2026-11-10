@@ -114,6 +114,13 @@ export type WorkspaceConfig = {
   limits: { users: number; projects: number; storageMb: number };
   localePack: string;
   plan: string;
+  currency?: {
+    base: string;
+    enabled: string[];
+    rates: Record<string, number>;
+    updatedAt?: string | null;
+    updatedBy?: string | null;
+  };
 };
 
 export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
@@ -269,6 +276,41 @@ export const ROLE_RULES: Record<string, RoleRule> = {
   SUBCONTRACTOR_EXTERNAL: { read:SUB_PORTAL_READ, write:[], delete:false, scoped:true,
                       capabilities:['comments.create','exports','project360'] },
 };
+
+/* ─────────────────────────────────────────────────────────────────────────
+   ROW-LEVEL ACCESS FOR INTERNAL STAFF
+   Only owners and administrators see the whole workspace. Other internal
+   accounts see: (1) shared master data, (2) their own department's registers,
+   (3) records on jobs assigned to them, and (4) their own staff record.
+   External client/subcontractor rules above are unchanged and take priority.
+   Postgres mirrors these arrays in 20261110130000_staff_scope.sql — regenerate
+   that migration with `npm run rbac:staff` after editing them.
+   ───────────────────────────────────────────────────────────────────────── */
+export const FULL_ACCESS_ROLES = ['OWNER', 'ADMIN'] as const;
+export function isFullAccess(role: string): boolean {
+  return (FULL_ACCESS_ROLES as readonly string[]).includes(role);
+}
+
+/** Master reference data every internal account needs to do its job. */
+export const STAFF_SHARED_RESOURCES = [
+  'clients','contacts','vendors','subcontractors','departments','crews','warehouses','accounts',
+] as const;
+
+/** Registers owned by a department, visible in full to that department only. */
+export const STAFF_DEPARTMENTS: Record<string, string[]> = {
+  PROJECT_MANAGER:  ['leads','estimates','bids'],
+  SITE_ENGINEER:    [],
+  FINANCE_MANAGER:  ['accounts','journals','payRuns','expenses','leaveRequests','arInvoices','apBills','payments','paymentApps','budgets'],
+  ACCOUNTANT:       ['accounts','journals','payRuns','expenses','arInvoices','apBills','payments','paymentApps','budgets'],
+  HR_MANAGER:       ['employees','departments','crews','leaveRequests','payRuns','certifications','training','timesheets'],
+  PROCUREMENT:      ['vendors','subcontractors','requisitions','purchaseOrders','goodsReceipts','inventory','warehouses'],
+  SAFETY_OFFICER:   ['toolboxTalks','incidents','inspections','ncrs','itps','permits','certifications','training'],
+  PLANT_MANAGER:    ['equipment','workOrders','inventory','warehouses'],
+  ESTIMATOR:        ['leads','estimates','bids','clients','contacts'],
+  VIEWER:           [],
+};
+
+export function staffDepartments(role: string): string[] { return STAFF_DEPARTMENTS[role] || []; }
 
 export function ruleFor(role: string): RoleRule { return ROLE_RULES[role] || ROLE_RULES.VIEWER; }
 export function capabilitiesFor(role: string): Capability[] { return ruleFor(role).capabilities; }

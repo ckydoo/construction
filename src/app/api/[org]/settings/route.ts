@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
 import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
+import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
 import { getResource } from '@/lib/resources';
 import { createRecord, logActivity } from '@/lib/records';
 import { writeGuard, capabilityGuard } from '@/lib/guard';
@@ -27,16 +28,39 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
   if (!adminOnly(a.role)) return NextResponse.json({ error: 'Only owners and admins can change settings' }, { status: 403 });
 
   if (b.action === 'updateOrg') {
+    const wantsCurrency = b.baseCurrency !== undefined;
+    const nextBase = wantsCurrency ? String(b.baseCurrency || 'USD').toUpperCase() : String(a.org.baseCurrency || 'USD');
+    if (wantsCurrency && !(CURRENCY_CODES as readonly string[]).includes(nextBase)) {
+      return NextResponse.json({ error: 'Choose a supported currency' }, { status: 400 });
+    }
+    // General and Currencies tabs both expose the base currency. Re-express the
+    // saved rates when it changes so 1 base = N currency stays true.
+    const currency = wantsCurrency ? normaliseCurrencyConfig(a.config.currency, nextBase) : null;
+    const cfg: WorkspaceConfig | null = currency ? { ...a.config, currency } : null;
     const { data, error } = await sb.from('organizations').update({
       name: String(b.name || a.orgName),
       ...(b.legalName !== undefined ? { legal_name: b.legalName } : {}),
       ...(b.regNumber !== undefined ? { reg_number: b.regNumber } : {}),
       ...(b.country !== undefined ? { country: b.country } : {}),
-      ...(b.baseCurrency !== undefined ? { base_currency: b.baseCurrency } : {}),
+      ...(wantsCurrency ? { base_currency: nextBase, config: cfg } : {}),
       ...(b.headcount !== undefined ? { headcount: Number(b.headcount) || null } : {}),
     }).eq('id', a.orgId).select('name').single();
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
-    return NextResponse.json({ ok: true, org: { name: data.name } });
+    if (wantsCurrency && nextBase !== String(a.org.baseCurrency || 'USD')) {
+      await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings', `Set reporting currency to ${nextBase}`);
+    }
+    return NextResponse.json({ ok: true, org: { name: data.name }, ...(currency ? { currency } : {}) });
+  }
+  if (b.action === 'updateCurrency') {
+    const currency = normaliseCurrencyConfig(b.currency, b.baseCurrency || a.org.baseCurrency);
+    currency.updatedAt = new Date().toISOString();
+    currency.updatedBy = a.name;
+    const cfg: WorkspaceConfig = { ...a.config, currency };
+    const { error } = await sb.from('organizations').update({ base_currency: currency.base, config: cfg }).eq('id', a.orgId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 403 });
+    await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings',
+      `Set reporting currency to ${currency.base} with ${currency.enabled.length} enabled currencies`);
+    return NextResponse.json({ ok: true, currency, message: `Reporting currency saved. Totals convert to ${currency.base}.` });
   }
   if (b.action === 'toggleModule') {
     const cfg: WorkspaceConfig = { ...a.config };
@@ -58,7 +82,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     return NextResponse.json({ ok: true, config: cfg, message: `Switched to ${b.pack === 'essentials' ? `the ${ids.length} essentials` : 'all ' + ids.length + ' modules'}.` });
   }
-  if (b.action === 'setRole' || b.action === 'setScope' || b.action === 'removeUser') {
+  if (b.action === 'setRole' || b.action === 'setScope' || b.action === 'setStaffEmployee' || b.action === 'removeUser') {
     const g = capabilityGuard(a.role, 'users.manage'); if (g) return g;
     const userId = String(b.userId || '');
     const { data: target } = await sb.from('memberships').select('*')
@@ -75,9 +99,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
         const owners = await fetchAll('memberships', q => q.eq('organization_id', a.orgId).eq('role', 'OWNER'), 'id');
         if (owners.length <= 1) return NextResponse.json({ error: 'The workspace must keep at least one owner' }, { status: 409 });
       }
-      const { error } = await sb.from('memberships').update({
-        role, ...(role.endsWith('_EXTERNAL') ? {} : { entity_id: null }),
-      }).eq('id', target.id);
+      const updates: Record<string, any> = { role };
+      if (role.endsWith('_EXTERNAL') !== target.role.endsWith('_EXTERNAL')) updates.entity_id = null;
+      if (role.endsWith('_EXTERNAL')) updates.staff_employee_id = null;
+      const { error } = await sb.from('memberships').update(updates).eq('id', target.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 403 });
       await logActivity(a.orgId, a.userId, a.name, 'ROLE_CHANGE', 'users',
         `Changed ${target.user_id.slice(-8)} to ${role.replace(/_/g, ' ').toLowerCase()}`);
@@ -96,6 +121,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
       const { error } = await sb.from('memberships').update({ entity_id: entityId }).eq('id', target.id);
       if (error) return NextResponse.json({ error: error.message }, { status: 403 });
       return NextResponse.json({ ok: true, message: entityId ? 'Portal access scoped to a client' : 'Portal scope cleared' });
+    }
+    if (b.action === 'setStaffEmployee') {
+      if (target.role.endsWith('_EXTERNAL')) return NextResponse.json({ error: 'Portal accounts use a client link, not a staff assignment' }, { status: 400 });
+      const employeeId = b.employeeId ? String(b.employeeId) : null;
+      if (employeeId) {
+        const { data: rec } = await sb.from('records').select('id')
+          .eq('id', employeeId).eq('organization_id', a.orgId).eq('resource', 'employees')
+          .is('deleted_at', null).maybeSingle();
+        if (!rec) return NextResponse.json({ error: 'Choose a staff member that exists in this workspace' }, { status: 400 });
+      }
+      const { error } = await sb.from('memberships').update({ staff_employee_id: employeeId }).eq('id', target.id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 403 });
+      await logActivity(a.orgId, a.userId, a.name, 'ROLE_CHANGE', 'users',
+        employeeId ? 'Linked a team member to their staff record and jobs' : 'Cleared a team member’s job assignment');
+      return NextResponse.json({ ok: true, message: employeeId ? 'Job assignment saved' : 'Job assignment cleared' });
     }
     if (target.user_id === a.userId) return NextResponse.json({ error: 'You cannot remove yourself' }, { status: 409 });
     if (target.role === 'OWNER') return NextResponse.json({ error: 'Owners cannot be removed' }, { status: 409 });
@@ -142,14 +182,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     const { data: exists } = await admin.from('memberships').select('id')
       .eq('user_id', userId).eq('organization_id', a.orgId).maybeSingle();
     if (exists) return NextResponse.json({ error: 'That user is already a member' }, { status: 409 });
-    const entityId = role.endsWith('_EXTERNAL') ? (b.entityId ? String(b.entityId) : null) : null;
+    const external = role.endsWith('_EXTERNAL');
+    const entityId = external ? (b.entityId ? String(b.entityId) : null) : null;
+    const staffEmployeeId = !external ? (b.staffEmployeeId ? String(b.staffEmployeeId) : null) : null;
     if (entityId) {
       const { data: rec } = await sb.from('records').select('id')
         .eq('id', entityId).eq('organization_id', a.orgId).eq('resource', 'clients').is('deleted_at', null).maybeSingle();
       if (!rec) return NextResponse.json({ error: 'Unknown client scope' }, { status: 400 });
     }
+    if (staffEmployeeId) {
+      const { data: rec } = await sb.from('records').select('id')
+        .eq('id', staffEmployeeId).eq('organization_id', a.orgId).eq('resource', 'employees').is('deleted_at', null).maybeSingle();
+      if (!rec) return NextResponse.json({ error: 'Unknown staff member' }, { status: 400 });
+    }
     const { error: mErr } = await admin.from('memberships').insert({
       user_id: userId, organization_id: a.orgId, role, entity_id: entityId,
+      staff_employee_id: staffEmployeeId,
     });
     if (mErr) return NextResponse.json({ error: mErr.message }, { status: 400 });
     await admin.from('invitations').insert({

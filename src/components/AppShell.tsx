@@ -21,12 +21,13 @@ type Meta = {
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard' },
   { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation' },
+  { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  dashboard:'Dashboard', documentation:'Documentation', wallets:'Client wallets', reports:'Reports', settings:'Settings',
+  dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', settings:'Settings',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -146,7 +147,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     {/* Command palette */}
     {palette&&<div className="fixed inset-0 z-[70] flex items-start justify-center p-4 pt-[12vh]">
       <div className="absolute inset-0 bg-ink-950/50" onClick={()=>setPalette(false)}/>
-      <div className="card relative w-full max-w-xl overflow-hidden rounded-2xl shadow-panel">
+      <div className="card relative w-full max-w-xl overflow-hidden rounded-xl shadow-panel">
         <div className="flex items-center gap-3 border-b divider px-4 py-3"><Lucide.Search size={18} className="text-slate-400"/><input autoFocus value={pq} onChange={e=>setPq(e.target.value)} placeholder="Search jobs, clients, invoices, site queries…" className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"/><kbd className="rounded border divider px-1.5 py-0.5 text-[10px] muted">ESC</kbd></div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
           {pq.trim().length<2&&<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Jump to</p>{navGroups.flatMap(g=>g.items).slice(0,9).map((it:any)=><Link key={it.id} href={`/${orgSlug}${it.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={it.icon} size={16} className="text-slate-400"/><span className="flex-1">{it.label}</span><span className="text-[10px] muted">{it.group}</span></Link>)}</>}

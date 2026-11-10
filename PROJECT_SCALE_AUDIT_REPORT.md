@@ -1,6 +1,6 @@
 # Project detail & scalability QA
 
-Base: `https://myla-construction-erp.vercel.app`
+Base: `http://127.0.0.1:3000`
 
 **8/8 checks passed.**
 
@@ -15,4 +15,4 @@ Base: `https://myla-construction-erp.vercel.app`
 | project filter dropdown is searchable | ✅ Pomona Industrial Plant Expansion · filtered rows visible |
 | no console or page errors | ✅ 0 errors |
 
-Evidence: `screenshots/production-project-detail-full-page.png`, `screenshots/production-project-detail-record-files.png`, `screenshots/production-project-searchable-dropdown.png`, `screenshots/production-project-searchable-filter.png`.
+Evidence: `screenshots/project-detail-full-page.png`, `screenshots/project-detail-record-files.png`, `screenshots/project-searchable-dropdown.png`, `screenshots/project-searchable-filter.png`.

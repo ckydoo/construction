@@ -12,24 +12,31 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const { org } = await params;
   const a = await apiAuth(org);
   if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const scoped = isExternal(a.role);
+  const external = isExternal(a.role);
   const scope = await buildScope(a);
+  const restricted = !!scope.kind;
+  const full = !restricted;
   const visible = visibleResources(a);
   const sb = await supabase();
 
+  // Staff and portal accounts see themselves in the team list; only owners and
+  // administrators see all members, all clients and workspace-wide counts.
   let memberQuery = sb.from('memberships')
-    .select('user_id, role, entity_id, created_at')
+    .select('user_id, role, entity_id, staff_employee_id, created_at')
     .eq('organization_id', a.orgId);
-  if (scoped) memberQuery = memberQuery.eq('user_id', a.userId);
+  if (!full) memberQuery = memberQuery.eq('user_id', a.userId);
 
-  const [members, notifications, audit, counts, clientRecs] = await Promise.all([
+  const [members, notifications, audit, counts, clientRecs, employeeRecs] = await Promise.all([
     memberQuery,
-    scoped ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(30),
-    scoped ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(25),
-    countsByResource(a.orgId),
-    scoped ? Promise.resolve({ data: [] }) : sb.from('records').select('id,number,title')
+    external ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(30),
+    external ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(25),
+    full ? countsByResource(a.orgId) : Promise.resolve({}),
+    full ? sb.from('records').select('id,number,title')
       .eq('organization_id', a.orgId).eq('resource', 'clients').is('deleted_at', null)
-      .order('created_at', { ascending: true }).limit(300),
+      .order('created_at', { ascending: true }).limit(300) : Promise.resolve({ data: [] }),
+    full ? sb.from('records').select('id,number,title').eq('organization_id', a.orgId)
+      .eq('resource', 'employees').is('deleted_at', null)
+      .order('created_at', { ascending: true }).limit(500) : Promise.resolve({ data: [] }),
   ]);
 
   // memberships.user_id points at auth.users, not public.profiles, so PostgREST
@@ -44,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const profileById = new Map(profileRows.map(p => [p.id, p]));
 
   let visibleCounts: Record<string, number>;
-  if (scoped) {
+  if (restricted) {
     visibleCounts = {};
     const recs = visible.length ? await fetchAll('records', q => q
       .eq('organization_id', a.orgId).is('deleted_at', null).in('resource', visible),
@@ -54,7 +61,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       if (allowed) visibleCounts[r.resource] = (visibleCounts[r.resource] || 0) + 1;
     }
   } else {
-    visibleCounts = Object.fromEntries(Object.entries(counts).filter(([k]) => visible.includes(k)));
+    visibleCounts = Object.fromEntries(Object.entries(counts as Record<string, number>).filter(([k]) => visible.includes(k)));
   }
 
   const users = memberRows.map((m: any) => {
@@ -62,24 +69,31 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     return {
       id: m.user_id, name: p.name || 'User', email: p.email || '',
       avatarColor: p.avatar_color || '#64748b', role: m.role,
-      entityId: m.entity_id, joined: m.created_at,
+      entityId: m.entity_id, staffEmployeeId: m.staff_employee_id, joined: m.created_at,
     };
   });
 
   return NextResponse.json({
     org: { id: a.orgId, name: a.orgName, slug: a.orgSlug, legalName: a.org.legalName, regNumber: a.org.regNumber,
       country: a.org.country, baseCurrency: a.org.baseCurrency, companyType: a.org.companyType, size: a.org.size,
-      headcount: a.org.headcount, plan: a.config.plan, limits: a.config.limits },
+      headcount: a.org.headcount, plan: a.config.plan, limits: a.config.limits,
+      currency: a.config.currency || null },
     config: a.config, modules: MODULES, resources: RESOURCES, roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
     user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor },
     memberships: a.memberships,
     users,
-    clients: scoped ? [] : (clientRecs.data || []).map(c => ({ id: c.id, label: c.title || c.number || c.id })),
+    clients: (clientRecs.data || []).map(c => ({ id: c.id, label: c.title || c.number || c.id })),
+    employees: (employeeRecs.data || []).map(e => ({ id: e.id, label: e.title || e.number || e.id })),
     entityId: a.entityId,
-    notifications: (notifications.data || []).map(notificationView),
-    audit: (audit.data || []).map(auditView),
+    notifications: (notifications.data || [])
+      .filter((n: any) => !restricted || !n.user_id || n.user_id === a.userId)
+      .map(notificationView),
+    audit: (audit.data || [])
+      .filter((x: any) => full || x.user_id === a.userId)
+      .map(auditView),
     counts: visibleCounts,
+    scope: { kind: scope.kind, projectIds: scope.projectIds, departments: scope.departments, staffEmployeeId: scope.entityId },
   });
 }

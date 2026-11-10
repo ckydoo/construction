@@ -99,6 +99,7 @@ async function main() {
   const { error: mErr } = await admin.from('memberships').upsert(DEMO_USERS.map(u => ({
     user_id: userIds[u.email.toLowerCase()], organization_id: orgId, role: u.role,
     entity_id: u.email === 'client@westgate.co.zw' ? `${orgId}_cli-1` : null,
+    staff_employee_id: u.staffEmployee ? `${orgId}_${u.staffEmployee}` : null,
   })), { onConflict: 'user_id,organization_id' });
   if (mErr) throw new Error(`Cannot create memberships: ${mErr.message}`);
 

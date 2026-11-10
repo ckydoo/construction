@@ -11,13 +11,13 @@ export const DEMO_ORG = {
 };
 export const DEMO_PASSWORD = 'Demo@1234';
 export const DEMO_USERS = [
-  { name:'Tendai Muchengeti', email:'owner@kestrelridge.co.zw', role:'OWNER', color:'#b45309' },
-  { name:'Rutendo Chikomba', email:'pm@kestrelridge.co.zw', role:'PROJECT_MANAGER', color:'#0f766e' },
-  { name:'Farai Nyamayaro', email:'finance@kestrelridge.co.zw', role:'FINANCE_MANAGER', color:'#1d4ed8' },
-  { name:'Nomsa Dube', email:'hr@kestrelridge.co.zw', role:'HR_MANAGER', color:'#be185d' },
-  { name:'Bright Moyo', email:'safety@kestrelridge.co.zw', role:'SAFETY_OFFICER', color:'#dc2626' },
-  { name:'Kudzai Mapfumo', email:'procurement@kestrelridge.co.zw', role:'PROCUREMENT', color:'#7c3aed' },
-  { name:'Lisa Goromonzi', email:'client@westgate.co.zw', role:'CLIENT_EXTERNAL', color:'#0891b2' },
+  { name:'Tendai Muchengeti', email:'owner@kestrelridge.co.zw', role:'OWNER', color:'#b45309', staffEmployee:'emp-1' },
+  { name:'Rutendo Chikomba', email:'pm@kestrelridge.co.zw', role:'PROJECT_MANAGER', color:'#0f766e', staffEmployee:'emp-2' },
+  { name:'Farai Nyamayaro', email:'finance@kestrelridge.co.zw', role:'FINANCE_MANAGER', color:'#1d4ed8', staffEmployee:'emp-3' },
+  { name:'Nomsa Dube', email:'hr@kestrelridge.co.zw', role:'HR_MANAGER', color:'#be185d', staffEmployee:'emp-4' },
+  { name:'Bright Moyo', email:'safety@kestrelridge.co.zw', role:'SAFETY_OFFICER', color:'#dc2626', staffEmployee:'emp-5' },
+  { name:'Kudzai Mapfumo', email:'procurement@kestrelridge.co.zw', role:'PROCUREMENT', color:'#7c3aed', staffEmployee:'emp-6' },
+  { name:'Lisa Goromonzi', email:'client@westgate.co.zw', role:'CLIENT_EXTERNAL', color:'#0891b2', staffEmployee:null },
 ];
 
 const BASE = new Date('2026-11-07T09:00:00Z');

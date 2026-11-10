@@ -10,9 +10,10 @@ export async function GET(_req: Request, { params }: Ctx) {
   const { org, clientId } = await params;
   const a = await apiAuth(org); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const g = guardModule(a.config, 'wallets') || capabilityGuard(a.role, 'wallet.read'); if (g) return g;
-  if (!walletClientAllowed(a, clientId)) return NextResponse.json({ error: 'You can only view your own wallet' }, { status: 403 });
+  const scope = await buildScope(a);
+  if (!walletClientAllowed(a, clientId, scope)) return NextResponse.json({ error: 'You can only view your own wallet' }, { status: 403 });
   try {
-    return NextResponse.json(await walletDetail(a, clientId, await buildScope(a)));
+    return NextResponse.json(await walletDetail(a, clientId, scope));
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: e instanceof WalletError ? e.status : 500 });
   }
@@ -29,7 +30,7 @@ export async function POST(req: Request, { params }: Ctx) {
   const cap = action === 'topup' ? 'wallet.topup' : action === 'allocate' ? 'wallet.allocate' : action === 'reverse' ? 'wallet.refund' : null;
   if (!cap) return NextResponse.json({ error: 'Unknown wallet action' }, { status: 400 });
   const g = capabilityGuard(a.role, cap); if (g) return g;
-  if (!walletClientAllowed(a, clientId)) return NextResponse.json({ error: 'You can only use your own wallet' }, { status: 403 });
+  if (!walletClientAllowed(a, clientId, await buildScope(a))) return NextResponse.json({ error: 'You can only use your own wallet' }, { status: 403 });
   if (action === 'allocate') {
     const pg = guardResource(a.config, 'projects'); if (pg) return pg;
   }

@@ -7,7 +7,7 @@ export {
   ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, CircleDot, CircleSlash,
   ClipboardCheck, ClipboardList, Clock, Contact, Copy, CreditCard, Database, Download,
   ExternalLink, Eye, EyeOff, Factory, FileDown, FileInput, FileSignature, FileText, Filter,
-  FolderOpen, Gauge, GitPullRequestArrow, Globe, GraduationCap, Handshake, HardHat, Hash,
+  Folder, FolderOpen, Gauge, GitPullRequestArrow, Globe, GraduationCap, Handshake, HardHat, Hash,
   HelpCircle, Home, Inbox, Info, KeyRound, Landmark, Layers, Link2, ListChecks, ListFilter,
   ListTodo, Loader2, Lock, Minimize2, History, GitBranch, Paperclip, Image, FileImage, FilePlus2, LogOut, Mail, Maximize2, Menu, MessageCircleQuestion, MessageSquare,
   MessagesSquare, Moon, MoreHorizontal, MoreVertical, Network, NotebookPen, Package,

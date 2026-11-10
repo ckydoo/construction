@@ -5,9 +5,10 @@
  * ledger is append-only: corrections are REVERSAL entries. */
 import type { AuthCtx } from './auth';
 import type { Scope } from './access';
-import { rowAllowed } from './access';
+import { rowAllowed, walletClientAllowed } from './access';
 import { supabase } from './supabase';
 import { fetchAll } from './fetch';
+import { normaliseCurrencyConfig, toBase, currencyBreakdown } from './currency';
 
 export class WalletError extends Error {
   status: number;
@@ -56,9 +57,11 @@ export async function listWallets(a: AuthCtx, scope: Scope) {
     fetchAll('wallets', q => q.eq('organization_id', a.orgId)),
     fetchAll('wallet_transactions', q => q.eq('organization_id', a.orgId), 'id,wallet_id,client_id,kind,amount_cents,project_id,reversed_at,created_at'),
   ]);
-  const visible = clientRows.filter(c => rowAllowed(scope, 'clients', { id: c.id, ...dataOf(c.data) }));
+  const visible = clientRows.filter(c =>
+    rowAllowed(scope, 'clients', { id: c.id, ...dataOf(c.data) }) && walletClientAllowed(a, c.id, scope));
   const byWallet = new Map<string, typeof txs>();
   for (const t of txs) { const arr = byWallet.get(t.wallet_id) || []; arr.push(t); byWallet.set(t.wallet_id, arr); }
+  const cfg = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
   const currency = a.org.baseCurrency || 'USD';
 
   const rows = visible.map(c => {
@@ -74,22 +77,27 @@ export async function listWallets(a: AuthCtx, scope: Scope) {
     return {
       clientId: c.id, clientName: c.title || d.name || c.number, clientNumber: c.number,
       clientStatus: c.status, walletId: w?.id || null, currency: w?.currency || currency,
+      baseBalance: toBase(balance, w?.currency || currency, cfg),
+      baseToppedUp: toBase(toppedUp, w?.currency || currency, cfg),
+      baseNetAllocated: toBase(Math.max(0, grossAllocated - Math.max(0, reversed)), w?.currency || currency, cfg),
       balance, toppedUp, allocated: grossAllocated, reversed,
       netAllocated: Math.max(0, grossAllocated - Math.max(0, reversed)),
       projectCount: activeProjects,
       lastActivity: list.length ? new Date(Math.max(...list.map(t => new Date(t.created_at).getTime()))).toISOString() : null,
       txCount: list.length,
     };
-  }).sort((x, y) => y.balance - x.balance || String(x.clientName).localeCompare(String(y.clientName)));
+  }).sort((x, y) => y.baseBalance - x.baseBalance || String(x.clientName).localeCompare(String(y.clientName)));
 
   return {
-    wallets: rows, currency,
+    wallets: rows, currency, baseCurrency: cfg.base,
+    fx: { base: cfg.base, rates: cfg.rates, enabled: cfg.enabled, byCurrency: currencyBreakdown(rows, 'balance', cfg) },
     summary: {
       clientCount: rows.length,
       fundedWallets: rows.filter(r => r.walletId && r.txCount > 0).length,
-      totalBalance: rows.reduce((n, r) => n + r.balance, 0),
-      totalToppedUp: rows.reduce((n, r) => n + r.toppedUp, 0),
-      totalAllocated: rows.reduce((n, r) => n + r.netAllocated, 0),
+      totalBalance: rows.reduce((n, r) => n + r.baseBalance, 0),
+      baseCurrency: cfg.base,
+      totalToppedUp: rows.reduce((n, r) => n + r.baseToppedUp, 0),
+      totalAllocated: rows.reduce((n, r) => n + r.baseNetAllocated, 0),
       fundedProjects: rows.reduce((n, r) => n + r.projectCount, 0),
     },
   };
@@ -101,7 +109,8 @@ export async function walletDetail(a: AuthCtx, clientId: string, scope: Scope) {
     .eq('organization_id', a.orgId).eq('resource', 'clients').eq('id', clientId)
     .is('deleted_at', null).maybeSingle();
   if (!client) throw new WalletError('Client not found', 404);
-  if (!rowAllowed(scope, 'clients', { id: clientId, ...dataOf(client.data) })) throw new WalletError('You can only view your own wallet', 403);
+  if (!rowAllowed(scope, 'clients', { id: clientId, ...dataOf(client.data) }) ||
+      !walletClientAllowed(a, clientId, scope)) throw new WalletError('You can only view your own wallet', 403);
 
   const { data: w } = await sb.from('wallets').select('*')
     .eq('organization_id', a.orgId).eq('client_id', clientId).maybeSingle();
