@@ -64,12 +64,26 @@ There is no `lint` script in `package.json`; `next build` ran its built-in lint/
 
 ## Remaining issues
 
-- Vercel deployment and production environment configuration are handled separately below.
-- Supabase Auth `site_url`, redirect allow-list and SMTP remain at their previously approved local-development settings; changing them was not authorised by this request.
+- Supabase Auth `site_url`, redirect allow-list and SMTP remain at their previously approved local-development settings; changing them is a separate account-level decision. Registration and invites work today through the Admin API (`email_confirm: true`), so this is not a blocker.
+- `TZ` is a reserved name on Vercel and was omitted; no application code reads it.
+- The project has no Vercel GitHub App installed, so pushes do not auto-deploy; see the redeploy procedure in `PRODUCTION_DEPLOYMENT.md`.
 - The historical offline snapshot and stale `import-src/` mirror are not part of the live app.
 
 ## Deployment
 
-GitHub push: pending final commit in this change set.
+**GitHub:** commit `8eb261a` (“Refine MYLA UX with authentic logo design system”) was
+pushed to `git@github.com:ckydoo/construction.git` on `main`. It contains 105 changed
+files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` and 0
+secret-like hits. A later commit adds the deployment documentation only.
 
-Vercel: pending project creation / Git-connected deployment.
+**Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
+at **https://myla-construction-erp.vercel.app**, built from GitHub commit `8eb261a`
+via a `git_source` deployment (`dpl_xG4VW6abiEA665r5Qipu3sGirkm3`, `READY`, production,
+`iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment variables are set for
+all three targets, including write-only sensitive Supabase keys.
+
+**Production verification:** login (valid and invalid credentials), dashboard, wallets,
+resource pages, meta/overview/integrity/wallets/records APIs, branded PDF generation,
+authentic logo assets, and a complete upload → Rev A → Rev B → download → delete storage
+cycle all passed. Integrity reported `ok:true`, 616 records, 0 broken refs and 0 wallet
+mismatches; QA artifacts were cleaned up. Full detail: `PRODUCTION_DEPLOYMENT.md`.

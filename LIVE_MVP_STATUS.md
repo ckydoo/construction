@@ -4,7 +4,9 @@
 
 **Date:** 2026-11-07 (Africa/Harare)
 **Repository:** `git@github.com:ckydoo/construction.git` · `main`
-**Runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
+**Production:** **https://myla-construction-erp.vercel.app** (Vercel, `iad1`, Node 26.x,
+built from commit `8eb261a`) · full detail in `PRODUCTION_DEPLOYMENT.md`
+**Local runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
 ## Green gates
@@ -17,7 +19,10 @@
 | `npm run audit:browser` | **28/28 real-Chromium checks**, 0 unexpected console/page errors |
 | `npm run audit:onboarding` | **10/10 live signup/onboarding/tenancy/RBAC checks** |
 | Wallet invariant | `[]` |
-| GitHub push | Full history, 126 files, no `.env`, 0 secret hits |
+| GitHub push | Full history, 166 files in a fresh clone, no `.env`, 0 secret hits |
+| Visual QA | `node scripts/design-qa.mjs` **15/15** across 54 routes / five viewports |
+| Vercel production build | `READY`, promoted, 9 env vars across all three targets |
+| Production smoke | Login, 8 pages/APIs, branded PDF and upload→revision→download→delete all passed |
 | Demo data | 616 records, 49 resources, 7 users, 34 modules, 6 wallets, 4 PDFs |
 | QA fixture cleanup | 1 org, 7 memberships, 0 QA users, last-owner trigger enabled |
 | Final demo reseed | 616 records, 6 wallet rows, 14 ledger entries, 4 PDFs, integrity `ok` |
@@ -30,9 +35,10 @@ the rebuilt app serves the MYLA title/favicon/motto/exact uppercase descriptor,
 browser audit re-run **28/28**, and both generated and seeded PDFs contain the
 new identity. Final live state is 1 org, 7 memberships, 616 records, 0 QA users,
 `ok=true` integrity and `$11,000,000` wallet balance. See `BRAND.md`. The
-1211/1211 API and 10/10 onboarding gates above were proven before the rebrand
-and were not re-run for this user-facing change. Rebrand files are currently
-local and uncommitted.
+1211/1211 API and 22/22 core-derivation gates were re-run on the exact build that
+is now published; the 10/10 onboarding suite was not re-run because onboarding,
+auth and derivation logic were unchanged. Rebrand and visual-refinement files were
+committed as `8eb261a`, pushed to GitHub and deployed to Vercel.
 
 ## What “complete MVP” means now
 
@@ -84,9 +90,13 @@ it disables `memberships_protect_last_owner`, deletes `qa-*` orgs/users/invites,
 then re-enables the trigger. After the final QA run `npm run db:seed` restored the
 clean demo dataset; the current live project is clean.
 
-## Still unauthorized
+## Still unauthorized / not done
 
 - Render Blueprint apply and `.onrender.com` deployment.
 - Supabase Auth `site_url`, redirect allow-list, SMTP or autoconfirm changes.
-- Public-host end-to-end verification.
+- Installing the Vercel GitHub App for push-triggered deployments (the project is
+  deployed from GitHub via an explicit `git_source` deployment instead).
+- A custom domain (the Vercel-assigned `myla-construction-erp.vercel.app` alias is used).
 - Enabling more modules by default beyond the proven core slice.
+
+Public-host end-to-end verification is now complete: see `PRODUCTION_DEPLOYMENT.md`.
