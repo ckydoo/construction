@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-11-10T14:57:58.499Z",
+  "base": "https://myla-construction-erp.vercel.app",
+  "org": "kestrel-ridge",
+  "passed": 13,
+  "failed": 0,
+  "total": 13,
+  "screenshot": "screenshots/finance-module.png",
+  "results": [
+    {
+      "name": "Settings saves tenant document branding and uploaded logo",
+      "ok": true,
+      "detail": "Kestrel Ridge UI QA · 70% deposit"
+    },
+    {
+      "name": "Quotation form has an editable itemised line table",
+      "ok": true,
+      "detail": "description · qty · unit price · subtotal"
+    },
+    {
+      "name": "Invoice form also has editable itemised lines",
+      "ok": true,
+      "detail": "estimate + invoice"
+    },
+    {
+      "name": "Disabled safety module disappears from sidebar and quick create",
+      "ok": true,
+      "detail": "sidebar + quick create"
+    },
+    {
+      "name": "Command palette / global search hides disabled records",
+      "ok": true,
+      "detail": "no incident results"
+    },
+    {
+      "name": "Dashboard, reports and project 360 hide disabled module",
+      "ok": true,
+      "detail": "dashboard · reports · project 360"
+    },
+    {
+      "name": "Project 360 hides disabled finance KPIs and snapshot rows",
+      "ok": true,
+      "detail": "top KPI row + financial snapshot"
+    },
+    {
+      "name": "Settings remains the full-list exception",
+      "ok": true,
+      "detail": "Safety on site still listed"
+    },
+    {
+      "name": "Direct URL to disabled resource is blocked",
+      "ok": true,
+      "detail": "HTTP 404"
+    },
+    {
+      "name": "Re-enabled module and its data return",
+      "ok": true,
+      "detail": "sidebar + record list"
+    },
+    {
+      "name": "Special pages are module-gated on direct URLs",
+      "ok": true,
+      "detail": "wallets · reports · library · dashboard · docs · projects"
+    },
+    {
+      "name": "Project 360 URL is blocked when projects is disabled",
+      "ok": true,
+      "detail": "project 360 + quick create"
+    },
+    {
+      "name": "All disabled sections remain listed only in Settings",
+      "ok": true,
+      "detail": "6 disabled modules still listed"
+    }
+  ]
+}

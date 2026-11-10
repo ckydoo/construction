@@ -1,10 +1,9 @@
-# Production role, currency and document-library QA
+# Role, currency and document-library QA
 
 - Base: `https://myla-construction-erp.vercel.app`
-- Production build: `7bc17d0050f809e209356c285eb757bb71cc1378` · `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`
-- Date: 2026-11-10T10:38:27.989Z
+- Date: 2026-11-10T14:59:55.171Z
 - Result: **16/16 passed**
-- Screenshot: `screenshots/production-feature-library.png`
+- Screenshot: `screenshots/feature-library.png`
 
 | Check | Result | Detail |
 |---|---|---|
@@ -19,7 +18,7 @@
 | changing the base currency re-expresses every saved rate | PASS | USD → ZWG → ZAR, rates preserved |
 | Reports and wallets expose base-currency FX data | PASS | ZAR · 3 currency rows |
 | library exposes one folder per job and four automatic buckets | PASS | 5 jobs · Drawings / Contracts / Site photos / Handover |
-| nested custom folder, upload, revision chain and owning record | PASS | QA Structural ak1phh · Rev A/B · DOC-0045 |
+| nested custom folder, upload, revision chain and owning record | PASS | QA Structural ate834 · Rev A/B · DOC-0065 |
 | moving a document keeps every revision in the new folder | PASS | both revisions moved to Contracts |
 | library hides folders and files on jobs a staff member cannot see | PASS | hidden from PM · download 404 |
 | document library page renders folders, search and record links | PASS | folders · search · revisions · record links |

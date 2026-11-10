@@ -1,0 +1,128 @@
+{
+  "kind": "production API audit",
+  "base": "https://myla-construction-erp.vercel.app",
+  "generatedAt": "2026-11-10T15:47:35.748772+00:00",
+  "commit": "fa2a960d1e35aef850a449ffac2e584508fc495c",
+  "deploymentId": "dpl_66k3jB3Uc6fST34Esw4uSTxniTCf",
+  "deploymentState": "READY / PROMOTED",
+  "resources": 49,
+  "modules": 34,
+  "checks": 1290,
+  "failures": [],
+  "bySection": {
+    "auth": {
+      "total": 1,
+      "failed": 0
+    },
+    "crud": {
+      "total": 976,
+      "failed": 0
+    },
+    "connectivity": {
+      "total": 28,
+      "failed": 0
+    },
+    "rbac": {
+      "total": 7,
+      "failed": 0
+    },
+    "gating": {
+      "total": 16,
+      "failed": 0
+    },
+    "strict": {
+      "total": 40,
+      "failed": 0
+    },
+    "finance": {
+      "total": 38,
+      "failed": 0
+    },
+    "isolation": {
+      "total": 1,
+      "failed": 0
+    },
+    "wallet": {
+      "total": 38,
+      "failed": 0
+    },
+    "linkage": {
+      "total": 12,
+      "failed": 0
+    },
+    "roles": {
+      "total": 123,
+      "failed": 0
+    },
+    "tenants": {
+      "total": 10,
+      "failed": 0
+    }
+  },
+  "core": {
+    "passed": 22,
+    "total": 22
+  },
+  "targetedProductionSuites": {
+    "financeModule": {
+      "passed": 13,
+      "total": 13
+    },
+    "features": {
+      "passed": 16,
+      "total": 16
+    },
+    "projectScale": {
+      "passed": 8,
+      "total": 8
+    },
+    "financialPdf": {
+      "passed": 14,
+      "total": 14,
+      "bytes": 10588,
+      "pages": 2
+    }
+  },
+  "productionSmoke": {
+    "login": 200,
+    "meta": 200,
+    "settingsMeta": 200,
+    "overview": 200,
+    "wallets": 200,
+    "library": 200,
+    "integrity": 200,
+    "pagedProjects": 200,
+    "refs": 200,
+    "search": 200,
+    "csv": 200,
+    "metaCacheControl": "no-store",
+    "modules": 34,
+    "resources": 49
+  },
+  "finalState": {
+    "integrity": true,
+    "checkedRecords": 619,
+    "checkedRefs": 1637,
+    "brokenRefs": 0,
+    "walletMismatches": 0,
+    "wallets": 9,
+    "totalBalance": 11000000,
+    "companyLogoEmpty": true,
+    "companyDepositPct": 0,
+    "qaClients": 0,
+    "qaEstimates": 0,
+    "qaOrganizations": 0,
+    "qaAuthUsers": 0
+  },
+  "evidence": [
+    "PRODUCTION_FINANCE_MODULE_AUDIT_REPORT.md",
+    "PRODUCTION_FEATURE_AUDIT_REPORT.md",
+    "PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md",
+    "screenshots/production-finance-quotation.pdf",
+    "screenshots/production-finance-quotation-p1.png",
+    "screenshots/production-finance-quotation-p2.png",
+    "screenshots/production-finance-module.png",
+    "screenshots/production-feature-library.png",
+    "screenshots/production-project-*.png"
+  ]
+}

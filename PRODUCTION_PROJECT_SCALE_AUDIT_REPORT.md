@@ -1,7 +1,6 @@
 # Project detail & scalability QA
 
 Base: `https://myla-construction-erp.vercel.app`
-Production build: `7bc17d0050f809e209356c285eb757bb71cc1378` · `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`
 
 **8/8 checks passed.**
 

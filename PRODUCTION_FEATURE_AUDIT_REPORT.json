@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T10:38:27.989Z",
+  "generatedAt": "2026-11-10T14:59:55.171Z",
   "base": "https://myla-construction-erp.vercel.app",
   "org": "kestrel-ridge",
   "passed": 16,
@@ -67,7 +67,7 @@
     {
       "name": "nested custom folder, upload, revision chain and owning record",
       "ok": true,
-      "detail": "QA Structural ak1phh · Rev A/B · DOC-0045"
+      "detail": "QA Structural ate834 · Rev A/B · DOC-0065"
     },
     {
       "name": "moving a document keeps every revision in the new folder",

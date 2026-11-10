@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` · state `READY` · `PROMOTED` · `timeToReady 66.4s` |
-| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `7bc17d0050f809e209356c285eb757bb71cc1378` (docs-only commits may be ahead on `main`) |
+| Deployment | `dpl_66k3jB3Uc6fST34Esw4uSTxniTCf` · state `READY` · `PROMOTED` · `timeToReady 68.5s` |
+| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `fa2a960d1e35aef850a449ffac2e584508fc495c` (docs-only commits may be ahead on `main`) |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -21,37 +21,50 @@ The build completes in about a minute from the public GitHub commit; no source f
 re-uploaded manually. The GitHub repo is public, which is why a `git_source` deployment
 works without installing the Vercel GitHub App.
 
-## Current release — row-scoped access, currencies and document library
+## Current release — tenant-branded financial documents, editable line items and strict module visibility
 
-Production code is commit `7bc17d0` / `7bc17d0050f809e209356c285eb757bb71cc1378`, deployed with an
-explicit Vercel `git_source` SHA as `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`. It is `READY`, `PROMOTED`
-and aliased to **https://myla-construction-erp.vercel.app**. Only Owner/Admin see the whole
-company; other staff see their department plus assigned jobs. Settings manages base and enabled
-currencies with manual rates; dashboards, reports, wallets and job 360 convert into the base
-currency. A new document library provides automatic job folders, nested custom folders, upload,
-search, revisions and links to owning records.
+Production code is commit `fa2a960` / `fa2a960d1e35aef850a449ffac2e584508fc495c`, deployed with an
+explicit Vercel `git_source` SHA as `dpl_66k3jB3Uc6fST34Esw4uSTxniTCf`. It is `READY`, `PROMOTED`
+and aliased to **https://myla-construction-erp.vercel.app**. The preceding functional commit
+`266c727` / `dpl_2aWWGTScXY57WN6QxGvRr1V2fgvN` introduced the release; `fa2a960` is a
+header-only PDF layout fix for long tenant identities.
 
-Live Supabase migrations for this release, confirmed in migration history:
-`20261110081729 staff_scope_and_document_folders`, `20261110083636 staff_scope_manager_create`
-and `20261110084902 staff_scope_refinements_v2`. The repository includes the generated
-baseline plus additive refinement files.
+This release adds tenant-controlled company details and a custom logo for financial PDFs,
+editable itemised lines on 16 financial/order registers, the formal two-page layout for all
+financial/order documents, and strict module/resource visibility across navigation, quick
+create, command palette, dashboard, reports, project 360, direct URLs and APIs. Settings is
+the deliberate full-list exception. Company branding is stored in
+`organizations.config.company`; **no new Supabase migration** was applied. See
+`TENANT_FINANCIAL_DOCUMENTS_RELEASE.md`.
 
 Production verification after promotion:
 
 | Check | Result |
 |---|---|
+| `python3 scripts/audit.py --base https://myla-construction-erp.vercel.app` | **1290/1290 API**, 0 failures |
+| `npx tsx scripts/audit-core.ts` | **22/22** |
+| `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:finance` | **13/13 passed** |
 | `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:features` | **16/16 passed** |
 | `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:projects` | **8/8 passed** |
-| Owner/PM live API smoke | login `200`, meta/overview/wallets/library/integrity/records/search `200` |
-| Row scoping on production | owner 5 jobs / 9 wallets; PM `staff` scope, 2 wallets, 1 visible user |
-| Library isolation on production | hidden job/folder/file denied to PM; direct download `404` |
-| Currency and reporting on production | USD base, FX payload, base-currency wallet summary, project 360 display totals |
-| PDF / CSV on production | PDF `200 application/pdf`, CSV `200` |
-| QA cleanup on production | currency, staff assignment, records, files and folders restored |
-| Current live integrity | `ok:true` · 619 records · 1637 refs · 0 broken refs · 0 wallet mismatches · 9 client wallets · 6 funded wallet rows · 42 ledger entries · $11,000,000 balance |
+| Production tenant-branded PDF QA | **14/14** checks, 10,588 bytes, 2 pages, tenant logo, totals and MYLA footer |
+| Owner/API smoke | login, meta, settings meta, overview, wallets, library, integrity, paged projects, refs, search and CSV all `200` |
+| Runtime metadata | 34 modules / 49 resources · `/meta` `Cache-Control: no-store` |
+| Current live integrity | `ok:true` · 619 records · 1637 refs · 0 broken refs · 0 wallet mismatches · 9 client wallets · $11,000,000 balance |
+| QA cleanup | branding restored (no logo / 0% deposit), 0 QA clients, 0 QA estimates, 0 QA organisations, 0 QA Auth users |
 
-Evidence: `PRODUCTION_FEATURE_AUDIT_REPORT.md`, `PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md`,
-`screenshots/production-feature-library.png`, `screenshots/production-project-*.png`.
+Evidence: `PRODUCTION_AUDIT_REPORT.md`, `PRODUCTION_FINANCE_MODULE_AUDIT_REPORT.md`,
+`PRODUCTION_FEATURE_AUDIT_REPORT.md`, `PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md`,
+`screenshots/production-finance-quotation.pdf`,
+`screenshots/production-finance-quotation-p1.png`, `screenshots/production-finance-quotation-p2.png`,
+`screenshots/production-finance-module.png`, `screenshots/production-feature-library.png` and
+`screenshots/production-project-*.png`.
+
+Known limitation: strict module visibility is enforced in the application, API and server-page
+layers. Database RLS `app_can_read` still checks `config.resources` but not `config.modules`;
+no SQL module-gating migration was applied in this release.
+
+The earlier row-scoped access, multi-currency and document-library release remains documented
+in `RBAC_CURRENCY_LIBRARY_RELEASE.md`; its live Supabase migrations are unchanged.
 
 ## Environment variables
 
@@ -129,7 +142,9 @@ These checks were captured for the earlier visual / plain-language build; the cu
 | `c6b39e2` | `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` | Opened every project as a full detail page with an eighth **Record & files** tab, added server-backed searchable dropdowns, pushed paging/filter/search/count into Postgres, and applied additive search/reference indexes |
 | `567774e` | — | Documentation-only closeout for the project-scale release (not deployed) |
 | `7bc17d0` | `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` | Row-scoped staff access, Settings multi-currency conversion and a dedicated document/drawing library with automatic and custom folders, revisions and scoped files |
-| docs/QA closeout | — | Production QA reports, screenshots and exact deployment verification; documentation/evidence only, not deployed |
+| `266c727` | `dpl_2aWWGTScXY57WN6QxGvRr1V2fgvN` | Tenant-branded financial PDFs, editable line items on 16 registers and strict module/resource visibility |
+| `fa2a960` | `dpl_66k3jB3Uc6fST34Esw4uSTxniTCf` | Header-only fix keeping long tenant identities clear of financial PDF document numbers and dates |
+| docs/QA closeout | — | Production audit reports, screenshots and exact deployment verification; documentation/evidence only, not deployed |
 
 The sidebar change was verified on the live URL with a real Chromium session:
 53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
@@ -220,8 +235,8 @@ That build re-ran every gate: `npm run audit` **1211/1211** + **22/22** core, br
 - No `vercel.json` or `TZ` override was added. The earlier visual,
   terminology and project-scale releases did not change auth, RLS, RBAC, validation or
   module derivation. `c6b39e2` added two additive search/reference indexes and a
-  maintained `search_text` column. The current `7bc17d0` release intentionally changes
-  staff row-scope SQL functions and RLS policies, adds `document_folders` / folder keys,
-  and adds workspace currency configuration. Existing resource IDs, module IDs, role IDs,
+  maintained `search_text` column. The earlier `7bc17d0` release intentionally changed
+  staff row-scope SQL functions and RLS policies, added `document_folders` / folder keys
+  and added workspace currency configuration. Existing resource IDs, module IDs, role IDs,
   status values, field keys, API paths, validation rules and module derivation logic were
-  preserved. See `RBAC_CURRENCY_LIBRARY_RELEASE.md` and `supabase/migrations/`.
+  preserved. See `RBAC_CURRENCY_LIBRARY_RELEASE.md` and `supabase/migrations/`. The current financial-document release adds no database migration.
