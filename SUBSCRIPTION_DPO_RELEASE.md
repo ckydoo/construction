@@ -4,9 +4,11 @@
 **Gateway:** DPO Pay by Network primary, Paynow Zimbabwe optional manual fallback ·
 **Trial:** 14 days, no card required
 
-> **Deployment record:** pending explicit-SHA Vercel deployment. This file is updated
-> with the exact commit, deployment ID and post-promotion smoke results after the
-> production deploy. See `PRODUCTION_DEPLOYMENT.md` for the live alias.
+> **Deployment record:** commit `bd38a90` / `bd38a90721be86016e9c8dbf937d1b6a4fc365d6`
+> → Vercel `dpl_GKfLfcx2C9UdXJcFvPNHwxZJiSXc` (`READY` / `PROMOTED`,
+> `timeToReady 77.9s`), alias **https://myla-construction-erp.vercel.app**. A docs-only
+> commit may be ahead on `main`; the deployed code SHA is above. See
+> `PRODUCTION_DEPLOYMENT.md`.
 
 ## Why this release exists
 
@@ -98,8 +100,11 @@ that gate and all live secrets yields `misconfigured`, never a silent charge.
 - Vercel environment verified before deploy: `BILLING_ENABLED=false`,
   `BILLING_QA_MODE=false`, `PAYNOW_MOCK=false`, encrypted `CRON_SECRET` present, no
   `DPO_*` variables. No Vercel env vars were created or changed for this release.
-- Production smoke: **pending deployment**; will be recorded here and in
-  `DPO_PRODUCTION_SMOKE.md` after the explicit-SHA deploy.
+- Production smoke: **26/26** checks passed against the promoted alias
+  (`DPO_PRODUCTION_SMOKE.md`). It confirmed shadow mode `off`, the comped existing
+  org, 9/29/99 plans, no-card trial config, 34 modules/49 resources, QA routes `404`,
+  Stripe stubs `410`, DPO push fails closed `503`, unauthorised cron `401`, and all
+  key app/API pages `200`. No live keys, charges, locks or env changes were used.
 
 ## Not done / outstanding
 

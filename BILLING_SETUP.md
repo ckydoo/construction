@@ -4,7 +4,8 @@
 but `BILLING_ENABLED=false` on Vercel production, preview and development.
 `BILLING_QA_MODE=false`, `DPO_MOCK=false`, `DPO_LIVE_MODE=false` and `PAYNOW_MOCK=false`
 are also off or absent. Nobody is charged, no card is collected at trial start, no
-workspace is locked, and no live DPO/Paynow request is made. See
+workspace is locked, and no live DPO/Paynow request is made. Post-promotion
+production smoke passed **26/26** (`DPO_PRODUCTION_SMOKE.md`). See
 `SUBSCRIPTION_DPO_RELEASE.md` for the release record and `PRODUCTION_DEPLOYMENT.md`
 for the exact deployed commit/deployment.
 

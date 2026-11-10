@@ -3,12 +3,18 @@
  * data, and does not print cookies or secret values. Run after promoting the
  * explicit-SHA Vercel deployment:
  *   DPO_PROD_BASE=https://myla-construction-erp.vercel.app npm run audit:dpo-prod
+ * Optional report metadata: DPO_PROD_SHA, DPO_PROD_DEPLOYMENT_ID,
+ * DPO_PROD_STATE and DPO_PROD_DATE.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const BASE = (process.env.DPO_PROD_BASE || 'https://myla-construction-erp.vercel.app').replace(/\/$/, '');
+const DEPLOY_SHA = (process.env.DPO_PROD_SHA || '').trim();
+const DEPLOY_ID = (process.env.DPO_PROD_DEPLOYMENT_ID || '').trim();
+const DEPLOY_STATE = (process.env.DPO_PROD_STATE || 'READY/PROMOTED').trim();
+const RUN_DATE = (process.env.DPO_PROD_DATE || new Date().toISOString()).trim();
 const ORG = 'kestrel-ridge';
 const OWNER = { email: 'owner@kestrelridge.co.zw', password: 'Demo@1234' };
 const REPORT = path.join(process.cwd(), 'DPO_PRODUCTION_SMOKE.md');
@@ -191,7 +197,10 @@ try {
 } finally {
   const passed = results.filter((r) => r.ok).length;
   const rows = results.map((r) => `| ${r.ok ? 'PASS' : 'FAIL'} | ${r.name} | ${String(r.detail).replace(/\|/g, '\\|')} |`).join('\n');
-  fs.writeFileSync(REPORT, `# MYLA DPO Pay production smoke\n\n**${passed}/${results.length} checks passed** against \`${BASE}\` on ${new Date().toISOString()}. No live DPO/Paynow keys, charges, locks, QA rows or environment changes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
+  const deployment = (DEPLOY_SHA || DEPLOY_ID)
+    ? `Deployment: \`${DEPLOY_SHA || 'not supplied'}\` / \`${DEPLOY_ID || 'not supplied'}\` (${DEPLOY_STATE}).\n\n`
+    : '';
+  fs.writeFileSync(REPORT, `# MYLA DPO Pay production smoke\n\n${deployment}**${passed}/${results.length} checks passed** against \`${BASE}\` on ${RUN_DATE}. No live DPO/Paynow keys, charges, locks, QA rows or environment changes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   if (failed) process.exitCode = 1;
 }

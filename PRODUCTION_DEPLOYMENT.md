@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_4w94S2ryvm6WLV3uamSydyp2zbTn` · state `READY` · `PROMOTED` · `timeToReady 49.1s` |
-| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` (docs-only commits may be ahead on `main`) |
+| Deployment | `dpl_GKfLfcx2C9UdXJcFvPNHwxZJiSXc` · state `READY` · `PROMOTED` · `timeToReady 77.9s` |
+| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `bd38a90721be86016e9c8dbf937d1b6a4fc365d6` (docs-only commits may be ahead on `main`) |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -23,11 +23,11 @@ works without installing the Vercel GitHub App.
 
 ## Current release — DPO Pay subscriptions in shadow mode
 
-**Deployment:** pending explicit-SHA Vercel deploy. `SUBSCRIPTION_DPO_RELEASE.md` and
-`DPO_PRODUCTION_SMOKE.md` will carry the exact commit, deployment ID and post-promotion
-smoke results. Until that deployment is promoted, live production code remains the
-historical Stripe/Paynow shadow release `3b811f0cc16fd202749962c1f8bb6d3c704f6b0f` /
-`dpl_4w94S2ryvm6WLV3uamSydyp2zbTn`.
+Production code is commit `bd38a90` / `bd38a90721be86016e9c8dbf937d1b6a4fc365d6`,
+deployed with an explicit Vercel `git_source` SHA as
+`dpl_GKfLfcx2C9UdXJcFvPNHwxZJiSXc` (`READY`, `PROMOTED`, `timeToReady 77.9s`).
+The production alias **https://myla-construction-erp.vercel.app** points to this
+deployment. A docs-only commit may be ahead on `main`; the deployed code SHA is above.
 
 This release replaces the card-required Stripe Checkout trial with **DPO Pay by
 Network** as the primary rail, a **14-day no-card trial**, optional tokenised monthly
@@ -43,7 +43,10 @@ Local verification before deployment: `npm run env:check`, `npx tsc --noEmit` an
 `NODE_ENV=production npm run build` clean; `npm run audit:billing` **10/10** with a
 zero-network DPO v6 mock; QA orgs/users/mock events/billing events cleaned to
 `0/0/0/0`; live Supabase migration `dpo_pay_subscriptions_v1` verified. No Vercel
-environment variables were added or changed. Production smoke is pending deployment.
+environment variables were added or changed. Post-promotion production smoke passed
+**26/26** (`DPO_PRODUCTION_SMOKE.md`): login, five owner pages, billing/meta/overview/
+wallets/clients/integrity APIs, shadow-mode billing mutation `409`, unauthorised cron
+`401`, QA routes `404`, four Stripe stubs `410`, DPO push `503` and return `307`.
 
 ## Previous release — Stripe/Paynow card-required trial shadow mode (superseded)
 
