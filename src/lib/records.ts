@@ -7,6 +7,7 @@ import { supabase, unwrap, dbError } from './supabase';
 import { fetchAll } from './fetch';
 import { type ResourceDef, type Field } from './resources';
 import { rowAllowed, type Scope } from './access';
+import { normaliseLines, financialTotalsPatch } from './financial';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
 
@@ -15,6 +16,7 @@ function coerce(field: Field, value: any): any {
   if (['number','currency','percent'].includes(field.type)) { const n = Number(value); return isFinite(n) ? n : null; }
   if (field.type === 'boolean') return Boolean(value) && value !== 'false';
   if (field.type === 'tags') return Array.isArray(value) ? value : String(value).split(',').map(s=>s.trim()).filter(Boolean);
+  if (field.type === 'items') return normaliseLines(value);
   return value;
 }
 
@@ -182,7 +184,7 @@ export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope
 }
 
 export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>) {
-  const v = validate(def, input);
+  const v = validate(def, { ...input, ...financialTotalsPatch(def.id, input, normaliseLines(input.items)) });
   const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
   if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
   const number = await nextNumber(orgId, def);
@@ -210,7 +212,11 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   if (!existing) return { ok:false as const, errors:{ _:'Record not found' } };
   const prior: Record<string,any> = (existing.data && typeof existing.data === 'object') ? existing.data : {};
   // PATCH semantics: only supplied keys change; all other fields are preserved.
-  const v = validate(def, { ...prior, ...input });
+  // When the structured line editor is used, derive net/VAT/total from its rows;
+  // older records with no structured lines keep their stored amounts.
+  const suppliedLines = normaliseLines(input.items);
+  const derived = suppliedLines.length ? financialTotalsPatch(def.id, { ...prior, ...input }, suppliedLines) : {};
+  const v = validate(def, { ...prior, ...input, ...derived });
   const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
   if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
   const status = v.clean.status || def.statusOptions?.[0] || null;

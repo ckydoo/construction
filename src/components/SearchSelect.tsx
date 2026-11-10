@@ -22,6 +22,7 @@ export default function SearchSelect({
   const [term,setTerm]=useState('');
   const [debounced,setDebounced]=useState('');
   const [active,setActive]=useState(0);
+  const [chosen,setChosen]=useState<{value:string;label:string}|null>(null);
   const [rect,setRect]=useState<{top:number;left:number;width:number;below:number;above:number}|null>(null);
   const [mounted,setMounted]=useState(false);
   const inputRef=useRef<HTMLInputElement>(null);
@@ -46,7 +47,7 @@ export default function SearchSelect({
     staleTime:60_000,
   });
   const resolved=valueData?.options?.find(o=>o.value===value)?.label;
-  const selectedLabel=initialLabel||resolved||(value?String(value).slice(-8):'');
+  const selectedLabel=(chosen&&chosen.value===value?chosen.label:null)||initialLabel||resolved||(value?String(value).slice(-8):'');
 
   const options:Opt[]=useMemo(()=>{
     const list=searchData?.options||[];
@@ -80,7 +81,7 @@ export default function SearchSelect({
     return()=>document.removeEventListener('mousedown',onDown);
   },[open]);
 
-  const choose=(o:Opt)=>{ onChange(o.value); setOpen(false); setTerm(''); setDebounced(''); inputRef.current?.blur(); };
+  const choose=(o:Opt)=>{ setChosen({value:String(o.value),label:o.label}); onChange(o.value); setOpen(false); setTerm(''); setDebounced(''); inputRef.current?.blur(); };
   const onKey=(e:React.KeyboardEvent<HTMLInputElement>)=>{
     if(e.key==='ArrowDown'){e.preventDefault();if(!open)setOpen(true);setActive(i=>Math.min(options.length-1,i+1));}
     else if(e.key==='ArrowUp'){e.preventDefault();setActive(i=>Math.max(0,i-1));}

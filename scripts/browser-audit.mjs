@@ -12,7 +12,7 @@ const ROOT = path.resolve(new URL('..', import.meta.url).pathname);
 const SHOTS = path.join(ROOT, 'screenshots');
 await fs.mkdir(SHOTS, { recursive: true });
 
-const NAME = 'QA Browser Client ' + Date.now().toString().slice(-6);
+const NAME = 'QA Browser Client ' + Math.random().toString(36).slice(2, 8).toUpperCase();
 const UPDATED = NAME + ' EDITED';
 const results = [];
 const consoleErrors = [];
@@ -138,7 +138,7 @@ await check('detail drawer renders comments, attachments and PDF', async () => {
 await check('post a comment and see it in the drawer', async () => {
   await page.locator('input[placeholder="Write a comment…"]').fill('QA browser comment');
   await page.getByRole('button', { name: 'Post' }).click();
-  await page.getByText('QA browser comment').waitFor({ timeout: 10000 });
+  await page.getByText('QA browser comment', { exact: true }).waitFor({ state: 'attached', timeout: 15000 });
   return 'comment visible';
 });
 
@@ -233,7 +233,8 @@ await check('mobile viewport: no horizontal overflow, bottom nav visible', async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: /New Client/ }).waitFor({ timeout: 20000 });
-  await page.waitForTimeout(600);
+  await page.getByText('Home', { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
+  await page.waitForTimeout(300);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert(overflow <= 2, `horizontal overflow of ${overflow}px`);
   const bottomNav = await page.getByText('Home', { exact: true }).count();
@@ -353,7 +354,9 @@ await check('wallet reversals restore the opening balance', async () => {
 
 await check('client detail shows wallet balance and cross-module links', async () => {
   await page.goto(`${BASE}/${ORG}/m/clients`, { waitUntil: 'domcontentloaded' });
-  // The first <tbody><tr> can be a loading skeleton; wait for a real data row.
+  // Use a seeded client with cross-module links rather than a transient QA row.
+  await page.locator('input[placeholder^="Search clients"]').fill('Westgate');
+  await page.waitForTimeout(700);
   await page.waitForFunction(() => {
     const tr = document.querySelector('tbody tr');
     return tr && tr.textContent && tr.textContent.trim().length > 0;

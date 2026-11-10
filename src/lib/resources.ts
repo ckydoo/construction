@@ -2,7 +2,7 @@
    validation, filtering, CSV export, seed generation and command palette. */
 import { MODULES, type WorkspaceConfig } from './catalog';
 
-export type FieldType = 'text'|'textarea'|'number'|'currency'|'percent'|'date'|'datetime'|'select'|'ref'|'boolean'|'email'|'phone'|'tags';
+export type FieldType = 'text'|'textarea'|'number'|'currency'|'percent'|'date'|'datetime'|'select'|'ref'|'boolean'|'email'|'phone'|'tags'|'items';
 export type Field = {
   key: string; label: string; type: FieldType; required?: boolean; options?: string[];
   ref?: string; placeholder?: string; defaultValue?: unknown; hint?: string; wide?: boolean;
@@ -26,6 +26,7 @@ const B=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'boo
 const E=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'email',...o});
 const PH=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'phone',...o});
 const TG=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'tags',...o});
+const IT=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'items',wide:true,...o});
 const STS=(o:string[],d?:string)=>S('status','Status',o,{defaultValue:d||o[0]});
 const PRJ=(req=false)=>R('projectId','Job / project','projects',{required:req});
 
@@ -66,12 +67,12 @@ export const RESOURCES: ResourceDef[] = [
 
   d('estimates','Quotes & estimates','Quote','estimating','Clients & quotes','Calculator','EST','name',
     'Cost estimates with labour, material, plant, markup and revision history.',
-    [T('name','Estimate title',{required:true}),R('clientId','Client','clients'),R('leadId','Opportunity','leads'),S('workType','Work type',PROJECT_TYPES),C('labourCost','Labour cost'),C('materialCost','Material cost'),C('plantCost','Plant & equipment'),C('subcontractCost','Subcontract cost'),C('overheads','Overheads'),P('markup','Markup (%)'),C('total','Bid total'),N('revision','Revision',{defaultValue:0}),D('submittedDate','Submitted'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope & exclusions'),STS(['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],'DRAFT')],
+    [T('name','Estimate title',{required:true}),R('clientId','Client','clients'),R('leadId','Opportunity','leads'),S('workType','Work type',PROJECT_TYPES),C('labourCost','Labour cost'),C('materialCost','Material cost'),C('plantCost','Plant & equipment'),C('subcontractCost','Subcontract cost'),C('overheads','Overheads'),P('markup','Markup (%)'),C('total','Bid total'),N('revision','Revision',{defaultValue:0}),D('submittedDate','Submitted'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope & exclusions'),IT('items','Itemised lines'),STS(['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],'DRAFT')],
     ['number','name','clientId','total','markup','revision','submittedDate','status'],{statusOptions:['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],amountKey:'total',dateKey:'submittedDate'}),
 
   d('bids','Tenders & bids','Tender','estimating','Clients & quotes','FileText','BID','name',
     'Tender submissions, addenda, bond requirements and outcomes.',
-    [T('name','Tender name',{required:true}),R('clientId','Client','clients'),T('tenderNo','Tender number'),C('bidValue','Bid value'),D('closingDate','Closing date'),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('bidBond','Bid bond / security'),S('outcome','Outcome',['PENDING','AWARDED','LOST','WITHDRAWN','DISQUALIFIED']),R('estimator','Estimator','employees'),A('notes','Notes')],
+    [T('name','Tender name',{required:true}),R('clientId','Client','clients'),T('tenderNo','Tender number'),C('bidValue','Bid value'),D('closingDate','Closing date'),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('bidBond','Bid bond / security'),S('outcome','Outcome',['PENDING','AWARDED','LOST','WITHDRAWN','DISQUALIFIED']),R('estimator','Estimator','employees'),A('notes','Notes'),IT('items','Itemised lines')],
     ['number','name','clientId','bidValue','closingDate','outcome'],{amountKey:'bidValue',dateKey:'closingDate'}),
 
   // ---------------- PROJECT DELIVERY ----------------
@@ -87,12 +88,12 @@ export const RESOURCES: ResourceDef[] = [
 
   d('contracts','Contracts','Contract','contracts','Jobs & sites','FileSignature','CTR','name',
     'Prime contracts, subcontracts and employer agreements.',
-    [T('name','Contract title',{required:true}),PRJ(true),R('clientId','Client','clients'),R('counterparty','Counterparty','subcontractors'),S('kind','Contract kind',['Prime contract','Subcontract','Consultancy','Supply agreement','Framework / call-off']),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('value','Contract sum'),D('signedDate','Signed date'),D('completionDate','Completion date'),P('retentionPct','Retention (%)'),N('defectsPeriod','Defects period (months)'),T('insuranceRef','Insurance / bond ref'),STS(['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],'ACTIVE')],
+    [T('name','Contract title',{required:true}),PRJ(true),R('clientId','Client','clients'),R('counterparty','Counterparty','subcontractors'),S('kind','Contract kind',['Prime contract','Subcontract','Consultancy','Supply agreement','Framework / call-off']),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('value','Contract sum'),D('signedDate','Signed date'),D('completionDate','Completion date'),P('retentionPct','Retention (%)'),N('defectsPeriod','Defects period (months)'),T('insuranceRef','Insurance / bond ref'),IT('items','Itemised lines'),STS(['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],'ACTIVE')],
     ['number','name','projectId','kind','value','signedDate','status'],{projectScoped:true,statusOptions:['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],amountKey:'value',dateKey:'signedDate'}),
 
   d('changeOrders','Variations & extras','Variation','contracts','Jobs & sites','GitPullRequestArrow','CO','name',
     'Variations, extensions of time and their approval chain.',
-    [T('name','Variation description',{required:true}),PRJ(true),T('reference','Instruction / variation ref'),S('reason','Reason',['Client change','Design change','Site condition','Statutory requirement','Scope gap','Force majeure']),C('amount','Value'),N('timeExtension','Extra time (days)'),D('submittedDate','Submitted'),D('decisionDate','Decision date'),R('requestedBy','Requested by','contacts'),R('approvedBy','Approved by','employees'),A('justification','Justification'),STS(['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],'DRAFT')],
+    [T('name','Variation description',{required:true}),PRJ(true),T('reference','Instruction / variation ref'),S('reason','Reason',['Client change','Design change','Site condition','Statutory requirement','Scope gap','Force majeure']),C('amount','Value'),N('timeExtension','Extra time (days)'),D('submittedDate','Submitted'),D('decisionDate','Decision date'),R('requestedBy','Requested by','contacts'),R('approvedBy','Approved by','employees'),A('justification','Justification'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],'DRAFT')],
     ['number','name','projectId','reference','amount','submittedDate','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],amountKey:'amount',dateKey:'submittedDate'}),
 
   d('rfis','Site queries','Site query','projectComms','Jobs & sites','MessageCircleQuestion','RFI','subject',
@@ -143,17 +144,17 @@ export const RESOURCES: ResourceDef[] = [
 
   d('requisitions','Material requests','Material request','procurement','Materials & suppliers','ClipboardList','MR','name',
     'Internal material and service requests from site.',
-    [T('name','Requisition title',{required:true}),PRJ(true),R('requestedBy','Requested by','employees'),D('requiredDate','Required by date'),S('priority','Priority',PRIORITIES),C('estimatedValue','Estimated value'),A('items','Items needed'),A('justification','Justification'),STS(['DRAFT','SUBMITTED','APPROVED','ORDERED','REJECTED','CANCELLED'],'DRAFT')],
+    [T('name','Requisition title',{required:true}),PRJ(true),R('requestedBy','Requested by','employees'),D('requiredDate','Required by date'),S('priority','Priority',PRIORITIES),C('estimatedValue','Estimated value'),IT('items','Itemised lines'),A('justification','Justification'),STS(['DRAFT','SUBMITTED','APPROVED','ORDERED','REJECTED','CANCELLED'],'DRAFT')],
     ['number','name','projectId','requiredDate','estimatedValue','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','APPROVED','ORDERED','REJECTED','CANCELLED'],amountKey:'estimatedValue',dateKey:'requiredDate'}),
 
   d('purchaseOrders','Orders to suppliers','Order','procurement','Materials & suppliers','ShoppingCart','PO','name',
     'Purchase orders with approvals, commitments and receipt status.',
-    [T('name','Order description',{required:true}),PRJ(true),R('vendorId','Supplier','vendors'),R('requisitionId','Material request','requisitions'),D('orderDate','Order date'),D('deliveryDate','Required delivery'),C('amount','Order value'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),N('vatPct','VAT (%)',{defaultValue:15}),A('items','Line items'),R('approvedBy','Approved by','employees'),STS(PO_STATUSES,'DRAFT')],
+    [T('name','Order description',{required:true}),PRJ(true),R('vendorId','Supplier','vendors'),R('requisitionId','Material request','requisitions'),D('orderDate','Order date'),D('deliveryDate','Required delivery'),C('amount','Order value'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),N('vatPct','VAT (%)',{defaultValue:15}),IT('items','Itemised lines'),R('approvedBy','Approved by','employees'),STS(PO_STATUSES,'DRAFT')],
     ['number','name','projectId','vendorId','amount','deliveryDate','status'],{projectScoped:true,statusOptions:PO_STATUSES,amountKey:'amount',dateKey:'orderDate'}),
 
   d('goodsReceipts','Delivery notes','Delivery note','procurement','Materials & suppliers','PackageCheck','GRN','name',
     'Delivery receipts and three-way match evidence.',
-    [T('name','Delivery description',{required:true}),PRJ(),R('purchaseOrderId','Order to supplier','purchaseOrders'),R('vendorId','Supplier','vendors'),D('receivedDate','Received date'),T('deliveryNote','Delivery note no.'),A('items','Items received'),A('discrepancies','Discrepancies'),R('receivedBy','Received by','employees'),STS(['DRAFT','RECEIVED','PARTIAL','DISPUTED','ACCEPTED'],'RECEIVED')],
+    [T('name','Delivery description',{required:true}),PRJ(),R('purchaseOrderId','Order to supplier','purchaseOrders'),R('vendorId','Supplier','vendors'),D('receivedDate','Received date'),T('deliveryNote','Delivery note no.'),IT('items','Itemised lines'),A('discrepancies','Discrepancies'),R('receivedBy','Received by','employees'),STS(['DRAFT','RECEIVED','PARTIAL','DISPUTED','ACCEPTED'],'RECEIVED')],
     ['number','name','purchaseOrderId','vendorId','receivedDate','status'],{projectScoped:true,statusOptions:['DRAFT','RECEIVED','PARTIAL','DISPUTED','ACCEPTED'],dateKey:'receivedDate'}),
 
   d('inventory','Stock & materials','Stock item','inventory','Materials & suppliers','Package','STK','name',
@@ -204,12 +205,12 @@ export const RESOURCES: ResourceDef[] = [
 
   d('payRuns','Payroll & payslips','Payroll period','payroll','Staff & wages','Wallet','PAY','name',
     'Monthly payroll inputs, statutory deductions and net pay.',
-    [T('name','Payroll period',{required:true}),D('periodStart','Period start'),D('periodEnd','Period end'),N('headcount','Employees paid'),C('grossPay','Gross pay'),C('deductions','Deductions (PAYE/NSSA)'),C('netPay','Net pay'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),D('paymentDate','Payment date'),R('preparedBy','Prepared by','employees'),STS(['DRAFT','PROCESSING','APPROVED','PAID','CLOSED'],'DRAFT')],
+    [T('name','Payroll period',{required:true}),D('periodStart','Period start'),D('periodEnd','Period end'),N('headcount','Employees paid'),C('grossPay','Gross pay'),C('deductions','Deductions (PAYE/NSSA)'),C('netPay','Net pay'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),D('paymentDate','Payment date'),R('preparedBy','Prepared by','employees'),IT('items','Itemised lines'),STS(['DRAFT','PROCESSING','APPROVED','PAID','CLOSED'],'DRAFT')],
     ['number','name','periodStart','headcount','grossPay','netPay','status'],{statusOptions:['DRAFT','PROCESSING','APPROVED','PAID','CLOSED'],amountKey:'grossPay',dateKey:'periodStart'}),
 
   d('expenses','Expense claims','Expense claim','payroll','Staff & wages','Receipt','EXP','name',
     'Employee reimbursements, per diem and project expenses.',
-    [T('name','Claim reference',{required:true}),R('employeeId','Employee','employees'),PRJ(),S('category','Category',['Travel','Fuel','Accommodation','Meals','Materials','Petty cash','Tools','Other']),D('expenseDate','Date'),C('amount','Amount'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('description','Description'),R('approvedBy','Approved by','employees'),STS(['DRAFT','SUBMITTED','APPROVED','REIMBURSED','REJECTED'],'DRAFT')],
+    [T('name','Claim reference',{required:true}),R('employeeId','Employee','employees'),PRJ(),S('category','Category',['Travel','Fuel','Accommodation','Meals','Materials','Petty cash','Tools','Other']),D('expenseDate','Date'),C('amount','Amount'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('description','Description'),R('approvedBy','Approved by','employees'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','APPROVED','REIMBURSED','REJECTED'],'DRAFT')],
     ['number','name','employeeId','category','expenseDate','amount','status'],{statusOptions:['DRAFT','SUBMITTED','APPROVED','REIMBURSED','REJECTED'],amountKey:'amount',dateKey:'expenseDate'}),
 
   d('certifications','Trade certificates','Trade certificate','competency','Staff & wages','GraduationCap','CERT','name',
@@ -251,37 +252,37 @@ export const RESOURCES: ResourceDef[] = [
   // ---------------- FINANCE ----------------
   d('accounts','Account codes','Account code','finance','Money & invoices','Landmark','ACC','name',
     'General ledger accounts and cost-code structure.',
-    [T('name','Account name',{required:true}),T('code','Account / job cost code'),S('type','Account type',['ASSET','LIABILITY','EQUITY','REVENUE','DIRECT_COST','INDIRECT_COST','EXPENSE']),S('category','Category',['Labour','Materials','Plant','Subcontract','Overhead','Sales','Debtors','Creditors','Bank','Tax','Other']),C('openingBalance','Opening balance'),C('balance','Current balance'),R('parent','Parent account','accounts'),B('isCostCode','Cost code'),STS(['ACTIVE','DORMANT','CLOSED'],'ACTIVE')],
+    [T('name','Account name',{required:true}),T('code','Account / job cost code'),S('type','Account type',['ASSET','LIABILITY','EQUITY','REVENUE','DIRECT_COST','INDIRECT_COST','EXPENSE']),S('category','Category',['Labour','Materials','Plant','Subcontract','Overhead','Sales','Debtors','Creditors','Bank','Tax','Other']),C('openingBalance','Opening balance'),C('balance','Current balance'),R('parent','Parent account','accounts'),B('isCostCode','Cost code'),IT('items','Itemised lines'),STS(['ACTIVE','DORMANT','CLOSED'],'ACTIVE')],
     ['number','name','code','type','category','balance','status'],{statusOptions:['ACTIVE','DORMANT','CLOSED'],amountKey:'balance'}),
 
   d('journals','Journals & adjustments','Journal','finance','Money & invoices','BookOpen','JNL','name',
     'Double-entry style journals with period control.',
-    [T('name','Journal description',{required:true}),D('date','Posting date'),T('period','Month / period'),R('accountId','Account','accounts'),PRJ(),C('debit','Debit'),C('credit','Credit'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('narration','Narration'),R('preparedBy','Prepared by','employees'),STS(['DRAFT','POSTED','REVERSED'],'DRAFT')],
+    [T('name','Journal description',{required:true}),D('date','Posting date'),T('period','Month / period'),R('accountId','Account','accounts'),PRJ(),C('debit','Debit'),C('credit','Credit'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('narration','Narration'),R('preparedBy','Prepared by','employees'),IT('items','Itemised lines'),STS(['DRAFT','POSTED','REVERSED'],'DRAFT')],
     ['number','name','date','period','accountId','debit','credit','status'],{statusOptions:['DRAFT','POSTED','REVERSED'],amountKey:'debit',dateKey:'date'}),
 
   d('budgets','Job budgets & costs','Budget line','jobCosting','Money & invoices','PieChart','BUD','name',
     'Approved budget against committed and actual cost, by job.',
-    [T('name','Budget line',{required:true}),PRJ(true),T('costCode','Cost code'),S('category','Cost category',['Labour','Materials','Plant','Subcontract','Preliminaries','Overhead','Contingency']),C('originalBudget','Original budget'),C('approvedVariations','Approved variations'),C('committed','Committed'),C('actualToDate','Actual to date'),C('forecastToComplete','Forecast to complete'),P('variancePct','Variance (%)'),STS(['DRAFT','APPROVED','REVISED','CLOSED'],'APPROVED')],
+    [T('name','Budget line',{required:true}),PRJ(true),T('costCode','Cost code'),S('category','Cost category',['Labour','Materials','Plant','Subcontract','Preliminaries','Overhead','Contingency']),C('originalBudget','Original budget'),C('approvedVariations','Approved variations'),C('committed','Committed'),C('actualToDate','Actual to date'),C('forecastToComplete','Forecast to complete'),P('variancePct','Variance (%)'),IT('items','Itemised lines'),STS(['DRAFT','APPROVED','REVISED','CLOSED'],'APPROVED')],
     ['number','name','projectId','costCode','originalBudget','actualToDate','variancePct','status'],{projectScoped:true,statusOptions:['DRAFT','APPROVED','REVISED','CLOSED'],amountKey:'originalBudget'}),
 
   d('arInvoices','Client invoices','Tax invoice','finance','Money & invoices','FileText','INV','name',
     'Accounts receivable invoices, VAT and ageing.',
-    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),STS(INVOICE_STATUSES,'DRAFT')],
+    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT')],
     ['number','name','clientId','projectId','invoiceDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'invoiceDate'}),
 
   d('paymentApps','Payment certificates','Payment certificate','billing','Money & invoices','Receipt','PC','name',
     'Interim payment applications, certified value, retention and net due.',
-    [T('name','Certificate reference',{required:true}),PRJ(true),R('clientId','Client','clients'),N('certificateNo','Certificate no.'),D('periodEnd','Period ending'),C('workValue','Gross work value'),C('variationsValue','Approved variations'),C('previousCertified','Previously certified'),C('grossCertified','Gross certified'),C('retentionHeld','Retention held'),C('advanceRecoupment','Advance recoupment'),C('netCertified','Net certified'),C('vatAmount','VAT'),R('certifiedBy','Certified by','contacts'),STS(['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],'DRAFT')],
+    [T('name','Certificate reference',{required:true}),PRJ(true),R('clientId','Client','clients'),N('certificateNo','Certificate no.'),D('periodEnd','Period ending'),C('workValue','Gross work value'),C('variationsValue','Approved variations'),C('previousCertified','Previously certified'),C('grossCertified','Gross certified'),C('retentionHeld','Retention held'),C('advanceRecoupment','Advance recoupment'),C('netCertified','Net certified'),C('vatAmount','VAT'),R('certifiedBy','Certified by','contacts'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],'DRAFT')],
     ['number','name','projectId','certificateNo','periodEnd','grossCertified','netCertified','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],amountKey:'netCertified',dateKey:'periodEnd'}),
 
   d('apBills','Supplier bills','Supplier bill','finance','Money & invoices','FileInput','BILL','name',
     'Supplier bills matched to orders and delivery notes.',
-    [T('name','Bill description',{required:true}),PRJ(),R('vendorId','Supplier','vendors'),R('purchaseOrderId','Order to supplier','purchaseOrders'),T('vendorInvoiceNo','Supplier invoice no.'),D('billDate','Bill date'),D('dueDate','Due date'),C('amount','Net amount'),C('vatAmount','VAT'),C('total','Total'),C('amountPaid','Paid'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),STS(INVOICE_STATUSES,'DRAFT')],
+    [T('name','Bill description',{required:true}),PRJ(),R('vendorId','Supplier','vendors'),R('purchaseOrderId','Order to supplier','purchaseOrders'),T('vendorInvoiceNo','Supplier invoice no.'),D('billDate','Bill date'),D('dueDate','Due date'),C('amount','Net amount'),C('vatAmount','VAT'),C('total','Total'),C('amountPaid','Paid'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT')],
     ['number','name','vendorId','projectId','billDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'billDate'}),
 
   d('payments','Payments & receipts','Payment / receipt','finance','Money & invoices','Banknote','PYM','name',
     'Cash in and out against invoices and bills.',
-    [T('name','Payment reference',{required:true}),S('direction','Direction',['RECEIPT','PAYMENT']),R('clientId','Client','clients'),R('vendorId','Supplier','vendors'),PRJ(),D('paymentDate','Date'),C('amount','Amount'),S('method','Method',['Bank transfer','RTGS','Mobile money','Cash','Cheque','Card','Offset']),T('bankAccount','Bank account'),T('reference','Bank reference'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),STS(['PENDING','CLEARED','RECONCILED','REVERSED'],'CLEARED')],
+    [T('name','Payment reference',{required:true}),S('direction','Direction',['RECEIPT','PAYMENT']),R('clientId','Client','clients'),R('vendorId','Supplier','vendors'),PRJ(),D('paymentDate','Date'),C('amount','Amount'),S('method','Method',['Bank transfer','RTGS','Mobile money','Cash','Cheque','Card','Offset']),T('bankAccount','Bank account'),T('reference','Bank reference'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),IT('items','Itemised lines'),STS(['PENDING','CLEARED','RECONCILED','REVERSED'],'CLEARED')],
     ['number','name','direction','paymentDate','amount','method','status'],{statusOptions:['PENDING','CLEARED','RECONCILED','REVERSED'],amountKey:'amount',dateKey:'paymentDate'}),
 
   // ---------------- SPECIALISED ----------------

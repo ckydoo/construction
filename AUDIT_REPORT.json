@@ -1,9 +1,9 @@
 {
   "base": "http://127.0.0.1:3000",
-  "marker": "QA9E38C6",
+  "marker": "QA301A5C",
   "resources": 49,
   "modules": 34,
-  "checks": 1211,
+  "checks": 1290,
   "failures": [],
   "by_section": {
     "auth": {
@@ -23,7 +23,15 @@
       "failed": 0
     },
     "gating": {
-      "total": 15,
+      "total": 16,
+      "failed": 0
+    },
+    "strict": {
+      "total": 40,
+      "failed": 0
+    },
+    "finance": {
+      "total": 38,
       "failed": 0
     },
     "isolation": {
@@ -70,19 +78,19 @@
       "section": "crud:clients",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":\"QA9E38C6 city\",\"name\":\"QA9E38C6 clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"phone\":"
+      "detail": "HTTP 201 {\"row\":{\"city\":\"QA301A5C city\",\"name\":\"QA301A5C clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qa301a5c@example.co.zw\",\"phone\":"
     },
     {
       "section": "crud:clients",
       "check": "sequence number",
       "ok": true,
-      "detail": "CLI-0072"
+      "detail": "CLI-0122"
     },
     {
       "section": "crud:clients",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 clients vs QA9E38C6 clients"
+      "detail": "QA301A5C clients vs QA301A5C clients"
     },
     {
       "section": "crud:clients",
@@ -100,19 +108,19 @@
       "section": "crud:clients",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"city\":\"QA9E38C6 city\",\"name\":\"QA9E38C6 UPDATED clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qa9e38c6@example.co.zw\","
+      "detail": "HTTP 200 {\"row\":{\"city\":\"QA301A5C city\",\"name\":\"QA301A5C UPDATED clients\",\"tags\":[\"QA\",\"audit\"],\"type\":\"Private developer\",\"email\":\"qa.qa301a5c@example.co.zw\","
     },
     {
       "section": "crud:clients",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QA9E38C6 registrationNo'): got QA9E38C6 registrationNo"
+      "detail": "('registrationNo', 'QA301A5C registrationNo'): got QA301A5C registrationNo"
     },
     {
       "section": "crud:clients",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED clients"
+      "detail": "QA301A5C UPDATED clients"
     },
     {
       "section": "crud:clients",
@@ -190,19 +198,19 @@
       "section": "crud:contacts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 contacts\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":\"+263 77"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C contacts\",\"email\":\"qa.qa301a5c@example.co.zw\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":\"+263 77"
     },
     {
       "section": "crud:contacts",
       "check": "sequence number",
       "ok": true,
-      "detail": "CON-0035"
+      "detail": "CON-0044"
     },
     {
       "section": "crud:contacts",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 contacts vs QA9E38C6 contacts"
+      "detail": "QA301A5C contacts vs QA301A5C contacts"
     },
     {
       "section": "crud:contacts",
@@ -214,19 +222,19 @@
       "section": "crud:contacts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED contacts\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED contacts\",\"email\":\"qa.qa301a5c@example.co.zw\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"mobile\":"
     },
     {
       "section": "crud:contacts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('jobTitle', 'QA9E38C6 jobTitle'): got QA9E38C6 jobTitle"
+      "detail": "('jobTitle', 'QA301A5C jobTitle'): got QA301A5C jobTitle"
     },
     {
       "section": "crud:contacts",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED contacts"
+      "detail": "QA301A5C UPDATED contacts"
     },
     {
       "section": "crud:contacts",
@@ -298,19 +306,19 @@
       "section": "crud:leads",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 leads\",\"notes\":\"QA9E38C6 notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\",\"value\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C leads\",\"notes\":\"QA301A5C notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\",\"value\":"
     },
     {
       "section": "crud:leads",
       "check": "sequence number",
       "ok": true,
-      "detail": "OPP-0031"
+      "detail": "OPP-0040"
     },
     {
       "section": "crud:leads",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 leads vs QA9E38C6 leads"
+      "detail": "QA301A5C leads vs QA301A5C leads"
     },
     {
       "section": "crud:leads",
@@ -328,7 +336,7 @@
       "section": "crud:leads",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED leads\",\"notes\":\"QA9E38C6 notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\","
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED leads\",\"notes\":\"QA301A5C notes for notes\",\"owner\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"stage\":\"IDENTIFIED\","
     },
     {
       "section": "crud:leads",
@@ -340,7 +348,7 @@
       "section": "crud:leads",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED leads"
+      "detail": "QA301A5C UPDATED leads"
     },
     {
       "section": "crud:leads",
@@ -418,19 +426,19 @@
       "section": "crud:estimates",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 estimates\",\"scope\":\"QA9E38C6 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-3\",\"markup\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C estimates\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"scope\":"
     },
     {
       "section": "crud:estimates",
       "check": "sequence number",
       "ok": true,
-      "detail": "EST-0032"
+      "detail": "EST-0048"
     },
     {
       "section": "crud:estimates",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 estimates vs QA9E38C6 estimates"
+      "detail": "QA301A5C estimates vs QA301A5C estimates"
     },
     {
       "section": "crud:estimates",
@@ -448,7 +456,7 @@
       "section": "crud:estimates",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED estimates\",\"scope\":\"QA9E38C6 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_lead-3\",\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED estimates\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],"
     },
     {
       "section": "crud:estimates",
@@ -460,7 +468,7 @@
       "section": "crud:estimates",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED estimates"
+      "detail": "QA301A5C UPDATED estimates"
     },
     {
       "section": "crud:estimates",
@@ -538,19 +546,19 @@
       "section": "crud:bids",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 bids\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"BID-0028\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\"clientId"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C bids\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"notes\":\"QA30"
     },
     {
       "section": "crud:bids",
       "check": "sequence number",
       "ok": true,
-      "detail": "BID-0028"
+      "detail": "BID-0038"
     },
     {
       "section": "crud:bids",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 bids vs QA9E38C6 bids"
+      "detail": "QA301A5C bids vs QA301A5C bids"
     },
     {
       "section": "crud:bids",
@@ -562,19 +570,19 @@
       "section": "crud:bids",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED bids\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"BID-0028\",\"bidBond\":123.45,\"outcome\":\"PENDING\",\"bidValue\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED bids\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"note"
     },
     {
       "section": "crud:bids",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('tenderNo', 'QA9E38C6 tenderNo'): got QA9E38C6 tenderNo"
+      "detail": "('tenderNo', 'QA301A5C tenderNo'): got QA301A5C tenderNo"
     },
     {
       "section": "crud:bids",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED bids"
+      "detail": "QA301A5C UPDATED bids"
     },
     {
       "section": "crud:bids",
@@ -646,19 +654,19 @@
       "section": "crud:projects",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 projects\",\"type\":\"Commercial building\",\"scope\":\"QA9E38C6 notes for scope\",\"budget\":123.45,\"health\":\"ON"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C projects\",\"type\":\"Commercial building\",\"scope\":\"QA301A5C notes for scope\",\"budget\":123.45,\"health\":\"ON"
     },
     {
       "section": "crud:projects",
       "check": "sequence number",
       "ok": true,
-      "detail": "PRJ-0030"
+      "detail": "PRJ-0043"
     },
     {
       "section": "crud:projects",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 projects vs QA9E38C6 projects"
+      "detail": "QA301A5C projects vs QA301A5C projects"
     },
     {
       "section": "crud:projects",
@@ -676,19 +684,19 @@
       "section": "crud:projects",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 UPDATED projects\",\"type\":\"Commercial building\",\"scope\":\"QA9E38C6 notes for scope\",\"budget\":123.45,\"hea"
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C UPDATED projects\",\"type\":\"Commercial building\",\"scope\":\"QA301A5C notes for scope\",\"budget\":123.45,\"hea"
     },
     {
       "section": "crud:projects",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QA9E38C6 code'): got QA9E38C6 code"
+      "detail": "('code', 'QA301A5C code'): got QA301A5C code"
     },
     {
       "section": "crud:projects",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED projects"
+      "detail": "QA301A5C UPDATED projects"
     },
     {
       "section": "crud:projects",
@@ -766,19 +774,19 @@
       "section": "crud:tasks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 tasks\",\"number\":\"TSK-0049\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA9E38C6 wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265-aa92-4e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C tasks\",\"number\":\"TSK-0061\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA301A5C wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265-aa92-4e"
     },
     {
       "section": "crud:tasks",
       "check": "sequence number",
       "ok": true,
-      "detail": "TSK-0049"
+      "detail": "TSK-0061"
     },
     {
       "section": "crud:tasks",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 tasks vs QA9E38C6 tasks"
+      "detail": "QA301A5C tasks vs QA301A5C tasks"
     },
     {
       "section": "crud:tasks",
@@ -796,19 +804,19 @@
       "section": "crud:tasks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED tasks\",\"number\":\"TSK-0049\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA9E38C6 wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED tasks\",\"number\":\"TSK-0061\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA301A5C wbsCode\",\"duration\":123.45,\"parentId\":\"5eb6b265"
     },
     {
       "section": "crud:tasks",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('wbsCode', 'QA9E38C6 wbsCode'): got QA9E38C6 wbsCode"
+      "detail": "('wbsCode', 'QA301A5C wbsCode'): got QA301A5C wbsCode"
     },
     {
       "section": "crud:tasks",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED tasks"
+      "detail": "QA301A5C UPDATED tasks"
     },
     {
       "section": "crud:tasks",
@@ -886,19 +894,19 @@
       "section": "crud:contracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA9E38C6 contracts\",\"value\":123.45,\"number\":\"CTR-0029\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA301A5C contracts\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C i"
     },
     {
       "section": "crud:contracts",
       "check": "sequence number",
       "ok": true,
-      "detail": "CTR-0029"
+      "detail": "CTR-0042"
     },
     {
       "section": "crud:contracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 contracts vs QA9E38C6 contracts"
+      "detail": "QA301A5C contracts vs QA301A5C contracts"
     },
     {
       "section": "crud:contracts",
@@ -916,19 +924,19 @@
       "section": "crud:contracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA9E38C6 UPDATED contracts\",\"value\":123.45,\"number\":\"CTR-0029\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff"
+      "detail": "HTTP 200 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA301A5C UPDATED contracts\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA"
     },
     {
       "section": "crud:contracts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('value', 123.45): got 123.45"
+      "detail": "('signedDate', '2026-11-07'): got 2026-11-07"
     },
     {
       "section": "crud:contracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED contracts"
+      "detail": "QA301A5C UPDATED contracts"
     },
     {
       "section": "crud:contracts",
@@ -1006,19 +1014,19 @@
       "section": "crud:changeOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 changeOrders\",\"amount\":123.45,\"number\":\"CO-0034\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92-4eff-a3"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C changeOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"amou"
     },
     {
       "section": "crud:changeOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "CO-0034"
+      "detail": "CO-0047"
     },
     {
       "section": "crud:changeOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 changeOrders vs QA9E38C6 changeOrders"
+      "detail": "QA301A5C changeOrders vs QA301A5C changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1036,19 +1044,19 @@
       "section": "crud:changeOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED changeOrders\",\"amount\":123.45,\"number\":\"CO-0034\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"projectId\":\"5eb6b265-aa92"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED changeOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\""
     },
     {
       "section": "crud:changeOrders",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('reference', 'QA9E38C6 reference'): got QA9E38C6 reference"
+      "detail": "('reference', 'QA301A5C reference'): got QA301A5C reference"
     },
     {
       "section": "crud:changeOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED changeOrders"
+      "detail": "QA301A5C UPDATED changeOrders"
     },
     {
       "section": "crud:changeOrders",
@@ -1126,19 +1134,19 @@
       "section": "crud:rfis",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0040\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA9E38C6 specRef\",\"subject\":\"QA9E38C6 rfis\",\"priority\":\"LOW\",\"question\":"
+      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0052\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA301A5C specRef\",\"subject\":\"QA301A5C rfis\",\"priority\":\"LOW\",\"question\":"
     },
     {
       "section": "crud:rfis",
       "check": "sequence number",
       "ok": true,
-      "detail": "RFI-0040"
+      "detail": "RFI-0052"
     },
     {
       "section": "crud:rfis",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 rfis vs QA9E38C6 rfis"
+      "detail": "QA301A5C rfis vs QA301A5C rfis"
     },
     {
       "section": "crud:rfis",
@@ -1156,19 +1164,19 @@
       "section": "crud:rfis",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"number\":\"RFI-0040\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA9E38C6 specRef\",\"subject\":\"QA9E38C6 UPDATED rfis\",\"priority\":\"LOW\",\"qu"
+      "detail": "HTTP 200 {\"row\":{\"number\":\"RFI-0052\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA301A5C specRef\",\"subject\":\"QA301A5C UPDATED rfis\",\"priority\":\"LOW\",\"qu"
     },
     {
       "section": "crud:rfis",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('specRef', 'QA9E38C6 specRef'): got QA9E38C6 specRef"
+      "detail": "('specRef', 'QA301A5C specRef'): got QA301A5C specRef"
     },
     {
       "section": "crud:rfis",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED rfis"
+      "detail": "QA301A5C UPDATED rfis"
     },
     {
       "section": "crud:rfis",
@@ -1246,19 +1254,19 @@
       "section": "crud:submittals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0034\",\"status\":\"PENDING\",\"package\":\"QA9E38C6 package\",\"projectId\":\"5eb6b265-a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0046\",\"status\":\"PENDING\",\"package\":\"QA301A5C package\",\"projectId\":\"5eb6b265-a"
     },
     {
       "section": "crud:submittals",
       "check": "sequence number",
       "ok": true,
-      "detail": "SUB-0034"
+      "detail": "SUB-0046"
     },
     {
       "section": "crud:submittals",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 submittals vs QA9E38C6 submittals"
+      "detail": "QA301A5C submittals vs QA301A5C submittals"
     },
     {
       "section": "crud:submittals",
@@ -1276,19 +1284,19 @@
       "section": "crud:submittals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0034\",\"status\":\"PENDING\",\"package\":\"QA9E38C6 package\",\"projectId\":\"5e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0046\",\"status\":\"PENDING\",\"package\":\"QA301A5C package\",\"projectId\":\"5e"
     },
     {
       "section": "crud:submittals",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('package', 'QA9E38C6 package'): got QA9E38C6 package"
+      "detail": "('package', 'QA301A5C package'): got QA301A5C package"
     },
     {
       "section": "crud:submittals",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED submittals"
+      "detail": "QA301A5C UPDATED submittals"
     },
     {
       "section": "crud:submittals",
@@ -1366,19 +1374,19 @@
       "section": "crud:documents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 documents\",\"type\":\"Drawing\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"DOC-0042\",\"status\":\"DRAFT\",\"fileName\":\"QA9E38C6 file"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C documents\",\"type\":\"Drawing\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"DOC-0057\",\"status\":\"DRAFT\",\"fileName\":\"QA301A5C file"
     },
     {
       "section": "crud:documents",
       "check": "sequence number",
       "ok": true,
-      "detail": "DOC-0042"
+      "detail": "DOC-0057"
     },
     {
       "section": "crud:documents",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 documents vs QA9E38C6 documents"
+      "detail": "QA301A5C documents vs QA301A5C documents"
     },
     {
       "section": "crud:documents",
@@ -1396,19 +1404,19 @@
       "section": "crud:documents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED documents\",\"type\":\"Drawing\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"DOC-0042\",\"status\":\"DRAFT\",\"fileName\":\"QA9E3"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED documents\",\"type\":\"Drawing\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"DOC-0057\",\"status\":\"DRAFT\",\"fileName\":\"QA301"
     },
     {
       "section": "crud:documents",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('drawingNo', 'QA9E38C6 drawingNo'): got QA9E38C6 drawingNo"
+      "detail": "('drawingNo', 'QA301A5C drawingNo'): got QA301A5C drawingNo"
     },
     {
       "section": "crud:documents",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED documents"
+      "detail": "QA301A5C UPDATED documents"
     },
     {
       "section": "crud:documents",
@@ -1486,19 +1494,19 @@
       "section": "crud:dailyLogs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 dailyLogs\",\"delays\":\"QA9E38C6 notes for delays\",\"number\":\"DL-0052\",\"status\":\"DRAFT\",\"weather\":\"Sunny\",\"ma"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C dailyLogs\",\"delays\":\"QA301A5C notes for delays\",\"number\":\"DL-0064\",\"status\":\"DRAFT\",\"weather\":\"Sunny\",\"ma"
     },
     {
       "section": "crud:dailyLogs",
       "check": "sequence number",
       "ok": true,
-      "detail": "DL-0052"
+      "detail": "DL-0064"
     },
     {
       "section": "crud:dailyLogs",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 dailyLogs vs QA9E38C6 dailyLogs"
+      "detail": "QA301A5C dailyLogs vs QA301A5C dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1516,7 +1524,7 @@
       "section": "crud:dailyLogs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED dailyLogs\",\"delays\":\"QA9E38C6 notes for delays\",\"number\":\"DL-0052\",\"status\":\"DRAFT\",\"weather\":\"Su"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED dailyLogs\",\"delays\":\"QA301A5C notes for delays\",\"number\":\"DL-0064\",\"status\":\"DRAFT\",\"weather\":\"Su"
     },
     {
       "section": "crud:dailyLogs",
@@ -1528,7 +1536,7 @@
       "section": "crud:dailyLogs",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED dailyLogs"
+      "detail": "QA301A5C UPDATED dailyLogs"
     },
     {
       "section": "crud:dailyLogs",
@@ -1606,19 +1614,19 @@
       "section": "crud:meetings",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 meetings\",\"type\":\"Site progress\",\"agenda\":\"QA9E38C6 notes for agenda\",\"number\":\"MTG-0027\",\"status\":\"SCHED"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C meetings\",\"type\":\"Site progress\",\"agenda\":\"QA301A5C notes for agenda\",\"number\":\"MTG-0036\",\"status\":\"SCHED"
     },
     {
       "section": "crud:meetings",
       "check": "sequence number",
       "ok": true,
-      "detail": "MTG-0027"
+      "detail": "MTG-0036"
     },
     {
       "section": "crud:meetings",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 meetings vs QA9E38C6 meetings"
+      "detail": "QA301A5C meetings vs QA301A5C meetings"
     },
     {
       "section": "crud:meetings",
@@ -1636,7 +1644,7 @@
       "section": "crud:meetings",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED meetings\",\"type\":\"Site progress\",\"agenda\":\"QA9E38C6 notes for agenda\",\"number\":\"MTG-0027\",\"status"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED meetings\",\"type\":\"Site progress\",\"agenda\":\"QA301A5C notes for agenda\",\"number\":\"MTG-0036\",\"status"
     },
     {
       "section": "crud:meetings",
@@ -1648,7 +1656,7 @@
       "section": "crud:meetings",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED meetings"
+      "detail": "QA301A5C UPDATED meetings"
     },
     {
       "section": "crud:meetings",
@@ -1726,19 +1734,19 @@
       "section": "crud:punchLists",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0037\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QA9E38C6 location"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0046\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QA301A5C location"
     },
     {
       "section": "crud:punchLists",
       "check": "sequence number",
       "ok": true,
-      "detail": "PNC-0037"
+      "detail": "PNC-0046"
     },
     {
       "section": "crud:punchLists",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 punchLists vs QA9E38C6 punchLists"
+      "detail": "QA301A5C punchLists vs QA301A5C punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1756,19 +1764,19 @@
       "section": "crud:punchLists",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0037\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QA9E38C6 "
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED punchLists\",\"trade\":\"General labour\",\"number\":\"PNC-0046\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"location\":\"QA301A5C "
     },
     {
       "section": "crud:punchLists",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('location', 'QA9E38C6 location'): got QA9E38C6 location"
+      "detail": "('location', 'QA301A5C location'): got QA301A5C location"
     },
     {
       "section": "crud:punchLists",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED punchLists"
+      "detail": "QA301A5C UPDATED punchLists"
     },
     {
       "section": "crud:punchLists",
@@ -1846,19 +1854,19 @@
       "section": "crud:permits",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 permits\",\"type\":\"Building permit\",\"number\":\"PMT-0027\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QA9E38C6 authority\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C permits\",\"type\":\"Building permit\",\"number\":\"PMT-0036\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QA301A5C authority\","
     },
     {
       "section": "crud:permits",
       "check": "sequence number",
       "ok": true,
-      "detail": "PMT-0027"
+      "detail": "PMT-0036"
     },
     {
       "section": "crud:permits",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 permits vs QA9E38C6 permits"
+      "detail": "QA301A5C permits vs QA301A5C permits"
     },
     {
       "section": "crud:permits",
@@ -1876,19 +1884,19 @@
       "section": "crud:permits",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED permits\",\"type\":\"Building permit\",\"number\":\"PMT-0027\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QA9E38C6 aut"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED permits\",\"type\":\"Building permit\",\"number\":\"PMT-0036\",\"result\":\"PENDING\",\"status\":\"PENDING\",\"authority\":\"QA301A5C aut"
     },
     {
       "section": "crud:permits",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('authority', 'QA9E38C6 authority'): got QA9E38C6 authority"
+      "detail": "('authority', 'QA301A5C authority'): got QA301A5C authority"
     },
     {
       "section": "crud:permits",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED permits"
+      "detail": "QA301A5C UPDATED permits"
     },
     {
       "section": "crud:permits",
@@ -1966,19 +1974,19 @@
       "section": "crud:vendors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":\"QA9E38C6 city\",\"name\":\"QA9E38C6 vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qa9e38c6@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"number\""
+      "detail": "HTTP 201 {\"row\":{\"city\":\"QA301A5C city\",\"name\":\"QA301A5C vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qa301a5c@example.co.zw\",\"phone\":\"+263 77 000 0000\",\"number\""
     },
     {
       "section": "crud:vendors",
       "check": "sequence number",
       "ok": true,
-      "detail": "VEN-0031"
+      "detail": "VEN-0040"
     },
     {
       "section": "crud:vendors",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 vendors vs QA9E38C6 vendors"
+      "detail": "QA301A5C vendors vs QA301A5C vendors"
     },
     {
       "section": "crud:vendors",
@@ -1996,19 +2004,19 @@
       "section": "crud:vendors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"city\":\"QA9E38C6 city\",\"name\":\"QA9E38C6 UPDATED vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qa9e38c6@example.co.zw\",\"phone\":\"+263 77 000 0000\","
+      "detail": "HTTP 200 {\"row\":{\"city\":\"QA301A5C city\",\"name\":\"QA301A5C UPDATED vendors\",\"tags\":[\"QA\",\"audit\"],\"email\":\"qa.qa301a5c@example.co.zw\",\"phone\":\"+263 77 000 0000\","
     },
     {
       "section": "crud:vendors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QA9E38C6 registrationNo'): got QA9E38C6 registrationNo"
+      "detail": "('registrationNo', 'QA301A5C registrationNo'): got QA301A5C registrationNo"
     },
     {
       "section": "crud:vendors",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED vendors"
+      "detail": "QA301A5C UPDATED vendors"
     },
     {
       "section": "crud:vendors",
@@ -2086,19 +2094,19 @@
       "section": "crud:subcontractors",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 subcontractors\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"S"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C subcontractors\",\"email\":\"qa.qa301a5c@example.co.zw\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"S"
     },
     {
       "section": "crud:subcontractors",
       "check": "sequence number",
       "ok": true,
-      "detail": "SC-0027"
+      "detail": "SC-0036"
     },
     {
       "section": "crud:subcontractors",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 subcontractors vs QA9E38C6 subcontractors"
+      "detail": "QA301A5C subcontractors vs QA301A5C subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2116,19 +2124,19 @@
       "section": "crud:subcontractors",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED subcontractors\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"nu"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED subcontractors\",\"email\":\"qa.qa301a5c@example.co.zw\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"nu"
     },
     {
       "section": "crud:subcontractors",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('registrationNo', 'QA9E38C6 registrationNo'): got QA9E38C6 registrationNo"
+      "detail": "('registrationNo', 'QA301A5C registrationNo'): got QA301A5C registrationNo"
     },
     {
       "section": "crud:subcontractors",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED subcontractors"
+      "detail": "QA301A5C UPDATED subcontractors"
     },
     {
       "section": "crud:subcontractors",
@@ -2206,19 +2214,19 @@
       "section": "crud:requisitions",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 requisitions\",\"items\":\"QA9E38C6 notes for items\",\"number\":\"MR-0029\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5eb6b265-a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C requisitions\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"numb"
     },
     {
       "section": "crud:requisitions",
       "check": "sequence number",
       "ok": true,
-      "detail": "MR-0029"
+      "detail": "MR-0039"
     },
     {
       "section": "crud:requisitions",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 requisitions vs QA9E38C6 requisitions"
+      "detail": "QA301A5C requisitions vs QA301A5C requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2236,7 +2244,7 @@
       "section": "crud:requisitions",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED requisitions\",\"items\":\"QA9E38C6 notes for items\",\"number\":\"MR-0029\",\"status\":\"DRAFT\",\"priority\":\"LOW\",\"projectId\":\"5e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED requisitions\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\""
     },
     {
       "section": "crud:requisitions",
@@ -2248,7 +2256,7 @@
       "section": "crud:requisitions",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED requisitions"
+      "detail": "QA301A5C UPDATED requisitions"
     },
     {
       "section": "crud:requisitions",
@@ -2326,19 +2334,19 @@
       "section": "crud:purchaseOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 purchaseOrders\",\"items\":\"QA9E38C6 notes for items\",\"amount\":123.45,\"number\":\"PO-0038\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"curre"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C purchaseOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"am"
     },
     {
       "section": "crud:purchaseOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "PO-0038"
+      "detail": "PO-0051"
     },
     {
       "section": "crud:purchaseOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 purchaseOrders vs QA9E38C6 purchaseOrders"
+      "detail": "QA301A5C purchaseOrders vs QA301A5C purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2356,7 +2364,7 @@
       "section": "crud:purchaseOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED purchaseOrders\",\"items\":\"QA9E38C6 notes for items\",\"amount\":123.45,\"number\":\"PO-0038\",\"status\":\"DRAFT\",\"vatPct\":123.4"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED purchaseOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised wor"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2368,7 +2376,7 @@
       "section": "crud:purchaseOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED purchaseOrders"
+      "detail": "QA301A5C UPDATED purchaseOrders"
     },
     {
       "section": "crud:purchaseOrders",
@@ -2446,19 +2454,19 @@
       "section": "crud:goodsReceipts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 goodsReceipts\",\"items\":\"QA9E38C6 notes for items\",\"number\":\"GRN-0029\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C goodsReceipts\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"num"
     },
     {
       "section": "crud:goodsReceipts",
       "check": "sequence number",
       "ok": true,
-      "detail": "GRN-0029"
+      "detail": "GRN-0039"
     },
     {
       "section": "crud:goodsReceipts",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 goodsReceipts vs QA9E38C6 goodsReceipts"
+      "detail": "QA301A5C goodsReceipts vs QA301A5C goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2476,7 +2484,7 @@
       "section": "crud:goodsReceipts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED goodsReceipts\",\"items\":\"QA9E38C6 notes for items\",\"number\":\"GRN-0029\",\"status\":\"DRAFT\",\"vendorId\":\"5eb6b265-aa92-4eff"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED goodsReceipts\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2488,7 +2496,7 @@
       "section": "crud:goodsReceipts",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED goodsReceipts"
+      "detail": "QA301A5C UPDATED goodsReceipts"
     },
     {
       "section": "crud:goodsReceipts",
@@ -2566,19 +2574,19 @@
       "section": "crud:inventory",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"sku\":\"QA9E38C6 sku\",\"name\":\"QA9E38C6 inventory\",\"unit\":\"each\",\"number\":\"STK-0037\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5eb6b265-"
+      "detail": "HTTP 201 {\"row\":{\"sku\":\"QA301A5C sku\",\"name\":\"QA301A5C inventory\",\"unit\":\"each\",\"number\":\"STK-0046\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5eb6b265-"
     },
     {
       "section": "crud:inventory",
       "check": "sequence number",
       "ok": true,
-      "detail": "STK-0037"
+      "detail": "STK-0046"
     },
     {
       "section": "crud:inventory",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 inventory vs QA9E38C6 inventory"
+      "detail": "QA301A5C inventory vs QA301A5C inventory"
     },
     {
       "section": "crud:inventory",
@@ -2596,19 +2604,19 @@
       "section": "crud:inventory",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"sku\":\"QA9E38C6 sku\",\"name\":\"QA9E38C6 UPDATED inventory\",\"unit\":\"each\",\"number\":\"STK-0037\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5"
+      "detail": "HTTP 200 {\"row\":{\"sku\":\"QA301A5C sku\",\"name\":\"QA301A5C UPDATED inventory\",\"unit\":\"each\",\"number\":\"STK-0046\",\"status\":\"IN_STOCK\",\"unitCost\":123.45,\"vendorId\":\"5"
     },
     {
       "section": "crud:inventory",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('sku', 'QA9E38C6 sku'): got QA9E38C6 sku"
+      "detail": "('sku', 'QA301A5C sku'): got QA301A5C sku"
     },
     {
       "section": "crud:inventory",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED inventory"
+      "detail": "QA301A5C UPDATED inventory"
     },
     {
       "section": "crud:inventory",
@@ -2686,19 +2694,19 @@
       "section": "crud:warehouses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 warehouses\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0019\",\"status\":"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C warehouses\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0028\",\"status\":"
     },
     {
       "section": "crud:warehouses",
       "check": "sequence number",
       "ok": true,
-      "detail": "WH-0019"
+      "detail": "WH-0028"
     },
     {
       "section": "crud:warehouses",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 warehouses vs QA9E38C6 warehouses"
+      "detail": "QA301A5C warehouses vs QA301A5C warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2716,19 +2724,19 @@
       "section": "crud:warehouses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 UPDATED warehouses\",\"notes\":\"QA9E38C6 notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0019\",\""
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C UPDATED warehouses\",\"notes\":\"QA301A5C notes for notes\",\"phone\":\"+263 77 000 0000\",\"number\":\"WH-0028\",\""
     },
     {
       "section": "crud:warehouses",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QA9E38C6 code'): got QA9E38C6 code"
+      "detail": "('code', 'QA301A5C code'): got QA301A5C code"
     },
     {
       "section": "crud:warehouses",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED warehouses"
+      "detail": "QA301A5C UPDATED warehouses"
     },
     {
       "section": "crud:warehouses",
@@ -2806,19 +2814,19 @@
       "section": "crud:equipment",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 equipment\",\"number\":\"EQ-0044\",\"status\":\"AVAILABLE\",\"assetTag\":\"QA9E38C6 assetTag\",\"category\":\"Excavator\",\"operator\":\"5eb6b265"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C equipment\",\"number\":\"EQ-0053\",\"status\":\"AVAILABLE\",\"assetTag\":\"QA301A5C assetTag\",\"category\":\"Excavator\",\"operator\":\"5eb6b265"
     },
     {
       "section": "crud:equipment",
       "check": "sequence number",
       "ok": true,
-      "detail": "EQ-0044"
+      "detail": "EQ-0053"
     },
     {
       "section": "crud:equipment",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 equipment vs QA9E38C6 equipment"
+      "detail": "QA301A5C equipment vs QA301A5C equipment"
     },
     {
       "section": "crud:equipment",
@@ -2836,19 +2844,19 @@
       "section": "crud:equipment",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED equipment\",\"number\":\"EQ-0044\",\"status\":\"AVAILABLE\",\"assetTag\":\"QA9E38C6 assetTag\",\"category\":\"Excavator\",\"operator\":\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED equipment\",\"number\":\"EQ-0053\",\"status\":\"AVAILABLE\",\"assetTag\":\"QA301A5C assetTag\",\"category\":\"Excavator\",\"operator\":\""
     },
     {
       "section": "crud:equipment",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('assetTag', 'QA9E38C6 assetTag'): got QA9E38C6 assetTag"
+      "detail": "('assetTag', 'QA301A5C assetTag'): got QA301A5C assetTag"
     },
     {
       "section": "crud:equipment",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED equipment"
+      "detail": "QA301A5C UPDATED equipment"
     },
     {
       "section": "crud:equipment",
@@ -2926,19 +2934,19 @@
       "section": "crud:workOrders",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"name\":\"QA9E38C6 workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0024\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"LOW\",\"pro"
+      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"name\":\"QA301A5C workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0033\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"LOW\",\"pro"
     },
     {
       "section": "crud:workOrders",
       "check": "sequence number",
       "ok": true,
-      "detail": "WO-0024"
+      "detail": "WO-0033"
     },
     {
       "section": "crud:workOrders",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 workOrders vs QA9E38C6 workOrders"
+      "detail": "QA301A5C workOrders vs QA301A5C workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -2956,7 +2964,7 @@
       "section": "crud:workOrders",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"name\":\"QA9E38C6 UPDATED workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0024\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"L"
+      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"name\":\"QA301A5C UPDATED workOrders\",\"type\":\"PREVENTIVE\",\"number\":\"WO-0033\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"priority\":\"L"
     },
     {
       "section": "crud:workOrders",
@@ -2968,7 +2976,7 @@
       "section": "crud:workOrders",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED workOrders"
+      "detail": "QA301A5C UPDATED workOrders"
     },
     {
       "section": "crud:workOrders",
@@ -3046,19 +3054,19 @@
       "section": "crud:employees",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 employees\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"number\":\"EMP-"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C employees\",\"email\":\"qa.qa301a5c@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"number\":\"EMP-"
     },
     {
       "section": "crud:employees",
       "check": "sequence number",
       "ok": true,
-      "detail": "EMP-0056"
+      "detail": "EMP-0065"
     },
     {
       "section": "crud:employees",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 employees vs QA9E38C6 employees"
+      "detail": "QA301A5C employees vs QA301A5C employees"
     },
     {
       "section": "crud:employees",
@@ -3076,19 +3084,19 @@
       "section": "crud:employees",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED employees\",\"email\":\"qa.qa9e38c6@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"numbe"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED employees\",\"email\":\"qa.qa301a5c@example.co.zw\",\"grade\":\"A\",\"phone\":\"+263 77 000 0000\",\"trade\":\"General labour\",\"numbe"
     },
     {
       "section": "crud:employees",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('employeeNo', 'QA9E38C6 employeeNo'): got QA9E38C6 employeeNo"
+      "detail": "('employeeNo', 'QA301A5C employeeNo'): got QA301A5C employeeNo"
     },
     {
       "section": "crud:employees",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED employees"
+      "detail": "QA301A5C UPDATED employees"
     },
     {
       "section": "crud:employees",
@@ -3166,19 +3174,19 @@
       "section": "crud:departments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QA9E38C6 code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QA9E38C6 departments\",\"number\":\"DEP-0024\",\"status\":\"ACTIVE"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QA301A5C code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QA301A5C departments\",\"number\":\"DEP-0033\",\"status\":\"ACTIVE"
     },
     {
       "section": "crud:departments",
       "check": "sequence number",
       "ok": true,
-      "detail": "DEP-0024"
+      "detail": "DEP-0033"
     },
     {
       "section": "crud:departments",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 departments vs QA9E38C6 departments"
+      "detail": "QA301A5C departments vs QA301A5C departments"
     },
     {
       "section": "crud:departments",
@@ -3196,19 +3204,19 @@
       "section": "crud:departments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QA9E38C6 code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QA9E38C6 UPDATED departments\",\"number\":\"DEP-0024\",\"status\""
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QA301A5C code\",\"head\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\"name\":\"QA301A5C UPDATED departments\",\"number\":\"DEP-0033\",\"status\""
     },
     {
       "section": "crud:departments",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QA9E38C6 code'): got QA9E38C6 code"
+      "detail": "('code', 'QA301A5C code'): got QA301A5C code"
     },
     {
       "section": "crud:departments",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED departments"
+      "detail": "QA301A5C UPDATED departments"
     },
     {
       "section": "crud:departments",
@@ -3286,19 +3294,19 @@
       "section": "crud:crews",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 crews\",\"size\":123.45,\"shift\":\"QA9E38C6 shift\",\"trade\":\"General labour\",\"number\":\"CRW-0024\",\"status\":\"ACTIVE\",\"members\":\"QA9E3"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C crews\",\"size\":123.45,\"shift\":\"QA301A5C shift\",\"trade\":\"General labour\",\"number\":\"CRW-0033\",\"status\":\"ACTIVE\",\"members\":\"QA301"
     },
     {
       "section": "crud:crews",
       "check": "sequence number",
       "ok": true,
-      "detail": "CRW-0024"
+      "detail": "CRW-0033"
     },
     {
       "section": "crud:crews",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 crews vs QA9E38C6 crews"
+      "detail": "QA301A5C crews vs QA301A5C crews"
     },
     {
       "section": "crud:crews",
@@ -3316,7 +3324,7 @@
       "section": "crud:crews",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED crews\",\"size\":123.45,\"shift\":\"QA9E38C6 shift\",\"trade\":\"General labour\",\"number\":\"CRW-0024\",\"status\":\"ACTIVE\",\"members"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED crews\",\"size\":123.45,\"shift\":\"QA301A5C shift\",\"trade\":\"General labour\",\"number\":\"CRW-0033\",\"status\":\"ACTIVE\",\"members"
     },
     {
       "section": "crud:crews",
@@ -3328,7 +3336,7 @@
       "section": "crud:crews",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED crews"
+      "detail": "QA301A5C UPDATED crews"
     },
     {
       "section": "crud:crews",
@@ -3406,19 +3414,19 @@
       "section": "crud:timesheets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 timesheets\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"TS-0058\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\":\"5eb6b2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C timesheets\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"TS-0070\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\":\"5eb6b2"
     },
     {
       "section": "crud:timesheets",
       "check": "sequence number",
       "ok": true,
-      "detail": "TS-0058"
+      "detail": "TS-0070"
     },
     {
       "section": "crud:timesheets",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 timesheets vs QA9E38C6 timesheets"
+      "detail": "QA301A5C timesheets vs QA301A5C timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3436,7 +3444,7 @@
       "section": "crud:timesheets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED timesheets\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"TS-0058\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED timesheets\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"TS-0070\",\"status\":\"DRAFT\",\"weekEnd\":\"2026-11-07\",\"projectId\""
     },
     {
       "section": "crud:timesheets",
@@ -3448,7 +3456,7 @@
       "section": "crud:timesheets",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED timesheets"
+      "detail": "QA301A5C UPDATED timesheets"
     },
     {
       "section": "crud:timesheets",
@@ -3526,19 +3534,19 @@
       "section": "crud:leaveRequests",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"days\":123.45,\"name\":\"QA9E38C6 leaveRequests\",\"number\":\"LV-0019\",\"reason\":\"QA9E38C6 notes for reason\",\"status\":\"PENDING\",\"endDate\":\"2026-11-07"
+      "detail": "HTTP 201 {\"row\":{\"days\":123.45,\"name\":\"QA301A5C leaveRequests\",\"number\":\"LV-0028\",\"reason\":\"QA301A5C notes for reason\",\"status\":\"PENDING\",\"endDate\":\"2026-11-07"
     },
     {
       "section": "crud:leaveRequests",
       "check": "sequence number",
       "ok": true,
-      "detail": "LV-0019"
+      "detail": "LV-0028"
     },
     {
       "section": "crud:leaveRequests",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 leaveRequests vs QA9E38C6 leaveRequests"
+      "detail": "QA301A5C leaveRequests vs QA301A5C leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3556,7 +3564,7 @@
       "section": "crud:leaveRequests",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"days\":123.45,\"name\":\"QA9E38C6 UPDATED leaveRequests\",\"number\":\"LV-0019\",\"reason\":\"QA9E38C6 notes for reason\",\"status\":\"PENDING\",\"endDate\":\"20"
+      "detail": "HTTP 200 {\"row\":{\"days\":123.45,\"name\":\"QA301A5C UPDATED leaveRequests\",\"number\":\"LV-0028\",\"reason\":\"QA301A5C notes for reason\",\"status\":\"PENDING\",\"endDate\":\"20"
     },
     {
       "section": "crud:leaveRequests",
@@ -3568,7 +3576,7 @@
       "section": "crud:leaveRequests",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED leaveRequests"
+      "detail": "QA301A5C UPDATED leaveRequests"
     },
     {
       "section": "crud:leaveRequests",
@@ -3646,19 +3654,19 @@
       "section": "crud:payRuns",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 payRuns\",\"netPay\":123.45,\"number\":\"PAY-0013\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\"periodEn"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C payRuns\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"netPay\":1"
     },
     {
       "section": "crud:payRuns",
       "check": "sequence number",
       "ok": true,
-      "detail": "PAY-0013"
+      "detail": "PAY-0023"
     },
     {
       "section": "crud:payRuns",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 payRuns vs QA9E38C6 payRuns"
+      "detail": "QA301A5C payRuns vs QA301A5C payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3676,7 +3684,7 @@
       "section": "crud:payRuns",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED payRuns\",\"netPay\":123.45,\"number\":\"PAY-0013\",\"status\":\"DRAFT\",\"currency\":\"USD\",\"grossPay\":123.45,\"headcount\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED payRuns\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"n"
     },
     {
       "section": "crud:payRuns",
@@ -3688,7 +3696,7 @@
       "section": "crud:payRuns",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED payRuns"
+      "detail": "QA301A5C UPDATED payRuns"
     },
     {
       "section": "crud:payRuns",
@@ -3766,19 +3774,19 @@
       "section": "crud:expenses",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 expenses\",\"amount\":123.45,\"number\":\"EXP-0022\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6b265-aa9"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C expenses\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"amount\":"
     },
     {
       "section": "crud:expenses",
       "check": "sequence number",
       "ok": true,
-      "detail": "EXP-0022"
+      "detail": "EXP-0032"
     },
     {
       "section": "crud:expenses",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 expenses vs QA9E38C6 expenses"
+      "detail": "QA301A5C expenses vs QA301A5C expenses"
     },
     {
       "section": "crud:expenses",
@@ -3796,7 +3804,7 @@
       "section": "crud:expenses",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED expenses\",\"amount\":123.45,\"number\":\"EXP-0022\",\"status\":\"DRAFT\",\"category\":\"Travel\",\"currency\":\"USD\",\"projectId\":\"5eb6"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED expenses\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\""
     },
     {
       "section": "crud:expenses",
@@ -3808,7 +3816,7 @@
       "section": "crud:expenses",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED expenses"
+      "detail": "QA301A5C UPDATED expenses"
     },
     {
       "section": "crud:expenses",
@@ -3886,19 +3894,19 @@
       "section": "crud:certifications",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 certifications\",\"type\":\"Trade test\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"CERT-0026\",\"status\":\"VALID\",\"employeeId\":\"5e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C certifications\",\"type\":\"Trade test\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"CERT-0035\",\"status\":\"VALID\",\"employeeId\":\"5e"
     },
     {
       "section": "crud:certifications",
       "check": "sequence number",
       "ok": true,
-      "detail": "CERT-0026"
+      "detail": "CERT-0035"
     },
     {
       "section": "crud:certifications",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 certifications vs QA9E38C6 certifications"
+      "detail": "QA301A5C certifications vs QA301A5C certifications"
     },
     {
       "section": "crud:certifications",
@@ -3916,19 +3924,19 @@
       "section": "crud:certifications",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED certifications\",\"type\":\"Trade test\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"CERT-0026\",\"status\":\"VALID\",\"employe"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED certifications\",\"type\":\"Trade test\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"CERT-0035\",\"status\":\"VALID\",\"employe"
     },
     {
       "section": "crud:certifications",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('issuingBody', 'QA9E38C6 issuingBody'): got QA9E38C6 issuingBody"
+      "detail": "('issuingBody', 'QA301A5C issuingBody'): got QA301A5C issuingBody"
     },
     {
       "section": "crud:certifications",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED certifications"
+      "detail": "QA301A5C UPDATED certifications"
     },
     {
       "section": "crud:certifications",
@@ -4006,19 +4014,19 @@
       "section": "crud:training",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 training\",\"type\":\"Induction\",\"number\":\"TRN-0018\",\"status\":\"PLANNED\",\"outcome\":\"COMPLETED\",\""
+      "detail": "HTTP 201 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QA301A5C training\",\"type\":\"Induction\",\"number\":\"TRN-0027\",\"status\":\"PLANNED\",\"outcome\":\"COMPLETED\",\""
     },
     {
       "section": "crud:training",
       "check": "sequence number",
       "ok": true,
-      "detail": "TRN-0018"
+      "detail": "TRN-0027"
     },
     {
       "section": "crud:training",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 training vs QA9E38C6 training"
+      "detail": "QA301A5C training vs QA301A5C training"
     },
     {
       "section": "crud:training",
@@ -4036,7 +4044,7 @@
       "section": "crud:training",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED training\",\"type\":\"Induction\",\"number\":\"TRN-0018\",\"status\":\"PLANNED\",\"outcome\":\"COMP"
+      "detail": "HTTP 200 {\"row\":{\"cost\":123.45,\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED training\",\"type\":\"Induction\",\"number\":\"TRN-0027\",\"status\":\"PLANNED\",\"outcome\":\"COMP"
     },
     {
       "section": "crud:training",
@@ -4048,7 +4056,7 @@
       "section": "crud:training",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED training"
+      "detail": "QA301A5C UPDATED training"
     },
     {
       "section": "crud:training",
@@ -4126,19 +4134,19 @@
       "section": "crud:toolboxTalks",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0020\",\"status\":\"SCHEDULED\",\"hazards\":\"QA9E38C6 notes fo"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0029\",\"status\":\"SCHEDULED\",\"hazards\":\"QA301A5C notes fo"
     },
     {
       "section": "crud:toolboxTalks",
       "check": "sequence number",
       "ok": true,
-      "detail": "TBT-0020"
+      "detail": "TBT-0029"
     },
     {
       "section": "crud:toolboxTalks",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 toolboxTalks vs QA9E38C6 toolboxTalks"
+      "detail": "QA301A5C toolboxTalks vs QA301A5C toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4156,7 +4164,7 @@
       "section": "crud:toolboxTalks",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0020\",\"status\":\"SCHEDULED\",\"hazards\":\"QA9E38C6 "
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED toolboxTalks\",\"type\":\"Toolbox talk\",\"number\":\"TBT-0029\",\"status\":\"SCHEDULED\",\"hazards\":\"QA301A5C "
     },
     {
       "section": "crud:toolboxTalks",
@@ -4168,7 +4176,7 @@
       "section": "crud:toolboxTalks",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED toolboxTalks"
+      "detail": "QA301A5C UPDATED toolboxTalks"
     },
     {
       "section": "crud:toolboxTalks",
@@ -4246,19 +4254,19 @@
       "section": "crud:incidents",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0019\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QA9E38C6 location\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0032\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QA301A5C location\","
     },
     {
       "section": "crud:incidents",
       "check": "sequence number",
       "ok": true,
-      "detail": "INC-0019"
+      "detail": "INC-0032"
     },
     {
       "section": "crud:incidents",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 incidents vs QA9E38C6 incidents"
+      "detail": "QA301A5C incidents vs QA301A5C incidents"
     },
     {
       "section": "crud:incidents",
@@ -4276,7 +4284,7 @@
       "section": "crud:incidents",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0019\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QA9E38C6 lo"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0032\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\"location\":\"QA301A5C lo"
     },
     {
       "section": "crud:incidents",
@@ -4288,7 +4296,7 @@
       "section": "crud:incidents",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED incidents"
+      "detail": "QA301A5C UPDATED incidents"
     },
     {
       "section": "crud:incidents",
@@ -4366,19 +4374,19 @@
       "section": "crud:inspections",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0020\",\"status\":\"SCHEDULED\",\"actions\":\"QA9E"
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0029\",\"status\":\"SCHEDULED\",\"actions\":\"QA30"
     },
     {
       "section": "crud:inspections",
       "check": "sequence number",
       "ok": true,
-      "detail": "INS-0020"
+      "detail": "INS-0029"
     },
     {
       "section": "crud:inspections",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 inspections vs QA9E38C6 inspections"
+      "detail": "QA301A5C inspections vs QA301A5C inspections"
     },
     {
       "section": "crud:inspections",
@@ -4396,7 +4404,7 @@
       "section": "crud:inspections",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0020\",\"status\":\"SCHEDULED\",\"action"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED inspections\",\"type\":\"Site safety\",\"score\":123.45,\"number\":\"INS-0029\",\"status\":\"SCHEDULED\",\"action"
     },
     {
       "section": "crud:inspections",
@@ -4408,7 +4416,7 @@
       "section": "crud:inspections",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED inspections"
+      "detail": "QA301A5C UPDATED inspections"
     },
     {
       "section": "crud:inspections",
@@ -4486,19 +4494,19 @@
       "section": "crud:ncrs",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 ncrs\",\"number\":\"NCR-0018\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C ncrs\",\"number\":\"NCR-0027\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_emp-22\",\""
     },
     {
       "section": "crud:ncrs",
       "check": "sequence number",
       "ok": true,
-      "detail": "NCR-0018"
+      "detail": "NCR-0027"
     },
     {
       "section": "crud:ncrs",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 ncrs vs QA9E38C6 ncrs"
+      "detail": "QA301A5C ncrs vs QA301A5C ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4516,7 +4524,7 @@
       "section": "crud:ncrs",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED ncrs\",\"number\":\"NCR-0018\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_e"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED ncrs\",\"number\":\"NCR-0027\",\"status\":\"OPEN\",\"category\":\"Workmanship\",\"raisedBy\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_e"
     },
     {
       "section": "crud:ncrs",
@@ -4528,7 +4536,7 @@
       "section": "crud:ncrs",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED ncrs"
+      "detail": "QA301A5C UPDATED ncrs"
     },
     {
       "section": "crud:ncrs",
@@ -4606,19 +4614,19 @@
       "section": "crud:itps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0018\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"projectId\":\"5eb"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0027\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"projectId\":\"5eb"
     },
     {
       "section": "crud:itps",
       "check": "sequence number",
       "ok": true,
-      "detail": "ITP-0018"
+      "detail": "ITP-0027"
     },
     {
       "section": "crud:itps",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 itps vs QA9E38C6 itps"
+      "detail": "QA301A5C itps vs QA301A5C itps"
     },
     {
       "section": "crud:itps",
@@ -4636,19 +4644,19 @@
       "section": "crud:itps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0018\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"project"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED itps\",\"type\":\"Concrete pour\",\"number\":\"ITP-0027\",\"result\":\"PENDING\",\"status\":\"DRAFT\",\"testDate\":\"2026-11-07\",\"project"
     },
     {
       "section": "crud:itps",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('discipline', 'QA9E38C6 discipline'): got QA9E38C6 discipline"
+      "detail": "('discipline', 'QA301A5C discipline'): got QA301A5C discipline"
     },
     {
       "section": "crud:itps",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED itps"
+      "detail": "QA301A5C UPDATED itps"
     },
     {
       "section": "crud:itps",
@@ -4726,19 +4734,19 @@
       "section": "crud:accounts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0034\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_acc-5\",\"st"
+      "detail": "HTTP 201 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C accounts\",\"type\":\"ASSET\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description"
     },
     {
       "section": "crud:accounts",
       "check": "sequence number",
       "ok": true,
-      "detail": "ACC-0034"
+      "detail": "ACC-0044"
     },
     {
       "section": "crud:accounts",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 accounts vs QA9E38C6 accounts"
+      "detail": "QA301A5C accounts vs QA301A5C accounts"
     },
     {
       "section": "crud:accounts",
@@ -4756,19 +4764,19 @@
       "section": "crud:accounts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"code\":\"QA9E38C6 code\",\"name\":\"QA9E38C6 UPDATED accounts\",\"type\":\"ASSET\",\"number\":\"ACC-0034\",\"parent\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_ac"
+      "detail": "HTTP 200 {\"row\":{\"code\":\"QA301A5C code\",\"name\":\"QA301A5C UPDATED accounts\",\"type\":\"ASSET\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"des"
     },
     {
       "section": "crud:accounts",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('code', 'QA9E38C6 code'): got QA9E38C6 code"
+      "detail": "('code', 'QA301A5C code'): got QA301A5C code"
     },
     {
       "section": "crud:accounts",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED accounts"
+      "detail": "QA301A5C UPDATED accounts"
     },
     {
       "section": "crud:accounts",
@@ -4846,19 +4854,19 @@
       "section": "crud:journals",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0022\",\"period\":\"QA9E38C6 period\",\"status\":\"DRAFT\","
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C journals\",\"debit\":200,\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA3"
     },
     {
       "section": "crud:journals",
       "check": "sequence number",
       "ok": true,
-      "detail": "JNL-0022"
+      "detail": "JNL-0032"
     },
     {
       "section": "crud:journals",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 journals vs QA9E38C6 journals"
+      "detail": "QA301A5C journals vs QA301A5C journals"
     },
     {
       "section": "crud:journals",
@@ -4876,7 +4884,7 @@
       "section": "crud:journals",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 UPDATED journals\",\"debit\":123.45,\"credit\":123.45,\"number\":\"JNL-0022\",\"period\":\"QA9E38C6 period\",\"status\":"
+      "detail": "HTTP 200 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C UPDATED journals\",\"debit\":200,\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"descripti"
     },
     {
       "section": "crud:journals",
@@ -4888,7 +4896,7 @@
       "section": "crud:journals",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED journals"
+      "detail": "QA301A5C UPDATED journals"
     },
     {
       "section": "crud:journals",
@@ -4966,19 +4974,19 @@
       "section": "crud:budgets",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 budgets\",\"number\":\"BUD-0025\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QA9E38C6 costCode\",\"committed\":123.45,\"projectI"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C budgets\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"number\":\""
     },
     {
       "section": "crud:budgets",
       "check": "sequence number",
       "ok": true,
-      "detail": "BUD-0025"
+      "detail": "BUD-0035"
     },
     {
       "section": "crud:budgets",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 budgets vs QA9E38C6 budgets"
+      "detail": "QA301A5C budgets vs QA301A5C budgets"
     },
     {
       "section": "crud:budgets",
@@ -4996,19 +5004,19 @@
       "section": "crud:budgets",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED budgets\",\"number\":\"BUD-0025\",\"status\":\"DRAFT\",\"category\":\"Labour\",\"costCode\":\"QA9E38C6 costCode\",\"committed\":123.45,\""
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED budgets\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"n"
     },
     {
       "section": "crud:budgets",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('costCode', 'QA9E38C6 costCode'): got QA9E38C6 costCode"
+      "detail": "('costCode', 'QA301A5C costCode'): got QA301A5C costCode"
     },
     {
       "section": "crud:budgets",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED budgets"
+      "detail": "QA301A5C UPDATED budgets"
     },
     {
       "section": "crud:budgets",
@@ -5086,19 +5094,19 @@
       "section": "crud:arInvoices",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0028\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07\",\"clien"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C arInvoices\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"total\""
     },
     {
       "section": "crud:arInvoices",
       "check": "sequence number",
       "ok": true,
-      "detail": "INV-0028"
+      "detail": "INV-0045"
     },
     {
       "section": "crud:arInvoices",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 arInvoices vs QA9E38C6 arInvoices"
+      "detail": "QA301A5C arInvoices vs QA301A5C arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5116,7 +5124,7 @@
       "section": "crud:arInvoices",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0028\",\"status\":\"DRAFT\",\"vatPct\":123.45,\"dueDate\":\"2026-11-07"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED arInvoices\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}]"
     },
     {
       "section": "crud:arInvoices",
@@ -5128,7 +5136,7 @@
       "section": "crud:arInvoices",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED arInvoices"
+      "detail": "QA301A5C UPDATED arInvoices"
     },
     {
       "section": "crud:arInvoices",
@@ -5206,19 +5214,19 @@
       "section": "crud:paymentApps",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 paymentApps\",\"number\":\"PC-0021\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-8\",\"periodEnd\":\"2026-11"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C paymentApps\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"numbe"
     },
     {
       "section": "crud:paymentApps",
       "check": "sequence number",
       "ok": true,
-      "detail": "PC-0021"
+      "detail": "PC-0034"
     },
     {
       "section": "crud:paymentApps",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 paymentApps vs QA9E38C6 paymentApps"
+      "detail": "QA301A5C paymentApps vs QA301A5C paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5236,7 +5244,7 @@
       "section": "crud:paymentApps",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED paymentApps\",\"number\":\"PC-0021\",\"status\":\"DRAFT\",\"clientId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f30836_cli-8\",\"periodEnd\":"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED paymentApps\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}"
     },
     {
       "section": "crud:paymentApps",
@@ -5248,7 +5256,7 @@
       "section": "crud:paymentApps",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED paymentApps"
+      "detail": "QA301A5C UPDATED paymentApps"
     },
     {
       "section": "crud:paymentApps",
@@ -5326,19 +5334,19 @@
       "section": "crud:apBills",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0026\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026-11-07\","
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C apBills\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"total\":20"
     },
     {
       "section": "crud:apBills",
       "check": "sequence number",
       "ok": true,
-      "detail": "BILL-0026"
+      "detail": "BILL-0036"
     },
     {
       "section": "crud:apBills",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 apBills vs QA9E38C6 apBills"
+      "detail": "QA301A5C apBills vs QA301A5C apBills"
     },
     {
       "section": "crud:apBills",
@@ -5356,19 +5364,19 @@
       "section": "crud:apBills",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED apBills\",\"total\":123.45,\"amount\":123.45,\"number\":\"BILL-0026\",\"status\":\"DRAFT\",\"dueDate\":\"2026-11-07\",\"billDate\":\"2026"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED apBills\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"t"
     },
     {
       "section": "crud:apBills",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('vendorInvoiceNo', 'QA9E38C6 vendorInvoiceNo'): got QA9E38C6 vendorInvoiceNo"
+      "detail": "('vendorInvoiceNo', 'QA301A5C vendorInvoiceNo'): got QA301A5C vendorInvoiceNo"
     },
     {
       "section": "crud:apBills",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED apBills"
+      "detail": "QA301A5C UPDATED apBills"
     },
     {
       "section": "crud:apBills",
@@ -5446,19 +5454,19 @@
       "section": "crud:payments",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0024\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4eff-a36d"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C payments\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\"amount\":"
     },
     {
       "section": "crud:payments",
       "check": "sequence number",
       "ok": true,
-      "detail": "PYM-0024"
+      "detail": "PYM-0034"
     },
     {
       "section": "crud:payments",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 payments vs QA9E38C6 payments"
+      "detail": "QA301A5C payments vs QA301A5C payments"
     },
     {
       "section": "crud:payments",
@@ -5476,7 +5484,7 @@
       "section": "crud:payments",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED payments\",\"amount\":123.45,\"method\":\"Bank transfer\",\"number\":\"PYM-0024\",\"status\":\"PENDING\",\"clientId\":\"5eb6b265-aa92-4"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED payments\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA301A5C itemised work\"}],\""
     },
     {
       "section": "crud:payments",
@@ -5488,7 +5496,7 @@
       "section": "crud:payments",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED payments"
+      "detail": "QA301A5C UPDATED payments"
     },
     {
       "section": "crud:payments",
@@ -5566,19 +5574,19 @@
       "section": "crud:units",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"area\":123.45,\"name\":\"QA9E38C6 units\",\"type\":\"Apartment\",\"block\":\"QA9E38C6 block\",\"buyer\":\"QA9E38C6 buyer\",\"number\":\"UN-0020\",\"status\":\"AVAILA"
+      "detail": "HTTP 201 {\"row\":{\"area\":123.45,\"name\":\"QA301A5C units\",\"type\":\"Apartment\",\"block\":\"QA301A5C block\",\"buyer\":\"QA301A5C buyer\",\"number\":\"UN-0029\",\"status\":\"AVAILA"
     },
     {
       "section": "crud:units",
       "check": "sequence number",
       "ok": true,
-      "detail": "UN-0020"
+      "detail": "UN-0029"
     },
     {
       "section": "crud:units",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 units vs QA9E38C6 units"
+      "detail": "QA301A5C units vs QA301A5C units"
     },
     {
       "section": "crud:units",
@@ -5596,19 +5604,19 @@
       "section": "crud:units",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"area\":123.45,\"name\":\"QA9E38C6 UPDATED units\",\"type\":\"Apartment\",\"block\":\"QA9E38C6 block\",\"buyer\":\"QA9E38C6 buyer\",\"number\":\"UN-0020\",\"status\""
+      "detail": "HTTP 200 {\"row\":{\"area\":123.45,\"name\":\"QA301A5C UPDATED units\",\"type\":\"Apartment\",\"block\":\"QA301A5C block\",\"buyer\":\"QA301A5C buyer\",\"number\":\"UN-0029\",\"status\""
     },
     {
       "section": "crud:units",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('block', 'QA9E38C6 block'): got QA9E38C6 block"
+      "detail": "('block', 'QA301A5C block'): got QA301A5C block"
     },
     {
       "section": "crud:units",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED units"
+      "detail": "QA301A5C UPDATED units"
     },
     {
       "section": "crud:units",
@@ -5686,19 +5694,19 @@
       "section": "crud:rentalContracts",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0016\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-4eff-a36"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0025\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-4eff-a36"
     },
     {
       "section": "crud:rentalContracts",
       "check": "sequence number",
       "ok": true,
-      "detail": "RNT-0016"
+      "detail": "RNT-0025"
     },
     {
       "section": "crud:rentalContracts",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 rentalContracts vs QA9E38C6 rentalContracts"
+      "detail": "QA301A5C rentalContracts vs QA301A5C rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5716,7 +5724,7 @@
       "section": "crud:rentalContracts",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0016\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED rentalContracts\",\"rate\":123.45,\"number\":\"RNT-0025\",\"status\":\"DRAFT\",\"endDate\":\"2026-11-07\",\"clientId\":\"5eb6b265-aa92-"
     },
     {
       "section": "crud:rentalContracts",
@@ -5728,7 +5736,7 @@
       "section": "crud:rentalContracts",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED rentalContracts"
+      "detail": "QA301A5C UPDATED rentalContracts"
     },
     {
       "section": "crud:rentalContracts",
@@ -5806,19 +5814,19 @@
       "section": "crud:commissioning",
       "check": "create",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 commissioning\",\"number\":\"COM-0016\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f308"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C commissioning\",\"number\":\"COM-0025\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a43f2f308"
     },
     {
       "section": "crud:commissioning",
       "check": "sequence number",
       "ok": true,
-      "detail": "COM-0016"
+      "detail": "COM-0025"
     },
     {
       "section": "crud:commissioning",
       "check": "title derived",
       "ok": true,
-      "detail": "QA9E38C6 commissioning vs QA9E38C6 commissioning"
+      "detail": "QA301A5C commissioning vs QA301A5C commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5836,19 +5844,19 @@
       "section": "crud:commissioning",
       "check": "partial update",
       "ok": true,
-      "detail": "HTTP 200 {\"row\":{\"name\":\"QA9E38C6 UPDATED commissioning\",\"number\":\"COM-0016\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a"
+      "detail": "HTTP 200 {\"row\":{\"name\":\"QA301A5C UPDATED commissioning\",\"number\":\"COM-0025\",\"status\":\"PLANNED\",\"status2\":\"NOT_STARTED\",\"projectId\":\"5eb6b265-aa92-4eff-a36d-5a"
     },
     {
       "section": "crud:commissioning",
       "check": "update preserves other fields",
       "ok": true,
-      "detail": "('systemCode', 'QA9E38C6 systemCode'): got QA9E38C6 systemCode"
+      "detail": "('systemCode', 'QA301A5C systemCode'): got QA301A5C systemCode"
     },
     {
       "section": "crud:commissioning",
       "check": "title updated",
       "ok": true,
-      "detail": "QA9E38C6 UPDATED commissioning"
+      "detail": "QA301A5C UPDATED commissioning"
     },
     {
       "section": "crud:commissioning",
@@ -5914,79 +5922,79 @@
       "section": "connectivity",
       "check": "client \u2192 project link",
       "ok": true,
-      "detail": "client=42e40015-44b5-49fe-a579-1017051b6e34 project=b854dc09-be44-470c-b673-b320196eb5a0"
+      "detail": "client=6d654b55-c278-4101-aba3-7b9615c2f123 project=3ce31ca8-19b7-40f8-acfe-90ec0f9102e3"
     },
     {
       "section": "connectivity",
       "check": "create estimates linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 estimates\",\"scope\":\"QA9E38C6 notes for scope\",\"total\":123.45,\"leadId\":\"5eb6b265-aa92-4eff-a36d-"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C estimates\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA30"
     },
     {
       "section": "connectivity",
       "check": "create contracts linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA9E38C6 contracts\",\"value\":123.45,\"number\":\"CTR-0032\",\"status\":\"DRAFT\",\"clientI"
+      "detail": "HTTP 201 {\"row\":{\"kind\":\"Prime contract\",\"name\":\"QA301A5C contracts\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\""
     },
     {
       "section": "connectivity",
       "check": "create arInvoices linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 arInvoices\",\"total\":123.45,\"amount\":123.45,\"number\":\"INV-0031\",\"status\":\"DRAFT\",\"vatPct\":123.45"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C arInvoices\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA3"
     },
     {
       "section": "connectivity",
       "check": "create paymentApps linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 paymentApps\",\"number\":\"PC-0024\",\"status\":\"DRAFT\",\"clientId\":\"42e40015-44b5-49fe-a579-1017051b6e"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C paymentApps\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"QA"
     },
     {
       "section": "connectivity",
       "check": "create rfis linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0043\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA9E38C6 specRef\",\"subject\":\"QA9E38C6 rfis"
+      "detail": "HTTP 201 {\"row\":{\"number\":\"RFI-0055\",\"status\":\"OPEN\",\"dueDate\":\"2026-11-07\",\"specRef\":\"QA301A5C specRef\",\"subject\":\"QA301A5C rfis"
     },
     {
       "section": "connectivity",
       "check": "create submittals linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0037\",\"status\":\"PENDING\",\"package\":\"QA9E38C6 pa"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C submittals\",\"type\":\"Shop drawing\",\"number\":\"SUB-0049\",\"status\":\"PENDING\",\"package\":\"QA301A5C pa"
     },
     {
       "section": "connectivity",
       "check": "create changeOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 changeOrders\",\"amount\":123.45,\"number\":\"CO-0037\",\"reason\":\"Client change\",\"status\":\"DRAFT\",\"pro"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C changeOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":\"Q"
     },
     {
       "section": "connectivity",
       "check": "create dailyLogs linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA9E38C6 dailyLogs\",\"delays\":\"QA9E38C6 notes for delays\",\"number\":\"DL-0055\",\"status\""
+      "detail": "HTTP 201 {\"row\":{\"date\":\"2026-11-07\",\"name\":\"QA301A5C dailyLogs\",\"delays\":\"QA301A5C notes for delays\",\"number\":\"DL-0067\",\"status\""
     },
     {
       "section": "connectivity",
       "check": "create purchaseOrders linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 purchaseOrders\",\"items\":\"QA9E38C6 notes for items\",\"amount\":123.45,\"number\":\"PO-0041\",\"status\":"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C purchaseOrders\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"QA line\",\"unitPrice\":100,\"description\":"
     },
     {
       "section": "connectivity",
       "check": "create timesheets linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 timesheets\",\"notes\":\"QA9E38C6 notes for notes\",\"number\":\"TS-0061\",\"status\":\"DRAFT\",\"weekEnd\":\"2"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C timesheets\",\"notes\":\"QA301A5C notes for notes\",\"number\":\"TS-0073\",\"status\":\"DRAFT\",\"weekEnd\":\"2"
     },
     {
       "section": "connectivity",
       "check": "create incidents linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0022\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\""
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0035\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\""
     },
     {
       "section": "connectivity",
       "check": "create tasks linked to project",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"name\":\"QA9E38C6 tasks\",\"number\":\"TSK-0052\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA9E38C6 wbsCode\",\"duration\":123.4"
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C tasks\",\"number\":\"TSK-0064\",\"status\":\"NOT_STARTED\",\"wbsCode\":\"QA301A5C wbsCode\",\"duration\":123.4"
     },
     {
       "section": "connectivity",
@@ -6182,6 +6190,12 @@
     },
     {
       "section": "gating",
+      "check": "existing data returns after re-enable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "gating",
       "check": "apply essentials pack",
       "ok": true,
       "detail": "HTTP 200"
@@ -6211,6 +6225,474 @@
       "detail": ""
     },
     {
+      "section": "strict",
+      "check": "start from full pack",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "strict",
+      "check": "strict QA client and project available",
+      "ok": true,
+      "detail": "client=b8df4f59-cad8-4619-9e05-18ee65933446 project=b74558b1-0e52-40e3-b5fd-654a885b307e"
+    },
+    {
+      "section": "strict",
+      "check": "strict QA incident available",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C incidents\",\"type\":\"NEAR_MISS\",\"number\":\"INC-0036\",\"status\":\"REPORTED\",\"dateTime\":\"2026-11-07\",\""
+    },
+    {
+      "section": "strict",
+      "check": "default meta hides disabled module",
+      "ok": true,
+      "detail": "['dashboard', 'company', 'crm', 'pipeline', 'estimating', 'projects', 'scheduling', 'contracts', 'projectComms', 'documents', 'fieldOps', 'closeout', 'procurement', 'vendors', 'inventory', 'equipment', 'hr', 'time', 'leave', 'payroll', 'competency', 'quality', 'finance', 'wallets', 'billing', 'jobCo"
+    },
+    {
+      "section": "strict",
+      "check": "default meta hides disabled resource",
+      "ok": true,
+      "detail": "['clients', 'contacts', 'leads', 'estimates', 'bids', 'projects', 'tasks', 'contracts', 'changeOrders', 'rfis', 'submittals', 'documents', 'dailyLogs', 'meetings', 'punchLists', 'permits', 'vendors', 'subcontractors', 'requisitions', 'purchaseOrders', 'goodsReceipts', 'inventory', 'warehouses', 'equ"
+    },
+    {
+      "section": "strict",
+      "check": "settings meta keeps full module list",
+      "ok": true,
+      "detail": "['dashboard', 'company', 'crm', 'pipeline', 'estimating', 'projects', 'scheduling', 'contracts', 'projectComms', 'documents', 'fieldOps', 'closeout', 'procurement', 'vendors', 'inventory', 'equipment', 'hr', 'time', 'leave', 'payroll', 'competency', 'safety', 'quality', 'finance', 'wallets', 'billin"
+    },
+    {
+      "section": "strict",
+      "check": "settings page remains reachable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct resource URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "refs dropdown API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "PDF API blocked for disabled resource",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "global search hides disabled resource",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "overview counts hide disabled resource",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled detail API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled comments API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled bulk API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled CSV API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled related API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "disabled files API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "project 360 API hides disabled records",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "re-enabled resource detail visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "re-enabled record appears in global search",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct wallets URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "wallets API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "overview hides wallet cards",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "section": "strict",
+      "check": "overview zeroes wallet KPI",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "default meta hides wallets module",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "wallets restored",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct library URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "library API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "files API blocked for disabled documents",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct reports URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct dashboard URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct documentation URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct projects URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "direct project 360 URL blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "project 360 API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "projects records API blocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "global search hides projects",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "strict",
+      "check": "project 360 restored",
+      "ok": true,
+      "detail": "project=b74558b1-0e52-40e3-b5fd-654a885b307e HTTP 200"
+    },
+    {
+      "section": "strict",
+      "check": "full pack restored",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "finance",
+      "check": "company branding saved",
+      "ok": true,
+      "detail": "{\"ok\":true,\"company\":{\"displayName\":\"Kestrel Ridge QA Documents\",\"legalName\":\"Kestrel Ridge Construction (Pvt) Ltd\",\"registrationNo\":\"2014/089321/07\","
+    },
+    {
+      "section": "finance",
+      "check": "meta exposes company profile",
+      "ok": true,
+      "detail": "{'displayName': 'Kestrel Ridge QA Documents', 'legalName': 'Kestrel Ridge Construction (Pvt) Ltd', 'registrationNo': '2014/089321/07', 'taxNo': 'VAT-QA-2001', 'address': '12 Borrowdale Road, Harare, Zimbabwe', 'email': 'accounts@kestrelridge.co.zw', 'phone': '+263 242 000 000', 'website': 'www.kestr"
+    },
+    {
+      "section": "finance",
+      "check": "default meta also exposes company profile",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "estimate with line items created",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C estimates\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"Grade S355 steel\",\"unitPrice\":100,\"description\":\"Supply and install roof t"
+    },
+    {
+      "section": "finance",
+      "check": "lines persist",
+      "ok": true,
+      "detail": "[{'qty': 2, 'total': 200, 'detail': 'Grade S355 steel', 'unitPrice': 100, 'description': 'Supply and install roof trusses'}]"
+    },
+    {
+      "section": "finance",
+      "check": "estimate total derived from lines + markup",
+      "ok": true,
+      "detail": "220"
+    },
+    {
+      "section": "finance",
+      "check": "estimate PDF renders",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "section": "finance",
+      "check": "PDF uses tenant company name",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF has MYLA footer only",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF has no example branding",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF embeds uploaded logo",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows payment notice",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows itemised table",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows banking details",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows warranty",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows signature",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "PDF shows tenant VAT number",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "section": "finance",
+      "check": "invoice with line items created",
+      "ok": true,
+      "detail": "HTTP 201 {\"row\":{\"name\":\"QA301A5C arInvoices\",\"items\":[{\"qty\":2,\"total\":200,\"detail\":\"Grade S355 steel\",\"unitPrice\":100,\"description\":\"Supply and install roof "
+    },
+    {
+      "section": "finance",
+      "check": "invoice net derived from lines",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "section": "finance",
+      "check": "invoice VAT derived from lines",
+      "ok": true,
+      "detail": "30"
+    },
+    {
+      "section": "finance",
+      "check": "invoice total derived from lines",
+      "ok": true,
+      "detail": "230"
+    },
+    {
+      "section": "finance",
+      "check": "estimates formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5413"
+    },
+    {
+      "section": "finance",
+      "check": "bids formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5211"
+    },
+    {
+      "section": "finance",
+      "check": "contracts formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5494"
+    },
+    {
+      "section": "finance",
+      "check": "changeOrders formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5503"
+    },
+    {
+      "section": "finance",
+      "check": "requisitions formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5166"
+    },
+    {
+      "section": "finance",
+      "check": "purchaseOrders formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5205"
+    },
+    {
+      "section": "finance",
+      "check": "goodsReceipts formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5409"
+    },
+    {
+      "section": "finance",
+      "check": "budgets formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5125"
+    },
+    {
+      "section": "finance",
+      "check": "journals formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5206"
+    },
+    {
+      "section": "finance",
+      "check": "expenses formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5323"
+    },
+    {
+      "section": "finance",
+      "check": "payRuns formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=4939"
+    },
+    {
+      "section": "finance",
+      "check": "accounts formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=4975"
+    },
+    {
+      "section": "finance",
+      "check": "arInvoices formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5427"
+    },
+    {
+      "section": "finance",
+      "check": "paymentApps formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5322"
+    },
+    {
+      "section": "finance",
+      "check": "apBills formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5388"
+    },
+    {
+      "section": "finance",
+      "check": "payments formal PDF",
+      "ok": true,
+      "detail": "HTTP 200 bytes=5239"
+    },
+    {
+      "section": "finance",
+      "check": "company branding restored exactly",
+      "ok": true,
+      "detail": "{\"ok\":true,\"company\":{\"displayName\":\"Kestrel Ridge Construction & Industrial Group\",\"legalName\":\"Kestrel Ridge Construct"
+    },
+    {
       "section": "isolation",
       "check": "unknown org rejected",
       "ok": true,
@@ -6232,7 +6714,7 @@
       "section": "wallet",
       "check": "seeded demo wallets have activity",
       "ok": true,
-      "detail": "{'clientCount': 9, 'fundedWallets': 6, 'totalBalance': 11000000, 'baseCurrency': 'USD', 'totalToppedUp': 16455000, 'totalAllocated': 5451250, 'fundedProjects': 4}"
+      "detail": "{'clientCount': 9, 'fundedWallets': 6, 'totalBalance': 11000000, 'baseCurrency': 'USD', 'totalToppedUp': 16462000, 'totalAllocated': 5453000, 'fundedProjects': 4}"
     },
     {
       "section": "wallet",
@@ -6268,13 +6750,13 @@
       "section": "wallet",
       "check": "admin top-up",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"dcca06b9-e822-4a4f-bed6-1ca11916b3e3\",\"kind\":\"TOPUP\",\"note\":\"QA top-up"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"f580b52a-f6a7-4660-97ad-a8937bad961f\",\"kind\":\"TOPUP\",\"note\":\"QA top-up"
     },
     {
       "section": "wallet",
       "check": "top-up writes TOPUP ledger entry",
       "ok": true,
-      "detail": "dcca06b9-e822-4a4f-bed6-1ca11916b3e3"
+      "detail": "f580b52a-f6a7-4660-97ad-a8937bad961f"
     },
     {
       "section": "wallet",
@@ -6352,7 +6834,7 @@
       "section": "wallet",
       "check": "wallet funds own project",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950750,\"transaction\":{\"id\":\"41449558-7991-4a10-b01f-bd563fa881a0\",\"kind\":\"ALLOCATION\",\"note\":\"QA9E"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950750,\"transaction\":{\"id\":\"957dde5a-cb31-422e-bcfc-28030e696b3e\",\"kind\":\"ALLOCATION\",\"note\":\"QA30"
     },
     {
       "section": "wallet",
@@ -6400,7 +6882,7 @@
       "section": "wallet",
       "check": "reversal credits wallet",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"835c6c41-1618-4188-b3d9-ad0e6db669b2\",\"kind\":\"REVERSAL\",\"note\":\"QA rev"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2951000,\"transaction\":{\"id\":\"1bd84353-0e18-4a2c-af97-2eae4cbf4a22\",\"kind\":\"REVERSAL\",\"note\":\"QA rev"
     },
     {
       "section": "wallet",
@@ -6418,7 +6900,7 @@
       "section": "wallet",
       "check": "top-up reversal restores starting balance",
       "ok": true,
-      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950000,\"transaction\":{\"id\":\"c09826d3-f266-4e54-a345-ce772efc70df\",\"kind\":\"REVERSAL\",\"note\":\"Revers"
+      "detail": "HTTP 201 {\"ok\":true,\"balance\":2950000,\"transaction\":{\"id\":\"00d6041f-a6d4-4523-ab2a-443f6dd7f8cd\",\"kind\":\"REVERSAL\",\"note\":\"Revers"
     },
     {
       "section": "wallet",
@@ -6550,7 +7032,7 @@
       "section": "roles",
       "check": "ADMIN create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 ADMIN\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"numbe"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C ADMIN\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"numbe"
     },
     {
       "section": "roles",
@@ -6598,7 +7080,7 @@
       "section": "roles",
       "check": "PROJECT_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 PROJECT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C PROJECT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
     },
     {
       "section": "roles",
@@ -6646,7 +7128,7 @@
       "section": "roles",
       "check": "SITE_ENGINEER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 SITE_ENGINEER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C SITE_ENGINEER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
     },
     {
       "section": "roles",
@@ -6694,7 +7176,7 @@
       "section": "roles",
       "check": "FINANCE_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 FINANCE_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C FINANCE_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":n"
     },
     {
       "section": "roles",
@@ -6742,7 +7224,7 @@
       "section": "roles",
       "check": "ACCOUNTANT create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 ACCOUNTANT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C ACCOUNTANT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
     },
     {
       "section": "roles",
@@ -6790,7 +7272,7 @@
       "section": "roles",
       "check": "HR_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 HR_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C HR_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\""
     },
     {
       "section": "roles",
@@ -6838,7 +7320,7 @@
       "section": "roles",
       "check": "PROCUREMENT create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 PROCUREMENT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C PROCUREMENT\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,"
     },
     {
       "section": "roles",
@@ -6886,7 +7368,7 @@
       "section": "roles",
       "check": "SAFETY_OFFICER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 SAFETY_OFFICER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nu"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C SAFETY_OFFICER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nu"
     },
     {
       "section": "roles",
@@ -6934,7 +7416,7 @@
       "section": "roles",
       "check": "PLANT_MANAGER create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 PLANT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C PLANT_MANAGER\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":nul"
     },
     {
       "section": "roles",
@@ -6982,7 +7464,7 @@
       "section": "roles",
       "check": "ESTIMATOR create clients allowed",
       "ok": true,
-      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA9E38C6 ESTIMATOR\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"n"
+      "detail": "HTTP 201 {\"row\":{\"city\":null,\"name\":\"QA301A5C ESTIMATOR\",\"tags\":null,\"type\":null,\"email\":null,\"phone\":null,\"n"
     },
     {
       "section": "roles",
@@ -7258,19 +7740,19 @@
       "section": "tenants",
       "check": "second workspace registration",
       "ok": true,
-      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-4\",\"onboarded\":false}"
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-7\",\"onboarded\":false}"
     },
     {
       "section": "tenants",
       "check": "second workspace onboarding",
       "ok": true,
-      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-4\",\"config\":{\"modules\":[\"dashboard\",\"company\",\"crm\",\"pipeline\",\"estimating\",\"projec"
+      "detail": "HTTP 200 {\"ok\":true,\"slug\":\"qa-other-builders-7\",\"config\":{\"modules\":[\"dashboard\",\"company\",\"crm\",\"pipeline\",\"estimating\",\"projec"
     },
     {
       "section": "tenants",
       "check": "second workspace has its own slug",
       "ok": true,
-      "detail": "qa-other-builders-4"
+      "detail": "qa-other-builders-7"
     },
     {
       "section": "tenants",

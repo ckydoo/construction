@@ -7,6 +7,7 @@ import { fetchAll } from '@/lib/fetch';
 import { auditView, notificationView } from '@/lib/views';
 import { isExternal } from '@/lib/catalog';
 import { normaliseCurrencyConfig, sumInBase, currencyBreakdown, toBase, hasRate } from '@/lib/currency';
+import { moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 
 const BASE = new Date('2026-11-07T09:00:00Z');
 const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
@@ -17,6 +18,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const scope = await buildScope(a);
   const visible = visibleResources(a);
   const cfg = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
+  const modOn = (id: string) => moduleEnabled(a.config, id);
+  const walletsOn = modOn('wallets');
   const ids = ['projects', 'clients', 'employees', 'equipment', 'rfis', 'changeOrders', 'incidents', 'certifications', 'inventory', 'timesheets', 'arInvoices', 'apBills', 'payments', 'paymentApps', 'budgets', 'purchaseOrders', 'leads', 'tasks', 'punchLists', 'toolboxTalks', 'inspections'].filter(r => visible.includes(r));
   const data: Record<string, any[]> = {};
   await Promise.all(ids.map(async r => { data[r] = await rowsForScoped(a, scope, r); }));
@@ -25,20 +28,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     isExternal(a.role) ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(12),
     isExternal(a.role) ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(10),
     scope.kind ? Promise.resolve({}) : countsByResource(a.orgId),
-    fetchAll('wallets', q => {
+    walletsOn ? fetchAll('wallets', q => {
       let x = q.eq('organization_id', a.orgId);
       if (scope.kind === 'client') x = x.eq('client_id', scope.entityId!);
       else if (scope.kind === 'staff' && scope.clientIds.length) x = x.in('client_id', scope.clientIds);
       else if (scope.kind) x = x.eq('client_id', '__no_visible_wallet__');
       return x;
-    }),
-    fetchAll('wallet_transactions', q => {
+    }) : Promise.resolve([]),
+    walletsOn ? fetchAll('wallet_transactions', q => {
       let x = q.eq('organization_id', a.orgId);
       if (scope.kind === 'client') x = x.eq('client_id', scope.entityId!);
       else if (scope.kind === 'staff' && scope.clientIds.length) x = x.in('client_id', scope.clientIds);
       else if (scope.kind) x = x.eq('client_id', '__no_visible_wallet__');
       return x;
-    }, 'id,client_id,wallet_id,project_id,kind,amount_cents,currency,reversed_at,created_at'),
+    }, 'id,client_id,wallet_id,project_id,kind,amount_cents,currency,reversed_at,created_at') : Promise.resolve([]),
   ]);
   const counts = scope.kind
     ? Object.fromEntries(ids.map(r => [r, (data[r] || []).length]))
@@ -92,7 +95,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   if (overdueInv.length) push('Receivables', `${overdueInv.length} overdue client invoices`, 'Follow up with client accounts', '/m/arInvoices', 'red');
   const lowWallets = walletCards.filter(w => w.balance > 0 && w.balance < 250000);
   if (lowWallets.length) push('Wallets', `${lowWallets.length} client wallets running low`, 'Request a top-up before the next certificate', '/wallets', 'amber');
-  if (!attention.length) push('All clear', 'Nothing needs your attention', 'Your workspace is up to date', '/dashboard', 'green');
+  const visibleAttention = attention.filter(x => hrefVisible(x.href, a.config));
+  if (!visibleAttention.length) push('All clear', 'Nothing needs your attention', 'Your workspace is up to date', '/dashboard', 'green');
+  else attention.splice(0, attention.length, ...visibleAttention);
 
   const moneyOf = (r: any) => r.total ?? r.contractValue ?? r.budget ?? r.amount ?? r.netCertified ?? r.actualToDate ?? r.balance ?? 0;
   const fxRows = [
@@ -131,10 +136,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     revenueSeries, costBreakdown: Object.entries(budgetCats).map(([label, value]) => ({ label, value })).sort((x, y) => y.value - x.value).slice(0, 6),
     attention,
     notifications: (notifications.data || [])
-      .filter((n: any) => !scope.kind || !n.user_id || n.user_id === a.userId)
+      .filter((n: any) => (!scope.kind || !n.user_id || n.user_id === a.userId) && hrefVisible(n.href, a.config))
       .map(notificationView),
     audit: (audit.data || [])
-      .filter((x: any) => !scope.kind || x.user_id === a.userId)
+      .filter((x: any) => (!scope.kind || x.user_id === a.userId) && auditResourceVisible(x.resource, a.config))
       .map(auditView),
     counts, currency: cfg.base, fx,
   });

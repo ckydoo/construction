@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T08:55:31.777Z",
+  "generatedAt": "2026-11-10T13:33:13.582Z",
   "base": "http://127.0.0.1:3000",
   "org": "kestrel-ridge",
   "passed": 16,
@@ -12,7 +12,7 @@
     {
       "name": "owner sees the whole company",
       "ok": true,
-      "detail": "5 jobs · 9 wallets · 7 users"
+      "detail": "5 jobs · 10 wallets · 7 users"
     },
     {
       "name": "internal staff see fewer jobs and fewer wallets than owner",
@@ -67,7 +67,7 @@
     {
       "name": "nested custom folder, upload, revision chain and owning record",
       "ok": true,
-      "detail": "QA Structural agdexx · Rev A/B · DOC-0028"
+      "detail": "QA Structural aqar6r · Rev A/B · DOC-0055"
     },
     {
       "name": "moving a document keeps every revision in the new folder",

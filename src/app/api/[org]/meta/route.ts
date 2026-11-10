@@ -3,13 +3,18 @@ import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { MODULES, ROLES, COMPANY_TYPES, COMPANY_SIZES, permissionsFor, isExternal } from '@/lib/catalog';
 import { RESOURCES } from '@/lib/resources';
+import { normaliseCompanyProfile } from '@/lib/company';
+import { visibleModuleDefs, auditResourceVisible, hrefVisible } from '@/lib/module-visibility';
 import { countsByResource } from '@/lib/queries';
 import { visibleResources, buildScope, rowAllowed } from '@/lib/access';
 import { fetchAll } from '@/lib/fetch';
 import { auditView, notificationView } from '@/lib/views';
 
-export async function GET(_req: Request, { params }: { params: Promise<{ org: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
+  // Settings is the single deliberate exception to strict module hiding: its
+  // own request asks for the complete catalogue so disabled items can be re-enabled.
+  const settingsScope = new URL(req.url).searchParams.get('scope') === 'settings';
   const a = await apiAuth(org);
   if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const external = isExternal(a.role);
@@ -17,6 +22,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const restricted = !!scope.kind;
   const full = !restricted;
   const visible = visibleResources(a);
+  const readableDefs = RESOURCES.filter(r => visible.includes(r.id));
+  const exposedModules = settingsScope ? MODULES : visibleModuleDefs(a.config);
+  const exposedResources = settingsScope ? RESOURCES : readableDefs;
   const sb = await supabase();
 
   // Staff and portal accounts see themselves in the team list; only owners and
@@ -77,8 +85,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     org: { id: a.orgId, name: a.orgName, slug: a.orgSlug, legalName: a.org.legalName, regNumber: a.org.regNumber,
       country: a.org.country, baseCurrency: a.org.baseCurrency, companyType: a.org.companyType, size: a.org.size,
       headcount: a.org.headcount, plan: a.config.plan, limits: a.config.limits,
-      currency: a.config.currency || null },
-    config: a.config, modules: MODULES, resources: RESOURCES, roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
+      currency: a.config.currency || null, company: normaliseCompanyProfile(a.config.company, a.org) },
+    config: a.config, modules: exposedModules, resources: exposedResources,
+    roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
     user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor },
@@ -88,12 +97,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     employees: (employeeRecs.data || []).map(e => ({ id: e.id, label: e.title || e.number || e.id })),
     entityId: a.entityId,
     notifications: (notifications.data || [])
-      .filter((n: any) => !restricted || !n.user_id || n.user_id === a.userId)
+      .filter((n: any) => (!restricted || !n.user_id || n.user_id === a.userId) && hrefVisible(n.href, a.config))
       .map(notificationView),
     audit: (audit.data || [])
-      .filter((x: any) => full || x.user_id === a.userId)
+      .filter((x: any) => (full || x.user_id === a.userId) && auditResourceVisible(x.resource, a.config))
       .map(auditView),
     counts: visibleCounts,
     scope: { kind: scope.kind, projectIds: scope.projectIds, departments: scope.departments, staffEmployeeId: scope.entityId },
-  });
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }

@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { canRead, canWrite, canCapability, ROLES } from '@/lib/catalog';
+import { moduleEnabled, resourceFullyEnabled, hrefVisible } from '@/lib/module-visibility';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
 import Logo from './Logo';
@@ -19,11 +20,11 @@ type Meta = {
 };
 
 const SPECIAL = [
-  { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard' },
-  { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation' },
-  { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents' },
+  { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard', module:'dashboard' },
+  { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation', module:'dashboard' },
+  { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents', resource:'documents' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
-  { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports' },
+  { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports', module:'reports' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
@@ -51,12 +52,13 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     const groups:Record<string,any[]>={};
     const role=meta.role||'ADMIN';
     for(const s of SPECIAL){
-      if((s as any).module && !meta.config.modules.includes((s as any).module)) continue;
+      if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
+      if((s as any).resource && !resourceFullyEnabled(meta.config,(s as any).resource)) continue;
       if((s as any).cap && !canCapability(role,(s as any).cap)) continue;
       (groups[s.group] ||= []).push({...s});
     }
     for(const r of meta.resources){
-      if(!meta.config.resources.includes(r.id)) continue;
+      if(!resourceFullyEnabled(meta.config,r.id)) continue;
       if(!canRead(role,r.id)) continue;
       (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,group:r.group});
     }
@@ -64,7 +66,8 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     return order.filter(g=>groups[g]?.length).map(g=>({group:g,items:groups[g]}));
   },[meta]);
   const { data:search } = useQuery<any>({ queryKey:['search',orgSlug,pq], queryFn:()=>apiGet(orgApi(orgSlug,`search?q=${encodeURIComponent(pq)}`)), enabled:palette&&pq.trim().length>=2 });
-  const unread=(meta?.notifications||[]).filter(n=>!n.read).length;
+  const searchResults=((search?.results||[]) as any[]).filter(r=>resourceFullyEnabled(meta?.config||{modules:[],resources:[]},r.resource)&&hrefVisible(r.href,meta?.config||{modules:[],resources:[]}));
+  const unread=(meta?.notifications||[]).filter(n=>!n.read&&hrefVisible(n.href,meta?.config||{modules:[],resources:[]})).length;
   const pageTitle=useMemo(()=>{
     const seg=pathname.split('/').filter(Boolean);
     if(seg.length<=2) return SPECIAL_TITLES[seg[1]||''] || 'Dashboard';
@@ -116,7 +119,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="relative">
           <button aria-label="Quick create" className="btn-ghost btn-icon" onClick={()=>setQuickOpen(v=>!v)} title="Quick create"><Lucide.Plus size={19}/></button>
           {quickOpen&&<div className="panel absolute right-0 top-10 z-30 w-60 p-2"><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Quick create</p>
-            {QUICK_CREATE.filter(id=>canWrite(meta?.role||'ADMIN',id)).map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-md px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
+            {QUICK_CREATE.filter(id=>resourceFullyEnabled(meta?.config||{modules:[],resources:[]},id)&&canWrite(meta?.role||'ADMIN',id)).map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-md px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
           </div>}
         </div>
         <button aria-label="Toggle dark mode" className="btn-ghost btn-icon" onClick={toggleTheme} title="Toggle theme"><Icon name={dark?'Sun':'Moon'} size={18}/></button>
@@ -140,7 +143,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">{children}</main>
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex h-12 items-center justify-around border-t divider bg-white dark:bg-ink-900 lg:hidden">
-        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets'},{h:'/wallets',i:'CreditCard',l:'Wallets',c:'wallet.read'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view'}].filter(x=>!(x as any).r||canRead(meta?.role||'ADMIN',(x as any).r)).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
+        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view'}].filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
       </nav>
       <div className="h-12 lg:hidden"/>
     </div>
@@ -151,7 +154,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="flex items-center gap-3 border-b divider px-4 py-3"><Lucide.Search size={18} className="text-slate-400"/><input autoFocus value={pq} onChange={e=>setPq(e.target.value)} placeholder="Search jobs, clients, invoices, site queries…" className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"/><kbd className="rounded border divider px-1.5 py-0.5 text-[10px] muted">ESC</kbd></div>
         <div className="max-h-[55vh] overflow-y-auto p-2">
           {pq.trim().length<2&&<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Jump to</p>{navGroups.flatMap(g=>g.items).slice(0,9).map((it:any)=><Link key={it.id} href={`/${orgSlug}${it.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 text-[13px] hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={it.icon} size={16} className="text-slate-400"/><span className="flex-1">{it.label}</span><span className="text-[10px] muted">{it.group}</span></Link>)}</>}
-          {pq.trim().length>=2&&<>{!search?<div className="flex justify-center py-8"><Spinner/></div>:search.results.length===0?<p className="py-8 text-center text-xs muted">No records match “{pq}”</p>:<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">{search.results.length} results</p>{search.results.map((r:any)=><Link key={r.id} href={`/${orgSlug}${r.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={meta?.resources.find(x=>x.id===r.resource)?.icon||'FileText'} size={16} className="text-slate-400"/><div className="min-w-0 flex-1"><p className="truncate text-[13px] font-medium">{r.title}</p><p className="text-[11px] muted">{r.resourceLabel} · {r.number}</p></div>{r.status&&<Badge tone="slate">{r.status.replace(/_/g,' ')}</Badge>}</Link>)}</>}</>}
+          {pq.trim().length>=2&&<>{!search?<div className="flex justify-center py-8"><Spinner/></div>:searchResults.length===0?<p className="py-8 text-center text-xs muted">No records match “{pq}”</p>:<><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">{searchResults.length} results</p>{searchResults.map((r:any)=><Link key={r.id} href={`/${orgSlug}${r.href}`} onClick={()=>setPalette(false)} className="flex items-center gap-3 rounded-md px-3 py-2.5 hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name={meta?.resources.find(x=>x.id===r.resource)?.icon||'FileText'} size={16} className="text-slate-400"/><div className="min-w-0 flex-1"><p className="truncate text-[13px] font-medium">{r.title}</p><p className="text-[11px] muted">{r.resourceLabel} · {r.number}</p></div>{r.status&&<Badge tone="slate">{r.status.replace(/_/g,' ')}</Badge>}</Link>)}</>}</>}
         </div>
         <div className="flex items-center justify-between border-t divider bg-slate-50 px-4 py-2 text-[10px] muted dark:bg-ink-950/40"><span>⌘K to toggle · Enter to open</span><span>{meta?.config?.modules.length||0} sections in your workspace</span></div>
       </div>

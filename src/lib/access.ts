@@ -10,6 +10,7 @@
  */
 import type { AuthCtx } from './auth';
 import { canRead, isExternal, isFullAccess, staffDepartments, STAFF_SHARED_RESOURCES } from './catalog';
+import { resourceFullyEnabled } from './module-visibility';
 import { rowsFor } from './queries';
 import { fetchAll } from './fetch';
 import { supabase } from './supabase';
@@ -27,7 +28,7 @@ const dataOf = (raw: any): Record<string, any> => (raw && typeof raw === 'object
 const safe = (s: string) => s.replace(/["\\]/g, '');
 
 export function visibleResources(a: AuthCtx): string[] {
-  return a.config.resources.filter(r => canRead(a.role, r));
+  return a.config.resources.filter(r => resourceFullyEnabled(a.config, r) && canRead(a.role, r));
 }
 
 /** Server-side lookup of the jobs assigned to an internal account. The SQL

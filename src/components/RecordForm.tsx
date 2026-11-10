@@ -4,6 +4,10 @@ import * as Lucide from '@/components/lucide';
 import { RESOURCE_MAP, type ResourceDef, type Field } from '@/lib/resources';
 import { Button, Drawer, Field as FWrap, Icon, Toggle } from './ui';
 import SearchSelect from './SearchSelect';
+import LineItemsEditor from './LineItemsEditor';
+import { visibleFields, type ConfigLike } from '@/lib/module-visibility';
+import { useQuery } from '@tanstack/react-query';
+import { apiGet, orgApi } from '@/lib/client';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
 
@@ -24,22 +28,26 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
 }){
   const [values,setValues]=useState<Record<string,any>>({});
   const [errors,setErrors]=useState<Record<string,string>>({});
+  const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
+  const config:ConfigLike=meta?.config||{modules:[],resources:[]};
+  const fields=useMemo(()=>visibleFields(def,config),[def,meta]);
   useEffect(()=>{ if(open){ setValues(initialValues(def,initial,defaultProjectId)); setErrors({}); } },[open,initial,def,defaultProjectId]);
   useEffect(()=>{ if(serverErrors) setErrors(serverErrors); },[serverErrors]);
   const set=(k:string,v:any)=>{ setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
   const submit=(e:React.FormEvent)=>{
     e.preventDefault();
     const err:Record<string,string>={};
-    for(const f of def.fields) if(f.required && (values[f.key]===undefined||values[f.key]===null||values[f.key]===''||(Array.isArray(values[f.key])&&!values[f.key].length))) err[f.key]=`${f.label} is required`;
+    for(const f of fields) if(f.required && (values[f.key]===undefined||values[f.key]===null||values[f.key]===''||(Array.isArray(values[f.key])&&!values[f.key].length))) err[f.key]=`${f.label} is required`;
     setErrors(err); if(Object.keys(err).length) return;
-    onSubmit(values);
+    const payload=Object.fromEntries(Object.entries(values).filter(([k])=>fields.some(f=>f.key===k)));
+    onSubmit(payload);
   };
   const grouped=useMemo(()=>{
-    const visible=def.fields.filter(f=>!f.readOnly);
-    const basic=visible.filter(f=>!f.wide&&f.type!=='tags');
-    const wide=visible.filter(f=>f.wide||f.type==='tags');
+    const visible=fields.filter(f=>!f.readOnly);
+    const basic=visible.filter(f=>!f.wide&&f.type!=='tags'&&f.type!=='items');
+    const wide=visible.filter(f=>f.wide||f.type==='tags'||f.type==='items');
     return {basic,wide};
-  },[def]);
+  },[fields]);
 
   function control(f:Field){
     const v=values[f.key];
@@ -55,6 +63,8 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
       }
       case 'boolean': return <div className="flex h-9 items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
       case 'tags': return <input className={common} value={Array.isArray(v)?v.join(', '):v??''} onChange={e=>set(f.key,e.target.value)} placeholder="Comma separated tags"/>;
+      case 'items': return <LineItemsEditor value={v} onChange={lines=>set(f.key,lines)}
+        currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
       case 'date': return <input className={common} type="date" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'datetime': return <input className={common} type="datetime-local" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'number': case 'currency': case 'percent': return <div className="relative"><input className={`${common} ${f.type!=='number'?'pl-8':''}`} type="number" step="any" value={v??''} onChange={e=>set(f.key,e.target.value===''?'':Number(e.target.value))} placeholder={f.placeholder||'0'}/>{f.type==='currency'&&<span className="absolute left-3 top-2 text-xs muted">$</span>}{f.type==='percent'&&<span className="absolute right-3 top-2 text-xs muted">%</span>}</div>;

@@ -2,17 +2,18 @@
    workspace module switch and the caller's role — not just the list endpoint. */
 import { NextResponse } from 'next/server';
 import { canRead, canWrite, canDelete, canCapability, type Capability } from './catalog';
+import { moduleEnabled, resourceFullyEnabled } from './module-visibility';
 
 type Config = { resources: string[]; modules?: string[] };
 const deny = (message: string, status = 403) => NextResponse.json({ error: message }, { status });
 
 export function guardResource(config: Config, resource: string) {
-  if (config.resources.includes(resource)) return null;
+  if (resourceFullyEnabled(config, resource)) return null;
   return deny('This module is not enabled for your workspace');
 }
 
 export function guardModule(config: Config, moduleId: string) {
-  if ((config.modules || []).includes(moduleId)) return null;
+  if (moduleEnabled(config, moduleId)) return null;
   return deny('This module is not enabled for your workspace');
 }
 

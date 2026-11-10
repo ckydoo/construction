@@ -6,13 +6,16 @@ import { capabilityGuard } from '@/lib/guard';
 import { RESOURCES } from '@/lib/resources';
 import { walletInvariant } from '@/lib/wallets';
 import { fetchAll } from '@/lib/fetch';
+import { resourceFullyEnabled, moduleEnabled } from '@/lib/module-visibility';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
   const a = await apiAuth(org); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const g = capabilityGuard(a.role, 'integrity'); if (g) return g;
 
-  const defs = RESOURCES.filter(r => a.config.resources.includes(r.id));
+  const defs = RESOURCES.filter(r => resourceFullyEnabled(a.config, r.id));
+  const walletsOn = moduleEnabled(a.config, 'wallets');
+  const projectsOn = resourceFullyEnabled(a.config, 'projects');
   const ids = defs.map(r => r.id);
   const recs = ids.length ? await fetchAll('records', q => q
     .eq('organization_id', a.orgId).is('deleted_at', null).in('resource', ids),
@@ -29,14 +32,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     const def = defs.find(d => d.id === r.resource); if (!def) continue;
     const d = parsed.get(r.id) || {};
     for (const f of def.fields) {
-      if (f.type !== 'ref' || !f.ref || !d[f.key]) continue;
+      if (f.type !== 'ref' || !f.ref || !d[f.key] || !resourceFullyEnabled(a.config, f.ref)) continue;
       checkedRefs++;
       if (!exists(f.ref, String(d[f.key]))) brokenRefs.push({ record: r.id, resource: r.resource, field: f.key, target: f.ref, value: String(d[f.key]).slice(-12) });
     }
-    if (r.project_id) { checkedRefs++; if (!exists('projects', r.project_id)) brokenRefs.push({ record: r.id, resource: r.resource, field: 'projectId', target: 'projects', value: r.project_id.slice(-12) }); }
+    if (r.project_id && projectsOn) { checkedRefs++; if (!exists('projects', r.project_id)) brokenRefs.push({ record: r.id, resource: r.resource, field: 'projectId', target: 'projects', value: r.project_id.slice(-12) }); }
   }
 
-  const [walletMismatches, wallets, txns] = await Promise.all([
+  let walletMismatches: any[] = [], wallets: any[] = [], txns: any[] = [];
+  if (walletsOn) [walletMismatches, wallets, txns] = await Promise.all([
     walletInvariant(a.orgId),
     fetchAll('wallets', q => q.eq('organization_id', a.orgId)),
     fetchAll('wallet_transactions', q => q.eq('organization_id', a.orgId), 'id,wallet_id,client_id,project_id,kind,amount_cents,reversed_at'),
@@ -61,7 +65,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     if (Math.abs(expected - actual) > 0.005) fundingMismatches.push({ projectId: pid, expected, actual });
   }
 
-  const resourceMismatch = defs.flatMap(d => d.module && !a.config.modules.includes(d.module) ? [d.id] : []);
+  const resourceMismatch = defs.flatMap(d => d.module && !moduleEnabled(a.config, d.module) ? [d.id] : []);
   const ok = !brokenRefs.length && !walletMismatches.length && !walletOrphans.length && !fundingMismatches.length && !resourceMismatch.length;
   return NextResponse.json({
     ok, checkedRecords: recs.length, checkedRefs,

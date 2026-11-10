@@ -3,6 +3,7 @@ import { apiAuth } from '@/lib/auth';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
 import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
 import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
+import { normaliseCompanyProfile } from '@/lib/company';
 import { getResource } from '@/lib/resources';
 import { createRecord, logActivity } from '@/lib/records';
 import { writeGuard, capabilityGuard } from '@/lib/guard';
@@ -50,6 +51,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
       await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings', `Set reporting currency to ${nextBase}`);
     }
     return NextResponse.json({ ok: true, org: { name: data.name }, ...(currency ? { currency } : {}) });
+  }
+  if (b.action === 'updateCompany') {
+    const company = normaliseCompanyProfile(b.company, a.org);
+    company.updatedAt = new Date().toISOString();
+    company.updatedBy = a.name;
+    const cfg: WorkspaceConfig = { ...a.config, company };
+    const { error } = await sb.from('organizations').update({ config: cfg }).eq('id', a.orgId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 403 });
+    await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings', 'Updated the company branding and financial-document details');
+    return NextResponse.json({ ok: true, company, message: 'Company document details saved.' });
   }
   if (b.action === 'updateCurrency') {
     const currency = normaliseCurrencyConfig(b.currency, b.baseCurrency || a.org.baseCurrency);

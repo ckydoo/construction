@@ -11,6 +11,7 @@ import { RESOURCE_MAP, RESOURCES } from '@/lib/resources';
 import { buildScope, rowAllowed } from '@/lib/access';
 import { getRecord } from '@/lib/records';
 import { fetchAll } from '@/lib/fetch';
+import { resourceFullyEnabled, moduleEnabled, hrefVisible } from '@/lib/module-visibility';
 
 function linkOr(resource:string, id:string, fields:{ref?:string;key:string}[]){
   const safe=String(id).replace(/["\\]/g,'');
@@ -30,8 +31,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const row = await getRecord(a.orgId, resource, id, scope);
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  const walletsOn = moduleEnabled(a.config, 'wallets');
   const candidates = RESOURCES.filter(r =>
-    a.config.resources.includes(r.id) && canRead(a.role, r.id) &&
+    resourceFullyEnabled(a.config, r.id) && canRead(a.role, r.id) &&
     r.fields.some(f => f.ref === resource || (f.key === 'projectId' && resource === 'projects'))
   );
   const sb = await supabase();
@@ -45,6 +47,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       .limit(scope.kind ? 200 : 12);
     if(error) throw error;
     const items=(linked||[]).filter(r => {
+      if(!hrefVisible(`/m/${target.id}`, a.config)) return false;
       if(!scope.kind) return true;
       return rowAllowed(scope, target.id, { id:r.id, ...(r.data||{}), projectId:r.project_id });
     }).slice(0,12).map(r => ({
@@ -60,7 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
 
   // Wallet ledger is a first-class linked module for clients and projects.
   let wallet: any = null;
-  if (resource === 'clients' || resource === 'projects') {
+  if (walletsOn && (resource === 'clients' || resource === 'projects') && hrefVisible('/wallets', a.config)) {
     const txs = await fetchAll('wallet_transactions', q => q
       .eq('organization_id', a.orgId)
       .eq(resource === 'clients' ? 'client_id' : 'project_id', id),

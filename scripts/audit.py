@@ -8,6 +8,7 @@ against a running server. Usage:
 Creates temporary QA records and soft-deletes them. Does not touch seeded data.
 """
 import argparse
+import io
 import json
 import signal
 import sys
@@ -17,6 +18,10 @@ from collections import defaultdict
 
 import requests
 import requests.sessions
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 from requests.packages.urllib3.util import Timeout as WallClockTimeout
 
 # Lightweight progress log + a hard wall-clock deadline. The live Supabase
@@ -139,6 +144,8 @@ def value_for(field, marker=None):
         return f'{MARK} {key}' if marker is None else marker
     if typ == 'textarea':
         return f'{MARK} notes for {key}'
+    if typ == 'items':
+        return [{'description': f'{MARK} itemised work', 'detail': 'QA line', 'qty': 2, 'unitPrice': 100, 'total': 200}]
     return f'{MARK} {key}'
 
 
@@ -172,6 +179,18 @@ def req(session, method, path, **kw):
             text = str(e)
             def json(self): return {}
         return Fake()
+
+def pdf_text(resp):
+    data = resp.content if hasattr(resp, 'content') else b''
+    if not data:
+        return ''
+    if PdfReader:
+        try:
+            reader = PdfReader(io.BytesIO(data))
+            return '\n'.join((page.extract_text() or '') for page in reader.pages)
+        except Exception:
+            pass
+    return data.decode('latin1', 'ignore')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -207,11 +226,16 @@ for defn in RESOURCES:
 
     # A PATCH with a partial body must not wipe the other fields.
     sentinel = None
+    has_items = any(f['type'] == 'items' for f in defn['fields'])
+    derived_keys = {'amount', 'total', 'value', 'bidValue', 'netCertified', 'estimatedValue',
+                    'originalBudget', 'grossPay', 'debit', 'balance', 'vatAmount'}
     for f in defn['fields']:
         k = f['key']
         if k in (defn['titleKey'], 'status', 'projectId', 'number') or k not in body:
             continue
-        if f['type'] in ('text', 'textarea', 'number', 'currency', 'percent', 'email', 'phone', 'date'):
+        if has_items and k in derived_keys:
+            continue  # structured lines own this total; a partial PATCH must not restore it
+        if f['type'] in ('text', 'textarea', 'number', 'currency', 'percent', 'email', 'phone', 'date', 'items'):
             sentinel = (k, body[k])
             break
     new_title = f'{MARK} UPDATED {rid}'
@@ -381,6 +405,9 @@ if mod:
     rr = req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': mid, 'enabled': True})
     check(sec, 're-enable module', rr.status_code == 200, f'HTTP {rr.status_code}')
     check(sec, 'list works again', req(OWNER, 'GET', f'records/{target_res}?pageSize=3').status_code == 200, '')
+    if existing_id:
+        check(sec, 'existing data returns after re-enable',
+              req(OWNER, 'GET', f'records/{target_res}/{existing_id}').status_code == 200, '')
 
     # Essentials-first pack switch (Settings → Modules)
     rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'essentials'})
@@ -394,6 +421,249 @@ if mod:
     check(sec, 'resource restored', req(OWNER, 'GET', f'records/{target_res}?pageSize=3').status_code == 200, '')
 else:
     check(sec, 'module found for gating test', False, f'no module owns {target_res}')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4b · STRICT MODULE VISIBILITY (UI ROUTES, APIs, SEARCH, REPORTS, PROJECT 360)
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'strict'
+def toggle(mid, enabled):
+    return req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': mid, 'enabled': enabled})
+def org_page(path):
+    try:
+        return OWNER.get(f'{BASE}/{ORG}/{path}', allow_redirects=False, timeout=(5, 20))
+    except Exception as e:
+        class Fake:
+            status_code = 0
+            text = str(e)
+        return Fake()
+def meta_ids(scope=''):
+    suffix = '?scope=settings' if scope == 'settings' else ''
+    try:
+        return req(OWNER, 'GET', f'meta{suffix}').json()
+    except Exception:
+        return {}
+def module_ids(m): return [x['id'] for x in (m.get('modules') or [])]
+def resource_ids(m): return [x['id'] for x in (m.get('resources') or [])]
+
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'full'})
+check(sec, 'start from full pack', rr.status_code == 200, f'HTTP {rr.status_code}')
+
+# Fresh QA fixtures: the CRUD pass cleans up its own records, so strictness
+# checks must not depend on IDs that have already been soft-deleted.
+REF_CACHE.clear()
+strict_cleanup = []
+cl = req(OWNER, 'POST', 'records/clients', json=payload(RMAP['clients']))
+if cl.status_code == 201:
+    client_id = cl.json()['row']['id']
+    strict_cleanup.append(('clients', client_id))
+else:
+    client_id = None
+REF_CACHE['clients'] = client_id
+pr = req(OWNER, 'POST', 'records/projects', json=payload(RMAP['projects'], overrides={'clientId': client_id}))
+if pr.status_code == 201:
+    project_id = pr.json()['row']['id']
+    strict_cleanup.append(('projects', project_id))
+else:
+    project_id = ref_id('projects')
+REF_CACHE['projects'] = project_id
+check(sec, 'strict QA client and project available', bool(client_id and project_id),
+      f'client={client_id} project={project_id}')
+inc = req(OWNER, 'POST', 'records/incidents', json=payload(RMAP['incidents'], overrides={'projectId': project_id}))
+strict_incident_id = inc.json()['row']['id'] if inc.status_code == 201 else None
+if strict_incident_id:
+    strict_cleanup.append(('incidents', strict_incident_id))
+check(sec, 'strict QA incident available', bool(strict_incident_id), f'HTTP {inc.status_code} {inc.text[:120]}')
+
+# A disabled module AND its resources disappear everywhere except Settings.
+toggle('safety', False)
+m = meta_ids()
+ms = meta_ids('settings')
+check(sec, 'default meta hides disabled module', 'safety' not in module_ids(m), module_ids(m))
+check(sec, 'default meta hides disabled resource', 'incidents' not in resource_ids(m), resource_ids(m))
+check(sec, 'settings meta keeps full module list', 'safety' in module_ids(ms), module_ids(ms))
+check(sec, 'settings page remains reachable', org_page('settings').status_code == 200, '')
+check(sec, 'direct resource URL blocked', org_page('m/incidents').status_code == 404, '')
+check(sec, 'refs dropdown API blocked', req(OWNER, 'GET', 'records/incidents?mode=refs').status_code == 403, '')
+check(sec, 'PDF API blocked for disabled resource',
+      req(OWNER, 'GET', f'pdf/incidents/{strict_incident_id or "x"}').status_code == 403, '')
+check(sec, 'global search hides disabled resource',
+      all(r.get('resource') != 'incidents' for r in req(OWNER, 'GET', f'search?q={MARK}').json().get('results', [])), '')
+check(sec, 'overview counts hide disabled resource',
+      'incidents' not in req(OWNER, 'GET', 'overview').json().get('counts', {}), '')
+check(sec, 'disabled detail API blocked',
+      req(OWNER, 'GET', f'records/incidents/{strict_incident_id}').status_code == 403, '')
+check(sec, 'disabled comments API blocked',
+      req(OWNER, 'POST', f'records/incidents/{strict_incident_id}/comments', json={'body': 'blocked'}).status_code == 403, '')
+check(sec, 'disabled bulk API blocked',
+      req(OWNER, 'DELETE', 'records/incidents/bulk', json={'ids': [strict_incident_id]}).status_code == 403, '')
+check(sec, 'disabled CSV API blocked',
+      req(OWNER, 'GET', 'records/incidents?mode=csv').status_code == 403, '')
+check(sec, 'disabled related API blocked',
+      req(OWNER, 'GET', f'records/incidents/{strict_incident_id}/related').status_code == 403, '')
+check(sec, 'disabled files API blocked',
+      req(OWNER, 'GET', 'files?resource=incidents').status_code == 403, '')
+p360 = req(OWNER, 'GET', f'projects/{project_id}').json()
+check(sec, 'project 360 API hides disabled records',
+      'incidents' not in (p360.get('grouped') or {}) and 'incidents' not in (p360.get('defs') or {}), '')
+toggle('safety', True)
+check(sec, 're-enabled resource detail visible',
+      req(OWNER, 'GET', f'records/incidents/{strict_incident_id}').status_code == 200, '')
+check(sec, 're-enabled record appears in global search',
+      any(r.get('resource') == 'incidents' for r in req(OWNER, 'GET', f'search?q={MARK}').json().get('results', [])), '')
+
+# Special pages with no resource of their own are module-gated too.
+toggle('wallets', False)
+check(sec, 'direct wallets URL blocked', org_page('wallets').status_code == 404, '')
+check(sec, 'wallets API blocked', req(OWNER, 'GET', 'wallets').status_code == 403, '')
+ov = req(OWNER, 'GET', 'overview').json()
+check(sec, 'overview hides wallet cards', len(ov.get('wallets', [])) == 0, len(ov.get('wallets', [])))
+check(sec, 'overview zeroes wallet KPI', ov.get('kpis', {}).get('walletBalance') == 0, '')
+check(sec, 'default meta hides wallets module', 'wallets' not in module_ids(meta_ids()), '')
+toggle('wallets', True)
+check(sec, 'wallets restored', req(OWNER, 'GET', 'wallets').status_code == 200, '')
+
+toggle('documents', False)
+check(sec, 'direct library URL blocked', org_page('library').status_code == 404, '')
+check(sec, 'library API blocked', req(OWNER, 'GET', 'library').status_code == 403, '')
+check(sec, 'files API blocked for disabled documents', req(OWNER, 'GET', 'files?resource=documents').status_code == 403, '')
+toggle('documents', True)
+
+toggle('reports', False)
+check(sec, 'direct reports URL blocked', org_page('reports').status_code == 404, '')
+toggle('reports', True)
+toggle('dashboard', False)
+check(sec, 'direct dashboard URL blocked', org_page('dashboard').status_code == 404, '')
+check(sec, 'direct documentation URL blocked', org_page('documentation').status_code == 404, '')
+toggle('dashboard', True)
+
+toggle('projects', False)
+check(sec, 'direct projects URL blocked', org_page('m/projects').status_code == 404, '')
+check(sec, 'direct project 360 URL blocked', org_page(f'projects/{project_id}').status_code == 404, '')
+check(sec, 'project 360 API blocked', req(OWNER, 'GET', f'projects/{project_id}').status_code == 403, '')
+check(sec, 'projects records API blocked', req(OWNER, 'GET', 'records/projects?pageSize=3').status_code == 403, '')
+check(sec, 'global search hides projects',
+      all(r.get('resource') != 'projects' for r in req(OWNER, 'GET', f'search?q={MARK}').json().get('results', [])), '')
+toggle('projects', True)
+check(sec, 'project 360 restored', req(OWNER, 'GET', f'projects/{project_id}').status_code == 200, f'project={project_id} HTTP {req(OWNER, "GET", f"projects/{project_id}").status_code}')
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'full'})
+check(sec, 'full pack restored', rr.status_code == 200, f'HTTP {rr.status_code}')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4c · WHITE-LABEL FINANCIAL DOCUMENTS AND EDITABLE LINE ITEMS
+# ─────────────────────────────────────────────────────────────────────────────
+sec = 'finance'
+original_company = meta_ids('settings').get('org', {}).get('company', {})
+finance_cleanup = []
+
+def financial_payload(rid, overrides=None):
+    defn = RMAP[rid]
+    keys = [f['key'] for f in defn['fields']]
+    out = {}
+    for f in defn['fields']:
+        if f['type'] == 'ref' and f['ref']:
+            val = ref_id(f['ref'])
+            if val:
+                out[f['key']] = val
+    if 'projectId' in keys and project_id:
+        out['projectId'] = project_id
+    if 'clientId' in keys and client_id:
+        out['clientId'] = client_id
+    if overrides:
+        out.update(overrides)
+    return payload(defn, overrides=out)
+
+LOGO_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+company = {
+    'displayName': 'Kestrel Ridge QA Documents', 'legalName': 'Kestrel Ridge Construction (Pvt) Ltd',
+    'registrationNo': '2014/089321/07', 'taxNo': 'VAT-QA-2001', 'address': '12 Borrowdale Road, Harare, Zimbabwe',
+    'email': 'accounts@kestrelridge.co.zw', 'phone': '+263 242 000 000', 'website': 'www.kestrelridge.co.zw',
+    'bankDetails': 'Account: Kestrel Ridge QA · Bank: ZB Bank · Branch: Borrowdale · USD 000-123-456',
+    'quoteIntro': 'We are pleased to submit this formal quotation for the works described below.',
+    'paymentTerms': '70% deposit before commencement; balance within 14 days of practical completion.',
+    'clientMaterials': 'Client to provide site access, water and approved drawings before commencement.',
+    'warrantyDelivery': 'Twelve-month workmanship warranty; delivery subject to site access.',
+    'footerNote': 'Thank you for partnering with Kestrel Ridge.', 'preparedBy': 'Tendai Muchengeti',
+    'depositPct': 70, 'logoDataUrl': 'data:image/png;base64,' + LOGO_PNG,
+}
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'updateCompany', 'company': company})
+check(sec, 'company branding saved', rr.status_code == 200 and rr.json().get('company', {}).get('displayName') == company['displayName'], rr.text[:150])
+meta_company = meta_ids('settings').get('org', {}).get('company', {})
+check(sec, 'meta exposes company profile', meta_company.get('displayName') == company['displayName'] and meta_company.get('logoDataUrl', '').startswith('data:image/png'), meta_company)
+check(sec, 'default meta also exposes company profile', meta_ids().get('org', {}).get('company', {}).get('displayName') == company['displayName'], '')
+
+# Structured lines must derive net/VAT/total while old records remain readable.
+lines = [{'description': 'Supply and install roof trusses', 'detail': 'Grade S355 steel', 'qty': 2, 'unitPrice': 100, 'total': 200}]
+est = req(OWNER, 'POST', 'records/estimates', json=financial_payload('estimates', {
+    'items': lines, 'markup': 10, 'total': 0, 'labourCost': 0,
+}))
+check(sec, 'estimate with line items created', est.status_code == 201, f'HTTP {est.status_code} {est.text[:150]}')
+if est.status_code == 201:
+    erow = est.json()['row']
+    finance_cleanup.append(('estimates', erow['id']))
+    check(sec, 'lines persist', isinstance(erow.get('items'), list) and erow['items'][0]['total'] == 200, erow.get('items'))
+    check(sec, 'estimate total derived from lines + markup', abs(float(erow.get('total', 0)) - 220) < 0.005, erow.get('total'))
+    pdf = req(OWNER, 'GET', f'pdf/estimates/{erow["id"]}')
+    body = pdf.content if hasattr(pdf, 'content') else b''
+    text = pdf_text(pdf)
+    low = text.lower()
+    check(sec, 'estimate PDF renders', pdf.status_code == 200 and pdf.headers.get('Content-Type', '').startswith('application/pdf'), f'HTTP {pdf.status_code}')
+    check(sec, 'PDF uses tenant company name', 'kestrel ridge qa documents' in low, '')
+    check(sec, 'PDF has MYLA footer only', 'generated by myla' in low, '')
+    check(sec, 'PDF has no example branding', 'shell mark' not in low, '')
+    check(sec, 'PDF embeds uploaded logo', b'/Image' in body or b'/XObject' in body, '')
+    check(sec, 'PDF shows payment notice', 'payment notice' in low or 'payment terms' in low, '')
+    check(sec, 'PDF shows itemised table', 'description' in low and 'subtotal' in low, '')
+    check(sec, 'PDF shows banking details', 'banking details' in low or 'zb bank' in low, '')
+    check(sec, 'PDF shows warranty', 'warranty' in low or 'workmanship' in low, '')
+    check(sec, 'PDF shows signature', 'authorised signatory' in low, '')
+    check(sec, 'PDF shows tenant VAT number', 'vat-qa-2001' in low, '')
+
+inv = req(OWNER, 'POST', 'records/arInvoices', json=financial_payload('arInvoices', {
+    'items': lines, 'vatPct': 15, 'amount': 0, 'vatAmount': 0, 'total': 0,
+}))
+check(sec, 'invoice with line items created', inv.status_code == 201, f'HTTP {inv.status_code} {inv.text[:150]}')
+if inv.status_code == 201:
+    irow = inv.json()['row']
+    finance_cleanup.append(('arInvoices', irow['id']))
+    check(sec, 'invoice net derived from lines', abs(float(irow.get('amount', 0)) - 200) < 0.005, irow.get('amount'))
+    check(sec, 'invoice VAT derived from lines', abs(float(irow.get('vatAmount', 0)) - 30) < 0.005, irow.get('vatAmount'))
+    check(sec, 'invoice total derived from lines', abs(float(irow.get('total', 0)) - 230) < 0.005, irow.get('total'))
+
+# Every financial/order document gets the formal layout and stays backwards-readable.
+FINANCIAL_IDS = ['estimates', 'bids', 'contracts', 'changeOrders', 'requisitions', 'purchaseOrders',
+                 'goodsReceipts', 'budgets', 'journals', 'expenses', 'payRuns', 'accounts',
+                 'arInvoices', 'paymentApps', 'apBills', 'payments']
+for rid in FINANCIAL_IDS:
+    rec_id = None
+    body = financial_payload(rid)
+    rr2 = req(OWNER, 'POST', f'records/{rid}', json=body)
+    if rr2.status_code == 201:
+        rec_id = rr2.json()['row']['id']
+    if not rec_id:
+        rr2 = req(OWNER, 'GET', f'records/{rid}?pageSize=1')
+        rows2 = rr2.json().get('rows', []) if rr2.status_code == 200 else []
+        rec_id = rows2[0]['id'] if rows2 else None
+    if not rec_id:
+        check(sec, f'{rid} PDF has a record', False, 'no record available')
+        continue
+    pdf = req(OWNER, 'GET', f'pdf/{rid}/{rec_id}')
+    body = pdf.content if hasattr(pdf, 'content') else b''
+    text = pdf_text(pdf)
+    low = text.lower()
+    check(sec, f'{rid} formal PDF', pdf.status_code == 200 and 'kestrel ridge qa documents' in low and 'generated by myla' in low,
+          f'HTTP {pdf.status_code} bytes={len(body)}')
+    if rr2.status_code == 201:
+        req(OWNER, 'DELETE', f'records/{rid}/{rec_id}')
+
+# Return the tenant to its exact pre-test branding and remove QA fixtures.
+for rid, rec_id in finance_cleanup:
+    req(OWNER, 'DELETE', f'records/{rid}/{rec_id}')
+for rid, rec_id in reversed(strict_cleanup):
+    req(OWNER, 'DELETE', f'records/{rid}/{rec_id}')
+
+# Restore the original company profile (no hard-coded tenant identity in code).
+rr = req(OWNER, 'PATCH', 'settings', json={'action': 'updateCompany', 'company': original_company})
+check(sec, 'company branding restored exactly', rr.status_code == 200, rr.text[:120])
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5 · TENANT ISOLATION

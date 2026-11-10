@@ -6,6 +6,7 @@ import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
 import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
+import { resourceFullyEnabled } from '@/lib/module-visibility';
 import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, ConfirmDialog, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import { date, num, money } from '@/lib/format';
@@ -17,24 +18,29 @@ const CAP_LABELS:Record<string,string> = {
   'users.manage':'Manage people','project360':'See the whole job','integrity':'Check links',
   'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
 };
-const TABS=[{id:'general',label:'General'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
+const TABS=[{id:'general',label:'General'},{id:'branding',label:'Document branding'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
 
 export default function SettingsPage(){
   const {org}=useParams<{org:string}>(); const qc=useQueryClient(); const toast=useToast();
   const [tab,setTab]=useState('general');
-  const {data:meta,isLoading}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
-  const [form,setForm]=useState<any>({}); const [saving,setSaving]=useState(false);
+  const {data:meta,isLoading}:any=useQuery({queryKey:['meta-settings',org],queryFn:()=>apiGet(orgApi(org,'meta?scope=settings'))});
+  const [form,setForm]=useState<any>({}); const [companyForm,setCompanyForm]=useState<any>({}); const [saving,setSaving]=useState(false);
   const [invite,setInvite]=useState<any>({name:'',email:'',role:'VIEWER',entityId:'',staffEmployeeId:''});
   const [type,setType]=useState(''), [size,setSize]=useState(''), [quals,setQuals]=useState<string[]>([]);
   const [confirm,setConfirm]=useState<null|{title:string;desc:string;action:string;body?:any;method?:'PATCH'|'POST'}>(null);
   const [busy,setBusy]=useState(false); const [msg,setMsg]=useState('');
   const [csv,setCsv]=useState(''); const [csvResource,setCsvResource]=useState('clients');
+  const config=meta?.config||{modules:[],resources:[]};
+  const csvDefs=(meta?.resources||[]).filter((r:any)=>resourceFullyEnabled(config,r.id));
   const [currencyForm,setCurrencyForm]=useState<any>(null);
   const [fxExample,setFxExample]=useState('1000');
   useEffect(()=>{ if(meta){
+    const first=(meta.resources||[]).find((r:any)=>resourceFullyEnabled(meta.config,r.id));
+    if(first&&!resourceFullyEnabled(meta.config,csvResource)) setCsvResource(first.id);
     setForm({name:meta.org.name,legalName:meta.org.legalName||'',regNumber:meta.org.regNumber||'',country:meta.org.country,baseCurrency:meta.org.baseCurrency,headcount:meta.org.headcount||''});
     setType(meta.org.companyType||'GENERAL_CONTRACTOR');setSize(meta.org.size||'SMALL');
     setCurrencyForm(normaliseCurrencyConfig(meta.org.currency, meta.org.baseCurrency));
+    setCompanyForm(meta.org.company||{});
   } },[meta]);
   const grouped=useMemo(()=>{const g:Record<string,any[]>={};for(const m of meta?.modules||[])(g[m.group]||=[]).push(m);return g;},[meta]);
   const caps:string[]=meta?.permissions?.capabilities||[];
@@ -44,12 +50,20 @@ export default function SettingsPage(){
 
   async function send(action:string,body:any={},method:'PATCH'|'POST'='PATCH'){
     setBusy(true);setMsg('');
-    try{const r=await apiSend(orgApi(org,'settings'),method,{action,...body});await qc.invalidateQueries({queryKey:['meta',org]});await qc.invalidateQueries({queryKey:['overview',org]});
+    try{const r=await apiSend(orgApi(org,'settings'),method,{action,...body});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]}),qc.invalidateQueries({queryKey:['overview',org]})]);
       toast.push({tone:'success',title:'Settings updated',description:r.message||'Your changes have been saved.'});return r;
     }catch(e:any){toast.push({tone:'error',title:'Could not save',description:e.message});}finally{setBusy(false);setConfirm(null);} }
   async function saveGeneral(e:React.FormEvent){e.preventDefault();setSaving(true);
-    try{await apiSend(orgApi(org,'settings'),'PATCH',{action:'updateOrg',...form});await qc.invalidateQueries({queryKey:['meta',org]});toast.push({tone:'success',title:'Company details saved'});}
+    try{await apiSend(orgApi(org,'settings'),'PATCH',{action:'updateOrg',...form});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]})]);toast.push({tone:'success',title:'Company details saved'});}
     catch(e:any){toast.push({tone:'error',title:'Save failed',description:e.message});}finally{setSaving(false);} }
+  function onLogo(file:File|undefined){
+    if(!file) return;
+    if(!['image/png','image/jpeg'].includes(file.type)){toast.push({tone:'error',title:'Use a PNG or JPG image',description:'Your company logo must be a PNG or JPG file.'});return;}
+    if(file.size>300*1024){toast.push({tone:'error',title:'Logo is too large',description:'Please use a PNG or JPG under 300 KB.'});return;}
+    const reader=new FileReader();
+    reader.onload=()=>setCompanyForm((v:any)=>({...v,logoDataUrl:String(reader.result||'')}));
+    reader.readAsDataURL(file);
+  }
   function parseCsv(text:string){
     const lines=text.trim().split(/\r?\n/).filter(Boolean); if(lines.length<2)return[];
     const heads=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
@@ -72,6 +86,40 @@ export default function SettingsPage(){
         <Field label="Headcount"><input className="input" type="number" value={form.headcount||''} onChange={e=>setForm({...form,headcount:e.target.value})}/></Field>
         <div className="sm:col-span-2"><Button type="submit" variant="primary" loading={saving} icon="Save">Save changes</Button></div>
       </form></Card>}
+
+    {tab==='branding'&&<div className="space-y-4">
+      <Card><CardHead title="Your company on financial documents" subtitle="Quotations, invoices, bills, certificates, receipts and orders use these details and your own logo"/>
+        <form onSubmit={e=>{e.preventDefault();send('updateCompany',{company:companyForm});}} className="space-y-4 p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Company logo" hint="PNG or JPG, under 300 KB. Leave blank to show your initials in a branded badge." wide>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded border divider bg-slate-50 dark:bg-ink-950/40">
+                  {companyForm.logoDataUrl?<img src={companyForm.logoDataUrl} alt="Company logo preview" className="max-h-full max-w-full object-contain"/>:<span className="text-lg font-bold text-brand-700 dark:text-brand-300">{(companyForm.displayName||meta?.org?.name||'CO').split(/\s+/).filter(Boolean).slice(0,2).map((w:string)=>w[0].toUpperCase()).join('')}</span>}
+                </div>
+                <label className="cursor-pointer"><input type="file" accept="image/png,image/jpeg" className="hidden" onChange={e=>onLogo(e.target.files?.[0])}/><span className="inline-flex h-9 items-center rounded-md border divider bg-white px-3 text-xs font-medium dark:bg-ink-900">Upload logo</span></label>
+                {companyForm.logoDataUrl&&<Button type="button" variant="ghost" size="sm" icon="X" onClick={()=>setCompanyForm((v:any)=>({...v,logoDataUrl:''}))}>Remove</Button>}
+              </div>
+            </Field>
+            <Field label="Document display name" hint="Falls back to your trading name when blank"><input className="input" value={companyForm.displayName||''} onChange={e=>setCompanyForm({...companyForm,displayName:e.target.value})} placeholder={meta?.org?.name}/></Field>
+            <Field label="Legal name on documents"><input className="input" value={companyForm.legalName||''} onChange={e=>setCompanyForm({...companyForm,legalName:e.target.value})} placeholder={meta?.org?.legalName||''}/></Field>
+            <Field label="Registration number"><input className="input" value={companyForm.registrationNo||''} onChange={e=>setCompanyForm({...companyForm,registrationNo:e.target.value})} placeholder={meta?.org?.regNumber||''}/></Field>
+            <Field label="VAT / tax number"><input className="input" value={companyForm.taxNo||''} onChange={e=>setCompanyForm({...companyForm,taxNo:e.target.value})}/></Field>
+            <Field label="Website"><input className="input" value={companyForm.website||''} onChange={e=>setCompanyForm({...companyForm,website:e.target.value})}/></Field>
+            <Field label="Postal / physical address" wide><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.address||''} onChange={e=>setCompanyForm({...companyForm,address:e.target.value})} placeholder="Street, city, country"/></Field>
+            <Field label="Email"><input className="input" type="email" value={companyForm.email||''} onChange={e=>setCompanyForm({...companyForm,email:e.target.value})}/></Field>
+            <Field label="Phone"><input className="input" value={companyForm.phone||''} onChange={e=>setCompanyForm({...companyForm,phone:e.target.value})}/></Field>
+            <Field label="Banking details" wide hint="Account name, bank, branch, account number and any reference instruction"><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.bankDetails||''} onChange={e=>setCompanyForm({...companyForm,bankDetails:e.target.value})}/></Field>
+            <Field label="Quotation introduction" wide><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.quoteIntro||''} onChange={e=>setCompanyForm({...companyForm,quoteIntro:e.target.value})}/></Field>
+            <Field label="Payment terms" wide hint="Shown beside deposit and payment instructions"><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.paymentTerms||''} onChange={e=>setCompanyForm({...companyForm,paymentTerms:e.target.value})} placeholder="e.g. 70% deposit before commencement, balance on practical completion"/></Field>
+            <Field label="Default deposit (%)" hint="Quotations show the deposit and balance automatically"><input className="input" type="number" min="0" max="100" step="any" value={companyForm.depositPct??0} onChange={e=>setCompanyForm({...companyForm,depositPct:Number(e.target.value)||0})}/></Field>
+            <Field label="Materials / client responsibilities" wide><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.clientMaterials||''} onChange={e=>setCompanyForm({...companyForm,clientMaterials:e.target.value})}/></Field>
+            <Field label="Warranty & delivery" wide><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.warrantyDelivery||''} onChange={e=>setCompanyForm({...companyForm,warrantyDelivery:e.target.value})}/></Field>
+            <Field label="Prepared / signed by"><input className="input" value={companyForm.preparedBy||''} onChange={e=>setCompanyForm({...companyForm,preparedBy:e.target.value})}/></Field>
+            <Field label="Footer note"><input className="input" value={companyForm.footerNote||''} onChange={e=>setCompanyForm({...companyForm,footerNote:e.target.value})}/></Field>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t divider pt-4"><p className="caption">MYLA appears only as a small “Generated by MYLA” footer. All other branding comes from this workspace.</p><Button type="submit" variant="primary" icon="Save" loading={busy}>Save document branding</Button></div>
+        </form></Card>
+    </div>}
 
     {tab==='currency'&&currencyForm&&<div className="space-y-4">
       <Card><CardHead title="Currencies & exchange rates" subtitle="Records keep the currency they were entered in; reports show totals in your base currency"/>
@@ -156,11 +204,11 @@ export default function SettingsPage(){
         <div className="flex flex-wrap items-center justify-between gap-3 p-5"><p className="max-w-lg text-xs muted">This replaces all existing business records in this workspace with the demo dataset. Perfect for evaluating every screen with live, reconciled data.</p>
           <Button variant="primary" icon="Database" loading={busy} onClick={()=>setConfirm({title:'Replace data with demo dataset?',desc:'All existing records in this workspace will be deleted and replaced with 616 demo records.',action:'seedDemo'})}>Load demo data</Button></div></Card>
       <Card><CardHead title="Import CSV" subtitle="Paste a CSV with a header row (for example name,status,amount)"/>
-        <div className="grid gap-4 p-5 sm:grid-cols-[220px_1fr]"><Field label="Target resource"><select className="select" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{meta.resources.filter((r:any)=>meta.config.resources.includes(r.id)).map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
+        <div className="grid gap-4 p-5 sm:grid-cols-[220px_1fr]"><Field label="Target resource"><select className="select" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{csvDefs.map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
           <Field label="CSV data"><textarea className="input min-h-[100px] font-mono text-xs" value={csv} onChange={e=>setCsv(e.target.value)} placeholder={'name,type,city,status\nNew Client,Private developer,Harare,ACTIVE'}/></Field>
           <div className="sm:col-span-2"><Button variant="primary" icon="Upload" loading={busy} onClick={()=>{const rows=parseCsv(csv);if(!rows.length){toast.push({tone:'error',title:'No rows found',description:'Include a header row and at least one data row.'});return;}send('importCsv',{resource:csvResource,rows},'POST');}}>Import rows</Button></div></div></Card>
       <Card><CardHead title="Export & clear" subtitle="Download any dataset or wipe business records"/>
-        <div className="flex flex-wrap items-center gap-3 p-5"><select className="select w-auto min-w-[200px]" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{meta.resources.filter((r:any)=>meta.config.resources.includes(r.id)).map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
+        <div className="flex flex-wrap items-center gap-3 p-5"><select className="select w-auto min-w-[200px]" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{csvDefs.map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
           <a href={orgApi(org,`records/${csvResource}?mode=csv`)} download><Button icon="Download">Export CSV</Button></a>
           <Button variant="ghost" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:'Clear all business records?',desc:'Every record in this workspace will be deleted. Users, settings and modules are kept.',action:'clearData'})}>Clear all records</Button></div></Card></div>}
 

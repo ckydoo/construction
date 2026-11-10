@@ -5,6 +5,7 @@ import * as Lucide from '@/components/lucide';
 import Link from 'next/link';
 import { RESOURCE_MAP, type ResourceDef, toneFor } from '@/lib/resources';
 import { canWrite, canDelete } from '@/lib/catalog';
+import { resourceFullyEnabled, visibleRefTargets, visibleColumns, visibleFields } from '@/lib/module-visibility';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { money, num, date, ago } from '@/lib/format';
 import { Button, Icon, Badge, StatusPill, Skeleton, TableSkeleton, EmptyState, Card, ConfirmDialog, ProgressBar } from './ui';
@@ -58,9 +59,10 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
 
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const role=meta?.role||'ADMIN';
+  const config=meta?.config||{modules:[],resources:[]};
   const canEdit=canWrite(role,resource), canRemove=canDelete(role);
-  const enabled=!meta||meta.config?.resources?.includes(resource);
-  const refTargets=useMemo(()=>Array.from(new Set(def?.fields.filter(f=>f.type==='ref').map(f=>f.ref!)||[])),[def]);
+  const enabled=!meta||resourceFullyEnabled(config,resource);
+  const refTargets=useMemo(()=>visibleRefTargets(def||({fields:[],columns:[]} as any),config),[def,meta]);
   const {data:refs}=useQuery<RefOptions>({ queryKey:['refs',org,resource], queryFn:async()=>{
     const entries=await Promise.all(refTargets.map(async r=>{ try{const d=await apiGet(orgApi(org,`records/${r}?mode=refs&limit=25`));return [r,d.options];}catch{return [r,[]];} }));
     return Object.fromEntries(entries);
@@ -75,7 +77,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   // Resolve labels for the IDs actually on screen. This keeps large linked
   // registers accurate without loading every option into the browser.
   const rowRefValues=useMemo(()=>{
-    const fields=def?.fields||[];
+    const fields=visibleFields(def||({fields:[],columns:[]} as any),config);
     const out:Record<string,string[]>={};
     for(const target of refTargets){
       const keys=fields.filter(f=>f.type==='ref'&&f.ref===target).map(f=>f.key);
@@ -150,7 +152,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   if(!def) return <Card><EmptyState title="Unknown module" description="This resource is not part of the catalogue."/></Card>;
   if(meta&&!enabled) return <Card><EmptyState icon="Lock" title="Module not enabled" description={`${def.label} is not part of your current workspace. An owner or admin can enable it in Settings → Modules.`} action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Settings">Open settings</Button></Link>}/></Card>;
 
-  const cols=def.columns;
+  const cols=visibleColumns(def,config);
   const numericCols=new Set(cols.filter(c=>{const f=def.fields.find(x=>x.key===c);return f&&['currency','number','percent'].includes(f.type);}));
   const allSelected=rows.length>0&&rows.every(r=>selected.has(r.id));
   const toggleAll=()=>setSelected(s=>{const n=new Set(s);if(allSelected)rows.forEach(r=>n.delete(r.id));else rows.forEach(r=>n.add(r.id));return n;});

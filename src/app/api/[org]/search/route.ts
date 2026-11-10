@@ -3,6 +3,7 @@ import { apiAuth } from '@/lib/auth';
 import { RESOURCE_MAP } from '@/lib/resources';
 import { buildScope, visibleResources, rowAllowed } from '@/lib/access';
 import { supabase } from '@/lib/supabase';
+import { hrefVisible } from '@/lib/module-visibility';
 
 /* The command palette searches on the database, not in Node memory: only the
  * matching page is returned. The trigram-indexed search_text column covers
@@ -32,6 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const results = (recs || []).filter(r => {
+    if (!hrefVisible(`/m/${r.resource}`, a.config)) return false;
     if (!scope.kind) return true;
     return rowAllowed(scope, r.resource, { id:r.id, ...(r.data || {}), projectId:r.project_id });
   }).slice(0, 24).map(r => ({

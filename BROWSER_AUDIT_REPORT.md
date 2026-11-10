@@ -26,7 +26,7 @@
 | wallet drawer shows the reconciled ledger | PASS | ledger entries + running balances visible |
 | UI top-up increases the wallet balance | PASS | 2950000 → 2951000 |
 | UI project funding debits the wallet and writes the ledger | PASS | balance 2950750 · allocation ledger entry visible |
-| wallet reversals restore the opening balance | PASS | 10 QA entries reversed · balance 2950000 |
+| wallet reversals restore the opening balance | PASS | 22 QA entries reversed · balance 2950000 |
 | client detail shows wallet balance and cross-module links | PASS | wallet balance + linked modules in the detail drawer |
 | role matrix and link integrity render in settings | PASS | 14-role matrix + live integrity check |
 | client portal role sees only its own wallet | PASS | 1 scoped wallet, no admin controls |

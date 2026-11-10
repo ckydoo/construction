@@ -35,7 +35,8 @@
     "env:check": "node scripts/check-env.mjs",
     "audit:projects": "node scripts/project-scale-audit.mjs",
     "rbac:staff": "tsx scripts/staff-defs.ts > /tmp/staff-defs.json && python3 scripts/gen-staff-scope.py",
-    "audit:features": "node scripts/feature-audit.mjs"
+    "audit:features": "node scripts/feature-audit.mjs",
+    "audit:finance": "node scripts/finance-module-audit.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

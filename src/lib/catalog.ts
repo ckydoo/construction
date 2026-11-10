@@ -1,5 +1,6 @@
 /* Declarative module catalogue + onboarding derivation engine.
    Single source of truth for sidebar, route guards, seed generation and Settings > Modules. */
+import type { CompanyProfile } from './company';
 
 export const COMPANY_TYPES = [
   { id: 'GENERAL_CONTRACTOR', label: 'Building contractor', desc: 'Houses, shops, offices and general building work', icon: 'Building2' },
@@ -121,6 +122,7 @@ export type WorkspaceConfig = {
     updatedAt?: string | null;
     updatedBy?: string | null;
   };
+  company?: CompanyProfile;
 };
 
 export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
