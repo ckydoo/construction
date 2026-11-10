@@ -11,8 +11,8 @@
 | Branch alias | `https://myla-construction-erp-git-main-codzlabzim53-2563s-projects.vercel.app` |
 | Vercel project | `myla-construction-erp` / `prj_gShJxUcNTwjzIuiwdOhapx1fqskT` |
 | Team | `team_ueIKhxbPy42sX45n7gARWkWq` (Hobby) · region `iad1` |
-| Deployment | `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` · state `READY` · `PROMOTED` · `timeToReady 63.1s` |
-| Source | `git@github.com:ckydoo/construction.git`, branch `main`, commit `c6b39e26e75e6ea387f92b0703dfd4c75b32fa9e` |
+| Deployment | `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` · state `READY` · `PROMOTED` · `timeToReady 66.4s` |
+| Deployment source | `git@github.com:ckydoo/construction.git`, branch `main`, explicit commit `7bc17d0050f809e209356c285eb757bb71cc1378` (docs-only commits may be ahead on `main`) |
 | Framework / runtime | Next.js 15 · Node `26.x` |
 | Install / build | `npm ci` · `npm run build` |
 | Database | Supabase `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS), `eu-west-1` |
@@ -20,6 +20,38 @@
 The build completes in about a minute from the public GitHub commit; no source files are
 re-uploaded manually. The GitHub repo is public, which is why a `git_source` deployment
 works without installing the Vercel GitHub App.
+
+## Current release — row-scoped access, currencies and document library
+
+Production code is commit `7bc17d0` / `7bc17d0050f809e209356c285eb757bb71cc1378`, deployed with an
+explicit Vercel `git_source` SHA as `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`. It is `READY`, `PROMOTED`
+and aliased to **https://myla-construction-erp.vercel.app**. Only Owner/Admin see the whole
+company; other staff see their department plus assigned jobs. Settings manages base and enabled
+currencies with manual rates; dashboards, reports, wallets and job 360 convert into the base
+currency. A new document library provides automatic job folders, nested custom folders, upload,
+search, revisions and links to owning records.
+
+Live Supabase migrations for this release, confirmed in migration history:
+`20261110081729 staff_scope_and_document_folders`, `20261110083636 staff_scope_manager_create`
+and `20261110084902 staff_scope_refinements_v2`. The repository includes the generated
+baseline plus additive refinement files.
+
+Production verification after promotion:
+
+| Check | Result |
+|---|---|
+| `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:features` | **16/16 passed** |
+| `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:projects` | **8/8 passed** |
+| Owner/PM live API smoke | login `200`, meta/overview/wallets/library/integrity/records/search `200` |
+| Row scoping on production | owner 5 jobs / 9 wallets; PM `staff` scope, 2 wallets, 1 visible user |
+| Library isolation on production | hidden job/folder/file denied to PM; direct download `404` |
+| Currency and reporting on production | USD base, FX payload, base-currency wallet summary, project 360 display totals |
+| PDF / CSV on production | PDF `200 application/pdf`, CSV `200` |
+| QA cleanup on production | currency, staff assignment, records, files and folders restored |
+| Current live integrity | `ok:true` · 619 records · 1637 refs · 0 broken refs · 0 wallet mismatches · 9 client wallets · 6 funded wallet rows · 42 ledger entries · $11,000,000 balance |
+
+Evidence: `PRODUCTION_FEATURE_AUDIT_REPORT.md`, `PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md`,
+`screenshots/production-feature-library.png`, `screenshots/production-project-*.png`.
 
 ## Environment variables
 
@@ -53,7 +85,9 @@ never printed in this document):
   gives already-set platform variables precedence over `.env` file values, which the
   production login test confirms.
 
-## Production smoke tests (against the live URL)
+## Initial production smoke tests (historical)
+
+These checks were captured for the earlier visual / plain-language build; the current release's live verification is in **Current release** above.
 
 | Check | Result |
 |---|---|
@@ -93,6 +127,9 @@ never printed in this document):
 | `1aef83b` | `dpl_C4C7kSENehVwMBFEXBNBdgLz71wB` | Rewrote Documentation as a plain-language **business flow** and applied Zimbabwe/African small-contractor terminology across the sidebar, onboarding, dashboard, reports, settings and wallets |
 | `f830ea6` | — | Documentation-only closeout (not deployed) |
 | `c6b39e2` | `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki` | Opened every project as a full detail page with an eighth **Record & files** tab, added server-backed searchable dropdowns, pushed paging/filter/search/count into Postgres, and applied additive search/reference indexes |
+| `567774e` | — | Documentation-only closeout for the project-scale release (not deployed) |
+| `7bc17d0` | `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` | Row-scoped staff access, Settings multi-currency conversion and a dedicated document/drawing library with automatic and custom folders, revisions and scoped files |
+| docs/QA closeout | — | Production QA reports, screenshots and exact deployment verification; documentation/evidence only, not deployed |
 
 The sidebar change was verified on the live URL with a real Chromium session:
 53 nav items, zero numeric badges, zero digits anywhere in the sidebar, no
@@ -137,10 +174,14 @@ project with a GitHub `git_source`:
     "type": "github",
     "repo": "ckydoo/construction",
     "repoId": "1449142341",
-    "ref": "main"
+    "ref": "main",
+    "sha": "<exact-new-code-commit-sha>"
   }
 }
 ```
+
+Use the exact new code commit SHA rather than relying on the branch head. Documentation-only
+commits need no redeploy because they do not change the running application.
 
 Alternatively, install the Vercel GitHub App on the account and connect the repository
 in Project Settings → Git; that enables automatic preview/production deployments. Two
@@ -163,7 +204,7 @@ configuration.
 
 ## Project detail & larger-data release
 
-Commit `c6b39e2` (deployment `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`) is the current production build. Clicking a project row, its **open full page** action, a command-palette result or a `?open=` link now opens `/{org}/projects/{id}` — never the side drawer. The full page gained an eighth **Record & files** tab with all project fields, linked modules, comments, attachments and PDF. All `ref` fields and project filters use a debounced, server-backed combobox. Register lists now page, filter, search, sort and count in Postgres; reverse links and project 360 filter at the database; and additive trigram/reference indexes were applied to Supabase. See `SCALABILITY_RELEASE.md` and `PROJECT_SCALE_AUDIT_REPORT.md`.
+Commit `c6b39e2` (deployment `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`) was the project-scale production build at the time. Clicking a project row, its **open full page** action, a command-palette result or a `?open=` link now opens `/{org}/projects/{id}` — never the side drawer. The full page gained an eighth **Record & files** tab with all project fields, linked modules, comments, attachments and PDF. All `ref` fields and project filters use a debounced, server-backed combobox. Register lists now page, filter, search, sort and count in Postgres; reverse links and project 360 filter at the database; and additive trigram/reference indexes were applied to Supabase. See `SCALABILITY_RELEASE.md` and `PROJECT_SCALE_AUDIT_REPORT.md`.
 
 That build re-ran every gate: `npm run audit` **1211/1211** + **22/22** core, browser **28/28**, design **15/15** across 55 routes, onboarding **10/10** (QA orgs/users `0/0`), dedicated project QA **8/8** locally and **8/8** against the live alias, `env:check` OK, integrity `ok:true` 616 records / 1627 refs / 0 broken refs / 0 wallet mismatches, and a clean `$11,000,000` wallet balance. Production Chromium screenshots are in `screenshots/production-project-*.png`.
 
@@ -176,13 +217,11 @@ That build re-ran every gate: `npm run audit` **1211/1211** + **22/22** core, br
   account-level settings for public signup remains a separate, authorised-later task.
 - No custom domain was added; `myla-construction-erp.vercel.app` is the Vercel-assigned
   production alias.
-- No `vercel.json`, no `TZ` override and no auth, RLS, RBAC, validation or derivation
-  changes were made. The `c6b39e2` release added two **additive, idempotent**
-  Supabase migrations for search/reference indexes and a maintained `search_text`
-  column; no existing table column, policy, resource ID, module ID, role ID, status
-  value, field key, API path or RLS policy was altered. The new indexes and search
-  column are documented in `SCALABILITY_RELEASE.md` and `supabase/migrations/`.
-  **Resource IDs, module IDs, role IDs, status values, field keys, API paths, SQL,
-  RLS policies, the role matrix, validation rules and module derivation logic are
-  unchanged** — see `TERMINOLOGY.md`. The documentation page is read-only and uses no
-  new dependencies or external assets.
+- No `vercel.json` or `TZ` override was added. The earlier visual,
+  terminology and project-scale releases did not change auth, RLS, RBAC, validation or
+  module derivation. `c6b39e2` added two additive search/reference indexes and a
+  maintained `search_text` column. The current `7bc17d0` release intentionally changes
+  staff row-scope SQL functions and RLS policies, adds `document_folders` / folder keys,
+  and adds workspace currency configuration. Existing resource IDs, module IDs, role IDs,
+  status values, field keys, API paths, validation rules and module derivation logic were
+  preserved. See `RBAC_CURRENCY_LIBRARY_RELEASE.md` and `supabase/migrations/`.

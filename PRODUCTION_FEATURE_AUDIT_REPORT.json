@@ -1,0 +1,93 @@
+{
+  "generatedAt": "2026-11-10T10:38:27.989Z",
+  "base": "https://myla-construction-erp.vercel.app",
+  "org": "kestrel-ridge",
+  "passed": 16,
+  "failed": 0,
+  "total": 16,
+  "browserReady": true,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "results": [
+    {
+      "name": "owner sees the whole company",
+      "ok": true,
+      "detail": "5 jobs · 9 wallets · 7 users"
+    },
+    {
+      "name": "internal staff see fewer jobs and fewer wallets than owner",
+      "ok": true,
+      "detail": "project 2/2 · finance 2/2 · HR 2/2 · safety 4/4 · procurement 3/3"
+    },
+    {
+      "name": "two staff roles have genuinely different job sets",
+      "ok": true,
+      "detail": "PM 2 jobs · safety 4 jobs · hidden 36_prj-5"
+    },
+    {
+      "name": "external client portal remains scoped",
+      "ok": true,
+      "detail": "1 job · 1 wallet"
+    },
+    {
+      "name": "wallet detail and global search deny hidden records",
+      "ok": true,
+      "detail": "wallet 403 · search clean"
+    },
+    {
+      "name": "unassigned staff account sees no jobs, wallets or wallet money",
+      "ok": true,
+      "detail": "cleared → 0 jobs / 0 wallets → restored"
+    },
+    {
+      "name": "Settings saves enabled currencies and manual rates",
+      "ok": true,
+      "detail": "USD base · 5 currencies · ZWG 26"
+    },
+    {
+      "name": "a ZWG invoice converts to USD in dashboard totals",
+      "ok": true,
+      "detail": "260000 ZWG → 10000 USD"
+    },
+    {
+      "name": "changing the base currency re-expresses every saved rate",
+      "ok": true,
+      "detail": "USD → ZWG → ZAR, rates preserved"
+    },
+    {
+      "name": "Reports and wallets expose base-currency FX data",
+      "ok": true,
+      "detail": "ZAR · 3 currency rows"
+    },
+    {
+      "name": "library exposes one folder per job and four automatic buckets",
+      "ok": true,
+      "detail": "5 jobs · Drawings / Contracts / Site photos / Handover"
+    },
+    {
+      "name": "nested custom folder, upload, revision chain and owning record",
+      "ok": true,
+      "detail": "QA Structural ak1phh · Rev A/B · DOC-0045"
+    },
+    {
+      "name": "moving a document keeps every revision in the new folder",
+      "ok": true,
+      "detail": "both revisions moved to Contracts"
+    },
+    {
+      "name": "library hides folders and files on jobs a staff member cannot see",
+      "ok": true,
+      "detail": "hidden from PM · download 404"
+    },
+    {
+      "name": "document library page renders folders, search and record links",
+      "ok": true,
+      "detail": "folders · search · revisions · record links"
+    },
+    {
+      "name": "QA cleanup restores live demo data",
+      "ok": true,
+      "detail": "currency, assignment, records, files and folders restored"
+    }
+  ]
+}

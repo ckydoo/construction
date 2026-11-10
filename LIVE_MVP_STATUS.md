@@ -5,7 +5,7 @@
 **Date:** 2026-11-07 (Africa/Harare)
 **Repository:** `git@github.com:ckydoo/construction.git` · `main`
 **Production:** **https://myla-construction-erp.vercel.app** (Vercel, `iad1`, Node 26.x,
-built from commit `c6b39e2`, deployment `dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`) · full detail in `PRODUCTION_DEPLOYMENT.md`
+built from commit `7bc17d0`, deployment `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`) · full detail in `PRODUCTION_DEPLOYMENT.md`
 **Local runtime:** Next.js 15 on `0.0.0.0:3000`, backed by live Supabase
 `oeadisqfuyhelppinaxw` (Postgres + Auth + Storage + RLS).
 
@@ -24,25 +24,26 @@ payment — rather than the software architecture.
 | `npm run audit:browser` | **28/28 real-Chromium checks**, 0 unexpected console/page errors |
 | `npm run audit:onboarding` | **10/10 live signup/onboarding/tenancy/RBAC checks** |
 | `npm run audit:projects` | **8/8** project-detail / searchable-dropdown checks locally and on the live alias |
-| Wallet invariant | `[]` |
-| GitHub push | Full history, 190 files in a fresh clone at `c6b39e2`, no `.env`, 0 secret hits |
-| Visual QA | `node scripts/design-qa.mjs` **15/15** across 55 routes / five viewports |
+| `npm run audit:features` | **16/16** role / currency / library checks locally and **16/16** on the live alias |
+| Wallet invariant | 0 broken refs · 0 wallet mismatches · 0 wallet orphans · 0 funding mismatches |
+| GitHub code push | `7bc17d0` pushed; later documentation-only commits need no redeploy · no `.env`, 0 secret hits |
+| Visual QA | `node scripts/design-qa.mjs` **15/15** across 56 routes / five viewports |
 | Vercel production build | `READY`, promoted, 9 env vars across all three targets |
-| Production smoke | Login, 8 pages/APIs, branded PDF and upload→revision→download→delete all passed |
-| Demo data | 616 records, 49 resources, 7 users, 34 modules, 6 wallets, 4 PDFs |
-| QA fixture cleanup | 1 org, 7 memberships, 0 QA users, last-owner trigger enabled |
-| Final demo reseed | 616 records, 6 wallet rows, 14 ledger entries, 4 PDFs, integrity `ok` |
+| Production smoke | login, 8 pages/APIs, branded PDF, upload→revision→download→delete, library, FX and scoped PM access all passed |
+| Current live data | 619 records, 49 resources, 7 users, 34 modules, 9 client wallets, 6 funded wallet rows, 42 ledger entries, 5 jobs |
+| Production QA cleanup | USD base, PM staff assignment, 0 custom folders / 0 library files, 5 jobs, 9 wallets restored |
+| Current live integrity | `ok:true` · 619 records / 1637 refs · 0 broken refs · 0 wallet mismatches · `$11,000,000` balance |
 
 Full evidence: `AUDIT_REPORT.md`, `BROWSER_AUDIT_REPORT.md`,
-`ONBOARDING_AUDIT_REPORT.md`, `screenshots/`.
+`ONBOARDING_AUDIT_REPORT.md`, `FEATURE_AUDIT_REPORT.md`,
+`PRODUCTION_FEATURE_AUDIT_REPORT.md`, `PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md` and `screenshots/`.
 
 **Rebrand verification (MYLA):** typecheck/build and `npm run env:check` pass,
 the rebuilt app serves the MYLA title/favicon/motto/exact uppercase descriptor,
 browser audit re-run **28/28**, and both generated and seeded PDFs contain the
 new identity. Final live state is 1 org, 7 memberships, 616 records, 0 QA users,
 `ok=true` integrity and `$11,000,000` wallet balance. See `BRAND.md`. The
-1211/1211 API and 22/22 core-derivation gates were re-run on the exact build that
-is now published; the 10/10 onboarding suite was not re-run at that time because onboarding,
+1211/1211 API and 22/22 core-derivation gates were re-run on that released build; the 10/10 onboarding suite was not re-run at that time because onboarding,
 auth and derivation logic were unchanged; it was later re-run **10/10** after the
 plain-language terminology pass. Rebrand and visual-refinement files were
 committed as `8eb261a`, pushed to GitHub and deployed to Vercel.
@@ -59,7 +60,7 @@ release build and was not re-run for that pass. Live verification: 8 documentati
 sections, 2 inline SVG diagrams, no IT jargon, 9 plain-language sidebar sections,
 0 overflow and 0 errors.
 
-**Latest release — project detail & larger data:** `c6b39e2` makes every project open
+**Previous release — project detail & larger data:** `c6b39e2` makes every project open
 as a full page (eight tabs, including inline **Record & files**) instead of a side
 drawer, and replaces plain reference `<select>` controls with server-backed
 searchable dropdowns. Register paging, filtering, search, sorting and exact counts
@@ -72,6 +73,23 @@ browser **28/28**, design **15/15**, onboarding **10/10**, dedicated project QA
 **8/8** locally and **8/8** on the live alias, integrity `ok:true` / 616 records /
 1627 refs / 0 broken refs, and `$11,000,000` wallet balance. See
 `SCALABILITY_RELEASE.md` and `PROJECT_SCALE_AUDIT_REPORT.md`.
+
+**Latest release — row-scoped access, multi-currency and document library:** `7bc17d0`
+fixes the “every account shows the same data” problem. Only Owner/Admin see the whole
+company; other internal staff see their department, shared master data, own staff record
+and records on assigned jobs, while external portal scoping remains. Settings → Currencies
+manages base/enabled currencies and manual rates, with base-currency dashboard, reports,
+wallet and job 360 totals; records keep their entered currency and PDFs show a dual
+reporting total. A dedicated `/kestrel-ridge/library` page adds automatic
+`Project → Drawings / Contracts / Site photos / Handover` folders plus custom nested
+folders, upload/browse/search, revision chains and links to owning records. Three additive
+Supabase migrations enforce the same scope in Postgres RLS. Gates on this exact build:
+typecheck/build/env-check, `npm run audit` **1211/1211** + **22/22** core, browser **28/28**,
+design **15/15** across 56 routes, onboarding **10/10**, feature QA **16/16** locally and
+**16/16** on production, project QA **8/8** locally and **8/8** on production. Production
+deployment `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` is `READY` / `PROMOTED`. See
+`RBAC_CURRENCY_LIBRARY_RELEASE.md`, `PRODUCTION_FEATURE_AUDIT_REPORT.md` and
+`PRODUCTION_DEPLOYMENT.md`.
 
 ## What “complete MVP” means now
 

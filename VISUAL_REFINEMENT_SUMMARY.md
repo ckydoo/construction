@@ -102,15 +102,15 @@ files (1472 insertions / 681 deletions); a fresh clone has 166 files, no `.env` 
 secret-like hits. Later commits add deployment documentation, a sidebar cleanup
 that removes numeric record-count badges and the “N modules” label, an in-app
 plain-language business-flow guide and a Zimbabwe / Southern Africa terminology pass
-(`1aef83b`), and the full project-detail / larger-data release (`c6b39e2`).
+(`1aef83b`), the full project-detail / larger-data release (`c6b39e2`), and the row-scoped access / multi-currency / document-library release (`7bc17d0`).
 
 **Vercel:** project `myla-construction-erp` (`prj_gShJxUcNTwjzIuiwdOhapx1fqskT`) is live
 at **https://myla-construction-erp.vercel.app**, built from GitHub `main`
-(currently `c6b39e2`) via a `git_source` deployment (`dpl_HQ8PkC5tUEcpwbqeCBMd6ADmNXki`,
+(production code build `7bc17d0`; documentation-only commits may be ahead on `main`) via a `git_source` deployment (`dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk`,
 `READY` / `PROMOTED`, production, `iad1`, Node 26.x, `npm ci` + `npm run build`). Nine environment
 variables are set for all three targets, including write-only sensitive Supabase keys.
 
-**Production verification:** login (valid and invalid credentials), dashboard, wallets,
+**Production verification:** login (valid and invalid credentials), dashboard, wallets, row-scoped staff accounts, Settings currencies, document library,
 resource pages, meta/overview/integrity/wallets/records APIs, branded PDF generation,
 authentic logo assets, and a complete upload → Rev A → Rev B → download → delete storage
 cycle all passed. Integrity reported `ok:true`, 616 records, 0 broken refs and 0 wallet

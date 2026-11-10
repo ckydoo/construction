@@ -57,4 +57,27 @@ Feature QA evidence: `FEATURE_AUDIT_REPORT.md`, `FEATURE_AUDIT_REPORT.json`, `sc
 
 ## Deployment
 
-Production publishing uses a Vercel `git_source` deployment with the explicit code commit SHA. The exact commit, deployment ID and production verification are recorded in `PRODUCTION_DEPLOYMENT.md` and `LIVE_MVP_STATUS.md` after the deployment is promoted.
+Production code commit: `7bc17d0` / `7bc17d0050f809e209356c285eb757bb71cc1378`.
+Vercel production deployment: `dpl_3xiHJ5Go5PTVEzoqbTDWdtWQW7wk` (`READY` / `PROMOTED`, `git_source` with the explicit
+SHA above). Primary alias: **https://myla-construction-erp.vercel.app**.
+
+Live database migrations confirmed by Supabase migration history:
+`20261110081729 staff_scope_and_document_folders`,
+`20261110083636 staff_scope_manager_create`, and
+`20261110084902 staff_scope_refinements_v2`.
+
+Vercel `get_deployment` reconfirmed `READY` / `PROMOTED`, production target, the explicit
+source SHA above, alias assignment, `timeToReady 66385`, Node 26.x and `npm ci` + `npm run build`.
+
+Production verification after promotion:
+
+- `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:features` — **16/16**
+- `AUDIT_BASE=https://myla-construction-erp.vercel.app npm run audit:projects` — **8/8**
+- Live owner/PM API smoke — login, meta, overview, wallets, library, integrity, paged records,
+  reference search, global search, project 360, PDF and CSV all returned `200`
+- Production row scoping — owner 5 jobs / 9 wallets; PM `staff` scope with 2 wallets and 1 visible user
+- Production library isolation — hidden job/folder/file denied to PM; direct hidden download `404`
+- QA cleanup restored currency settings, staff assignment and all temporary records/files/folders
+
+Evidence: `PRODUCTION_FEATURE_AUDIT_REPORT.md`, `PRODUCTION_PROJECT_SCALE_AUDIT_REPORT.md`,
+`screenshots/production-feature-library.png`, `PRODUCTION_DEPLOYMENT.md` and `LIVE_MVP_STATUS.md`.
