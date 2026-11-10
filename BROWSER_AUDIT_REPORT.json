@@ -117,7 +117,7 @@
     {
       "name": "wallet reversals restore the opening balance",
       "ok": true,
-      "detail": "10 QA entries reversed · balance 2950000"
+      "detail": "2 QA entries reversed · balance 2950000"
     },
     {
       "name": "client detail shows wallet balance and cross-module links",

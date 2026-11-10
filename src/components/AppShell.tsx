@@ -51,12 +51,12 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     for(const s of SPECIAL){
       if((s as any).module && !meta.config.modules.includes((s as any).module)) continue;
       if((s as any).cap && !canCapability(role,(s as any).cap)) continue;
-      (groups[s.group] ||= []).push({...s,count:undefined});
+      (groups[s.group] ||= []).push({...s});
     }
     for(const r of meta.resources){
       if(!meta.config.resources.includes(r.id)) continue;
       if(!canRead(role,r.id)) continue;
-      (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,count:meta.counts?.[r.id],group:r.group});
+      (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,group:r.group});
     }
     const order=['Overview','Win work','Project delivery','Supply chain','People & HR','Safety & quality','Finance','Insights','Administration'];
     return order.filter(g=>groups[g]?.length).map(g=>({group:g,items:groups[g]}));
@@ -80,7 +80,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <Logo variant="lockup" autoDark className="h-6 w-auto max-w-[190px]" title={`${BRAND.name} · ${BRAND.motto}`}/>
       <button aria-label="Close navigation" className="rounded-md p-1 text-slate-400 lg:hidden" onClick={()=>setMobileOpen(false)}><Lucide.X size={18}/></button>
     </div>
-    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center justify-between rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.config.plan} plan</span><span className="muted">{meta.config.modules.length} modules</span></div>}
+    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.config.plan} plan</span></div>}
     <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
       {isLoading&&<div className="space-y-2 px-2 py-2">{Array.from({length:12}).map((_,i)=><Skeleton key={i} className="h-7 w-full"/>)}</div>}
       {navGroups.map(g=><div key={g.group} className="mb-4">
@@ -90,7 +90,6 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
           return <Link key={it.id} href={href} className={`nav-item ${active?'nav-active':''}`}>
             <Icon name={it.icon} size={15} className="shrink-0"/>
             <span className="min-w-0 flex-1 truncate">{it.label}</span>
-            {it.count!==undefined&&it.count>0&&<span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-ink-800 dark:text-slate-400">{it.count}</span>}
           </Link>;})}
       </div>)}
     </nav>
