@@ -43,6 +43,7 @@
     "audit:convert": "node scripts/conversion-qa.mjs",
     "audit:quote-studio": "node scripts/quote-studio-qa.mjs",
     "audit:document-preview": "node scripts/document-preview-qa.mjs",
+    "audit:overlay": "node scripts/overlay-qa.mjs",
     "audit:support-paynow": "node scripts/support-paynow-qa.mjs",
     "audit:topbar": "node scripts/topbar-currency-qa.mjs",
     "audit:workflow": "tsx scripts/workflow-defs-qa.ts && node scripts/workflow-qa.mjs",

@@ -9,6 +9,7 @@ import { canRead, canWrite, canCapability, ROLES } from '@/lib/catalog';
 import { moduleEnabled, resourceFullyEnabled, hrefVisible } from '@/lib/module-visibility';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
+import Overlay from './Overlay';
 import Logo from './Logo';
 import { useToast } from './Providers';
 import { useDisplayCurrency } from './DisplayCurrencyProvider';
@@ -145,7 +146,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     {/* Sidebar desktop */}
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r divider bg-white dark:bg-ink-900 lg:block">{sidebar}</aside>
     {/* Sidebar mobile */}
-    {mobileOpen&&<div className="fixed inset-0 z-50 lg:hidden"><div className="absolute inset-0 bg-ink-950/50" onClick={()=>setMobileOpen(false)}/><div className="relative h-full w-64 border-r divider bg-white dark:bg-ink-900">{sidebar}</div></div>}
+    {mobileOpen&&<Overlay kind="mobile-nav" className="z-50 lg:hidden"><div className="absolute inset-0 bg-ink-950/50" onClick={()=>setMobileOpen(false)}/><div className="relative h-full w-64 border-r divider bg-white dark:bg-ink-900">{sidebar}</div></Overlay>}
     <div className="lg:pl-60">
       <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b divider bg-white px-4 dark:bg-ink-900 sm:px-6">
         <button aria-label="Open navigation" className="btn-ghost btn-icon lg:hidden" onClick={()=>setMobileOpen(true)}><Icon name="Menu" size={19}/></button>
@@ -210,7 +211,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <div className="h-12 lg:hidden"/>
     </div>
     {/* Command palette */}
-    {palette&&<div className="fixed inset-0 z-[70] flex items-start justify-center p-4 pt-[12vh]">
+    {palette&&<Overlay kind="command-palette" className="z-[70] flex items-start justify-center p-4 pt-[12vh]">
       <div className="absolute inset-0 bg-ink-950/50" onClick={()=>setPalette(false)}/>
       <div className="card relative w-full max-w-xl overflow-hidden rounded-xl shadow-panel">
         <div className="flex items-center gap-3 border-b divider px-4 py-3"><Lucide.Search size={18} className="text-slate-400"/><input autoFocus value={pq} onChange={e=>setPq(e.target.value)} placeholder="Search jobs, clients, invoices, site queries…" className="flex-1 bg-transparent text-[13px] outline-none placeholder:text-slate-400"/><kbd className="rounded border divider px-1.5 py-0.5 text-[10px] muted">ESC</kbd></div>
@@ -220,6 +221,6 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         </div>
         <div className="flex items-center justify-between border-t divider bg-slate-50 px-4 py-2 text-[10px] muted dark:bg-ink-950/40"><span>⌘K to toggle · Enter to open</span><span>{meta?.config?.modules.length||0} sections in your workspace</span></div>
       </div>
-    </div>}
+    </Overlay>}
   </div>;
 }

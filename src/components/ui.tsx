@@ -2,6 +2,7 @@
 import * as Lucide from '@/components/lucide';
 import React, { useEffect } from 'react';
 import { toneFor } from '@/lib/resources';
+import Overlay from './Overlay';
 
 export function Icon({name,size=18,className='',strokeWidth=1.8}:{name:string;size?:number;className?:string;strokeWidth?:number}){
   const C:any = (Lucide as any)[name] || Lucide.Circle;
@@ -89,7 +90,7 @@ export function Tabs({tabs,active,onChange,className=''}:{tabs:{id:string;label:
 export function Drawer({open,onClose,title,subtitle,children,footer,width='max-w-xl'}:{open:boolean;onClose:()=>void;title:React.ReactNode;subtitle?:string;children:React.ReactNode;footer?:React.ReactNode;width?:string}){
   useEffect(()=>{ if(!open)return; const h=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose();}; document.addEventListener('keydown',h); document.body.style.overflow='hidden'; return ()=>{document.removeEventListener('keydown',h);document.body.style.overflow='';}; },[open,onClose]);
   if(!open) return null;
-  return <div className="fixed inset-0 z-50 flex justify-end">
+  return <Overlay kind="drawer" className="z-50 flex justify-end">
     <div className="absolute inset-0 bg-ink-950/45" onClick={onClose}/>
     <div className={`relative flex h-full w-full ${width} animate-fadein flex-col border-l divider bg-white shadow-panel dark:bg-ink-900`}>
       <div className="flex shrink-0 items-start justify-between gap-4 border-b divider px-4 py-3">
@@ -99,11 +100,11 @@ export function Drawer({open,onClose,title,subtitle,children,footer,width='max-w
       <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       {footer&&<div className="shrink-0 border-t divider bg-white px-4 py-3 dark:bg-ink-900">{footer}</div>}
     </div>
-  </div>;
+  </Overlay>;
 }
 export function ConfirmDialog({open,onClose,onConfirm,title,description,confirmLabel='Delete',loading}:{open:boolean;onClose:()=>void;onConfirm:()=>void;title:string;description?:string;confirmLabel?:string;loading?:boolean}){
   if(!open)return null;
-  return <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  return <Overlay kind="confirm-dialog" className="z-[60] flex items-center justify-center p-4">
     <div className="absolute inset-0 bg-ink-950/50" onClick={onClose}/>
     <div className="card relative w-full max-w-md animate-fadein rounded-xl p-5 shadow-panel">
       <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 dark:border-red-500/20 dark:bg-red-500/10"><Lucide.TriangleAlert size={18}/></div>
@@ -111,5 +112,5 @@ export function ConfirmDialog({open,onClose,onConfirm,title,description,confirmL
       {description&&<p className="caption mt-1.5">{description}</p>}
       <div className="mt-6 flex justify-end gap-2"><Button onClick={onClose}>Cancel</Button><Button variant="danger" onClick={onConfirm} loading={loading}>{confirmLabel}</Button></div>
     </div>
-  </div>;
+  </Overlay>;
 }

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, Field, ConfirmDialog } from '@/components/ui';
+import Overlay from '@/components/Overlay';
 import { useToast } from '@/components/Providers';
 import FileDropZone, { isExternalFileDrag } from '@/components/FileDropZone';
 import { date } from '@/lib/format';
@@ -170,9 +171,9 @@ export default function LibraryPage() {
 
   return <div className="relative space-y-4" data-testid="library-page"
     onDragEnter={pageDragEnter} onDragOver={pageDragOver} onDragLeave={pageDragLeave} onDrop={pageDrop}>
-    {dropActive&&<div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-ink-950/25 p-6">
+    {dropActive&&<Overlay kind="library-drop" className="pointer-events-none z-40 flex items-center justify-center bg-ink-950/25 p-6">
       <div className="flex items-center gap-3 rounded-xl border-2 border-brand-500 bg-white px-6 py-4 shadow-panel dark:bg-ink-900"><Icon name="CloudUpload" size={22} className="text-brand-600"/><div><p className="text-sm font-semibold">Drop files into {current?.name || 'a folder'}</p><p className="text-[11px] muted">Drop onto a folder card to upload there, or onto an existing file to create a new revision.</p></div></div>
-    </div>}
+    </Overlay>}
 
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div><h1 className="heading">Document library</h1><p className="caption mt-1">One place for files: drag files in to upload, organise them in folders, and drop a new version onto an existing file.</p>
