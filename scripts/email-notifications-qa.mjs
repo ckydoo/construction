@@ -156,6 +156,8 @@ await check('QA scripts and docs were reconciled with secure verification', () =
   assert.match(onboarding, /Check your email/);
   assert.doesNotMatch(auditPy + onboarding + readme, /Welcome@123/);
   assert.ok(!readme.includes('with a temporary password'), 'README must describe secure links, not a shared temporary password');
+  assert.match(readme, /New accounts must confirm their email address before entering a workspace/);
+  assert.doesNotMatch(readme, /Email confirmation should be disabled/);
   return 'role matrix · onboarding audit · README';
 });
 

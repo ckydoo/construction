@@ -192,4 +192,4 @@ scripts/
 
 - Deep domain engines (critical-path CPM scheduling, a full statutory payroll engine, BIM/telematics integrations, e-signature, offline sync) are represented as usable registers, workflows and settings rather than full external systems — but nothing is a dead stub: every screen has real create/edit/delete, relationships and seed data.
 - Optional integration slots in `.env.example` are reserved; they are not read by the app until the connector is wired.
-- Email confirmation should be disabled (or SMTP configured) on the Supabase project so registration returns a session immediately.
+- New accounts must confirm their email address before entering a workspace. Configure custom SMTP, a trusted sender and the production redirect allow list before onboarding real users; without them, essential emails stay safely queued in the outbox.
