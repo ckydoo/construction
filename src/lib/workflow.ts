@@ -129,7 +129,7 @@ export const WORKFLOW_RULES: WorkflowRule[] = [
     ],
   },
   {
-    resource: 'submittals', label: 'Drawings for approval', singular: 'Approval package', icon: 'Send',
+    resource: 'submittals', label: 'Drawing approvals', singular: 'Approval package', icon: 'Send',
     pending: ['PENDING', 'UNDER_REVIEW'], dateKeys: ['requiredDate', 'submittedDate'], slaDays: 3,
     reason: 'Shop drawing or material submission needs a review outcome',
     actions: [

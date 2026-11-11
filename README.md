@@ -68,7 +68,7 @@ The login screen has one-click demo account chips. **Create account** starts a b
 - Invite teammates from Settings (creates a Supabase Auth user with a temporary password).
 
 ### 2 · Onboarding → derived modules (essentials first)
-New workspaces start with **13 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments → client wallets, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 13, SMALL 13, MID 17, LARGE 29–30, ENTERPRISE 30 (mixed group 33). Everything can be switched on later in **Settings → Modules**, which also has one-click Essentials / All-modules focus switching.
+New workspaces start with **13 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments → client wallets, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 13, SMALL 13, MID 17, LARGE 29–30, ENTERPRISE 30 (mixed group 33). Everything can be switched on later in **Settings → Sections**, which also has one-click Essentials / Everything-on switching.
 `src/lib/catalog.ts` is the single source of truth: 8 company types, 5 company sizes, 11 work-style qualifiers, 34 modules with tiers and resource bundles.
 
 | Type / Size | Modules | Resources | Plan |
@@ -79,7 +79,7 @@ New workspaces start with **13 connected essentials** (clients → leads → est
 | Industrial EPC · Large | 30 | 47 | Business |
 | Mixed group · Enterprise | 33 | 49 | Enterprise |
 
-`resolveWorkspace()` returns `{ modules, resources, flags, limits, localePack, plan }` and drives the sidebar, RLS module switches, command palette, Settings → Modules and the wizard review screen.
+`resolveWorkspace()` returns `{ modules, resources, flags, limits, localePack, plan }` and drives the sidebar, RLS module switches, command palette, Settings → Sections and the wizard review screen.
 
 ### 3 · Client wallets
 One prepaid `wallets` row per client with an append-only `wallet_transactions` ledger (integer cents, no float drift). Owners/admins/finance managers top up; those roles and client-portal users allocate funds to a project belonging to **that same client**. Corrections are `REVERSAL` entries — the ledger has no direct client write policy at all; money moves only through `app_wallet_topup` / `app_wallet_allocate` / `app_wallet_reverse`. Balances are mirrored into the Clients register (`walletBalance`), the Projects register (`fundedAmount`, `remainingToFund`), dashboard KPIs, project 360 and the client detail drawer. Idempotency keys stop double submissions; `/api/[org]/integrity` reconciles ledger, balances and derived figures.
@@ -91,12 +91,12 @@ One prepaid `wallets` row per client with an append-only `wallet_transactions` l
 Declarative registry in `src/lib/resources.ts` — one definition drives the API, validation, list table, detail drawer, create/edit form, filters, CSV export, reference lookups and command-palette search.
 
 - **Win work:** clients, contacts, leads/opportunities, estimates, bids
-- **Project delivery:** projects, tasks/WBS, contracts, change orders, RFIs, submittals, documents & drawings, daily site logs, meetings, punch lists, permits
+- **Project delivery:** projects, tasks/WBS, contracts, change orders, RFIs, drawing approvals, document library, daily site logs, meetings, punch lists, permits
 - **Supply chain:** vendors, subcontractors, requisitions, purchase orders, GRNs, inventory, warehouses, equipment/fleet, maintenance work orders
 - **People & HR:** employees, departments, crews, timesheets, leave, pay runs, expenses, certifications, training
 - **Safety & quality:** toolbox talks/JSA, incidents, HSE inspections, NCRs, ITPs
 - **Finance:** chart of accounts, journals, budgets/CVR, client invoices, progress payment certificates & retention, supplier bills, payments/receipts
-- **Specialised:** units/plots & sales, rental contracts & dispatch, commissioning packages
+- **Specialist modules:** stands & unit sales, leases & rentals, handover packs
 
 Each record has a numbered sequence (`PRJ-0001`…), status workflow, project scoping, soft delete, comments, and an audit-log entry on every write.
 

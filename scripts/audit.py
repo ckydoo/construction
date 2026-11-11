@@ -99,6 +99,14 @@ if r.status_code != 200:
     print('Cannot log in — aborting', r.text)
     sys.exit(1)
 
+# Remember exactly which sections were live before the audit. Several checks
+# deliberately switch to the full pack; cleanup must not leave specialist demo
+# modules turned back on.
+try:
+    ORIGINAL_MODULES = set(OWNER.get(url('meta?scope=settings'), timeout=(5, 20)).json().get('config', {}).get('modules') or [])
+except Exception:
+    ORIGINAL_MODULES = set(m['id'] for m in MODULES)
+
 MARK = 'QA' + uuid.uuid4().hex[:6].upper()
 REF_CACHE = {}
 
@@ -409,7 +417,7 @@ if mod:
         check(sec, 'existing data returns after re-enable',
               req(OWNER, 'GET', f'records/{target_res}/{existing_id}').status_code == 200, '')
 
-    # Essentials-first pack switch (Settings → Modules)
+    # Essentials-first pack switch (Settings → Sections)
     rr = req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'essentials'})
     check(sec, 'apply essentials pack', rr.status_code == 200, f'HTTP {rr.status_code}')
     check(sec, 'essentials disables non-core resource',
@@ -919,6 +927,15 @@ if slug2:
     check(sec, 'second tenant has an empty isolated wallet list', rr.status_code == 200 and rr.json().get('summary', {}).get('totalBalance') == 0, f'HTTP {rr.status_code} {rr.text[:120]}')
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Restore the live workspace's original section set after all pack switches.
+try:
+    req(OWNER, 'PATCH', 'settings', json={'action': 'applyPack', 'pack': 'full'})
+    for _m in MODULES:
+        if _m['id'] not in ORIGINAL_MODULES:
+            req(OWNER, 'PATCH', 'settings', json={'action': 'toggleModule', 'moduleId': _m['id'], 'enabled': False})
+except Exception as _e:
+    print(f'warning: could not restore original sections: {_e}')
+
 report = {
     'base': BASE, 'marker': MARK,
     'resources': len(RESOURCES), 'modules': len(MODULES),

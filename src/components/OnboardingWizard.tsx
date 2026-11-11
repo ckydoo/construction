@@ -154,7 +154,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
             </div>
             <div className="rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
               <p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
-              <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → drawings → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p>
+              <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → document library → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p>
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">What is switched on</p><span className="text-xs muted">{config.modules.length} on</span></div>

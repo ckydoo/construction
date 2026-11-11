@@ -19,6 +19,7 @@ const CAP_LABELS:Record<string,string> = {
   'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
 };
 const TABS=[{id:'general',label:'General'},{id:'branding',label:'Document branding'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
+const SECTION_GROUP_ORDER=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Specialist modules','Company setup','Settings'];
 
 export default function SettingsPage(){
   const {org}=useParams<{org:string}>(); const qc=useQueryClient(); const toast=useToast();
@@ -42,7 +43,9 @@ export default function SettingsPage(){
     setCurrencyForm(normaliseCurrencyConfig(meta.org.currency, meta.org.baseCurrency));
     setCompanyForm(meta.org.company||{});
   } },[meta]);
-  const grouped=useMemo(()=>{const g:Record<string,any[]>={};for(const m of meta?.modules||[])(g[m.group]||=[]).push(m);return g;},[meta]);
+  const grouped=useMemo(()=>{const g:Record<string,any[]>={};for(const m of meta?.modules||[])(g[m.group]||=[]).push(m);
+    const ordered:Record<string,any[]>={};for(const name of SECTION_GROUP_ORDER)if(g[name])ordered[name]=g[name];
+    for(const [name,mods] of Object.entries(g))if(!ordered[name])ordered[name]=mods;return ordered;},[meta]);
   const caps:string[]=meta?.permissions?.capabilities||[];
   const {data:integrity,isFetching:integrityLoading}:any=useQuery({queryKey:['integrity',org],queryFn:()=>apiGet(orgApi(org,'integrity')),enabled:tab==='system'&&caps.includes('integrity')});
   const enabled=new Set(meta?.config?.modules||[]);
@@ -153,10 +156,10 @@ export default function SettingsPage(){
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Sections on your sidebar</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} sections on · changes show on the sidebar straight away.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">A very small company can start with just clients, quotes, jobs and money. Switch the rest on whenever you need it. The switches below still work either way.</p></div>
         <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Everything on</Button></div></Card>
-      {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} enabled`}/>
+      {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} switched on`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
-          <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-ink-900 dark:text-white">{m.label}</p><p className="mt-0.5 text-[11px] leading-relaxed muted">{m.description}</p><div className="mt-1.5 flex gap-1"><Badge tone={m.tier==='CORE'?'slate':m.tier==='ENTERPRISE'?'violet':'blue'}>{m.tier.toLowerCase()}</Badge>{m.resources?.length>0&&<Badge tone="slate">{m.resources.length} resources</Badge>}</div></div>
+          <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-ink-900 dark:text-white">{m.label}</p><p className="mt-0.5 text-[11px] leading-relaxed muted">{m.description}</p><div className="mt-1.5 flex gap-1"><Badge tone={m.tier==='CORE'?'slate':m.tier==='ENTERPRISE'?'violet':'blue'}>{m.tier.toLowerCase()}</Badge>{m.resources?.length>0&&<Badge tone="slate">{m.resources.length} {m.resources.length===1?'list':'lists'}</Badge>}</div></div>
           <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
     </div>}
 
@@ -220,7 +223,7 @@ export default function SettingsPage(){
         </div>
         {integrity&&<div className="border-t divider px-5 py-3"><Badge tone={integrity.ok?'green':'red'}>{integrity.ok?'All links healthy':'Integrity issues found'}</Badge><span className="ml-2 text-[11px] muted">{integrity.checkedRecords} records · {integrity.wallets} wallets · checked {date(integrity.generatedAt)}</span></div>}</Card>}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {[['Plan',meta.config.plan],['Modules enabled',num(meta.config.modules.length)],['Resource types',num(meta.config.resources.length)],['User limit',num(meta.config.limits.users)],['Project limit',num(meta.config.limits.projects)],['Storage',`${num(meta.config.limits.storageMb/1000)} GB`],['Regional pack',meta.config.localePack],['Currency',meta.org.baseCurrency]].map(([l,v])=><Card key={String(l)} className="p-4"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1.5 text-lg font-semibold">{v}</p></Card>)}</div>
+      {[['Plan',meta.config.plan],['Sections on',num(meta.config.modules.length)],['Record lists',num(meta.config.resources.length)],['User limit',num(meta.config.limits.users)],['Job limit',num(meta.config.limits.projects)],['Storage',`${num(meta.config.limits.storageMb/1000)} GB`],['Country settings',meta.config.localePack],['Main currency',meta.org.baseCurrency]].map(([l,v])=><Card key={String(l)} className="p-4"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1.5 text-lg font-semibold">{v}</p></Card>)}</div>
       <Card><CardHead title="Extra options" subtitle="Based on your company size and your answers"/>
         <div className="flex flex-wrap gap-2 p-5">{Object.entries(meta.config.flags).map(([k,v])=><Badge key={k} tone={v?'green':'slate'}>{k.replace(/([A-Z])/g,' $1').trim()}</Badge>)}</div></Card>
       <Card className="overflow-hidden"><CardHead title="Audit log" subtitle="Most recent workspace actions"/>

@@ -37,6 +37,9 @@ const SPECIAL_TITLES:Record<string,string> = {
   'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
+// The file-first Document library replaces the raw document register in the
+// sidebar; the register stays reachable from inside the library.
+const HIDDEN_RESOURCE_NAV = new Set(['documents']);
 
 export default function AppShell({children,orgSlug,userName,userEmail,role}:{children:React.ReactNode;orgSlug:string;userName:string;userEmail:string;role:string}){
   const pathname=usePathname(); const router=useRouter(); const qc=useQueryClient(); const toast=useToast();
@@ -87,11 +90,12 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       (groups[s.group] ||= []).push({...s});
     }
     for(const r of meta.resources){
+      if(HIDDEN_RESOURCE_NAV.has(r.id)) continue;
       if(!resourceFullyEnabled(meta.config,r.id)) continue;
       if(!canRead(role,r.id)) continue;
       (groups[r.group] ||= []).push({id:r.id,label:r.label,icon:r.icon,href:`/m/${r.id}`,group:r.group});
     }
-    const order=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Settings'];
+    const order=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Specialist modules','Settings'];
     return order.filter(g=>groups[g]?.length).map(g=>({group:g,items:groups[g]}));
   },[meta]);
   const { data:search } = useQuery<any>({ queryKey:['search',orgSlug,pq], queryFn:()=>apiGet(orgApi(orgSlug,`search?q=${encodeURIComponent(pq)}`)), enabled:palette&&pq.trim().length>=2 });
@@ -121,7 +125,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">{g.group}</p>
         {g.items.map((it:any)=>{
           const href=`/${orgSlug}${it.href}`; const active=pathname===href||(it.id!=='dashboard'&&pathname.startsWith(href));
-          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':it.id==='three-way-match'?'nav-three-way-match':undefined} className={`nav-item ${active?'nav-active':''}`}>
+          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':it.id==='three-way-match'?'nav-three-way-match':it.id==='library'?'nav-library':undefined} className={`nav-item ${active?'nav-active':''}`}>
             <Icon name={it.icon} size={15} className="shrink-0"/>
             <span className="min-w-0 flex-1 truncate">{it.label}</span>
             {it.id==='my-work'&&workCount>0&&<span data-testid="nav-my-work-count" className="ml-auto rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">{workCount>99?'99+':workCount}</span>}

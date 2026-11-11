@@ -110,13 +110,13 @@ export const RESOURCES: ResourceDef[] = [
     [T('subject','Subject',{required:true}),PRJ(true),T('specRef','Spec / drawing ref'),S('discipline','Discipline',['Architectural','Structural','Civil','Mechanical','Electrical','Plumbing','HVAC','Other']),S('priority','Priority',PRIORITIES),R('raisedBy','Raised by','employees'),R('addressedTo','Addressed to','contacts'),D('dueDate','Due date'),D('answeredDate','Answered date'),A('question','Question'),A('response','Response'),STS(['OPEN','ANSWERED','CLOSED','OVERDUE'],'OPEN')],
     ['number','subject','projectId','discipline','priority','dueDate','status'],{projectScoped:true,statusOptions:['OPEN','ANSWERED','CLOSED','OVERDUE'],dateKey:'dueDate'}),
 
-  d('submittals','Drawings for approval','Approval package','projectComms','Jobs & sites','Send','SUB','name',
-    'Material and shop drawing approval register.',
+  d('submittals','Drawing approvals','Approval package','projectComms','Jobs & sites','Send','SUB','name',
+    'Shop drawings and material samples sent for a decision.',
     [T('name','Approval title',{required:true}),PRJ(true),T('package','Package'),S('type','Type',['Shop drawing','Material sample','Technical data','Method statement','Mock-up','Certificate']),R('submittedBy','Submitted by','subcontractors'),D('submittedDate','Submitted'),D('requiredDate','Required by'),D('returnedDate','Returned'),A('reviewNotes','Review notes'),STS(['PENDING','UNDER_REVIEW','APPROVED','APPROVE_AS_NOTED','REJECTED','RESUBMIT'],'PENDING')],
     ['number','name','projectId','type','submittedDate','status'],{projectScoped:true,statusOptions:['PENDING','UNDER_REVIEW','APPROVED','APPROVE_AS_NOTED','REJECTED','RESUBMIT'],dateKey:'submittedDate'}),
 
-  d('documents','Drawings & documents','Drawing / document','documents','Jobs & sites','FolderOpen','DOC','name',
-    'Controlled document and drawing register with revisions.',
+  d('documents','Document register','Drawing / document','documents','Jobs & sites','FolderOpen','DOC','name',
+    'Drawing numbers, revisions and issue status. Files live in the Document library.',
     [T('name','Document / drawing title',{required:true}),PRJ(),T('drawingNo','Drawing / doc no.'),T('revision','Revision'),S('type','Type',['Drawing','Specification','Method statement','Report','Contract','Correspondence','Photo set','O&M manual','Other']),S('discipline','Discipline',['Architectural','Structural','Civil','Mechanical','Electrical','HSE','Commercial','Other']),T('fileName','File name'),D('issuedDate','Issue date'),R('issuedBy','Issued by','employees'),A('notes','Notes'),STS(['DRAFT','FOR_REVIEW','CURRENT','SUPERSEDED','VOID'],'CURRENT')],
     ['number','name','drawingNo','revision','type','projectId','issuedDate','status'],{projectScoped:true,statusOptions:['DRAFT','FOR_REVIEW','CURRENT','SUPERSEDED','VOID'],dateKey:'issuedDate'}),
 
@@ -295,17 +295,17 @@ export const RESOURCES: ResourceDef[] = [
     ['number','name','direction','paymentDate','amount','method','status'],{statusOptions:['PENDING','CLEARED','RECONCILED','REVERSED'],amountKey:'amount',dateKey:'paymentDate'}),
 
   // ---------------- SPECIALISED ----------------
-  d('units','Stands, units & sales','Stand / unit','unitSales','Reports & extras','KeyRound','UN','name',
+  d('units','Stands & unit sales','Stand / unit','unitSales','Specialist modules','KeyRound','UN','name',
     'Saleable units, reservations, buyers, handover and warranty.',
     [T('name','Stand / unit',{required:true}),PRJ(),T('block','Block / phase'),S('type','Type',['Apartment','Townhouse','Stand / plot','Office suite','Warehouse unit','Retail unit']),N('area','Area (m²)'),C('askingPrice','Asking price'),C('salePrice','Sale price'),T('buyer','Buyer'),D('reservationDate','Reserved'),D('handoverDate','Handover'),D('warrantyExpiry','Warranty expiry'),STS(['AVAILABLE','RESERVED','SOLD','HANDED_OVER','UNDER_WARRANTY'],'AVAILABLE')],
     ['number','name','projectId','type','area','salePrice','status'],{projectScoped:true,statusOptions:['AVAILABLE','RESERVED','SOLD','HANDED_OVER','UNDER_WARRANTY'],amountKey:'salePrice'}),
 
-  d('rentalContracts','Leases & rentals','Lease','rental','Reports & extras','Truck','RNT','name',
+  d('rentalContracts','Leases & rentals','Lease','rental','Specialist modules','Truck','RNT','name',
     'Plant hire agreements, rates and utilisation billing.',
     [T('name','Rental reference',{required:true}),R('clientId','Client','clients'),R('equipmentId','Asset','equipment'),PRJ(),D('startDate','Out date'),D('endDate','Return date'),S('rateBasis','Rate basis',['PER_HOUR','PER_DAY','PER_WEEK','PER_MONTH']),C('rate','Rate'),N('hoursUsed','Hours used'),C('totalBilled','Total billed'),STS(['DRAFT','ACTIVE','RETURNED','INVOICED','CLOSED'],'ACTIVE')],
     ['number','name','clientId','equipmentId','startDate','rate','totalBilled','status'],{statusOptions:['DRAFT','ACTIVE','RETURNED','INVOICED','CLOSED'],amountKey:'totalBilled',dateKey:'startDate'}),
 
-  d('commissioning','Handover packs','Handover pack','commissioning','Reports & extras','Gauge','COM','name',
+  d('commissioning','Handover packs','Handover pack','commissioning','Specialist modules','Gauge','COM','name',
     'Handover packs, test results and operating manuals for industrial jobs.',
     [T('name','System / package',{required:true}),PRJ(true),T('systemCode','System code'),S('discipline','Discipline',['Mechanical','Electrical','Instrumentation','Process','Civil','HVAC']),D('plannedDate','Planned'),D('achievedDate','Mechanical completion'),S('status2','Test status',['NOT_STARTED','PRE_COMMISSIONING','TESTING','READY_FOR_STARTUP','HANDED_OVER']),R('leadEngineer','Lead engineer','employees'),A('testPacks','Test packs / dossiers'),STS(['PLANNED','IN_PROGRESS','COMPLETE','HANDED_OVER'],'PLANNED')],
     ['number','name','projectId','systemCode','discipline','plannedDate','status'],{projectScoped:true,statusOptions:['PLANNED','IN_PROGRESS','COMPLETE','HANDED_OVER'],dateKey:'plannedDate'}),

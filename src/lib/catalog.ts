@@ -1,5 +1,5 @@
 /* Declarative module catalogue + onboarding derivation engine.
-   Single source of truth for sidebar, route guards, seed generation and Settings > Modules. */
+   Single source of truth for sidebar, route guards, seed generation and Settings > Sections. */
 import type { CompanyProfile } from './company';
 
 export const COMPANY_TYPES = [
@@ -46,7 +46,7 @@ export type ModuleDef = {
 
 export const MODULES: ModuleDef[] = [
   { id:'dashboard', label:'Home dashboard', group:'Overview', icon:'LayoutDashboard', tier:'CORE', description:'Jobs, money and things that need your attention', resources:[], defaultTypes:'*' },
-  { id:'company', label:'Company & settings', group:'Settings', icon:'Building', tier:'CORE', description:'Company details, numbering, currencies, users and roles', resources:[], defaultTypes:'*' },
+  { id:'company', label:'Company details', group:'Company setup', icon:'Building', tier:'CORE', description:'Company details, numbering, currencies, users and roles', resources:[], defaultTypes:'*' },
   { id:'crm', label:'Clients & contacts', group:'Clients & quotes', icon:'Handshake', tier:'CORE', description:'Client companies, contacts and relationship history', resources:['clients','contacts'], defaultTypes:'*' },
   { id:'pipeline', label:'Enquiries & leads', group:'Clients & quotes', icon:'Target', tier:'STANDARD', description:'Enquiries, chance of winning and expected value', resources:['leads'], defaultTypes:'*', minSize:1 },
   { id:'estimating', label:'Quotes & tenders', group:'Clients & quotes', icon:'Calculator', tier:'CORE', description:'Measure, price, add markup, revise and win tenders', resources:['estimates','bids'], defaultTypes:'*' },
@@ -54,7 +54,7 @@ export const MODULES: ModuleDef[] = [
   { id:'scheduling', label:'Job programme', group:'Jobs & sites', icon:'CalendarRange', tier:'STANDARD', description:'Start and finish dates, milestones and progress', resources:[], defaultTypes:'*', minSize:2 },
   { id:'contracts', label:'Contracts & variations', group:'Jobs & sites', icon:'FileSignature', tier:'CORE', description:'Main contracts, subcontracts, variations and retention', resources:['contracts','changeOrders'], defaultTypes:'*' },
   { id:'projectComms', label:'Site queries & approvals', group:'Jobs & sites', icon:'MessagesSquare', tier:'STANDARD', description:'Numbered lists with who must answer and due dates', resources:['rfis','submittals'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','CONSTRUCTION_MANAGEMENT','MIXED_GROUP'] },
-  { id:'documents', label:'Documents & drawings', group:'Jobs & sites', icon:'FolderOpen', tier:'CORE', description:'Latest drawing versions and who they were sent to', resources:['documents'], defaultTypes:'*' },
+  { id:'documents', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', tier:'CORE', description:'One place for files, folders and revisions', resources:['documents'], defaultTypes:'*' },
   { id:'fieldOps', label:'Site diaries & meetings', group:'Jobs & sites', icon:'Camera', tier:'CORE', description:'Daily site diaries, photos, meetings and instructions', resources:['dailyLogs','meetings'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','CONSTRUCTION_MANAGEMENT'] },
   { id:'closeout', label:'Snag lists & handover', group:'Jobs & sites', icon:'ListChecks', tier:'STANDARD', description:'Snagging, inspections, permits and handover', resources:['punchLists','permits'], defaultTypes:'*', minSize:1 },
   { id:'procurement', label:'Ordering & deliveries', group:'Materials & suppliers', icon:'ShoppingCart', tier:'CORE', description:'Material request → quote → order → delivery note → bill', resources:['requisitions','purchaseOrders','goodsReceipts'], defaultTypes:'*' },
@@ -74,11 +74,11 @@ export const MODULES: ModuleDef[] = [
   { id:'jobCosting', label:'Job budgets & costs', group:'Money & invoices', icon:'PieChart', tier:'STANDARD', description:'Budget against committed and actual costs', resources:['budgets'], defaultTypes:'*', minSize:2 },
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', tier:'CORE', description:'Ready-made reports and CSV exports', resources:[], defaultTypes:'*' },
   { id:'audit', label:'Activity & alerts', group:'Reports & extras', icon:'Bell', tier:'STANDARD', description:'A record of what changed and who did it', resources:[], defaultTypes:'*', minSize:2 },
-  { id:'portal', label:'Client portal', group:'Reports & extras', icon:'Globe', tier:'ADVANCED', description:'External client and subcontractor access', resources:[], defaultTypes:['RESIDENTIAL_DEVELOPER','CONSTRUCTION_MANAGEMENT','MIXED_GROUP'], requiresQualifier:'clientPortal' },
-  { id:'unitSales', label:'Stands, sales & warranties', group:'Reports & extras', icon:'KeyRound', tier:'ADVANCED', description:'Stands, unit sales, reservations and handover', resources:['units'], defaultTypes:['RESIDENTIAL_DEVELOPER'] },
-  { id:'rental', label:'Plant hire & dispatch', group:'Reports & extras', icon:'Truck', tier:'ADVANCED', description:'Plant hire agreements, dispatch and billing', resources:['rentalContracts'], defaultTypes:['EQUIPMENT_RENTAL'] },
-  { id:'commissioning', label:'Handover packs', group:'Reports & extras', icon:'Gauge', tier:'ADVANCED', description:'Systems, test packs and handover manuals', resources:['commissioning'], defaultTypes:['INDUSTRIAL_EPC'] },
-  { id:'integrations', label:'Connections & add-ons', group:'Settings', icon:'Plug', tier:'ENTERPRISE', description:'Connections and add-ons for other tools', resources:[], defaultTypes:'*', minSize:4 },
+  { id:'portal', label:'Client portal', group:'Specialist modules', icon:'Globe', tier:'ADVANCED', description:'External client and subcontractor access', resources:[], defaultTypes:['RESIDENTIAL_DEVELOPER','CONSTRUCTION_MANAGEMENT','MIXED_GROUP'], requiresQualifier:'clientPortal' },
+  { id:'unitSales', label:'Stands & unit sales', group:'Specialist modules', icon:'KeyRound', tier:'ADVANCED', description:'Stands, unit sales, reservations and handover', resources:['units'], defaultTypes:['RESIDENTIAL_DEVELOPER'] },
+  { id:'rental', label:'Leases & rentals', group:'Specialist modules', icon:'Truck', tier:'ADVANCED', description:'Lease and plant-hire agreements, rates and utilisation billing', resources:['rentalContracts'], defaultTypes:['EQUIPMENT_RENTAL'] },
+  { id:'commissioning', label:'Handover packs', group:'Specialist modules', icon:'Gauge', tier:'ADVANCED', description:'Systems, test packs and handover manuals', resources:['commissioning'], defaultTypes:['INDUSTRIAL_EPC'] },
+  { id:'integrations', label:'Connections & add-ons', group:'Specialist modules', icon:'Plug', tier:'ENTERPRISE', description:'Connections and add-ons for other tools', resources:[], defaultTypes:'*', minSize:4 },
 ];
 
 export const CORE_MODULE_IDS = MODULES.filter(m => m.tier === 'CORE').map(m => m.id);
@@ -86,7 +86,7 @@ export const CORE_MODULE_IDS = MODULES.filter(m => m.tier === 'CORE').map(m => m
 /* The essentials: one connected commercial chain — win work → deliver → invoice →
    get paid — plus the people and reporting needed to run it. New workspaces start
    here. Everything else is an explicit add-on (onboarding step 5) or can be
-   switched on later in Settings → Modules. This keeps the first-run surface small
+   switched on later in Settings → Sections. This keeps the first-run surface small
    and lets each module be verified before the next one is introduced. */
 export const STARTER_MODULE_IDS: string[] = [
   'dashboard','company','crm','pipeline','estimating','projects','contracts',

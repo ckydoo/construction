@@ -40,7 +40,7 @@ later without changing the application's structure.
 | Estimate / bid | **Quote** / **Tender** | What you send a client and what you submit |
 | Lead / opportunity | **Enquiry / lead** | "A client called about a job" |
 | RFI | **Site query** | A question from site that needs an answer |
-| Submittal | **Drawing for approval** | What actually gets sent |
+| Submittal | **Drawing approvals** | Shop drawings and samples sent for a decision |
 | Change order / VO | **Variation / extra** | Local contract language |
 | WBS / cost code | **Job tasks & programme** / job cost | No scheduling jargon |
 | Punch list | **Snag list** | Used across Southern Africa |
@@ -55,7 +55,7 @@ later without changing the application's structure.
 | Chart of accounts / AP / AR | **Account codes** / Money owed to you / Who you owe | Bookkeeper-friendly |
 | Budget vs actual (CVR) | **Budget vs actual** | No earned-value jargon |
 | Business intelligence / BI | **Reports** | A list you can print or download |
-| Module | **Section** (sidebar sections) | "Switch a section on" |
+| Module / resource | **Section** / **list** | "Switch a section on" / "2 lists" |
 | Workspace | **Your company** where it reads naturally | One company, one place |
 | Capability / RBAC / RLS | **Who can see what** | Explained as people and permissions |
 | Scope (portal) | **Own jobs only** | A client sees their own work |
@@ -65,8 +65,14 @@ later without changing the application's structure.
 
 `Overview` → `Clients & quotes` → `Jobs & sites` → `Materials & suppliers` →
 `Staff & wages` → `Safety & quality` → `Money & invoices` → `Reports & extras` →
-`Settings`. Dashboard, Documentation, Client wallets, Reports and Settings are fixed
+`Specialist modules` → `Settings`. Dashboard, Documentation, Client wallets, Reports and Settings are fixed
 entries; everything else is switched on from the sections enabled for your company.
+
+## One place for files
+
+- **Document library** — folders, uploads and file revisions.
+- **Document register** — drawing numbers, revisions and issue status.
+- **Drawing approvals** — the approval workflow for shop drawings and samples.
 
 ## Built for very small companies
 

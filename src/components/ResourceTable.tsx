@@ -158,7 +158,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
     onSuccess:(_d,v:string[])=>{setSelected(new Set());setConfirm(null);toast.push({tone:'success',title:`Deleted ${v.length} records`});},onSettled:invalidate });
 
   if(!def) return <Card><EmptyState title="Unknown module" description="This resource is not part of the catalogue."/></Card>;
-  if(meta&&!enabled) return <Card><EmptyState icon="Lock" title="Module not enabled" description={`${def.label} is not part of your current workspace. An owner or admin can enable it in Settings → Modules.`} action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Settings">Open settings</Button></Link>}/></Card>;
+  if(meta&&!enabled) return <Card><EmptyState icon="Lock" title="This section is switched off" description={`${def.label} is not part of your current workspace. An owner or admin can switch it on in Settings → Sections.`} action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Settings">Open settings</Button></Link>}/></Card>;
 
   const cols=visibleColumns(def,config);
   const numericCols=new Set(cols.filter(c=>{const f=def.fields.find(x=>x.key===c);return f&&['currency','number','percent'].includes(f.type);}));

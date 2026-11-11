@@ -22,7 +22,7 @@ const LOGO_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A
 const PASSWORD = 'Demo@1234';
 const results = [];
 const contexts = [];
-let browser, owner, page, originalCompany = {};
+let browser, owner, page, originalCompany = {}, originalConfig = null;
 let browserReady = false;
 
 const assert = (cond, msg) => { if (!cond) throw new Error(msg); };
@@ -66,7 +66,9 @@ async function gotoStatus(p) {
 
 try {
   owner = await session('owner@kestrelridge.co.zw');
-  originalCompany = (await get(owner, 'meta?scope=settings')).org.company || {};
+  const settingsMeta = await get(owner, 'meta?scope=settings');
+  originalCompany = settingsMeta.org.company || {};
+  originalConfig = settingsMeta.config || null;
   await send(owner, 'PATCH', 'settings', { action: 'applyPack', pack: 'full' });
   const state = await owner.storageState();
   browser = await chromium.launch({ headless: true });
@@ -238,7 +240,7 @@ try {
     await page.getByRole('button', { name: 'Sections' }).click();
     await page.waitForTimeout(700);
     const text = await page.locator('body').innerText();
-    for (const label of ['Safety on site', 'Client wallets', 'Reports', 'Documents & drawings', 'Home dashboard', 'Jobs & projects']) {
+    for (const label of ['Safety on site', 'Client wallets', 'Reports', 'Document library', 'Home dashboard', 'Jobs & projects']) {
       assert(text.includes(label), `settings is missing ${label}`);
     }
     return '6 disabled modules still listed';
@@ -246,7 +248,19 @@ try {
 } finally {
   try {
     if (owner) {
-      await send(owner, 'PATCH', 'settings', { action: 'applyPack', pack: 'full' });
+      // Restore the exact section set that was live before this audit. Applying
+      // the full pack here would silently undo a deliberately simplified demo.
+      if (originalConfig) {
+        const wanted = new Set(originalConfig.modules || []);
+        const currentMeta = await get(owner, 'meta?scope=settings');
+        const current = new Set(currentMeta.config?.modules || []);
+        for (const m of currentMeta.modules || []) {
+          const should = wanted.has(m.id);
+          if (should !== current.has(m.id)) await toggle(m.id, should);
+        }
+      } else {
+        await send(owner, 'PATCH', 'settings', { action: 'applyPack', pack: 'full' });
+      }
       await send(owner, 'PATCH', 'settings', { action: 'updateCompany', company: originalCompany });
     }
   } catch (e) { console.log(`cleanup warning: ${e.message}`); }

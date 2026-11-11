@@ -88,7 +88,7 @@ function Inner(){
   }
 
   if(isLoading||!meta) return <div className="space-y-4"><Skeleton className="h-10 w-1/3"/><div className="grid gap-4 sm:grid-cols-4">{Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-28"/>)}</div><Skeleton className="h-96"/></div>;
-  if(!meta.walletEnabled) return <Card><EmptyState icon="CreditCard" title="Client wallets module is off" description="Enable it in Settings → Modules to start funding projects from client advances." action={<Link href={`/${org}/settings`}><Button variant="primary">Open settings</Button></Link>}/></Card>;
+  if(!meta.walletEnabled) return <Card><EmptyState icon="CreditCard" title="Client wallets is switched off" description="Switch it on in Settings → Sections to start funding jobs from client advances." action={<Link href={`/${org}/settings`}><Button variant="primary">Open settings</Button></Link>}/></Card>;
   if(!caps.includes('wallet.read')) return <Card><EmptyState icon="Lock" title="Access restricted" description={`Your role (${meta.role.replace(/_/g,' ')}) does not include client wallet access. Ask an owner or administrator to change your role.`}/></Card>;
 
   const s=data?.summary, rows=data?.wallets||[];

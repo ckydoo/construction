@@ -244,12 +244,13 @@ const EVERYDAY: { title: string; icon: string; blurb: string; steps: Step[] }[] 
 const MODULE_MAP = [
   { group: 'Overview', icon: 'LayoutDashboard', holds: 'Your decisions, day at a glance and this guide', items: [{ label: 'My work', href: 'my-work' }, { label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }] },
   { group: 'Clients & quotes', icon: 'Handshake', holds: 'Clients, enquiries, quotes and tenders', items: [{ label: 'Clients', href: 'm/clients' }, { label: 'Enquiries & leads', href: 'm/leads' }, { label: 'Quotes & estimates', href: 'm/estimates' }, { label: 'Tenders & bids', href: 'm/bids' }] },
-  { group: 'Jobs & sites', icon: 'HardHat', holds: 'Jobs, tasks, site queries and site diaries', items: [{ label: 'Jobs & projects', href: 'm/projects' }, { label: 'Job tasks & programme', href: 'm/tasks' }, { label: 'Site queries', href: 'm/rfis' }, { label: 'Site diaries', href: 'm/dailyLogs' }] },
+  { group: 'Jobs & sites', icon: 'HardHat', holds: 'Jobs, tasks, approvals, files and site diaries', items: [{ label: 'Jobs & projects', href: 'm/projects' }, { label: 'Job tasks & programme', href: 'm/tasks' }, { label: 'Site queries', href: 'm/rfis' }, { label: 'Drawing approvals', href: 'm/submittals' }, { label: 'Document library', href: 'library' }, { label: 'Site diaries', href: 'm/dailyLogs' }] },
   { group: 'Materials & suppliers', icon: 'Truck', holds: 'Suppliers, orders, deliveries, stock and payment checks', items: [{ label: 'Suppliers', href: 'm/vendors' }, { label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Three-way match', href: 'three-way-match' }, { label: 'Stock & materials', href: 'm/inventory' }] },
   { group: 'Staff & wages', icon: 'UsersRound', holds: 'Staff, time sheets, payroll and trade certificates', items: [{ label: 'Staff & workers', href: 'm/employees' }, { label: 'Time sheets', href: 'm/timesheets' }, { label: 'Payroll & payslips', href: 'm/payRuns' }, { label: 'Trade certificates', href: 'm/certifications' }] },
   { group: 'Safety & quality', icon: 'ShieldCheck', holds: 'Incidents, site checks and rework', items: [{ label: 'Incidents & near misses', href: 'm/incidents' }, { label: 'Site checks', href: 'm/inspections' }, { label: 'Faults & rework', href: 'm/ncrs' }] },
   { group: 'Money & invoices', icon: 'CreditCard', holds: 'Client money, tax invoices, certificates and budgets', items: [{ label: 'Client wallets', href: 'wallets' }, { label: 'Client invoices', href: 'm/arInvoices' }, { label: 'Payment certificates', href: 'm/paymentApps' }, { label: 'Job budgets & costs', href: 'm/budgets' }] },
   { group: 'Reports & extras', icon: 'BarChart3', holds: 'Ready-made lists, downloads and job margin', items: [{ label: 'Reports', href: 'reports' }, { label: 'Job profitability', href: 'profitability' }] },
+  { group: 'Specialist modules', icon: 'Layers', holds: 'Only for property developers, plant hire and industrial handover', items: [{ label: 'Stands & unit sales', href: 'm/units' }, { label: 'Leases & rentals', href: 'm/rentalContracts' }, { label: 'Handover packs', href: 'm/commissioning' }] },
   { group: 'Settings', icon: 'Settings', holds: 'Company details, sections and people', items: [{ label: 'Settings', href: 'settings' }] },
 ];
 
@@ -269,6 +270,9 @@ const GLOSSARY: [string, string][] = [
   ['Tax invoice', 'Invoice with 15% VAT and a tax invoice number'],
   ['Payment certificate', 'The QS certificate saying how much work is due'],
   ['Stand', 'A plot of land; stands / units is what a developer sells'],
+  ['Drawing approvals', 'Shop drawings or material samples sent to someone for a decision'],
+  ['Document register', 'The list of drawing numbers, revisions and issue status'],
+  ['Document library', 'The folder view where the actual files and revisions live'],
   ['Client money in hand', 'A wallet — money a client paid in advance for their jobs'],
   ['Section', 'A module — a part of MYLA you can switch on or off'],
 ];
@@ -307,6 +311,10 @@ const SPECIAL_LINKS: Record<string, { label: string; href: string }[]> = {
   company: [{ label: 'Settings', href: 'settings' }],
   scheduling: [{ label: 'Job tasks & programme', href: 'm/tasks' }],
   documents: [{ label: 'Document library', href: 'library' }],
+  projectComms: [{ label: 'Site queries', href: 'm/rfis' }, { label: 'Drawing approvals', href: 'm/submittals' }],
+  unitSales: [{ label: 'Stands & unit sales', href: 'm/units' }],
+  rental: [{ label: 'Leases & rentals', href: 'm/rentalContracts' }],
+  commissioning: [{ label: 'Handover packs', href: 'm/commissioning' }],
   procurement: [{ label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Three-way match', href: 'three-way-match' }],
   finance: [{ label: 'Supplier bills', href: 'm/apBills' }, { label: 'Three-way match', href: 'three-way-match' }],
   wallets: [{ label: 'Client wallets', href: 'wallets' }],

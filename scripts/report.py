@@ -61,7 +61,7 @@ lines = [
     'That is one commercial chain — clients → leads → estimates & bids → projects → contracts → invoices → payments → client wallets — plus people and reporting. '
     'Type, size, qualifiers and explicit add-ons layer on more modules on a ramp (MICRO 13 → SMALL 13 → MID 17 → LARGE 29 → ENTERPRISE 30, mixed group 33).', '',
     '- Onboarding step 5 labels core modules, lists every optional add-on, and offers **Enable all** / **Reset to essentials**.',
-    '- Settings → Modules has one-click **Essentials (13)** / **All modules** focus switching; individual toggles still work.',
+    '- Settings → Sections has one-click **Essentials (13)** / **Everything on** switching; individual toggles still work.',
     '- The seeded demo organisation intentionally keeps all 34 modules enabled as the enterprise reference workspace (and so the audit can exercise all 49 resources).', '',
     '## Client wallets', '',
     'One prepaid `Wallet` per client, an append-only `WalletTransaction` ledger and integer cents (no float drift). '

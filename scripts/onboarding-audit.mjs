@@ -159,7 +159,7 @@ try {
     assert.equal(await metric(page, 'People'), String(expected.limits.users), 'user limit');
     const coreBadges = await page.locator('main .card span').filter({ hasText: /^basic$/ }).count();
     assert.equal(coreBadges, 13, 'basic section badges');
-    await page.getByRole('button', { name: /Plant hire & dispatch/ }).click();
+    await page.getByRole('button', { name: /Leases & rentals/ }).click();
     assert.equal(await metric(page, 'Sections'), String(expected.modules.length), 'module count after add-on');
     const toggle = page.locator('main .card button[aria-pressed]').last();
     assert.equal(await toggle.getAttribute('aria-pressed'), 'true', 'demo-data toggle starts on');
@@ -207,7 +207,7 @@ try {
     assert(/Leases & rentals/.test(sidebar), 'explicit add-on resource missing from sidebar');
     assert(/Handover packs/.test(sidebar), 'type-defining resource missing from sidebar');
     assert(/Plant & equipment/.test(sidebar), 'qualifier-derived resource missing from sidebar');
-    assert(!/Stands, units & sales/.test(sidebar), 'disabled module leaked into sidebar');
+    assert(!/Stands & unit sales/.test(sidebar), 'disabled module leaked into sidebar');
     return `${qaSlug} · ${expected.modules.length} modules · 0 seeded clients`;
   });
 
