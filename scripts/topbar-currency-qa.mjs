@@ -88,6 +88,7 @@ function check(name, ok, detail = '') {
     await page.goto(`${BASE}/${ORG}/dashboard`, { waitUntil: 'networkidle' });
     const dashboardConverted = await page.locator('main').getByText(/≈/).count();
     check('dashboard converts personal display amounts', dashboardConverted > 0, `${dashboardConverted} converted values`);
+    check('dashboard omits the currencies-in-totals card', await page.getByText('Currencies in your totals').count() === 0, 'removed');
 
     await page.goto(`${BASE}/${ORG}/wallets`, { waitUntil: 'networkidle' });
     const walletConverted = await page.locator('main').getByText(/≈/).count();
@@ -97,6 +98,7 @@ function check(name, ok, detail = '') {
     const reportConverted = await page.locator('main').getByText(/≈/).count();
     check('reports still use workspace base currency', reportConverted === 0, `${reportConverted} converted values`);
     check('reports explain the workspace-base exception', await page.getByText(/Reports stay in the workspace base currency/).isVisible(), 'base currency note');
+    check('workspace currency reporting remains available in Reports', await page.getByText('Money by currency').isVisible(), 'Money by currency card');
     const csv = await context.request.get(`${BASE}/api/${ORG}/records/estimates?format=csv`);
     const csvText = await csv.text();
     check('CSV export is unchanged', csv.status() === 200 && !csvText.includes('≈'), `status ${csv.status()}`);

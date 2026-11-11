@@ -4,13 +4,13 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
-import { money, num, ago, pct } from '@/lib/format';
+import { num, ago, pct } from '@/lib/format';
 import { resourceFullyEnabled, moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
 import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 
-type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string; fx?:any };
+type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string };
 
 function Kpi({label,value,sub,loading}:{label:string;value:string;sub?:string;loading?:boolean}){
   if(loading) return <div className="bg-white p-4 dark:bg-ink-900"><Skeleton className="mb-3 h-3 w-1/3"/><Skeleton className="mb-2 h-6 w-1/2"/><Skeleton className="h-3 w-2/3"/></div>;
@@ -30,11 +30,10 @@ export default function DashboardPage(){
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);
-  const showMoney=mod('finance')||mod('billing')||mod('wallets');
   const showJobs=on('projects')||on('estimates');
   const k=data?.kpis; const series=(data?.revenueSeries||[]).slice(-Number(period));
   const totalRecords=Object.entries(data?.counts||{}).filter(([k])=>on(k)).reduce((a,[,b])=>a+Number(b||0),0);
-  const base=data?.currency||'USD'; const fx=data?.fx;
+  const base=data?.currency||'USD';
   const glance=[['Staff','employees'],['Jobs','projects'],['Clients','clients'],['Plant','equipment'],['Tax invoices','arInvoices'],['Time sheets','timesheets'],['Site queries','rfis'],['Incidents','incidents']].filter(([,key])=>on(key));
   const attention=(data?.attention||[]).filter((a:any)=>hrefVisible(a.href,config));
   const audit=(data?.audit||[]).filter((a:any)=>auditResourceVisible(a.resource,config));
@@ -56,13 +55,6 @@ export default function DashboardPage(){
         {mod('wallets')&&<Kpi loading={isLoading} label="Client money in hand" value={formatMoney(k?.walletBalance,base,true)} sub={`${formatMoney(k?.walletFunded,base,true)} set aside for jobs`}/>}
       </div>
     </Card>
-    {!isLoading&&showMoney&&fx&&fx.enabled.length>1&&<Card><CardHead title="Currencies in your totals" subtitle={`Reporting in ${fx.base} · rates set in Settings → Currencies`} action={<Link href={`/${org}/settings`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">Manage rates →</Link>}/>
-      <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-4">{fx.enabled.map((c:string)=>{
-        const row=(fx.byCurrency||[]).find((x:any)=>x.currency===c);
-        return <div key={c} className="bg-white p-3.5 dark:bg-ink-900"><div className="flex items-center justify-between gap-2"><p className="text-xs font-semibold">{c}</p>{c===fx.base?<Badge tone="green">base</Badge>:<span className="text-[10px] muted">1 {fx.base} = {num(fx.rates?.[c])} {c}</span>}</div>
-          <p className="mt-1.5 text-[13px] font-semibold tabular-nums">{money(row?.amount||0,c,true)}</p><p className="text-[10px] muted">{c===fx.base?'Reported as entered':`${money(row?.baseAmount||0,fx.base,true)} in ${fx.base}`}</p></div>;})}</div>
-      {fx.missingRates?.length>0&&<div className="border-t divider px-4 py-2 text-[11px] muted">Add a rate for {fx.missingRates.join(', ')} in Settings so those totals convert correctly.</div>}
-    </Card>}
     {!isLoading&&mod('wallets')&&(data?.wallets||[]).length>0&&<Card className="overflow-hidden"><CardHead title="Client wallets" subtitle="Money each client has paid in advance · every movement recorded" action={<Link href={`/${org}/wallets`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">Manage wallets →</Link>}/>
       <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-3">{(data?.wallets||[]).slice(0,6).map(w=><Link key={w.clientId} href={`/${org}/wallets?client=${encodeURIComponent(w.clientId)}`} className="flex items-center gap-3 bg-white px-4 py-2.5 transition hover:bg-slate-50 dark:bg-ink-900 dark:hover:bg-ink-800/60">
         <Icon name="Wallet" size={15} className="shrink-0 text-ink-400"/>
