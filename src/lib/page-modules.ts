@@ -5,13 +5,18 @@ import { requireOrg, type AuthCtx } from './auth';
 import { canRead } from './catalog';
 import { moduleEnabled, resourceFullyEnabled } from './module-visibility';
 
+type PageModuleCheck = { moduleId?: string; resourceId?: string };
+type PageModuleOptions = PageModuleCheck & { also?: PageModuleCheck };
+
 export async function requirePageModule(
   org: string,
-  options: { moduleId?: string; resourceId?: string } = {},
+  options: PageModuleOptions = {},
 ): Promise<AuthCtx> {
   const a = await requireOrg(org);
-  if (options.moduleId && !moduleEnabled(a.config, options.moduleId)) notFound();
-  if (options.resourceId && !resourceFullyEnabled(a.config, options.resourceId)) notFound();
-  if (options.resourceId && !canRead(a.role, options.resourceId)) notFound();
+  for (const check of [options, options.also || {}] as PageModuleCheck[]) {
+    if (check.moduleId && !moduleEnabled(a.config, check.moduleId)) notFound();
+    if (check.resourceId && !resourceFullyEnabled(a.config, check.resourceId)) notFound();
+    if (check.resourceId && !canRead(a.role, check.resourceId)) notFound();
+  }
   return a;
 }

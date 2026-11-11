@@ -14,6 +14,7 @@ export const SPECIAL_ROUTE_MODULES: Record<string, string> = {
   documentation: 'dashboard',
   library: 'documents',
   quotes: 'estimating',
+  'three-way-match': 'procurement',
   wallets: 'wallets',
   reports: 'reports',
   profitability: 'reports',
@@ -70,10 +71,11 @@ export function hrefVisible(rawHref: string | null | undefined, config: ConfigLi
   const href = rawHref.split(/[?#]/)[0];
   const resource = href.match(/(?:^|\/)m\/([^/]+)/)?.[1];
   if (resource) return resourceFullyEnabled(config, resource);
-  const special = href.match(/(?:^|\/)(dashboard|my-work|profitability|documentation|library|quotes|wallets|reports)(?:\/|$)/)?.[1];
+  const special = href.match(/(?:^|\/)(dashboard|my-work|profitability|three-way-match|documentation|library|quotes|wallets|reports)(?:\/|$)/)?.[1];
   if (special) {
     if (special === 'library') return resourceFullyEnabled(config, 'documents');
     if (special === 'quotes') return resourceFullyEnabled(config, 'estimates');
+    if (special === 'three-way-match') return resourceFullyEnabled(config, 'purchaseOrders') && resourceFullyEnabled(config, 'apBills');
     return moduleEnabled(config, SPECIAL_ROUTE_MODULES[special]);
   }
   return true;

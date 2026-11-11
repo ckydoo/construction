@@ -245,7 +245,7 @@ const MODULE_MAP = [
   { group: 'Overview', icon: 'LayoutDashboard', holds: 'Your decisions, day at a glance and this guide', items: [{ label: 'My work', href: 'my-work' }, { label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }] },
   { group: 'Clients & quotes', icon: 'Handshake', holds: 'Clients, enquiries, quotes and tenders', items: [{ label: 'Clients', href: 'm/clients' }, { label: 'Enquiries & leads', href: 'm/leads' }, { label: 'Quotes & estimates', href: 'm/estimates' }, { label: 'Tenders & bids', href: 'm/bids' }] },
   { group: 'Jobs & sites', icon: 'HardHat', holds: 'Jobs, tasks, site queries and site diaries', items: [{ label: 'Jobs & projects', href: 'm/projects' }, { label: 'Job tasks & programme', href: 'm/tasks' }, { label: 'Site queries', href: 'm/rfis' }, { label: 'Site diaries', href: 'm/dailyLogs' }] },
-  { group: 'Materials & suppliers', icon: 'Truck', holds: 'Suppliers, orders, deliveries and stock', items: [{ label: 'Suppliers', href: 'm/vendors' }, { label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Stock & materials', href: 'm/inventory' }] },
+  { group: 'Materials & suppliers', icon: 'Truck', holds: 'Suppliers, orders, deliveries, stock and payment checks', items: [{ label: 'Suppliers', href: 'm/vendors' }, { label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Three-way match', href: 'three-way-match' }, { label: 'Stock & materials', href: 'm/inventory' }] },
   { group: 'Staff & wages', icon: 'UsersRound', holds: 'Staff, time sheets, payroll and trade certificates', items: [{ label: 'Staff & workers', href: 'm/employees' }, { label: 'Time sheets', href: 'm/timesheets' }, { label: 'Payroll & payslips', href: 'm/payRuns' }, { label: 'Trade certificates', href: 'm/certifications' }] },
   { group: 'Safety & quality', icon: 'ShieldCheck', holds: 'Incidents, site checks and rework', items: [{ label: 'Incidents & near misses', href: 'm/incidents' }, { label: 'Site checks', href: 'm/inspections' }, { label: 'Faults & rework', href: 'm/ncrs' }] },
   { group: 'Money & invoices', icon: 'CreditCard', holds: 'Client money, tax invoices, certificates and budgets', items: [{ label: 'Client wallets', href: 'wallets' }, { label: 'Client invoices', href: 'm/arInvoices' }, { label: 'Payment certificates', href: 'm/paymentApps' }, { label: 'Job budgets & costs', href: 'm/budgets' }] },
@@ -307,6 +307,8 @@ const SPECIAL_LINKS: Record<string, { label: string; href: string }[]> = {
   company: [{ label: 'Settings', href: 'settings' }],
   scheduling: [{ label: 'Job tasks & programme', href: 'm/tasks' }],
   documents: [{ label: 'Document library', href: 'library' }],
+  procurement: [{ label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Three-way match', href: 'three-way-match' }],
+  finance: [{ label: 'Supplier bills', href: 'm/apBills' }, { label: 'Three-way match', href: 'three-way-match' }],
   wallets: [{ label: 'Client wallets', href: 'wallets' }],
   reports: [{ label: 'Reports', href: 'reports' }, { label: 'Job profitability', href: 'profitability' }, { label: 'Billing & subscription', href: 'billing' }],
   audit: [{ label: 'Settings → activity & alerts', href: 'settings' }],
@@ -488,6 +490,7 @@ export default function DocumentationPage() {
             [7, 'Top bar currency & menus', 'Pick a personal display currency from the top bar; click away or press Escape to close any open top-bar menu. Reports and saved records keep their own currency.'],
             [8, 'My work', 'Approvals, late answers and open safety or quality actions come to one queue. Approve, reject or close from the card; the status change is guarded and audited.'],
             [9, 'Job profitability', 'See each job’s revised contract, actual cost, forecast final cost, margin, billing position and cash gap in one read-only cockpit.'],
+            [10, 'Three-way match', 'Compare purchase orders, delivery notes and supplier bills. Duplicate invoices, missing links and price variances are held before payment.'],
           ].map(([n, t, d]) => <div key={n} className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-500 text-[10px] font-bold text-white">{n}</span>
             <div><p className="text-[12px] font-semibold text-ink-900 dark:text-white">{t}</p><p className="caption">{d}</p></div>

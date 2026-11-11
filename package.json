@@ -44,7 +44,8 @@
     "audit:quote-studio": "node scripts/quote-studio-qa.mjs",
     "audit:topbar": "node scripts/topbar-currency-qa.mjs",
     "audit:workflow": "tsx scripts/workflow-defs-qa.ts && node scripts/workflow-qa.mjs",
-    "audit:profitability": "tsx scripts/profitability-defs-qa.ts && node scripts/profitability-qa.mjs"
+    "audit:profitability": "tsx scripts/profitability-defs-qa.ts && node scripts/profitability-qa.mjs",
+    "audit:three-way-match": "tsx scripts/three-way-match-defs-qa.ts && node scripts/three-way-match-qa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

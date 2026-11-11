@@ -29,6 +29,7 @@ export default function DashboardPage(){
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const {data:workQueue}:any=useQuery({queryKey:['work-items',org],queryFn:()=>apiGet(orgApi(org,'work-items')),staleTime:30_000});
   const {data:profitability}:any=useQuery({queryKey:['profitability',org],queryFn:()=>apiGet(orgApi(org,'profitability')),staleTime:60_000});
+  const {data:threeWay}:any=useQuery({queryKey:['three-way-match',org],queryFn:()=>apiGet(orgApi(org,'three-way-match')),staleTime:60_000});
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);
@@ -58,6 +59,12 @@ export default function DashboardPage(){
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">Forecast margin {money(profitability.summary.forecastMargin, profitability.base, true)} across {num(profitability.summary.projectCount)} job{profitability.summary.projectCount===1?'':'s'}</p>
         <p className="mt-0.5 text-xs muted">{pct(profitability.summary.marginPct)} of revised contract · {num(profitability.summary.atRisk)} at risk · {num(profitability.summary.watch)} to watch · workspace base {profitability.base}</p></div>
       <Link href={`/${org}/profitability`} className="btn-outline btn-sm inline-flex items-center gap-1.5"><Icon name="TrendingUp" size={15}/>Open job profitability</Link>
+    </Card>}
+    {threeWay&&threeWay.summary.orders>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
+      <span data-testid="dashboard-three-way-match" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name="ClipboardCheck" size={18}/></span>
+      <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{num(threeWay.summary.blocked)} payment hold{threeWay.summary.blocked===1?'':'s'} · {num(threeWay.summary.review)} order{threeWay.summary.review===1?'':'s'} to review</p>
+        <p className="mt-0.5 text-xs muted">{num(threeWay.summary.matched)} matched · {num(threeWay.summary.orphanBills)} bills without a PO · {num(threeWay.summary.orphanReceipts)} deliveries without a PO · workspace base {threeWay.base}</p></div>
+      <Link href={`/${org}/three-way-match`} className="btn-outline btn-sm inline-flex items-center gap-1.5"><Icon name="ClipboardCheck" size={15}/>Open three-way match</Link>
     </Card>}
     {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description="Load sample data to look around, or start by adding your first client and job." action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Database">Load sample data</Button></Link>}/></Card>}
     <Card className="overflow-hidden">

@@ -26,6 +26,7 @@ const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard', module:'dashboard' },
   { id:'documentation', label:'Documentation', group:'Overview', icon:'BookOpen', href:'/documentation', module:'dashboard' },
   { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents', resource:'documents' },
+  { id:'three-way-match', label:'Three-way match', group:'Materials & suppliers', icon:'ClipboardCheck', href:'/three-way-match', module:'procurement', alsoModule:'finance', resource:'purchaseOrders' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports', module:'reports' },
   { id:'profitability', label:'Job profitability', group:'Reports & extras', icon:'Gauge', href:'/profitability', module:'reports', resource:'projects' },
@@ -33,7 +34,7 @@ const SPECIAL = [
   { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', billing:'Billing & subscription',
+  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -79,6 +80,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     const role=meta.role||'ADMIN';
     for(const s of SPECIAL){
       if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
+      if((s as any).alsoModule && !moduleEnabled(meta.config,(s as any).alsoModule)) continue;
       if((s as any).resource && !resourceFullyEnabled(meta.config,(s as any).resource)) continue;
       if((s as any).cap && !canCapability(role,(s as any).cap)) continue;
       if((s as any).adminOnly && !['OWNER','ADMIN'].includes(role)) continue;
@@ -119,7 +121,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">{g.group}</p>
         {g.items.map((it:any)=>{
           const href=`/${orgSlug}${it.href}`; const active=pathname===href||(it.id!=='dashboard'&&pathname.startsWith(href));
-          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':undefined} className={`nav-item ${active?'nav-active':''}`}>
+          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':it.id==='three-way-match'?'nav-three-way-match':undefined} className={`nav-item ${active?'nav-active':''}`}>
             <Icon name={it.icon} size={15} className="shrink-0"/>
             <span className="min-w-0 flex-1 truncate">{it.label}</span>
             {it.id==='my-work'&&workCount>0&&<span data-testid="nav-my-work-count" className="ml-auto rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">{workCount>99?'99+':workCount}</span>}
