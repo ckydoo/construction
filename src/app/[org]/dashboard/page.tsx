@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
-import { num, ago, pct } from '@/lib/format';
+import { num, ago, pct, money } from '@/lib/format';
 import { resourceFullyEnabled, moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
@@ -28,6 +28,7 @@ export default function DashboardPage(){
   const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const {data:workQueue}:any=useQuery({queryKey:['work-items',org],queryFn:()=>apiGet(orgApi(org,'work-items')),staleTime:30_000});
+  const {data:profitability}:any=useQuery({queryKey:['profitability',org],queryFn:()=>apiGet(orgApi(org,'profitability')),staleTime:60_000});
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);
@@ -51,6 +52,12 @@ export default function DashboardPage(){
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{workQueue.summary.total ? `${num(workQueue.summary.total)} item${workQueue.summary.total===1?'':'s'} need a decision or close-out` : 'You are all caught up'}</p>
         <p className="mt-0.5 text-xs muted">{workQueue.summary.actionable} waiting on you · {workQueue.summary.overdue} late · {workQueue.summary.escalated} escalated</p></div>
       <Link href={`/${org}/my-work`} className="btn-primary btn-sm inline-flex items-center gap-1.5"><Icon name="ArrowRight" size={15}/>Open My work</Link>
+    </Card>}
+    {profitability&&profitability.summary.projectCount>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
+      <span data-testid="dashboard-profitability" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name="Gauge" size={18}/></span>
+      <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">Forecast margin {money(profitability.summary.forecastMargin, profitability.base, true)} across {num(profitability.summary.projectCount)} job{profitability.summary.projectCount===1?'':'s'}</p>
+        <p className="mt-0.5 text-xs muted">{pct(profitability.summary.marginPct)} of revised contract · {num(profitability.summary.atRisk)} at risk · {num(profitability.summary.watch)} to watch · workspace base {profitability.base}</p></div>
+      <Link href={`/${org}/profitability`} className="btn-outline btn-sm inline-flex items-center gap-1.5"><Icon name="TrendingUp" size={15}/>Open job profitability</Link>
     </Card>}
     {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description="Load sample data to look around, or start by adding your first client and job." action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Database">Load sample data</Button></Link>}/></Card>}
     <Card className="overflow-hidden">

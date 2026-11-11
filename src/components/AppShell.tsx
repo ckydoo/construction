@@ -28,11 +28,12 @@ const SPECIAL = [
   { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents', resource:'documents' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports', module:'reports' },
+  { id:'profitability', label:'Job profitability', group:'Reports & extras', icon:'Gauge', href:'/profitability', module:'reports', resource:'projects' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
   { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', settings:'Settings', billing:'Billing & subscription',
+  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 
@@ -118,7 +119,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">{g.group}</p>
         {g.items.map((it:any)=>{
           const href=`/${orgSlug}${it.href}`; const active=pathname===href||(it.id!=='dashboard'&&pathname.startsWith(href));
-          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':undefined} className={`nav-item ${active?'nav-active':''}`}>
+          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':undefined} className={`nav-item ${active?'nav-active':''}`}>
             <Icon name={it.icon} size={15} className="shrink-0"/>
             <span className="min-w-0 flex-1 truncate">{it.label}</span>
             {it.id==='my-work'&&workCount>0&&<span data-testid="nav-my-work-count" className="ml-auto rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">{workCount>99?'99+':workCount}</span>}

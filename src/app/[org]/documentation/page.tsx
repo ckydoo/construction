@@ -249,7 +249,7 @@ const MODULE_MAP = [
   { group: 'Staff & wages', icon: 'UsersRound', holds: 'Staff, time sheets, payroll and trade certificates', items: [{ label: 'Staff & workers', href: 'm/employees' }, { label: 'Time sheets', href: 'm/timesheets' }, { label: 'Payroll & payslips', href: 'm/payRuns' }, { label: 'Trade certificates', href: 'm/certifications' }] },
   { group: 'Safety & quality', icon: 'ShieldCheck', holds: 'Incidents, site checks and rework', items: [{ label: 'Incidents & near misses', href: 'm/incidents' }, { label: 'Site checks', href: 'm/inspections' }, { label: 'Faults & rework', href: 'm/ncrs' }] },
   { group: 'Money & invoices', icon: 'CreditCard', holds: 'Client money, tax invoices, certificates and budgets', items: [{ label: 'Client wallets', href: 'wallets' }, { label: 'Client invoices', href: 'm/arInvoices' }, { label: 'Payment certificates', href: 'm/paymentApps' }, { label: 'Job budgets & costs', href: 'm/budgets' }] },
-  { group: 'Reports & extras', icon: 'BarChart3', holds: 'Ready-made lists and downloads', items: [{ label: 'Reports', href: 'reports' }] },
+  { group: 'Reports & extras', icon: 'BarChart3', holds: 'Ready-made lists, downloads and job margin', items: [{ label: 'Reports', href: 'reports' }, { label: 'Job profitability', href: 'profitability' }] },
   { group: 'Settings', icon: 'Settings', holds: 'Company details, sections and people', items: [{ label: 'Settings', href: 'settings' }] },
 ];
 
@@ -308,7 +308,7 @@ const SPECIAL_LINKS: Record<string, { label: string; href: string }[]> = {
   scheduling: [{ label: 'Job tasks & programme', href: 'm/tasks' }],
   documents: [{ label: 'Document library', href: 'library' }],
   wallets: [{ label: 'Client wallets', href: 'wallets' }],
-  reports: [{ label: 'Reports', href: 'reports' }, { label: 'Billing & subscription', href: 'billing' }],
+  reports: [{ label: 'Reports', href: 'reports' }, { label: 'Job profitability', href: 'profitability' }, { label: 'Billing & subscription', href: 'billing' }],
   audit: [{ label: 'Settings → activity & alerts', href: 'settings' }],
   portal: [{ label: 'Settings → users & roles', href: 'settings' }],
   integrations: [{ label: 'Settings → connections', href: 'settings' }],
@@ -487,6 +487,7 @@ export default function DocumentationPage() {
             [6, 'Sidebar sections', 'Only the parts of MYLA switched on for your company appear here.'],
             [7, 'Top bar currency & menus', 'Pick a personal display currency from the top bar; click away or press Escape to close any open top-bar menu. Reports and saved records keep their own currency.'],
             [8, 'My work', 'Approvals, late answers and open safety or quality actions come to one queue. Approve, reject or close from the card; the status change is guarded and audited.'],
+            [9, 'Job profitability', 'See each job’s revised contract, actual cost, forecast final cost, margin, billing position and cash gap in one read-only cockpit.'],
           ].map(([n, t, d]) => <div key={n} className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-500 text-[10px] font-bold text-white">{n}</span>
             <div><p className="text-[12px] font-semibold text-ink-900 dark:text-white">{t}</p><p className="caption">{d}</p></div>
