@@ -15,6 +15,7 @@ import ConvertFlow from './ConvertFlow';
 import FileDropZone, { isExternalFileDrag } from './FileDropZone';
 import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import type { RefOptions } from './RecordForm';
+import { isPreviewableResource, documentPreviewHref } from '@/lib/document-preview';
 
 export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,refs,canEdit,canRemove,inline=false}:{
   org:string; def:ResourceDef; row:any; open:boolean; onClose:()=>void; onEdit?:()=>void; onDelete?:()=>void;
@@ -92,16 +93,32 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     for(const g of out) g.items.sort((a:any,b:any)=>(b.revision||1)-(a.revision||1));
     return out;
   })();
+  const canPreview=!inline&&isPreviewableResource(def.id)&&!!row?.id;
+  const pdfHref=orgApi(org,`pdf/${def.id}/${encodeURIComponent(row?.id||'')}`);
+  const previewHref=documentPreviewHref(org,def.id,String(row?.id||''));
+  const previewSection=canPreview&&<section id="document-preview" className="border-t divider px-4 py-4">
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center gap-2"><Icon name="Eye" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Document preview</h3><Badge tone="slate">{def.singular}</Badge></div>
+      <div className="flex flex-wrap gap-2">
+        <a href={previewHref} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" icon="ExternalLink">Open</Button></a>
+        <a href={pdfHref} download><Button size="sm" icon="FileDown">Download</Button></a>
+      </div>
+    </div>
+    <div className="overflow-hidden rounded-lg border divider bg-slate-100 dark:bg-ink-950/40">
+      <iframe src={previewHref} title={`${def.singular} preview for ${row?.number||row?.id||'record'}`} className="h-[600px] w-full border-0 bg-white"/>
+    </div>
+    <p className="mt-2 text-[11px] muted">This preview uses the same document data as the PDF download. Scroll inside it to review the full document before downloading.</p>
+  </section>;
   const body = <>
-
     <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}
       {row?.sourceResource&&row?.sourceId&&<Link href={row.sourceResource==='projects'?`/${org}/projects/${encodeURIComponent(row.sourceId)}`:`/${org}/m/${row.sourceResource}?open=${encodeURIComponent(row.sourceId)}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">Converted from {row.sourceLabel||row.sourceNumber||row.sourceResource} →</Link>}
     </div></div>
-    <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
+    <div id="record-fields" className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'||f.type==='items'?'sm:col-span-2':''}>
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,row?.[f.key])}</div>
       </div>)}
     </div>
+    {previewSection}
     <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center gap-2"><Icon name="Link2" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Linked records</h3>
         <Badge tone="slate">{relatedGroups.reduce((n:number,g:any)=>n+g.items.length,0)} across modules</Badge></div>
@@ -158,10 +175,13 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   const title=row?.title||def.singular;
   const subtitle=`${row?.number||''} · ${def.singular}`;
   const convertButton = canConvert&&<Button size="sm" variant="outline" icon="ArrowRightLeft" onClick={()=>setConvertOpen(true)}>Convert to…</Button>;
-  const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2">{convertButton}<a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;
+  const previewButton = canPreview&&<Button size="sm" variant="outline" icon="Eye" onClick={()=>document.getElementById('document-preview')?.scrollIntoView({behavior:'smooth',block:'start'})}>Preview</Button>;
+  const downloadLink = <a href={pdfHref} download><Button size="sm" icon="FileDown">Download PDF</Button></a>;
+  const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2">{convertButton}{previewButton}{downloadLink}{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;
   const inlineActions = <div className="flex flex-wrap gap-2">
     {convertButton}
-    <a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>
+    {previewButton}
+    {downloadLink}
     {canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}
     {canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}
   </div>;
@@ -171,6 +191,6 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     {body}
     {flow}
   </Card>;
-  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer}>{body}{flow}</Drawer>;
+  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer} width={canPreview?'max-w-4xl':'max-w-xl'}>{body}{flow}</Drawer>;
 
 }
