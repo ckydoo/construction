@@ -10,6 +10,7 @@ import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrenc
 import { resourceFullyEnabled } from '@/lib/module-visibility';
 import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, ConfirmDialog, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Providers';
+import NotificationSettings from '@/components/NotificationSettings';
 import { date, num, money } from '@/lib/format';
 
 const CAP_LABELS:Record<string,string> = {
@@ -19,7 +20,7 @@ const CAP_LABELS:Record<string,string> = {
   'users.manage':'Manage people','project360':'See the whole job','integrity':'Check links',
   'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
 };
-const TABS=[{id:'general',label:'General'},{id:'branding',label:'Document branding'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'system',label:'Plan & audit'}];
+const TABS=[{id:'general',label:'General'},{id:'branding',label:'Document branding'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'notifications',label:'Notifications'},{id:'system',label:'Plan & audit'}];
 const SECTION_GROUP_ORDER=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Specialist modules','Company setup','Settings'];
 
 export default function SettingsPage(){
@@ -36,6 +37,10 @@ export default function SettingsPage(){
   const csvDefs=(meta?.resources||[]).filter((r:any)=>resourceFullyEnabled(config,r.id));
   const [currencyForm,setCurrencyForm]=useState<any>(null);
   const [fxExample,setFxExample]=useState('1000');
+  useEffect(()=>{
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    if (requested && TABS.some(t => t.id === requested)) setTab(requested);
+  },[]);
   useEffect(()=>{ if(meta){
     const first=(meta.resources||[]).find((r:any)=>resourceFullyEnabled(meta.config,r.id));
     if(first&&!resourceFullyEnabled(meta.config,csvResource)) setCsvResource(first.id);
@@ -164,7 +169,7 @@ export default function SettingsPage(){
           <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
     </div>}
 
-    {tab==='users'&&<div className="space-y-4"><Card><CardHead title="Invite a teammate" subtitle="New users receive the temporary password Welcome@123"/>
+    {tab==='users'&&<div className="space-y-4"><Card><CardHead title="Invite a teammate" subtitle="We’ll email them a secure link to join your workspace"/>
       <div className="grid gap-4 p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <Field label="Full name"><input className="input" value={invite.name} onChange={e=>setInvite({...invite,name:e.target.value})} placeholder="Jane Moyo"/></Field>
         <Field label="Work email"><input className="input" type="email" value={invite.email} onChange={e=>setInvite({...invite,email:e.target.value})} placeholder="jane@company.co.zw"/></Field>
@@ -217,6 +222,7 @@ export default function SettingsPage(){
           <a href={orgApi(org,`records/${csvResource}?mode=csv`)} download><Button icon="Download">Export CSV</Button></a>
           <Button variant="ghost" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:'Clear all business records?',desc:'Every record in this workspace will be deleted. Users, settings and modules are kept.',action:'clearData'})}>Clear all records</Button></div></Card></div>}
 
+    {tab==='notifications'&&<NotificationSettings org={org}/>}
     {tab==='system'&&<div className="space-y-4">
       {caps.includes('integrity')&&<Card><CardHead title="Link integrity" subtitle="Every cross-module reference, wallet balance and derived project figure" action={<Button size="sm" icon="RefreshCw" loading={integrityLoading} onClick={()=>qc.invalidateQueries({queryKey:['integrity',org]})}>Re-run</Button>}/>
         <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">

@@ -30,6 +30,10 @@ const company = `QA Onboarding ${stamp}`;
 const email = `qa-onboarding-${stamp}@kestrelridge.co.zw`;
 const password = 'QaOnboarding@1234';
 const inviteEmail = `qa-invite-${stamp}@kestrelridge.co.zw`;
+const invitePassword = 'QaInvite@1234';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+let service;
 const legalName = `${company} (Pvt) Ltd`;
 const qualifiers = ['multiEntity', 'ownedPlant', 'clientPortal', 'designBuild'];
 const addons = ['rental'];
@@ -94,14 +98,26 @@ async function waitForMeta(page, predicate, label) {
   }
   throw new Error(`timed out waiting for ${label}`);
 }
+async function confirmAccount(email, password) {
+  assert(service, 'service-role client is required to confirm QA accounts');
+  const { data: profile, error } = await service.from('profiles').select('id').eq('email', email).maybeSingle();
+  assert(!error && profile?.id, `could not find QA account ${email}`);
+  const update = { email_confirm: true };
+  if (password) update.password = password;
+  const { error: updateError } = await service.auth.admin.updateUserById(profile.id, update);
+  assert(!updateError, `could not confirm QA account ${email}`);
+  return profile.id;
+}
 
 try {
+  assert(supabaseUrl && serviceKey, 'service-role env required for verification QA');
+  service = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
   browser = await chromium.launch({ headless: true });
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 950 } });
   const page = await ctx.newPage();
   watch(page);
 
-  await check('signup creates a confirmed Supabase Auth account and opens the wizard', async () => {
+  await check('signup requires verification and opens the wizard after confirmation', async () => {
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Create account', exact: true }).click();
     await page.locator('input[placeholder="Tendai Muchengeti"]').fill('QA Owner');
@@ -109,10 +125,16 @@ try {
     await page.locator('input[type=email]').fill(email);
     await page.locator('input[type=password]').fill(password);
     await page.locator('form').getByRole('button', { name: /Create account & continue/ }).click();
+    await page.getByRole('heading', { name: 'Check your email' }).waitFor({ timeout: 30000 });
+    await confirmAccount(email);
+    await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.locator('input[type=email]').fill(email);
+    await page.locator('input[type=password]').fill(password);
+    await page.locator('form').getByRole('button', { name: /Sign in/i }).click();
     await page.waitForURL(/\/onboarding/, { timeout: 30000 });
     await page.getByRole('heading', { name: 'Your company' }).waitFor({ timeout: 15000 });
     await page.screenshot({ path: path.join(SHOTS, '17-onboarding-signup.png') });
-    return `new session → ${new URL(page.url()).pathname}`;
+    return `verification → confirmed session → ${new URL(page.url()).pathname}`;
   });
 
   await check('company profile step accepts legal entity, country and currency', async () => {
@@ -248,6 +270,7 @@ try {
     assert(invited, 'invited member missing from meta');
     assert.equal(invited.role, 'VIEWER', 'initial invite role');
     inviteUserId = invited.id;
+    await confirmAccount(inviteEmail, invitePassword);
 
     const row = page.locator('div.flex.flex-wrap.items-center.gap-3').filter({ hasText: inviteEmail }).first();
     await row.locator('select').first().selectOption('PROJECT_MANAGER');
@@ -256,10 +279,7 @@ try {
     const ownerRow = page.locator('div.flex.flex-wrap.items-center.gap-3').filter({ hasText: email }).first();
     assert(await ownerRow.locator('select').first().isDisabled(), 'owner could edit own role');
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    assert(url && key, 'service-role env required for last-owner DB check');
-    const service = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+    assert(service, 'service-role env required for last-owner DB check');
     const { error } = await service.from('memberships').update({ role: 'VIEWER' })
       .eq('user_id', ownerId).eq('organization_id', orgId);
     assert(error, 'last-owner demotion unexpectedly succeeded');
@@ -273,7 +293,7 @@ try {
     watch(p2);
     await p2.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
     await p2.locator('input[type=email]').fill(inviteEmail);
-    await p2.locator('input[type=password]').fill('Welcome@123');
+    await p2.locator('input[type=password]').fill(invitePassword);
     await p2.locator('form').getByRole('button', { name: /Sign in/i }).click();
     await p2.waitForURL(new RegExp(`/${qaSlug}/dashboard`), { timeout: 20000 });
     const invitedMeta = await json(p2, `${BASE}/api/${qaSlug}/meta`);
@@ -282,7 +302,7 @@ try {
     await inviteCtx.close();
 
     await page.screenshot({ path: path.join(SHOTS, '21-team-roles.png') });
-    return 'VIEWER invite → PROJECT_MANAGER · last owner protected · temp-password sign-in';
+    return 'VIEWER invite → PROJECT_MANAGER · last owner protected · verified invite sign-in';
   });
 
   await check('no uncaught page errors or unexpected console errors', async () => {

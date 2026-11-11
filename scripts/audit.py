@@ -10,6 +10,7 @@ Creates temporary QA records and soft-deletes them. Does not touch seeded data.
 import argparse
 import io
 import json
+import os
 import signal
 import sys
 import time
@@ -82,11 +83,48 @@ def check(section, name, ok, detail=''):
     return ok
 
 
+QA_INVITE_PASSWORD = 'QaRoleMatrix@1234'
+
 def login(email, password='Demo@1234'):
     s = requests.Session()
     s.headers.update({'Connection': 'close'})
     r = s.post(f'{BASE}/api/auth/login', json={'email': email, 'password': password}, timeout=(5, 20))
     return s, r
+
+
+def env_value(name):
+    if os.environ.get(name):
+        return os.environ[name].strip().strip('"')
+    try:
+        with open('.env', encoding='utf-8') as handle:
+            for line in handle:
+                if line.startswith(f'{name}='):
+                    return line.split('=', 1)[1].strip().strip('"')
+    except OSError:
+        pass
+    return ''
+
+
+def confirm_qa_user(email, password=QA_INVITE_PASSWORD):
+    """Confirm a freshly invited QA account and give it a known QA password."""
+    supabase_url = env_value('NEXT_PUBLIC_SUPABASE_URL') or env_value('SUPABASE_URL')
+    service_key = env_value('SUPABASE_SERVICE_ROLE_KEY') or env_value('SUPABASE_SECRET_KEY')
+    if not supabase_url or not service_key:
+        return False
+    headers = {'apikey': service_key, 'Authorization': f'Bearer {service_key}'}
+    try:
+        profile = requests.get(f'{supabase_url}/rest/v1/profiles',
+                               params={'select': 'id', 'email': f'eq.{email}'},
+                               headers=headers, timeout=(5, 20))
+        rows = profile.json() if profile.ok else []
+        if not isinstance(rows, list) or not rows or not rows[0].get('id'):
+            return False
+        updated = requests.put(f'{supabase_url}/auth/v1/admin/users/{rows[0]["id"]}',
+                               headers=headers, json={'email_confirm': True, 'password': password},
+                               timeout=(5, 20))
+        return updated.ok
+    except Exception:
+        return False
 
 
 def url(path):
@@ -846,7 +884,8 @@ for role in ROLE_IDS:
         inv['entityId'] = portal_client
     rr = req(OWNER, 'POST', 'settings', json={'action': 'invite', **inv})
     check(sec, f'invite {role}', rr.status_code == 200, f'HTTP {rr.status_code} {rr.text[:100]}')
-    ss, lr = login(email, 'Welcome@123')
+    check(sec, f'confirm {role}', confirm_qa_user(email), 'verified secure invite')
+    ss, lr = login(email, QA_INVITE_PASSWORD)
     if lr.status_code != 200:
         check(sec, f'{role} login', False, f'HTTP {lr.status_code}')
         continue

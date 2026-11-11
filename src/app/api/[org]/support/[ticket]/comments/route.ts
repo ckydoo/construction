@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { adminUserIds, notifyUsersByCategory } from '@/lib/notification-service';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,5 +42,17 @@ export async function POST(req: Request, { params }: Ctx) {
     const status = result.error.code === '42501' || result.error.code === '23503' ? 403 : 500;
     return NextResponse.json({ error: result.error.message }, { status });
   }
+
+  const ticketRow = await sb.from('support_tickets')
+    .select('ticket_no,title,reporter_id,assigned_to')
+    .eq('organization_id', a.orgId).eq('id', ticket).maybeSingle();
+  const href = `/support?ticket=${ticket}`;
+  const recipients = Array.from(new Set([
+    String(ticketRow.data?.reporter_id || ''), String(ticketRow.data?.assigned_to || ''), ...(await adminUserIds(a.orgId)),
+  ])).filter(id => id && id !== a.userId);
+  const preview = text.length > 120 ? `${text.slice(0, 117)}…` : text;
+  await notifyUsersByCategory(a.orgId, recipients, 'support',
+    `New reply on ${ticketRow.data?.ticket_no || 'a support ticket'}`,
+    `${a.name} replied: ${preview}`, 'INFO', href, `support-reply:${result.data.id}`);
   return NextResponse.json({ comment: result.data }, { status: 201 });
 }

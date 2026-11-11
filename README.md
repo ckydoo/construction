@@ -39,7 +39,7 @@ For a local Supabase stack instead of a hosted project: `npm run db:local` (need
 
 - `npm run env:init` creates `.env` from the template without overwriting it.
 - `npm run env:check` validates required values, tracked secrets and public/private key mistakes without printing values.
-- Sections 3–10 of `.env.example` are named slots for optional connectors (email, SMS, payments, maps, SSO, accounting, webhooks, monitoring, AI). They are not wired yet.
+- Email and notifications are wired through `src/lib/email.ts`, a durable `email_outbox`, per-user preferences and a daily notification sweep. Live sending remains queued until custom SMTP credentials, a trusted sender and redirect allow list are supplied. SMS, maps, SSO, accounting and AI slots remain optional.
 
 ### Demo logins (password `Demo@1234`)
 
@@ -61,11 +61,13 @@ The login screen has one-click demo account chips. **Create account** starts a b
 
 ### 1 · Authentication & multi-tenancy
 - Supabase Auth (`signInWithPassword`), JWT cookies managed by `@supabase/ssr` and refreshed in middleware. No custom session table, no bcrypt.
-- Registration creates the Auth user, a draft `organizations` row and an `OWNER` membership; onboarding finalises it.
+- Registration creates an unconfirmed Auth user, a draft `organizations` row and an `OWNER` membership; a one-time verification link and welcome email are queued, then onboarding finalises the workspace. Existing confirmed accounts stay verified.
+- A confirmed email is required before an account can enter a workspace. Password reset, password-changed, team invitations and essential billing/security messages use the same quiet, deduplicated email boundary.
 - Every tenant-owned row carries `organization_id`; RLS resolves the caller's orgs from `memberships` using `auth.uid()`. Cross-tenant reads/writes are impossible at the database level.
 - 14 roles governed by one `ROLE_RULES` matrix (per-resource read/write denylists, delete rights, 16 capabilities, row-level scoping for external users). The matrix is compiled into Postgres RLS by `scripts/gen-supabase-rbac.py`; `guard.ts` remains only as a friendly pre-flight check. See `WALLETS_AND_RBAC.md`.
 - Owners/admins can change roles, pin portal users to a client and remove members from Settings → Users & roles. A Postgres trigger prevents removing/demoting the last owner.
-- Invite teammates from Settings (creates a Supabase Auth user with a temporary password).
+- Invite teammates from Settings. New teammates receive a secure link to confirm their address and choose a password; already verified teammates receive a workspace-added message. No shared temporary password is used.
+- Settings → Notifications controls in-app categories, digest frequency, quiet hours, one-click mute and unsubscribe. Workspace reminders stay in the notification centre and are never emailed; only account, security and billing messages can be sent by email. A daily sweep deduplicates reminders and retries queued essential email.
 
 ### 2 · Onboarding → derived modules (essentials first)
 New workspaces start with **13 connected essentials** (clients → leads → estimates & bids → projects → contracts → documents → invoices → payments → client wallets, plus people and reporting). Company type, size, qualifiers and optional add-ons then layer on more modules: MICRO 13, SMALL 13, MID 17, LARGE 29–30, ENTERPRISE 30 (mixed group 33). Everything can be switched on later in **Settings → Sections**, which also has one-click Essentials / Everything-on switching.

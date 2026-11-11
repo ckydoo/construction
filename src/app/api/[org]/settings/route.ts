@@ -1,5 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
+import { findAccountByEmail, sendTeamInviteEmail } from '@/lib/auth-email';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
 import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
 import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
@@ -183,16 +185,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     if (role === 'OWNER' && a.role !== 'OWNER') return NextResponse.json({ error: 'Only an owner can invite another owner' }, { status: 403 });
     const limitError = await userLimitMessage(a.orgId, a.config.limits);
     if (limitError) return NextResponse.json({ error: limitError }, { status: 402 });
-    if (!hasServiceKey()) return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is required to create team accounts.' }, { status: 503 });
+    if (!hasServiceKey()) return NextResponse.json({ error: 'Team invitations are temporarily unavailable. Please try again shortly.' }, { status: 503 });
     const admin = supabaseAdmin();
-    const { data: profile } = await admin.from('profiles').select('id').eq('email', email).maybeSingle();
-    let userId = profile?.id as string | undefined;
+    const existingAccount = await findAccountByEmail(email);
+    let userId = existingAccount?.id;
     if (!userId) {
       const { data: created, error } = await admin.auth.admin.createUser({
-        email, password: 'Welcome@123', email_confirm: true,
+        email, password: `${randomBytes(24).toString('base64url')}Aa1!`, email_confirm: false,
         user_metadata: { name, avatar_color: '#64748b' },
       });
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      if (error) return NextResponse.json({ error: 'We couldn’t add that person. Please check their details and try again.' }, { status: 400 });
       userId = created.user.id;
     }
     const { data: exists } = await admin.from('memberships').select('id')
@@ -215,20 +217,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       user_id: userId, organization_id: a.orgId, role, entity_id: entityId,
       staff_employee_id: staffEmployeeId,
     });
-    if (mErr) return NextResponse.json({ error: mErr.message }, { status: 400 });
+    if (mErr) return NextResponse.json({ error: 'We couldn’t add that person to this workspace. Please try again.' }, { status: 400 });
+    const account = await findAccountByEmail(email) || {
+      id: userId, email, name, emailConfirmedAt: existingAccount?.emailConfirmedAt || null,
+    };
+    await sendTeamInviteEmail(account, a.orgName, a.orgSlug);
     await admin.from('invitations').insert({
       email, role, organization_id: a.orgId,
       token: Math.random().toString(36).slice(2) + Date.now().toString(36), accepted_at: new Date().toISOString(),
     });
-    return NextResponse.json({ ok: true, message: `${name} added as ${role.replace(/_/g, ' ').toLowerCase()}. Temporary password: Welcome@123` });
+    return NextResponse.json({ ok: true, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. We’ve emailed them a secure link to join.` });
   }
   if (b.action === 'seedDemo') {
-    if (!hasServiceKey()) return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is required to load demo data.' }, { status: 503 });
+    if (!hasServiceKey()) return NextResponse.json({ error: 'Sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     const r = await seedDemo(a.orgId, a.userId, a.name);
     return NextResponse.json({ ok: true, message: `Loaded ${r.records} demo records, ${r.wallets} wallets and ${r.pdfs} sample PDFs` });
   }
   if (b.action === 'clearData') {
-    if (!hasServiceKey()) return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is required to clear business data.' }, { status: 503 });
+    if (!hasServiceKey()) return NextResponse.json({ error: 'Clearing sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     await clearDemo(a.orgId);
     return NextResponse.json({ ok: true, message: 'All business records cleared' });
   }

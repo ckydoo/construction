@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { adminUserIds, notifyUsersByCategory } from '@/lib/notification-service';
 import {
   SUPPORT_CATEGORIES, SUPPORT_PRIORITIES, SUPPORT_STATUSES,
   type SupportCategory, type SupportPriority, type SupportStatus,
@@ -118,14 +119,11 @@ export async function POST(req: Request, { params }: Ctx) {
   if (insert.error) return NextResponse.json({ error: insert.error.message }, { status: insert.error.code === '42501' ? 403 : 500 });
 
   const ticket = insert.data;
-  // An org-wide doorbell; RLS keeps the ticket itself restricted to managers and its reporter.
-  await sb.rpc('app_notify', {
-    p_org: a.orgId,
-    p_title: `New support ticket ${ticket.ticket_no}`,
-    p_body: `${title} · ${priority} priority · reported by ${a.name}`,
-    p_kind: 'ALERT',
-    p_href: `/support?ticket=${ticket.id}`,
-  });
+  const href = `/support?ticket=${ticket.id}`;
+  // Role-targeted, deduplicated in-app alert. Workspace activity is never emailed.
+  await notifyUsersByCategory(a.orgId, (await adminUserIds(a.orgId)).filter(id => id !== a.userId), 'support',
+    `New support ticket ${ticket.ticket_no}`,
+    `${title} · ${priority} priority · reported by ${a.name}`, 'ALERT', href, `support-new:${ticket.id}`);
 
   return NextResponse.json({ ticket }, { status: 201 });
 }
@@ -179,5 +177,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const result = await sb.from('support_tickets').update(patch)
     .eq('organization_id', a.orgId).eq('id', ticketId).select('*').single();
   if (result.error) return NextResponse.json({ error: result.error.message }, { status: result.error.code === '42501' ? 403 : 500 });
+
+  const changed = Object.keys(patch).map(k => k.replace(/_/g, ' ')).join(', ');
+  const href = `/support?ticket=${ticketId}`;
+  const recipients = Array.from(new Set([
+    String(existing.data.reporter_id || ''), String(result.data.assigned_to || ''), ...(await adminUserIds(a.orgId)),
+  ])).filter(id => id && id !== a.userId);
+  await notifyUsersByCategory(a.orgId, recipients, 'support',
+    `Support ticket ${result.data.ticket_no} updated`,
+    `${a.name} changed ${changed}.`, 'INFO', href, `support-update:${result.data.id}:${result.data.updated_at}`);
   return NextResponse.json({ ticket: result.data });
 }

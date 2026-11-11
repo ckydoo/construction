@@ -85,6 +85,10 @@ export async function getAuth(): Promise<AuthCtx | null> {
   const { data: authData, error } = await sb.auth.getUser();
   if (error || !authData?.user) return null;
   const u = authData.user;
+  // Every account must have a confirmed email before it can enter a workspace.
+  // Existing confirmed accounts carry their verification forward; new ones are
+  // gated at sign-in until the one-time link is used.
+  if (!u.email_confirmed_at) return null;
 
   const { data: profile } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
   const { data: rows } = await sb
@@ -177,11 +181,11 @@ export async function uniqueSlug(name: string): Promise<string> {
 }
 
 /** Establish a Supabase Auth session and write its cookies to the response. */
-export async function signIn(email: string, password: string): Promise<{ userId: string } | null> {
+export async function signIn(email: string, password: string): Promise<{ userId: string; email: string | null; emailConfirmedAt: string | null } | null> {
   const sb = await supabase();
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error || !data.user) return null;
-  return { userId: data.user.id };
+  return { userId: data.user.id, email: data.user.email || null, emailConfirmedAt: data.user.email_confirmed_at || null };
 }
 
 export async function signOut(): Promise<void> {

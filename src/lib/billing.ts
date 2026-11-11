@@ -9,6 +9,8 @@
  * native Stripe payouts. Historic Stripe columns are retained but never written. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { supabaseAdmin } from './supabase';
+import { appBaseUrl } from './email';
+import { adminUserIds, notifyUsersByCategory, orgSlug, queueCategoryEmails, type NotificationKind } from './notification-service';
 import {
   BILLING_CURRENCY, GRACE_DAYS, PLAN_MAP, PLANS, TRIAL_DAYS,
   billingAllowsAccess, billingAllowsWrite, isPlanId, planAmountFixed,
@@ -403,8 +405,24 @@ export async function recordBillingEvent(orgId: string, kind: string, dedupeKey:
 
 export async function notifyBilling(orgId: string, title: string, body: string, kind = 'WARNING', href = '/billing'): Promise<void> {
   try {
-    await supabaseAdmin().from('notifications').insert({
-      organization_id: orgId, user_id: null, title, body, kind, href, read: false,
+    const fingerprint = createHash('sha256').update(`${title}|${body}|${new Date().toISOString().slice(0, 10)}`).digest('hex').slice(0, 20);
+    const notificationKind = (['INFO', 'SUCCESS', 'WARNING', 'ALERT'].includes(kind) ? kind : 'WARNING') as NotificationKind;
+    const admins = await adminUserIds(orgId);
+    await notifyUsersByCategory(orgId, admins, 'billing', title, body, notificationKind, href, `billing:${fingerprint}`);
+    const slug = await orgSlug(orgId);
+    await queueCategoryEmails({
+      userIds: admins,
+      category: 'billing',
+      templateKey: 'billing',
+      subject: title,
+      headline: title,
+      body,
+      ctaLabel: 'Review billing',
+      ctaUrl: `${appBaseUrl()}/${slug || ''}${href.startsWith('/') ? href : `/${href}`}`,
+      orgSlug: slug,
+      dedupeKey: `billing-email:${fingerprint}`,
+      essential: true,
+      note: 'This is an essential billing message. Your subscription and account emails stay on even when optional notifications are muted.',
     });
   } catch { /* notification delivery must never break billing */ }
 }

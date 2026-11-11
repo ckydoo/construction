@@ -9,7 +9,9 @@ export async function api<T=any>(path:string, init?:RequestInit):Promise<T> {
     const err:any = new Error(userMessage({ message: raw, status: res.status }));
     err.status = res.status;
     err.technicalMessage = raw;
-    err.details = body.errors; throw err;
+    err.details = body.errors;
+    err.code = body.code || body.error?.code || null;
+    throw err;
   }
   return res.json();
 }

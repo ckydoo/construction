@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiSend } from '@/lib/client';
 import { userMessage } from '@/lib/user-message';
@@ -16,6 +16,7 @@ const DEMO = [
   {label:'Client view', email:'client@westgate.co.zw', role:'CLIENT_EXTERNAL'},
 ];
 const PASSWORD='Demo@1234';
+type View = 'login' | 'register' | 'verify' | 'forgot';
 
 function BrandPanel(){
   return <div className="relative hidden w-[42%] shrink-0 flex-col justify-between overflow-hidden bg-ink-900 p-10 text-white lg:flex">
@@ -37,45 +38,118 @@ function BrandPanel(){
 
 export default function AuthScreen({configured=true}:{configured?:boolean}){
   const router=useRouter();
-  const [mode,setMode]=useState<'login'|'register'>('login');
+  const [view,setView]=useState<View>('login');
   const [name,setName]=useState(''), [company,setCompany]=useState('');
   const [email,setEmail]=useState(''), [password,setPassword]=useState('');
-  const [showPw,setShowPw]=useState(false), [loading,setLoading]=useState(false), [error,setError]=useState('');
+  const [showPw,setShowPw]=useState(false), [busy,setBusy]=useState(false);
+  const [error,setError]=useState(''), [notice,setNotice]=useState('');
+
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    if(params.get('verified')==='1'){
+      setView('verify');
+      setNotice('Your email is verified. You can sign in now.');
+    }
+  },[]);
+
+  function switchView(next:View){ setView(next); setError(''); setNotice(''); }
+
   async function submit(e:React.FormEvent){
-    e.preventDefault(); setLoading(true); setError('');
+    e.preventDefault(); setBusy(true); setError(''); setNotice('');
     try{
-      if(mode==='register'){
-        await apiSend('/api/auth/register','POST',{name,email,password,company});
-        router.push('/onboarding'); router.refresh(); return;
+      if(view==='register'){
+        const r = await apiSend('/api/auth/register','POST',{name,email,password,company});
+        if (r.verificationRequired) {
+          setView('verify'); setNotice('Check your email for a confirmation link. Confirm your address, then sign in.');
+          return;
+        }
+        router.push('/onboarding'); router.refresh();
+        return;
       }
       const r=await apiSend('/api/auth/login','POST',{email,password});
       router.push(r.onboarded?`/${r.slug}/dashboard`:'/onboarding'); router.refresh();
-    }catch(err:any){ setError(userMessage(err, mode === 'login' ? 'We couldn’t sign you in. Please try again.' : 'We couldn’t create your account. Please try again.')); }
-    finally{ setLoading(false); }
+    }catch(err:any){
+      if(view==='login' && err?.code==='EMAIL_NOT_VERIFIED'){
+        setView('verify'); setNotice('Please verify your email address before signing in. Check your inbox for the confirmation link.');
+        return;
+      }
+      setError(userMessage(err, view === 'login' ? 'We couldn’t sign you in. Please try again.' : 'We couldn’t create your account. Please try again.'));
+    }finally{ setBusy(false); }
   }
+
+  async function resend(e:React.FormEvent){
+    e.preventDefault(); setBusy(true); setError(''); setNotice('');
+    try{ const r=await apiSend('/api/auth/resend-verification','POST',{email}); setNotice(r.message||'If your account still needs verification, a new link is on its way.'); }
+    catch(err:any){ setError(userMessage(err,'We couldn’t send a new link. Please try again.')); }
+    finally{ setBusy(false); }
+  }
+
+  async function forgot(e:React.FormEvent){
+    e.preventDefault(); setBusy(true); setError(''); setNotice('');
+    try{ const r=await apiSend('/api/auth/forgot-password','POST',{email}); setNotice(r.message||'If an account exists for that address, a password reset link is on its way.'); }
+    catch(err:any){ setError(userMessage(err,'We couldn’t send a new link. Please try again.')); }
+    finally{ setBusy(false); }
+  }
+
+  const authTab = view==='login'||view==='register';
   return <div className="flex min-h-screen bg-white dark:bg-ink-950">
     <BrandPanel/>
     <div className="flex flex-1 items-center justify-center px-5 py-10">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 flex items-center gap-3 lg:hidden"><Logo variant="lockup" autoDark className="h-7 w-auto" title={BRAND.name}/></div>
-        <div className="mb-7 flex rounded-md bg-slate-100 p-0.5 dark:bg-ink-900">
-          {(['login','register'] as const).map(m=><button key={m} onClick={()=>{setMode(m);setError('');}} className={`flex-1 rounded py-2 text-[13px] font-medium transition ${mode===m?'bg-white text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{m==='login'?'Sign in':'Create account'}</button>)}
-        </div>
+        {authTab&&<div className="mb-7 flex rounded-md bg-slate-100 p-0.5 dark:bg-ink-900">
+          {(['login','register'] as const).map(m=><button key={m} onClick={()=>switchView(m)} className={`flex-1 rounded py-2 text-[13px] font-medium transition ${view===m?'bg-white text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{m==='login'?'Sign in':'Create account'}</button>)}
+        </div>}
         {!configured&&<div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">Sign-in is temporarily unavailable</p><p className="mt-1">Please try again shortly. If you need access now, contact your workspace administrator.</p></div>}
-        <h2 className="text-[22px] font-semibold tracking-tight text-ink-900 dark:text-white">{mode==='login'?'Welcome back':'Start your workspace'}</h2>
-        <p className="mt-1.5 text-[13px] muted">{mode==='login'?'Sign in to your construction workspace.':'Create an account, then tell us about your company.'}</p>
+        {notice&&<div className="mb-5 flex gap-2.5 rounded-md border border-emerald-200 bg-emerald-50 p-3.5 text-xs leading-relaxed text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200"><Lucide.CheckCircle2 size={16} className="mt-0.5 shrink-0"/><p>{notice}</p></div>}
+        <h2 className="text-[22px] font-semibold tracking-tight text-ink-900 dark:text-white">
+          {view==='login'&&'Welcome back'}
+          {view==='register'&&'Start your workspace'}
+          {view==='verify'&&'Check your email'}
+          {view==='forgot'&&'Reset your password'}
+        </h2>
+        <p className="mt-1.5 text-[13px] muted">
+          {view==='login'&&'Sign in to your construction workspace.'}
+          {view==='register'&&'Create an account, then tell us about your company.'}
+          {view==='verify'&&'Confirm your address to finish setting up your MYLA account.'}
+          {view==='forgot'&&'Enter your work email and we’ll send a secure link.'}
+        </p>
         <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">{BRAND.motto}</p>
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          {mode==='register'&&<><Field label="Your full name" required><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Tendai Muchengeti" required/></Field>
+
+        {authTab&&<form onSubmit={submit} className="mt-6 space-y-4">
+          {view==='register'&&<><Field label="Your full name" required><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="Tendai Muchengeti" required/></Field>
           <Field label="Company name" required><input className="input" value={company} onChange={e=>setCompany(e.target.value)} placeholder="e.g. Ridgeway Constructors" required/></Field></>}
           <Field label="Work email" required><div className="relative"><Lucide.Mail size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.co.zw" required/></div></Field>
-          <Field label="Password" required><div className="relative"><Lucide.Lock size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9 pr-10" type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} required minLength={mode==='register'?8:1}/><button type="button" onClick={()=>setShowPw(!showPw)} aria-label={showPw?'Hide password':'Show password'} className="absolute right-3 top-2.5 text-slate-400 hover:text-ink-600"><Icon name={showPw?'EyeOff':'Eye'} size={16}/></button></div></Field>
+          <Field label="Password" required><div className="relative"><Lucide.Lock size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9 pr-10" type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} required minLength={view==='register'?8:1}/><button type="button" onClick={()=>setShowPw(!showPw)} aria-label={showPw?'Hide password':'Show password'} className="absolute right-3 top-2.5 text-slate-400 hover:text-ink-600"><Icon name={showPw?'EyeOff':'Eye'} size={16}/></button></div></Field>
           {error&&<div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"><Lucide.AlertCircle size={15} className="mt-0.5 shrink-0"/>{error}</div>}
-          <Button type="submit" variant="primary" className="w-full" loading={loading}>{mode==='login'?'Sign in':'Create account & continue'}<Lucide.ArrowRight size={15}/></Button>
-        </form>
-        {mode==='login'&&<div className="mt-8">
+          <Button type="submit" variant="primary" className="w-full" loading={busy}>{view==='login'?'Sign in':'Create account & continue'}<Lucide.ArrowRight size={15}/></Button>
+        </form>}
+
+        {view==='verify'&&<div className="mt-6 space-y-4">
+          <div className="rounded-md border divider bg-slate-50 p-4 text-xs leading-relaxed muted dark:bg-ink-900/50">
+            We sent a confirmation link to <span className="font-semibold text-ink-800 dark:text-slate-100">{email||'your work email'}</span>. The link expires in 24 hours.
+          </div>
+          <form onSubmit={resend} className="space-y-3">
+            <Field label="Work email" required><div className="relative"><Lucide.Mail size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.co.zw" required/></div></Field>
+            <Button type="submit" variant="primary" className="w-full" loading={busy}>Send a new link</Button>
+          </form>
+          {error&&<div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"><Lucide.AlertCircle size={15} className="mt-0.5 shrink-0"/>{error}</div>}
+        </div>}
+
+        {view==='forgot'&&<div className="mt-6 space-y-4">
+          <form onSubmit={forgot} className="space-y-3">
+            <Field label="Work email" required><div className="relative"><Lucide.Mail size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.co.zw" required/></div></Field>
+            <Button type="submit" variant="primary" className="w-full" loading={busy}>Send reset link</Button>
+          </form>
+          {error&&<div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"><Lucide.AlertCircle size={15} className="mt-0.5 shrink-0"/>{error}</div>}
+        </div>}
+
+        {view==='login'&&<div className="mt-4 flex items-center justify-between text-xs"><button type="button" onClick={()=>switchView('forgot')} className="font-medium text-brand-700 hover:underline dark:text-brand-300">Forgot password?</button><button type="button" onClick={()=>switchView('verify')} className="font-medium muted hover:text-ink-800 dark:hover:text-white">Need to verify your email?</button></div>}
+        {!authTab&&<button type="button" onClick={()=>switchView('login')} className="mt-5 flex items-center gap-1.5 text-xs font-medium text-brand-700 hover:underline dark:text-brand-300"><Lucide.ArrowLeft size={14}/>Back to sign in</button>}
+
+        {view==='login'&&<div className="mt-8">
           <div className="mb-3 flex items-center gap-3"><span className="h-px flex-1 bg-slate-200 dark:bg-ink-800"/><span className="text-[10px] font-semibold uppercase tracking-wider muted">Demo accounts · one-click access</span><span className="h-px flex-1 bg-slate-200 dark:bg-ink-800"/></div>
-          <div className="flex flex-wrap gap-2">{DEMO.map(d=><button key={d.email} onClick={()=>{setEmail(d.email);setPassword(PASSWORD);setError('');setMode('login');}} className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${email===d.email?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'border-slate-200 text-ink-600 hover:border-brand-300 hover:bg-brand-50/60 dark:border-ink-700 dark:text-slate-300'}`}>{d.label}</button>)}</div>
+          <div className="flex flex-wrap gap-2">{DEMO.map(d=><button key={d.email} onClick={()=>{setEmail(d.email);setPassword(PASSWORD);setError('');setNotice('');switchView('login');}} className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${email===d.email?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'border-slate-200 text-ink-600 hover:border-brand-300 hover:bg-brand-50/60 dark:border-ink-700 dark:text-slate-300'}`}>{d.label}</button>)}</div>
           <p className="mt-3 text-xs muted">Password: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono dark:bg-ink-800">{PASSWORD}</code> · Full demo data is preloaded.</p>
         </div>}
       </div>

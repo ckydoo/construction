@@ -46,6 +46,7 @@
     "audit:overlay": "node scripts/overlay-qa.mjs",
     "audit:user-copy": "tsx scripts/user-copy-qa.ts",
     "audit:support-paynow": "node scripts/support-paynow-qa.mjs",
+    "audit:email-notifications": "node scripts/email-notifications-qa.mjs",
     "audit:topbar": "node scripts/topbar-currency-qa.mjs",
     "audit:workflow": "tsx scripts/workflow-defs-qa.ts && node scripts/workflow-qa.mjs",
     "audit:profitability": "tsx scripts/profitability-defs-qa.ts && node scripts/profitability-qa.mjs",
@@ -60,12 +61,14 @@
     "dotenv": "^16.4.7",
     "lucide-react": "^0.468.0",
     "next": "^15.1.3",
+    "nodemailer": "^6.10.1",
     "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "@types/nodemailer": "^6.4.24",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",

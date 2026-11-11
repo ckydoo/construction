@@ -1,11 +1,13 @@
 /* Execute one explicit My-work action. The action id — not an arbitrary status
  * from the client — decides the next state, so the UI cannot skip approvals. */
+import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
 import { billingGuard, capabilityGuard, writeGuard } from '@/lib/guard';
 import { buildScope } from '@/lib/access';
-import { getRecord, logActivity, notify, updateRecord } from '@/lib/records';
+import { getRecord, logActivity, updateRecord } from '@/lib/records';
+import { notifyUsersByCategory, roleUserIds } from '@/lib/notification-service';
 import { resolveWorkflowAction } from '@/lib/workflow';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +52,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
   const label = `${src.number || resource} · ${src.title || src.name || src.subject || ''}`.trim();
   const detail = `${action.note}: ${label}${note ? ` — ${note}` : ''}`;
   await logActivity(a.orgId, a.userId, a.name, 'APPROVE', resource, detail);
-  await notify(a.orgId, `${action.label}: ${src.number || resource}`, `${label} moved to ${action.to}${note ? ` — ${note}` : ''}`, 'SUCCESS', `/m/${resource}?open=${encodeURIComponent(id)}`);
+  const approvals = new Set(['timesheets','changeOrders','requisitions','purchaseOrders','expenses','leaveRequests','submittals','paymentApps']);
+  const category = approvals.has(resource) ? 'approvals' : 'tasks';
+  const roles = Array.from(new Set(resolved.rule.actions.flatMap(entry => entry.roles)));
+  const recipients = await roleUserIds(a.orgId, roles);
+  const fingerprint = createHash('sha256').update(`${src.status}|${action.to}|${resource}|${id}|${note}`).digest('hex').slice(0, 20);
+  await notifyUsersByCategory(a.orgId, recipients, category,
+    `${action.label}: ${src.number || resource}`,
+    `${label} moved to ${action.to}${note ? ` — ${note}` : ''}`,
+    'SUCCESS', `/m/${resource}?open=${encodeURIComponent(id)}`, `workflow-action:${fingerprint}`);
 
   return NextResponse.json({ ok: true, row: result.row, action: { id: action.id, label: action.label, to: action.to } });
 }
