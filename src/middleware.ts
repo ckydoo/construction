@@ -23,13 +23,15 @@ function billingMode(): 'off' | 'qa' | 'live' | 'misconfigured' {
   const qa = truthy(process.env.BILLING_QA_MODE) && !vercel;
   if (!enabled) return qa ? 'qa' : 'off';
   if (qa) return 'qa';
+  const paynowReady = Boolean(String(process.env.PAYNOW_INTEGRATION_ID || '').trim()
+    && String(process.env.PAYNOW_INTEGRATION_KEY || '').trim());
   const token = String(process.env.DPO_COMPANY_TOKEN || '').trim();
   const service = String(process.env.DPO_SERVICE_TYPE || '').trim()
     || String(process.env.DPO_SERVICE_TYPE_NAME || '').trim();
   const callback = String(process.env.DPO_CALLBACK_SECRET || '').trim();
   const push = String(process.env.DPO_PUSH_SECRET || '').trim();
-  const liveReady = truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
-  return liveReady ? 'live' : 'misconfigured';
+  const dpoReady = truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
+  return paynowReady || dpoReady ? 'live' : 'misconfigured';
 }
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   for (const cookie of from.cookies.getAll()) to.cookies.set(cookie);
@@ -68,7 +70,7 @@ export async function middleware(request: NextRequest) {
 
   if (mode === 'misconfigured') {
     return copyCookies(response, NextResponse.json({
-      error: 'Billing is misconfigured. BILLING_ENABLED=true requires DPO_LIVE_MODE=true, a live DPO CompanyToken/ServiceType, callback secret and push secret; no charge or lock has been applied.',
+      error: 'Billing is misconfigured. BILLING_ENABLED=true requires live Paynow integration ID/key or a complete DPO_LIVE_MODE=true fallback with CompanyToken/ServiceType, callback secret and push secret; no charge or lock has been applied.',
     }, { status: 503 }));
   }
   if (!session.data?.user) return response; // route handlers return 401 themselves

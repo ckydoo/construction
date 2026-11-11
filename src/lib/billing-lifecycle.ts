@@ -1,9 +1,9 @@
-/* Shared billing state transitions for DPO Pay and Paynow fallback.
+/* Shared billing state transitions for Paynow primary and DPO Pay fallback.
  * No external payment call is made here; gateways call these helpers only after
  * amount/currency/reference verification. No business data is ever deleted. */
 import {
-  addDays, addMonths, billingConfig, billingError, findOrCreateInvoice,
-  getInvoices, getSubscription, invoiceGateway, iso, notifyBilling,
+  addDays, addMonths, billingConfig, billingError, dpoProvider, findOrCreateInvoice,
+  gatewayPreference, getInvoices, getSubscription, invoiceGateway, iso, notifyBilling,
   primaryGateway, recordBillingEvent, updateInvoice, upsertSubscription,
   type BillingInvoice, type BillingProvider, type BillingSubscription,
 } from './billing';
@@ -18,10 +18,12 @@ export async function startNoCardTrial(
 ): Promise<BillingSubscription> {
   if (sub.status !== 'trial_required') billingError('A trial has already been started for this organisation.', 409);
   const now = new Date();
+  const preference = gatewayPreference(sub);
   const next = await upsertSubscription(sub.organization_id, {
     plan_id: planId,
     status: 'trialing',
-    gateway: primaryGateway(),
+    gateway: preference === 'dpo' ? dpoProvider() : primaryGateway(),
+    paynow_preferred: preference === 'paynow',
     trial_ends_at: iso(addDays(now, TRIAL_DAYS)),
     current_period_start: null,
     current_period_end: null,
@@ -31,6 +33,7 @@ export async function startNoCardTrial(
     dpo_customer_email: email || sub.dpo_customer_email,
     metadata: {
       ...(sub.metadata || {}),
+      gatewayPreference: preference,
       trialType: 'no_card_14', cardRequired: false,
       trialStartedAt: now.toISOString(), planAtTrialStart: planId,
     },
@@ -58,7 +61,8 @@ export async function createSubscriptionInvoice(
 ): Promise<{ invoice: BillingInvoice; created: boolean }> {
   const cfg = billingConfig();
   const gateway = invoiceGateway(sub);
-  const dpoLike = gateway === 'dpo' || (gateway === 'mock' && !sub.paynow_preferred);
+  const preference = gatewayPreference(sub);
+  const dpoLike = gateway === 'dpo' || gateway === 'mock';
   const email = opts.email || sub.dpo_customer_email || null;
   if (email && !sub.dpo_customer_email) {
     await upsertSubscription(sub.organization_id, { dpo_customer_email: email });
@@ -66,7 +70,9 @@ export async function createSubscriptionInvoice(
   const autodebit = Boolean(dpoLike && cfg.dpoRecurringEnabled && sub.dpo_subscription_token);
   const metadata: Record<string, any> = {
     renewal: Boolean(opts.renewal),
+    gatewayPreference: dpoLike ? 'dpo' : 'paynow',
     invoiceRail: dpoLike ? 'dpo' : 'paynow',
+    selectedRail: preference,
     autodebit,
     ...(opts.metadata || {}),
   };

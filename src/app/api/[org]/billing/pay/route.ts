@@ -19,11 +19,13 @@ export async function POST(req: Request, { params }: Ctx) {
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return NextResponse.json({ error: 'Invoice not found.' }, { status: 404 });
     if (!['dpo','mock','paynow'].includes(invoice.gateway))
-      return NextResponse.json({ error: 'This invoice is not a DPO/Paynow invoice.' }, { status: 400 });
+      return NextResponse.json({ error: 'This invoice is not a Paynow/DPO invoice.' }, { status: 400 });
     const sub = await getSubscription(a.orgId);
     if (!sub) return NextResponse.json({ error: 'Billing subscription not found.' }, { status: 404 });
+    // Invoice metadata is authoritative: Paynow is primary, while DPO/webhook
+    // fallback invoices (including the local mock) retain their own rail.
     const dpoInvoice = Boolean(invoice.metadata?.dpo)
-      || (!sub.paynow_preferred && (invoice.gateway === 'dpo' || invoice.gateway === 'mock'));
+      || invoice.gateway === 'dpo' || invoice.gateway === 'mock';
     if (dpoInvoice) {
       const result = await startDpoCheckout({
         req, orgId: a.orgId, slug: a.orgSlug, planId: invoice.plan_id,

@@ -1,4 +1,5 @@
-/* Paynow Zimbabwe fallback monthly checkout / invoice flow.
+/* Paynow Zimbabwe primary monthly checkout / invoice flow. DPO Pay remains
+ * configured as the tokenised recurring fallback; see dpo-billing.ts.
  * No tokenisation or silent autodebit is used: each month the customer pays a
  * customer-present Paynow transaction. Hash verification, exact reference and
  * amount matching, polling confirmation and webhook idempotency are mandatory.

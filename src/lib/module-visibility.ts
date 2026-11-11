@@ -71,8 +71,11 @@ export function hrefVisible(rawHref: string | null | undefined, config: ConfigLi
   const href = rawHref.split(/[?#]/)[0];
   const resource = href.match(/(?:^|\/)m\/([^/]+)/)?.[1];
   if (resource) return resourceFullyEnabled(config, resource);
-  const special = href.match(/(?:^|\/)(dashboard|my-work|profitability|three-way-match|documentation|library|quotes|wallets|reports)(?:\/|$)/)?.[1];
+  const special = href.match(/(?:^|\/)(dashboard|my-work|profitability|three-way-match|documentation|library|quotes|wallets|reports|support)(?:\/|$)/)?.[1];
   if (special) {
+    // The support desk is always available; it is not a catalogue module and
+    // must remain reachable regardless of a workspace's enabled sections.
+    if (special === 'support') return true;
     if (special === 'library') return resourceFullyEnabled(config, 'documents');
     if (special === 'quotes') return resourceFullyEnabled(config, 'estimates');
     if (special === 'three-way-match') return resourceFullyEnabled(config, 'purchaseOrders') && resourceFullyEnabled(config, 'apBills');

@@ -2,8 +2,9 @@
  * are exposed to the browser. All writes use the service-role client because
  * billing state is authoritative and must never be editable through RLS.
  *
- * Active rails: DPO Pay by Network (primary, tokenised recurring after the first
- * customer-present payment) and optional Paynow Zimbabwe (manual monthly invoice).
+ * Active rails: Paynow Zimbabwe is the primary customer-present monthly invoice
+ * rail. DPO Pay by Network remains fully configured as the tokenised recurring
+ * fallback: its code, webhooks, env keys and checkout/tokenisation paths stay.
  * Stripe is no longer used because a Zimbabwe-registered entity cannot receive
  * native Stripe payouts. Historic Stripe columns are retained but never written. */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
@@ -93,17 +94,22 @@ function dpoLiveReady(): boolean {
     || String(process.env.DPO_SERVICE_TYPE_NAME || '').trim();
   const callback = String(process.env.DPO_CALLBACK_SECRET || '').trim();
   const push = String(process.env.DPO_PUSH_SECRET || '').trim();
+  // DPO production and sandbox share one endpoint, so the live switch is explicit.
   return truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
+}
+function paynowLiveReady(): boolean {
+  return Boolean(String(process.env.PAYNOW_INTEGRATION_ID || '').trim()
+    && String(process.env.PAYNOW_INTEGRATION_KEY || '').trim());
 }
 
 export function billingMode(): BillingMode {
   const qa = truthy(process.env.BILLING_QA_MODE) && qaEnvironmentAllowed();
   if (!truthy(process.env.BILLING_ENABLED)) return qa ? 'qa' : 'off';
   if (qa) return 'qa';
-  // An explicit production switch without a deliberate DPO live configuration
-  // is a misconfiguration, never a silent charge. DPO production and sandbox
-  // share one endpoint, so DPO_LIVE_MODE=true is mandatory.
-  return dpoLiveReady() ? 'live' : 'misconfigured';
+  // Paynow is primary, but a complete DPO live configuration also unlocks the
+  // retained fallback rail. Either way, a switch without live credentials is a
+  // misconfiguration and never a silent charge.
+  return paynowLiveReady() || dpoLiveReady() ? 'live' : 'misconfigured';
 }
 export function billingActive(): boolean {
   const mode = billingMode();
@@ -116,18 +122,33 @@ export function dpoMockEnabled(): boolean {
 export function paynowMockEnabled(): boolean {
   return billingMode() === 'qa' && truthy(process.env.PAYNOW_MOCK);
 }
-export function primaryGateway(): BillingGateway {
-  return dpoMockEnabled() ? 'mock' : 'dpo';
+
+export type GatewayPreference = 'paynow' | 'dpo';
+/** Paynow is the default for every new workspace. Explicit DPO fallback is kept
+ * for tokenised recurring accounts and for the DPO QA suite. */
+export function gatewayPreference(row: any): GatewayPreference {
+  const explicit = row?.metadata?.gatewayPreference;
+  if (explicit === 'dpo' || explicit === 'paynow') return explicit;
+  if (row?.paynow_preferred === true) return 'paynow';
+  if (row?.dpo_subscription_token) return 'dpo';
+  return 'paynow';
 }
+export function paynowPreferred(row: any): boolean { return gatewayPreference(row) === 'paynow'; }
+
+export function primaryGateway(): BillingGateway {
+  return 'paynow';
+}
+/** DPO remains a first-class configured fallback, including its local QA mock. */
 export function dpoProvider(): BillingProvider {
   return dpoMockEnabled() ? 'mock' : 'dpo';
 }
-/** Choose the invoice rail for a subscription. QA always uses the local mock. */
+/** Choose the invoice rail: Paynow by default, DPO only by explicit selection
+ * or as a configured fallback when Paynow is unavailable. */
 export function invoiceGateway(sub: BillingSubscription): BillingProvider {
   const cfg = billingConfig();
-  if (cfg.mode === 'qa') return 'mock';
-  if (sub.paynow_preferred && cfg.paynowReady) return 'paynow';
-  return 'dpo';
+  if (gatewayPreference(sub) === 'dpo') return dpoProvider();
+  if (cfg.mode === 'qa' || cfg.paynowReady || !cfg.dpoReady) return 'paynow';
+  return dpoProvider();
 }
 
 export function billingConfig() {
@@ -146,9 +167,12 @@ export function billingConfig() {
   const dpoReady = mode === 'qa'
     ? dpoMock
     : Boolean(dpoLiveMode && dpoCompanyToken && (dpoServiceType || dpoServiceTypeName) && dpoCallbackSecret && dpoPushSecret);
+  const paynowLive = paynowLiveReady();
   return {
     mode, active: mode === 'qa' || mode === 'live', trialDays: TRIAL_DAYS, graceDays: GRACE_DAYS,
     currency: BILLING_CURRENCY, taxIncluded: false, stripeTaxEnabled: false,
+    primaryGateway: 'paynow' as const, paynowPrimary: true,
+    dpoFallbackAvailable: dpoReady, paynowLiveReady: paynowLive,
     dpoApiUrl: String(process.env.DPO_API_URL || 'https://secure.3gdirectpay.com/API/v6/').trim(),
     dpoPaymentUrlTemplate: String(process.env.DPO_PAYMENT_URL_TEMPLATE || 'https://secure.3gdirectpay.com/payv2.php?ID={token}').trim(),
     dpoCompanyToken, dpoServiceType, dpoServiceTypeName,
@@ -160,7 +184,7 @@ export function billingConfig() {
     paynowReturnUrl: String(process.env.PAYNOW_RETURN_URL || '').trim(),
     paynowResultUrl: String(process.env.PAYNOW_RESULT_URL || '').trim(),
     paynowMock,
-    paynowReady: mode === 'qa' ? paynowMock : Boolean(String(process.env.PAYNOW_INTEGRATION_ID || '').trim() && paynowKey),
+    paynowReady: mode === 'qa' ? paynowMock : paynowLive,
     stripeCheckoutAvailable: false,
     cronSecret: String(process.env.BILLING_CRON_SECRET || process.env.CRON_SECRET || '').trim(),
     qaSecret: String(process.env.BILLING_QA_SECRET || '').trim(),
@@ -214,10 +238,13 @@ function normalizeGateway(value: unknown): BillingGateway {
 }
 
 export function normalizeSubscription(row: any): BillingSubscription {
+  const metadata: Record<string, any> = (row.metadata && typeof row.metadata === 'object') ? { ...row.metadata } : {};
+  const preference = gatewayPreference(row);
+  if (metadata.gatewayPreference !== 'dpo' && metadata.gatewayPreference !== 'paynow') metadata.gatewayPreference = preference;
   return {
     organization_id: String(row.organization_id), plan_id: normalizePlan(row.plan_id),
     status: normalizeStatus(row.status), gateway: normalizeGateway(row.gateway),
-    paynow_preferred: !!row.paynow_preferred, comped_reason: row.comped_reason || null,
+    paynow_preferred: preference === 'paynow', comped_reason: row.comped_reason || null,
     trial_ends_at: iso(row.trial_ends_at), current_period_start: iso(row.current_period_start),
     current_period_end: iso(row.current_period_end), grace_until: iso(row.grace_until),
     switch_deadline: iso(row.switch_deadline), stripe_customer_id: row.stripe_customer_id || null,
@@ -233,7 +260,7 @@ export function normalizeSubscription(row: any): BillingSubscription {
     dpo_last_reference: row.dpo_last_reference || null,
     dpo_tokenised_at: iso(row.dpo_tokenised_at),
     last_payment_at: iso(row.last_payment_at), cancelled_at: iso(row.cancelled_at),
-    metadata: (row.metadata && typeof row.metadata === 'object') ? row.metadata : {},
+    metadata,
     created_at: iso(row.created_at) || new Date().toISOString(),
     updated_at: iso(row.updated_at) || new Date().toISOString(),
   };
@@ -386,7 +413,9 @@ export type PublicBilling = {
   enabled: boolean; mode: BillingMode; plans: typeof PLANS; currency: string;
   trialDays: number; graceDays: number; taxIncluded: boolean; stripeTaxEnabled: boolean;
   trialRequiresCard: boolean; dpoAvailable: boolean; dpoCheckoutAvailable: boolean;
-  dpoRecurringEnabled: boolean; dpoTokenised: boolean; paynowAvailable: boolean;
+  dpoRecurringEnabled: boolean; dpoTokenised: boolean; dpoFallbackAvailable: boolean;
+  paynowAvailable: boolean; paynowPrimary: boolean; primaryGateway: BillingGateway;
+  gatewayPreference: GatewayPreference; dpoFallbackSelected: boolean;
   stripeCheckoutAvailable: boolean; stripeCustomerPortal: boolean;
   status: BillingStatus; plan: PlanId; priceUsd: number; gateway: BillingGateway;
   access: boolean; writable: boolean; readOnly: boolean; needsPayment: boolean;
@@ -402,18 +431,21 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
   const status = sub?.status || 'trial_required';
   const access = cfg.active ? billingAllowsAccess(status) : true;
   const writable = cfg.active ? billingAllowsWrite(status) : true;
+  const preference = gatewayPreference(sub);
   return {
     enabled: cfg.active, mode: cfg.mode, plans: PLANS, currency: BILLING_CURRENCY,
     trialDays: TRIAL_DAYS, graceDays: GRACE_DAYS, taxIncluded: false, stripeTaxEnabled: false,
     trialRequiresCard: false,
     dpoAvailable: cfg.dpoReady, dpoCheckoutAvailable: cfg.dpoReady,
     dpoRecurringEnabled: cfg.dpoRecurringEnabled, dpoTokenised: Boolean(sub?.dpo_subscription_token),
-    paynowAvailable: cfg.paynowReady,
+    dpoFallbackAvailable: cfg.dpoReady,
+    paynowAvailable: cfg.paynowReady, paynowPrimary: true, primaryGateway: cfg.primaryGateway,
+    gatewayPreference: preference, dpoFallbackSelected: preference === 'dpo',
     stripeCheckoutAvailable: false, stripeCustomerPortal: false,
     status, plan, priceUsd: PLAN_MAP[plan].priceUsd, gateway: sub?.gateway || 'none',
     access, writable, readOnly: access && !writable, needsPayment: cfg.active && !access,
     canManage: role === 'OWNER' || role === 'ADMIN',
-    paynowPreferred: !!sub?.paynow_preferred,
+    paynowPreferred: preference === 'paynow',
     trialEndsAt: sub?.trial_ends_at || null, currentPeriodEnd: sub?.current_period_end || null,
     graceUntil: sub?.grace_until || null, switchDeadline: sub?.switch_deadline || null,
     comped: status === 'comped',
@@ -422,7 +454,7 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
 
 export async function requireBillingManage(orgId: string, role: string): Promise<void> {
   if (role !== 'OWNER' && role !== 'ADMIN') throw new Error('Only owners and administrators can manage billing.');
-  if (!billingActive()) throw new Error('Billing is in shadow mode. Add live DPO credentials, set DPO_LIVE_MODE=true and BILLING_ENABLED=true to enable checkout.');
+  if (!billingActive()) throw new Error('Billing is in shadow mode. Add live Paynow credentials (or a complete DPO fallback configuration) and set BILLING_ENABLED=true to enable checkout.');
   void orgId;
 }
 

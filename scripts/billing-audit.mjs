@@ -1,8 +1,9 @@
-/* Local subscription QA: DPO Pay v6 mock (createToken, verifyToken,
- * getSubscriptionToken, chargeTokenRecurrent), no-card 14-day trial, 3-day
- * read-only grace and hard lock. No live keys, no network charge, no Stripe.
- * Run against a server started with BILLING_QA_MODE=true DPO_MOCK=true
- * DPO_RECURRING_ENABLED=true PAYNOW_MOCK=false. */
+/* Local subscription QA for the retained DPO Pay v6 fallback (createToken,
+ * verifyToken, getSubscriptionToken, chargeTokenRecurrent), no-card 14-day trial,
+ * 3-day read-only grace and hard lock. Paynow is the runtime primary; this suite
+ * explicitly selects DPO fallback so the configured rail stays covered. No live
+ * keys, no network charge, no Stripe. Run against a server started with
+ * BILLING_QA_MODE=true DPO_MOCK=true DPO_RECURRING_ENABLED=true PAYNOW_MOCK=false. */
 import 'dotenv/config';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -113,9 +114,12 @@ try {
     assert.equal(r.body.billing.plans.length, 3);
     assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [9, 29, 99]);
     assert.equal(r.body.billing.trialRequiresCard, false);
+    assert.equal(r.body.config.primaryGateway, 'paynow');
+    assert.equal(r.body.config.paynowPrimary, true);
     assert.equal(r.body.config.dpoCheckoutAvailable, true);
+    assert.equal(r.body.config.dpoFallbackAvailable, true);
     assert.equal(r.body.config.stripeCheckoutAvailable, false);
-    return '9 / 29 / 99 USD everywhere · DPO mock · no Stripe';
+    return '9 / 29 / 99 USD everywhere · Paynow primary · DPO fallback mock · no Stripe';
   });
   await check('hard lock blocks workspace APIs before trial', async () => {
     const r = await app(`/api/${slug}/records/clients`);
@@ -127,6 +131,16 @@ try {
     const billing = await app(`/${slug}/billing`);
     assert.equal(billing.res.status, 200);
     return 'API 402 · dashboard redirects · billing page reachable';
+  });
+  await check('configured DPO fallback can be selected without removing Paynow primary', async () => {
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'setGatewayPreference', gateway: 'dpo' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.metadata.gatewayPreference, 'dpo');
+    const billingState = await app(`/api/${slug}/billing`);
+    assert.equal(billingState.res.status, 200, JSON.stringify(billingState.body));
+    assert.equal(billingState.body.billing.primaryGateway, 'paynow');
+    assert.equal(billingState.body.billing.dpoFallbackSelected, true);
+    return 'Paynow default retained · DPO fallback selected for QA';
   });
   await check('select Pro and start the 14-day NO-CARD trial', async () => {
     const plan = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'selectPlan', planId: 'PRO' }) });
@@ -231,7 +245,7 @@ try {
   fs.writeFileSync(CLEANUP, cleanupSql());
   const passed = results.filter((r) => r.ok).length;
   const rows = results.map((r) => `| ${r.ok ? 'PASS' : 'FAIL'} | ${r.name} | ${String(r.detail).replace(/\|/g, '\\|')} |`).join('\n');
-  fs.writeFileSync(REPORT, `# MYLA DPO Pay subscription shadow QA\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 mock against \`${BASE}\`. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
+  fs.writeFileSync(REPORT, `# MYLA Paynow-primary / DPO fallback shadow QA\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 fallback mock against \`${BASE}\`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   console.log(`Cleanup SQL: ${CLEANUP}`);
   if (failed) process.exit(1);

@@ -31,10 +31,11 @@ const SPECIAL = [
   { id:'reports', label:'Reports', group:'Reports & extras', icon:'BarChart3', href:'/reports', module:'reports' },
   { id:'profitability', label:'Job profitability', group:'Reports & extras', icon:'Gauge', href:'/profitability', module:'reports', resource:'projects' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
+  { id:'support', label:'Help & support', group:'Settings', icon:'HelpCircle', href:'/support' },
   { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', billing:'Billing & subscription',
+  'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', support:'Help & support', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 // The file-first Document library replaces the raw document register in the
@@ -189,6 +190,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
           {userOpen&&<div data-testid="topbar-user-panel" className="panel fixed left-1/2 top-14 z-30 w-[min(224px,calc(100vw-2rem))] -translate-x-1/2 p-2 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-56 sm:translate-x-0"><div className="border-b divider px-2 py-2"><p className="text-xs font-semibold">{meta?.user?.name||userName}</p><p className="truncate text-[11px] muted">{meta?.user?.email||userEmail}</p></div>
             <div className="mt-1 flex items-center gap-2 rounded-md bg-slate-50 px-2 py-2 text-[11px] muted dark:bg-ink-950/50"><Icon name="ShieldCheck" size={14}/><span className="flex-1">{ROLES.find(r=>r.id===role)?.label || role.replace(/_/g,' ')}</span>{meta?.permissions?.scoped&&<Badge tone="violet">Own jobs only</Badge>}</div>
             {canCapability(meta?.role||'ADMIN','settings.view')&&<Link href={`/${orgSlug}/settings`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="Settings" size={14}/>Workspace settings</Link>}
+            <Link href={`/${orgSlug}/support`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="HelpCircle" size={14}/>Help & support</Link>
             {['OWNER','ADMIN'].includes(meta?.role||'')&&<Link href={`/${orgSlug}/billing`} onClick={()=>setUserOpen(false)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-ink-800"><Icon name="CreditCard" size={14}/>Billing & subscription</Link>}
             <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"><Icon name="LogOut" size={14}/>Sign out</button></div>}
         </div>

@@ -45,7 +45,7 @@ export default function BillingPage() {
   const active = billing?.enabled;
   const status = billing?.status || 'trial_required';
   const dpoInvoice = (i: any) => Boolean(i?.metadata?.dpo)
-    || (!billing?.paynowPreferred && (i?.gateway === 'dpo' || i?.gateway === 'mock'));
+    || i?.gateway === 'dpo' || i?.gateway === 'mock';
 
   useEffect(() => { if (billing?.plan) setSelected(billing.plan); }, [billing?.plan]);
 
@@ -76,8 +76,8 @@ export default function BillingPage() {
     }
   }
   async function startTrial(planId: string) { await send('billing', { action: 'startTrial', planId }, 'trial'); }
-  async function setPaynowPreference(usePaynow: boolean) {
-    await send('billing', { action: 'setPaynowPreference', usePaynow }, 'switch');
+  async function setGatewayPreference(useDpo: boolean) {
+    await send('billing', { action: 'setGatewayPreference', gateway: useDpo ? 'dpo' : 'paynow' }, 'switch');
   }
   async function cancel() {
     if (!window.confirm('Cancel at the end of the current paid period? Your data will stay intact.')) return;
@@ -97,10 +97,10 @@ export default function BillingPage() {
       <Badge tone={STATUS_TONES[status] || 'slate'}>{STATUS_LABELS[status] || status}</Badge>
     </div>
 
-    {!active && <Card><div className="flex items-start gap-3 p-4"><Icon name="ShieldCheck" size={19}/><div><p className="text-sm font-semibold">Shadow mode — nobody is charged or locked</p><p className="mt-1 text-xs muted">The DPO Pay subscription system is built, but production billing is disabled until live DPO credentials, merchant/tokenisation approval, callback secrets, VAT/tax decision and the Zimbabwe payout route are confirmed. Stripe was removed because it cannot pay out a Zimbabwe-registered entity. Existing organisations are grandfathered comped.</p></div></div></Card>}
-    {active && billing?.needsPayment && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Payment required to unlock this workspace</p><p className="mt-1 text-xs muted">Nothing has been deleted. Choose a plan and start the 14-day no-card trial, or pay an open DPO Pay invoice.</p></div><Badge tone="red">Read-only</Badge></div></Card>}
-    {active && billing?.readOnly && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Workspace is read-only during the 3-day grace period{billing?.graceUntil ? ` until ${new Date(billing.graceUntil).toLocaleDateString('en-GB')}` : ''}</p><p className="mt-1 text-xs muted">Pay the open invoice with DPO Pay (or the local Paynow fallback) to restore full access. No data is deleted.</p></div><Badge tone="amber">Grace</Badge></div></Card>}
-    {active && status === 'trialing' && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Your 14-day no-card trial is active</p><p className="mt-1 text-xs muted">No card was collected and no charge is due until {trialDate}. Your first invoice will be payable by DPO Pay when the trial ends.</p></div><Badge tone="blue">No card required</Badge></div></Card>}
+    {!active && <Card><div className="flex items-start gap-3 p-4"><Icon name="ShieldCheck" size={19}/><div><p className="text-sm font-semibold">Shadow mode — nobody is charged or locked</p><p className="mt-1 text-xs muted">Paynow is now the primary subscription rail. DPO Pay code, webhooks, tokenisation and environment keys remain configured as fallback. Production billing stays disabled until live Paynow credentials (or an approved DPO live fallback), callback secrets, VAT/tax decision and the Zimbabwe payout route are confirmed. Stripe was removed because it cannot pay out a Zimbabwe-registered entity. Existing organisations are grandfathered comped.</p></div></div></Card>}
+    {active && billing?.needsPayment && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Payment required to unlock this workspace</p><p className="mt-1 text-xs muted">Nothing has been deleted. Choose a plan and start the 14-day no-card trial, or pay an open Paynow invoice.</p></div><Badge tone="red">Read-only</Badge></div></Card>}
+    {active && billing?.readOnly && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Workspace is read-only during the 3-day grace period{billing?.graceUntil ? ` until ${new Date(billing.graceUntil).toLocaleDateString('en-GB')}` : ''}</p><p className="mt-1 text-xs muted">Pay the open Paynow invoice (or a DPO Pay fallback invoice) to restore full access. No data is deleted.</p></div><Badge tone="amber">Grace</Badge></div></Card>}
+    {active && status === 'trialing' && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Your 14-day no-card trial is active</p><p className="mt-1 text-xs muted">No card was collected and no charge is due until {trialDate}. Your first invoice will be payable by Paynow when the trial ends.</p></div><Badge tone="blue">No card required</Badge></div></Card>}
     {status === 'comped' && <Card><div className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Grandfathered organisation</p><p className="mt-1 text-xs muted">This workspace was created before subscriptions and remains active and comped with no expiry.</p></div><Badge tone="green">No payment required</Badge></div></Card>}
 
     <div className="grid gap-4 lg:grid-cols-3">
@@ -130,24 +130,25 @@ export default function BillingPage() {
     </div>
 
     <div className="grid gap-4 lg:grid-cols-2">
-      <Card><CardHead title="Payment gateway" subtitle="DPO Pay primary · 14-day no-card trial"/>
+      <Card><CardHead title="Payment gateway" subtitle="Paynow primary · DPO Pay fallback · 14-day no-card trial"/>
         <div className="space-y-3 p-4">
-          <p className="text-xs muted">DPO Pay by Network handles the first customer-present payment. With merchant-approved Super Wallet tokenisation, later monthly renewals can be charged automatically. Paynow Zimbabwe remains an optional local fallback with manual monthly invoices. Stripe has been removed because a Zimbabwe-registered entity cannot receive its payouts.</p>
+          <div className="flex flex-wrap gap-2"><Badge tone="blue">Paynow primary</Badge><Badge tone={billing?.dpoFallbackAvailable ? 'green' : 'slate'}>DPO fallback configured</Badge></div>
+          <p className="text-xs muted">Paynow Zimbabwe handles customer-present monthly invoices by default; no silent autodebit is assumed. DPO Pay by Network stays configured for tokenised recurring fallback: its webhooks, checkout, tokenisation, callback secrets and environment keys remain in place. Stripe has been removed because a Zimbabwe-registered entity cannot receive its payouts.</p>
           {billing?.dpoTokenised && <Badge tone="green">Saved DPO payment token active</Badge>}
-          {billing?.dpoRecurringEnabled && <p className="text-[11px] muted">Recurring DPO charges are enabled for this deployment.</p>}
-          {['trial_required','trialing','grace'].includes(status) && billing?.paynowAvailable && <label className="flex items-start gap-3 rounded-md border divider p-3 text-sm">
-            <input type="checkbox" className="mt-1" checked={!!billing?.paynowPreferred} disabled={!active || busy === 'switch'} onChange={e => setPaynowPreference(e.target.checked)}/>
-            <span><strong>Use Paynow Zimbabwe as local fallback</strong><span className="mt-1 block text-xs muted">Manual customer-present invoices only; no tokenisation or silent autodebit.</span></span>
+          {billing?.dpoRecurringEnabled && <p className="text-[11px] muted">Recurring DPO fallback charges are enabled for this deployment.</p>}
+          {['trial_required','trialing','grace'].includes(status) && billing?.dpoFallbackAvailable && <label className="flex items-start gap-3 rounded-md border divider p-3 text-sm">
+            <input type="checkbox" className="mt-1" checked={!!billing?.dpoFallbackSelected} disabled={!active || busy === 'switch'} onChange={e => setGatewayPreference(e.target.checked)}/>
+            <span><strong>Use DPO Pay as tokenised fallback</strong><span className="mt-1 block text-xs muted">Paynow remains the default. DPO can take the first customer-present payment and, with merchant approval, later recurring renewals.</span></span>
           </label>}
           {['active','trialing','grace','past_due','switch_pending'].includes(status) && !sub?.cancelled_at && <Button variant="ghost" icon="X" loading={busy === 'cancel'} onClick={cancel}>Cancel at period end</Button>}
         </div></Card>
-      <Card><CardHead title="Invoices" subtitle="USD settlement · DPO Pay / Paynow fallback"/>
+      <Card><CardHead title="Invoices" subtitle="USD settlement · Paynow primary / DPO fallback"/>
         <div className="p-4">
-          {invoices.length === 0 ? <EmptyState icon="Receipt" title="No invoices yet" description="Your first invoice appears here at trial end or at each monthly renewal."/> :
+          {invoices.length === 0 ? <EmptyState icon="Receipt" title="No invoices yet" description="Your first Paynow invoice appears here at trial end or at each monthly renewal."/> :
             <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b divider muted"><th className="py-2">Invoice</th><th className="py-2">Period</th><th className="py-2">Amount</th><th className="py-2">Status</th><th className="py-2"></th></tr></thead><tbody>
               {invoices.map((i: any) => <tr key={i.id} className="border-b divider/60"><td className="py-2 font-mono text-[10px]">{i.invoice_number}</td><td className="py-2">{new Date(i.period_start).toLocaleDateString('en-GB')}</td><td className="py-2">USD {Number(i.amount_usd).toFixed(2)}</td><td className="py-2"><Badge tone={i.status === 'paid' ? 'green' : i.status === 'failed' ? 'red' : 'amber'}>{i.status}</Badge></td><td className="py-2 text-right">{i.status === 'pending' && <Button size="sm" variant="primary" loading={busy === `pay-${i.id}`} onClick={() => send('billing/pay', { invoiceId: i.id }, `pay-${i.id}`)}>{dpoInvoice(i) ? 'Pay with DPO Pay' : 'Pay with Paynow'}</Button>}</td></tr>)}
             </tbody></table></div>}
-          <p className="mt-3 text-[11px] muted">Prices are exclusive of VAT/tax. DPO callbacks are verifyToken-confirmed and amount/currency matched; Paynow webhooks are hash-verified, poll-confirmed and idempotent. No data is deleted on non-payment.</p>
+          <p className="mt-3 text-[11px] muted">Prices are exclusive of VAT/tax. Paynow webhooks are hash-verified, poll-confirmed and idempotent; DPO fallback callbacks are verifyToken-confirmed and amount/currency matched. No data is deleted on non-payment.</p>
         </div></Card>
     </div>
   </div>;

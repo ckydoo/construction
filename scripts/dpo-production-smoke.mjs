@@ -1,4 +1,5 @@
-/* Focused production smoke for the DPO Pay shadow release.
+/* Focused production smoke for the Paynow-primary shadow release with the
+ * retained DPO Pay fallback.
  * It uses only the public demo owner account, makes no payment calls, creates no
  * data, and does not print cookies or secret values. Run after promoting the
  * explicit-SHA Vercel deployment:
@@ -86,6 +87,7 @@ try {
     ['dashboard', `/${ORG}/dashboard`],
     ['billing page', `/${ORG}/billing`],
     ['settings', `/${ORG}/settings`],
+    ['support desk', `/${ORG}/support`],
     ['library', `/${ORG}/library`],
     ['reports', `/${ORG}/reports`],
   ]) {
@@ -95,27 +97,30 @@ try {
       return '200';
     });
   }
-  await check('billing API remains in shadow mode with DPO-only config', async () => {
+  await check('billing API stays shadowed with Paynow primary and DPO fallback retained', async () => {
     const r = await request(`/api/${ORG}/billing`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body));
     assert.equal(r.body.billing.mode, 'off');
     assert.equal(r.body.billing.enabled, false);
     assert.equal(r.body.billing.status, 'comped');
+    assert.equal(r.body.billing.primaryGateway, 'paynow');
+    assert.equal(r.body.billing.paynowPrimary, true);
+    assert.equal(r.body.config.primaryGateway, 'paynow');
     assert.equal(r.body.billing.comped, true);
     assert.equal(r.body.billing.trialRequiresCard, false);
     assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [9, 29, 99]);
     assert.equal(r.body.config.dpoCheckoutAvailable, false);
     assert.equal(r.body.config.stripeCheckoutAvailable, false);
     assert.equal(r.body.config.dpoRecurringEnabled, false);
-    return 'off · comped · 9/29/99 · no card · Stripe disabled';
+    return 'off · comped · Paynow primary · DPO fallback · 9/29/99 · no card';
   });
-  await check('meta still exposes 34 modules / 49 resources', async () => {
+  await check('meta still exposes 31 modules / 46 resources', async () => {
     const r = await request(`/api/${ORG}/meta`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body).slice(0, 240));
-    assert.equal(r.body.modules.length, 34);
-    assert.equal(r.body.resources.length, 49);
+    assert.equal(r.body.modules.length, 31);
+    assert.equal(r.body.resources.length, 46);
     assert.equal(r.body.billing.mode, 'off');
-    return '34 modules · 49 resources';
+    return '31 modules · 46 resources';
   });
   for (const [label, url] of [
     ['overview API', `/api/${ORG}/overview`],
@@ -128,6 +133,13 @@ try {
       return '200';
     });
   }
+  await check('support desk API returns the workspace ticket history', async () => {
+    const r = await request(`/api/${ORG}/support`);
+    assert.equal(r.res.status, 200, JSON.stringify(r.body).slice(0, 240));
+    assert.ok(Array.isArray(r.body.tickets), 'tickets array');
+    assert.equal(r.body.canManage, true);
+    return `${r.body.tickets.length} visible ticket(s)`;
+  });
   await check('integrity API reports a clean workspace', async () => {
     const r = await request(`/api/${ORG}/integrity`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body).slice(0, 240));
@@ -200,7 +212,7 @@ try {
   const deployment = (DEPLOY_SHA || DEPLOY_ID)
     ? `Deployment: \`${DEPLOY_SHA || 'not supplied'}\` / \`${DEPLOY_ID || 'not supplied'}\` (${DEPLOY_STATE}).\n\n`
     : '';
-  fs.writeFileSync(REPORT, `# MYLA DPO Pay production smoke\n\n${deployment}**${passed}/${results.length} checks passed** against \`${BASE}\` on ${RUN_DATE}. No live DPO/Paynow keys, charges, locks, QA rows or environment changes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
+  fs.writeFileSync(REPORT, `# MYLA Paynow-primary / DPO fallback production smoke\n\n${deployment}**${passed}/${results.length} checks passed** against \`${BASE}\` on ${RUN_DATE}. Paynow is primary, DPO remains configured. No live DPO/Paynow keys, charges, locks, QA rows or environment changes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   if (failed) process.exitCode = 1;
 }

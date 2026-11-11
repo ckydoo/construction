@@ -49,7 +49,7 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
           metadata: { ...(sub.metadata || {}), trialReminderAt: new Date().toISOString() },
         });
         await notifyBilling(orgId, 'Your no-card trial ends soon',
-          `Your 14-day trial ends ${trialEnd.toLocaleDateString('en-GB')}. A DPO Pay invoice will be ready then; no card has been charged.`,
+          `Your 14-day trial ends ${trialEnd.toLocaleDateString('en-GB')}. A Paynow invoice will be ready then; no card has been charged.`,
           'WARNING', '/billing');
         counts.reminders++;
         sub = await getSubscription(orgId) || sub;
@@ -65,10 +65,10 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
             reminder_upcoming_at: iso(now), reminder_due_at: iso(now), raw_status: 'Due',
           });
           await notifyBilling(orgId, 'Your first subscription invoice is ready',
-            `Pay USD ${Number(invoice.amount_usd).toFixed(2)} by DPO Pay. Your workspace is read-only for three days; nothing is deleted.`,
+            `Pay USD ${Number(invoice.amount_usd).toFixed(2)} by Paynow${invoice.metadata?.dpo ? ' or the selected DPO Pay fallback' : ''}. Your workspace is read-only for three days; nothing is deleted.`,
             'WARNING', '/billing');
           await recordBillingEvent(orgId, 'first_invoice_created', invoice.reference,
-            'No-card trial ended; first DPO/Paynow invoice created.');
+            'No-card trial ended; first Paynow/DPO invoice created.');
           counts.firstInvoices++;
         }
         await upsertSubscription(orgId, {
@@ -92,7 +92,7 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
         if (created) {
           counts.renewalInvoices++;
           await recordBillingEvent(orgId, 'renewal_invoice_created', invoice.reference,
-            `${invoice.metadata?.autodebit ? 'Tokenised DPO' : 'Customer-present'} invoice created for ${invoice.period_start.slice(0, 10)}.`);
+            `${invoice.metadata?.autodebit ? 'Tokenised DPO fallback' : invoice.metadata?.dpo ? 'DPO fallback' : 'Paynow customer-present'} invoice created for ${invoice.period_start.slice(0, 10)}.`);
         }
       }
 
@@ -130,7 +130,7 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
         if (due <= addDays(now, 7) && !invoice.reminder_upcoming_at) {
           await updateInvoice(invoice.id, { reminder_upcoming_at: iso(now) });
           await notifyBilling(orgId, 'Subscription invoice due soon',
-            `Your USD ${Number(invoice.amount_usd).toFixed(2)} MYLA invoice is due ${due.toLocaleDateString('en-GB')}. ${dpoInvoice ? 'DPO Pay hosted checkout is available in Billing.' : 'Paynow is customer-present; no silent autodebit is taken.'}`,
+            `Your USD ${Number(invoice.amount_usd).toFixed(2)} MYLA invoice is due ${due.toLocaleDateString('en-GB')}. ${dpoInvoice ? 'DPO Pay fallback checkout is available in Billing.' : 'Paynow is the primary customer-present rail; no silent autodebit is taken.'}`,
             'WARNING', '/billing');
           counts.reminders++;
         }

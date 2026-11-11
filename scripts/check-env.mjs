@@ -67,20 +67,21 @@ if (!fs.existsSync(migrations)) errors.push('supabase/migrations is missing — 
 else notes.push(`Supabase migrations: ${fs.readdirSync(migrations).filter(f => f.endsWith('.sql')).length} SQL files (apply with \`npx supabase db push\`).`);
 
 const billingOn = get('BILLING_ENABLED').toLowerCase() === 'true';
-if (billingOn && get('DPO_LIVE_MODE').toLowerCase() !== 'true')
-  errors.push('BILLING_ENABLED=true requires explicit DPO_LIVE_MODE=true. Keep both false until DPO merchant approval and live credentials are ready.');
-if (billingOn && !isSet(get('DPO_COMPANY_TOKEN')))
-  errors.push('BILLING_ENABLED=true requires a live DPO_COMPANY_TOKEN.');
-if (billingOn && !(isSet(get('DPO_SERVICE_TYPE')) || isSet(get('DPO_SERVICE_TYPE_NAME'))))
-  errors.push('BILLING_ENABLED=true requires DPO_SERVICE_TYPE or DPO_SERVICE_TYPE_NAME.');
-if (billingOn && !isSet(get('DPO_CALLBACK_SECRET')))
-  errors.push('BILLING_ENABLED=true requires DPO_CALLBACK_SECRET.');
-if (billingOn && !isSet(get('DPO_PUSH_SECRET')))
-  errors.push('BILLING_ENABLED=true requires DPO_PUSH_SECRET.');
+const paynowLiveReady = isSet(get('PAYNOW_INTEGRATION_ID')) && isSet(get('PAYNOW_INTEGRATION_KEY'));
+const dpoLiveReady = get('DPO_LIVE_MODE').toLowerCase() === 'true'
+  && isSet(get('DPO_COMPANY_TOKEN'))
+  && (isSet(get('DPO_SERVICE_TYPE')) || isSet(get('DPO_SERVICE_TYPE_NAME')))
+  && isSet(get('DPO_CALLBACK_SECRET')) && isSet(get('DPO_PUSH_SECRET'));
+if (billingOn && !paynowLiveReady && !dpoLiveReady)
+  errors.push('BILLING_ENABLED=true requires live Paynow integration ID/key or a complete DPO_LIVE_MODE=true fallback with CompanyToken/ServiceType, callback secret and push secret. Keep it false until live credentials are approved.');
+if (billingOn && !paynowLiveReady)
+  warnings.push('Paynow primary credentials are empty; the configured DPO live fallback will be used.');
+if (billingOn && !dpoLiveReady)
+  warnings.push('DPO fallback is not live-ready; Paynow remains the primary gateway and DPO stays available only when configured.');
 if (billingOn && get('DPO_RECURRING_ENABLED').toLowerCase() !== 'true')
-  warnings.push('DPO_RECURRING_ENABLED is false; renewals will require customer-present payment.');
-if (billingOn && !isSet(get('PAYNOW_INTEGRATION_ID')))
-  warnings.push('Optional Paynow fallback credentials are empty; DPO Pay remains the primary gateway.');
+  warnings.push('DPO_RECURRING_ENABLED is false; DPO fallback renewals will require customer-present payment.');
+if (!billingOn)
+  notes.push('Paynow is the primary billing rail; DPO code, webhooks and env keys stay configured as fallback. BILLING_ENABLED=false keeps shadow mode.');
 
 if (get('NODE_ENV') === 'production') {
   if (!get('NEXT_PUBLIC_APP_URL').startsWith('https://')) warnings.push('NEXT_PUBLIC_APP_URL should be an HTTPS URL in production.');

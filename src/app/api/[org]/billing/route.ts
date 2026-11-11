@@ -47,16 +47,23 @@ export async function POST(req: Request, { params }: Ctx) {
       return NextResponse.json({ ok: true, subscription: next, message: '14-day no-card trial started.' });
     }
 
-    if (action === 'setPaynowPreference') {
-      const usePaynow = b.usePaynow === true;
+    if (action === 'setGatewayPreference' || action === 'setPaynowPreference') {
+      // New UI sends `gateway`; the legacy action name is retained for DPO QA.
+      const requested = action === 'setGatewayPreference'
+        ? String(b.gateway || (b.useDpo === true ? 'dpo' : b.usePaynow === false ? 'dpo' : 'paynow'))
+        : (b.usePaynow === false ? 'dpo' : 'paynow');
+      const preference = requested.toLowerCase() === 'dpo' ? 'dpo' : 'paynow';
       const cfg = billingConfig();
-      if (usePaynow && !cfg.paynowReady)
-        return NextResponse.json({ error: 'Paynow credentials are not configured; DPO Pay remains the primary gateway.' }, { status: 409 });
+      if (preference === 'dpo' && !cfg.dpoReady)
+        return NextResponse.json({ error: 'DPO fallback credentials are not configured; Paynow remains the primary gateway.' }, { status: 409 });
       if (!['trial_required','trialing','grace'].includes(sub.status) || sub.last_payment_at)
-        return NextResponse.json({ error: 'The local Paynow fallback can only be selected before the first paid period.' }, { status: 409 });
-      const next = await upsertSubscription(a.orgId, { paynow_preferred: usePaynow });
-      await recordBillingEvent(a.orgId, 'paynow_preference_changed', iso(new Date()),
-        usePaynow ? 'Paynow fallback selected before first payment.' : 'DPO Pay selected before first payment.');
+        return NextResponse.json({ error: 'The payment rail can only be selected before the first paid period.' }, { status: 409 });
+      const next = await upsertSubscription(a.orgId, {
+        paynow_preferred: preference === 'paynow',
+        metadata: { ...(sub.metadata || {}), gatewayPreference: preference },
+      });
+      await recordBillingEvent(a.orgId, 'gateway_preference_changed', iso(new Date()),
+        preference === 'dpo' ? 'DPO Pay fallback selected before first payment; Paynow remains the default.' : 'Paynow primary rail confirmed before first payment.');
       return NextResponse.json({ ok: true, subscription: next });
     }
 

@@ -1,13 +1,15 @@
-# MYLA subscription setup & go-live checklist — DPO Pay by Network
+# MYLA subscription setup & go-live checklist — Paynow primary, DPO fallback
 
-**Current state: SHADOW MODE.** The DPO Pay subscription system is built and verified,
-but `BILLING_ENABLED=false` on Vercel production, preview and development.
-`BILLING_QA_MODE=false`, `DPO_MOCK=false`, `DPO_LIVE_MODE=false` and `PAYNOW_MOCK=false`
-are also off or absent. Nobody is charged, no card is collected at trial start, no
-workspace is locked, and no live DPO/Paynow request is made. Post-promotion
-production smoke passed **26/26** (`DPO_PRODUCTION_SMOKE.md`). See
-`SUBSCRIPTION_DPO_RELEASE.md` for the release record and `PRODUCTION_DEPLOYMENT.md`
-for the exact deployed commit/deployment.
+**Current state: SHADOW MODE.** Paynow Zimbabwe is the primary subscription rail
+in code and UI. DPO Pay by Network remains fully configured as the tokenised
+recurring fallback: its adapter, webhooks, QA scripts, environment keys and
+checkout/tokenisation paths are retained. `BILLING_ENABLED=false` on Vercel
+production, preview and development. `BILLING_QA_MODE=false`, `DPO_MOCK=false`,
+`DPO_LIVE_MODE=false` and `PAYNOW_MOCK=false` are also off or absent. Nobody is
+charged, no card is collected at trial start, no workspace is locked, and no live
+Paynow/DPO request is made. See `SUBSCRIPTION_DPO_RELEASE.md` for the original
+DPO verification record and `PRODUCTION_DEPLOYMENT.md` for the historical
+deployment details.
 
 ## Product contract
 
@@ -23,13 +25,13 @@ are exclusive of VAT/tax. Monthly billing only in v1.
 
 All new organisations get a **14-day NO-CARD trial**: no payment method is collected and
 no invoice is created until the trial ends. At trial end the daily sweep creates one
-invoice for the next paid period and starts a **3-day read-only grace**. The customer
-pays that invoice on the DPO Pay hosted page (`AllowRecurrent=1`). MYLA treats
-`verifyToken` plus exact amount/currency/reference matching as the source of truth;
-DPO push/redirect callbacks are doorbells only. With merchant-approved Super Wallet
-tokenisation, MYLA can save a subscription token and charge later renewals through
-`createToken` + `chargeTokenRecurrent`. Paynow Zimbabwe is an **optional manual
-fallback** with customer-present monthly invoices; no silent autodebit is assumed.
+Paynow invoice for the next paid period and starts a **3-day read-only grace**. The
+customer pays that invoice through customer-present Paynow; webhooks are hash-verified,
+poll-confirmed and idempotent, with exact reference/amount matching. No silent autodebit
+is assumed for Paynow. DPO Pay remains a configured fallback: its hosted page can use
+`AllowRecurrent=1`, `verifyToken` plus exact amount/currency/reference matching remains
+the source of truth, and merchant-approved Super Wallet tokenisation can save a
+subscription token for `createToken` + `chargeTokenRecurrent` on later renewals.
 Failed renewals are read-only for three days and then hard-locked. No data is ever
 deleted. Existing organisations are grandfathered active/comped with no expiry.
 
@@ -46,7 +48,8 @@ deleted. Existing organisations are grandfathered active/comped with no expiry.
   `/api/[org]/meta` reachable. API write guards, user/project limits and the AppShell
   banner provide defence in depth.
 - Owner/Admin UI: `src/app/[org]/billing/page.tsx`, plan cards, invoice table,
-  no-card trial start, Paynow fallback preference, cancellation and contact sales.
+  no-card trial start, Paynow primary with optional DPO fallback selection,
+  cancellation and contact sales.
 - DPO Pay: `src/lib/dpo-billing.ts` builds v6 XML for `createToken`, `verifyToken`,
   `getSubscriptionToken`, `chargeTokenRecurrent` and `deleteCard`; callback HMAC and
   push-secret checks; hosted checkout URL template; exact USD amount/reference checks;
@@ -97,16 +100,18 @@ deleted. Existing organisations are grandfathered active/comped with no expiry.
 7. **Run a fresh staging QA** with real DPO sandbox credentials, a sandbox hosted
    checkout, `verifyToken`, `getSubscriptionToken`, `chargeTokenRecurrent`, a declined
    payment, a cancelled payment and a replayed push callback.
-8. **Only after explicit approval**, set `DPO_LIVE_MODE=true` and `BILLING_ENABLED=true`
-   together. Keep `BILLING_QA_MODE=false`, `DPO_MOCK=false` and `PAYNOW_MOCK=false` in
-   production. A production switch to `BILLING_ENABLED=true` without
-   `DPO_LIVE_MODE=true` and the live DPO secrets is treated as `misconfigured` and
-   fails closed; it never silently charges.
-9. **Redeploy the exact commit SHA** via Vercel `git_source` after any environment
-   change, then run `npm run audit:dpo-prod` and a manual sandbox/test payment smoke.
-10. Optional Paynow fallback: add `PAYNOW_INTEGRATION_ID`, `PAYNOW_INTEGRATION_KEY`,
-    `PAYNOW_RETURN_URL` and `PAYNOW_RESULT_URL`. Do **not** enable Paynow tokenisation
-    or Express Checkout recurring autodebit without separate Paynow approval.
+8. **Add live Paynow credentials first** (the new primary rail):
+   `PAYNOW_INTEGRATION_ID`, `PAYNOW_INTEGRATION_KEY`, `PAYNOW_RETURN_URL` and
+   `PAYNOW_RESULT_URL`. Do **not** enable Paynow tokenisation or Express Checkout
+   recurring autodebit without separate Paynow approval.
+9. **Only after explicit approval**, set `BILLING_ENABLED=true`. A complete DPO live
+   fallback (`DPO_LIVE_MODE=true` plus all live DPO secrets) also unlocks billing if
+   Paynow is unavailable. Keep `BILLING_QA_MODE=false`, `DPO_MOCK=false` and
+   `PAYNOW_MOCK=false` in production. A production switch without either live rail is
+   treated as `misconfigured` and fails closed; it never silently charges.
+10. **Redeploy the exact commit SHA** via Vercel `git_source` after any environment
+    change, then run `npm run audit:dpo-prod`, `npm run audit:support-paynow` in verify
+    mode and a manual sandbox/test payment smoke.
 
 ## Local QA
 

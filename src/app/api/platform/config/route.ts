@@ -5,8 +5,8 @@
  *   service role after the identity check above.
  * - No live credentials are accepted or stored. Only non-secret settings,
  *   effective-dated prices, gateway requirements and comped overrides live here.
- * - BILLING_ENABLED / DPO_LIVE_MODE remain hard environment master switches;
- *   the billing runtime does NOT read these tables yet.
+ * - BILLING_ENABLED is the hard environment master switch; DPO_LIVE_MODE gates
+ *   the retained DPO fallback. The billing runtime does NOT read these tables yet.
  * - Every INSERT/UPDATE/DELETE is recorded by a database audit trigger.
  */
 import { NextResponse } from 'next/server';
@@ -151,7 +151,7 @@ export async function GET(): Promise<NextResponse> {
       organizationBillingOverrides: overrides,
       platformAdmins: admins,
       audit,
-      note: 'Database values are desired/staged state only. BILLING_ENABLED and DPO_LIVE_MODE are environment master switches; the billing runtime still reads code constants and env.',
+      note: 'Database values are desired/staged state only. BILLING_ENABLED is the environment master switch and DPO_LIVE_MODE gates the retained fallback; the billing runtime still reads code constants and env.',
     });
   } catch (e) { return fail(e); }
 }
