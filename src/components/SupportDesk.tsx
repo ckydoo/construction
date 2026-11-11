@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import {
   SUPPORT_CATEGORIES, SUPPORT_CATEGORY_LABELS, SUPPORT_PRIORITIES,
   SUPPORT_PRIORITY_LABELS, SUPPORT_STATUSES, SUPPORT_STATUS_LABELS,
@@ -92,7 +93,7 @@ export default function SupportDesk({ org }: { org: string }) {
       invalidate(result.ticket.id);
       toast.push({ tone: 'success', title: `${result.ticket.ticket_no} submitted`, description: 'Your bug or issue is now in the workspace support history.' });
     } catch (err: any) {
-      toast.push({ tone: 'error', title: 'Could not submit ticket', description: err.message });
+      toast.push({ tone: 'error', title: 'Could not submit ticket', description: userMessage(err, 'We couldn’t send your report. Please try again.') });
     } finally { setBusy(''); }
   }
 
@@ -104,7 +105,7 @@ export default function SupportDesk({ org }: { org: string }) {
       invalidate(active.id);
       toast.push({ tone: 'success', title: 'Ticket updated', description: `${active.ticket_no} has been saved.` });
     } catch (err: any) {
-      toast.push({ tone: 'error', title: 'Could not update ticket', description: err.message });
+      toast.push({ tone: 'error', title: 'Could not update ticket', description: userMessage(err, 'We couldn’t update that ticket. Please try again.') });
     } finally { setBusy(''); }
   }
 
@@ -120,7 +121,7 @@ export default function SupportDesk({ org }: { org: string }) {
       invalidate();
       toast.push({ tone: 'success', title: 'Update added', description: 'Your note is attached to this ticket.' });
     } catch (err: any) {
-      toast.push({ tone: 'error', title: 'Could not add update', description: err.message });
+      toast.push({ tone: 'error', title: 'Could not add update', description: userMessage(err, 'We couldn’t add your update. Please try again.') });
     } finally { setBusy(''); }
   }
 

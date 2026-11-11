@@ -120,7 +120,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <Logo variant="lockup" autoDark className="h-6 w-auto max-w-[190px]" title={`${BRAND.name} · ${BRAND.motto}`}/>
       <button aria-label="Close navigation" className="rounded-md p-1 text-slate-400 lg:hidden" onClick={()=>setMobileOpen(false)}><Lucide.X size={18}/></button>
     </div>
-    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.billing?.enabled ? meta.billing.plan : meta.config.plan} plan</span>{meta.billing?.comped&&<span className="ml-auto text-[10px] muted">comped</span>}</div>}
+    {meta?.config?.plan&&<div className="mx-3 mt-3 flex items-center rounded-md border divider bg-slate-50 px-2.5 py-1.5 text-[11px] dark:bg-ink-950/40"><span className="font-medium text-ink-800 dark:text-slate-200">{meta.billing?.enabled ? meta.billing.plan : meta.config.plan} plan</span>{meta.billing?.comped&&<span className="ml-auto text-[10px] muted">No payment due</span>}</div>}
     <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
       {isLoading&&<div className="space-y-2 px-2 py-2">{Array.from({length:12}).map((_,i)=><Skeleton key={i} className="h-7 w-full"/>)}</div>}
       {navGroups.map(g=><div key={g.group} className="mb-4">
@@ -199,7 +199,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6">
         {meta?.billing?.enabled && pathname!==`/${orgSlug}/billing` && (meta.billing.needsPayment||meta.billing.readOnly||meta.billing.status==='trialing')&&
           <div className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-4 py-3 text-xs ${meta.billing.needsPayment?'border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200':meta.billing.readOnly?'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200':'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-200'}`}>
-            <span className="font-medium">{meta.billing.needsPayment?'Payment required — workspace data is preserved and read-only.':meta.billing.readOnly?'Payment overdue — the workspace is read-only during the 3-day grace period.':`Free trial active — no charge until ${meta.billing.trialEndsAt?new Date(meta.billing.trialEndsAt).toLocaleDateString('en-GB'):'trial end'}.`}</span>
+            <span className="font-medium">{meta.billing.needsPayment?'Payment needed — your data is safe, but editing is paused.':meta.billing.readOnly?'Payment overdue — editing is paused until your account is up to date.':`Free trial active — no charge until ${meta.billing.trialEndsAt?new Date(meta.billing.trialEndsAt).toLocaleDateString('en-GB'):'trial end'}.`}</span>
             {['OWNER','ADMIN'].includes(meta?.role||'')&&<Link href={`/${orgSlug}/billing`} className="font-semibold underline">Open billing</Link>}
           </div>}
         {children}

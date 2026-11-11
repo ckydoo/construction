@@ -9,6 +9,7 @@ import * as Lucide from '@/components/lucide';
 import { Button, Drawer, Badge, Card, Icon, Skeleton } from './ui';
 import { useToast } from './Providers';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { CHAIN_STAGES } from '@/lib/conversion-chain';
 import { RESOURCE_MAP } from '@/lib/resources';
 
@@ -55,7 +56,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose }: {
     onSuccess: (r: any) => {
       qc.invalidateQueries();
       toast.push({
-        tone: 'success', title: 'Converted — flow continued',
+        tone: 'success', title: 'Next record created',
         description: `${r.rows?.length || 1} linked record${r.rows?.length === 1 ? '' : 's'} created: ${(r.rows || []).map((x: any) => x.number).join(' + ')}`,
       });
       setBusy(null);
@@ -64,7 +65,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose }: {
     },
     onError: (e: any) => {
       setBusy(null);
-      toast.push({ tone: 'error', title: 'Could not convert', description: e.message });
+      toast.push({ tone: 'error', title: 'Could not convert', description: userMessage(e, 'We couldn’t create the next record. Please try again.') });
       refetch();
     },
   });

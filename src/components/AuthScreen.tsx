@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiSend } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { Button, Icon, Field } from './ui';
 import Logo from './Logo';
 import { BRAND } from '@/lib/brand';
@@ -49,7 +50,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
       }
       const r=await apiSend('/api/auth/login','POST',{email,password});
       router.push(r.onboarded?`/${r.slug}/dashboard`:'/onboarding'); router.refresh();
-    }catch(err:any){ setError(err.message||'Something went wrong'); }
+    }catch(err:any){ setError(userMessage(err, mode === 'login' ? 'We couldn’t sign you in. Please try again.' : 'We couldn’t create your account. Please try again.')); }
     finally{ setLoading(false); }
   }
   return <div className="flex min-h-screen bg-white dark:bg-ink-950">
@@ -60,7 +61,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         <div className="mb-7 flex rounded-md bg-slate-100 p-0.5 dark:bg-ink-900">
           {(['login','register'] as const).map(m=><button key={m} onClick={()=>{setMode(m);setError('');}} className={`flex-1 rounded py-2 text-[13px] font-medium transition ${mode===m?'bg-white text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{m==='login'?'Sign in':'Create account'}</button>)}
         </div>
-        {!configured&&<div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">Supabase is not connected yet</p><p className="mt-1">Add <code className="font-mono">NEXT_PUBLIC_SUPABASE_URL</code>, <code className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> and <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> to <code className="font-mono">.env</code>, run <code className="font-mono">npx supabase db push</code>, then <code className="font-mono">npm run db:seed</code>. Sign-in will stay disabled until then.</p></div>}
+        {!configured&&<div className="mb-5 rounded-md border border-amber-300 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">Sign-in is temporarily unavailable</p><p className="mt-1">Please try again shortly. If you need access now, contact your workspace administrator.</p></div>}
         <h2 className="text-[22px] font-semibold tracking-tight text-ink-900 dark:text-white">{mode==='login'?'Welcome back':'Start your workspace'}</h2>
         <p className="mt-1.5 text-[13px] muted">{mode==='login'?'Sign in to your construction workspace.':'Create an account, then tell us about your company.'}</p>
         <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">{BRAND.motto}</p>

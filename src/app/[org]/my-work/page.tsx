@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { num, date } from '@/lib/format';
 import { WORKFLOW_RULES, type WorkItem } from '@/lib/workflow';
 import { Badge, Button, Card, CardHead, EmptyState, Icon, Skeleton, StatusPill, Tabs } from '@/components/ui';
@@ -79,7 +80,7 @@ export default function MyWorkPage() {
       qc.invalidateQueries({ queryKey: ['overview', org] });
       qc.invalidateQueries({ queryKey: ['meta', org] });
     } catch (err: any) {
-      toast.push({ title: 'Could not complete that action', description: err?.message || 'Refresh My work and try again.', tone: 'error' });
+      toast.push({ title: 'Could not complete that action', description: userMessage(err, 'Refresh My work and try again.'), tone: 'error' });
       refetch();
     } finally { setBusyKey(''); }
   }

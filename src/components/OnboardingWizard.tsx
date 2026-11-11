@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS } from '@/lib/catalog';
 import { BRAND } from '@/lib/brand';
 import { apiSend } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { Button, Icon, Field, Badge, Toggle } from './ui';
 import Logo from './Logo';
 import * as Lucide from '@/components/lucide';
@@ -73,7 +74,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     try{
       const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,loadDemo});
       router.push(`/${r.slug}/dashboard`); router.refresh();
-    }catch(e:any){ setError(e.message||'Could not create workspace'); setLoading(false); }
+    }catch(e:any){ setError(userMessage(e, 'We couldn’t create your workspace. Please try again.')); setLoading(false); }
   }
 
   return <div className="min-h-screen bg-slate-50 dark:bg-ink-950">

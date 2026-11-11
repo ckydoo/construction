@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { money, num, date, ago } from '@/lib/format';
 import { Button, Card, CardHead, Icon, Badge, StatusPill, Field, Tabs, Skeleton, EmptyState, ProgressBar, Drawer, ConfirmDialog } from '@/components/ui';
 import { useToast } from '@/components/Providers';
@@ -83,7 +84,7 @@ function Inner(){
       await invalidate();
     }catch(e:any){
       if(prev) qc.setQueryData(['wallets',org],prev);
-      toast.push({tone:'error',title:'Wallet action failed — rolled back',description:e.message});
+      toast.push({tone:'error',title:'Could not update wallet',description:userMessage(e, 'We couldn’t update this wallet. Please try again.')});
     }finally{ setBusy(false); setConfirm(null); }
   }
 

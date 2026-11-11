@@ -1,8 +1,14 @@
+import { userMessage } from './user-message';
 export async function api<T=any>(path:string, init?:RequestInit):Promise<T> {
   const res = await fetch(path, { ...init, headers: { 'Content-Type':'application/json', ...(init?.headers||{}) } });
   if (!res.ok) {
     const body = await res.json().catch(()=>({ error:res.statusText }));
-    const err:any = new Error(body.error || `Request failed (${res.status})`);
+    const raw = typeof body.error === 'string' ? body.error
+      : typeof body.error?.message === 'string' ? body.error.message
+      : typeof res.statusText === 'string' ? res.statusText : '';
+    const err:any = new Error(userMessage({ message: raw, status: res.status }));
+    err.status = res.status;
+    err.technicalMessage = raw;
     err.details = body.errors; throw err;
   }
   return res.json();

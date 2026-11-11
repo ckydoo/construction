@@ -7,6 +7,7 @@ import type { ResourceDef } from '@/lib/resources';
 import { normaliseLines } from '@/lib/financial';
 import { visibleFields, resourceFullyEnabled, moduleEnabled, hrefVisible } from '@/lib/module-visibility';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { Button, Card, CardHead, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
 import { num, date } from '@/lib/format';
 import { useDisplayMoney } from './DisplayCurrencyProvider';
@@ -32,15 +33,15 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   const {data:related}:any=useQuery({ queryKey:['related',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}/related`)), enabled:active&&!!row?.id });
   async function addComment(){ if(!comment.trim())return; setSending(true);
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
-    catch(e:any){ toast.push({tone:'error',title:'Could not post comment',description:e.message}); } finally{ setSending(false); }
+    catch(e:any){ toast.push({tone:'error',title:'Could not post comment',description:userMessage(e, 'We couldn’t post that comment. Please try again.')}); } finally{ setSending(false); }
   }
   async function uploadFiles(files:File[]){
     if(!files.length) return;
     setUploading(true); let ok=0;
     for(const f of files){
       const fd=new FormData(); fd.append('file',f); fd.append('recordId',row.id); fd.append('resource',def.id);
-      try{ const res=await fetch(orgApi(org,'files'),{method:'POST',body:fd}); if(!res.ok){const b=await res.json().catch(()=>({error:'Upload failed'}));throw new Error(b.error);} ok++; }
-      catch(err:any){ toast.push({tone:'error',title:'Upload failed',description:`${f.name}: ${err.message}`}); }
+      try{ const res=await fetch(orgApi(org,'files'),{method:'POST',body:fd}); if(!res.ok){const b=await res.json().catch(()=>({error:'Upload failed'}));throw new Error(userMessage({ message: b.error, status: res.status }, 'We couldn’t upload that file. Please try again.'));} ok++; }
+      catch(err:any){ toast.push({tone:'error',title:'Upload failed',description:`${f.name}: ${userMessage(err, 'We couldn’t upload that file. Please try again.')}`}); }
     }
     await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]});
     setUploading(false);
@@ -51,7 +52,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   }
   async function removeFile(id:string,name:string){
     try{ await apiSend(orgApi(org,`files/${id}`),'DELETE'); await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); toast.push({tone:'success',title:'Attachment removed',description:name}); }
-    catch(e:any){ toast.push({tone:'error',title:'Could not remove file',description:e.message}); }
+    catch(e:any){ toast.push({tone:'error',title:'Could not remove file',description:userMessage(e, 'We couldn’t remove that file. Please try again.')}); }
   }
   async function handleRevisionFiles(files:File[],parent:any,key:string){
     const f=files[0]; if(!f) return;
@@ -60,11 +61,11 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
       const fd=new FormData(); fd.append('file',f); fd.append('recordId',row.id); fd.append('resource',def.id);
       fd.append('supersedesId',parent.id); fd.append('note',revNotes[key]||'');
       const res=await fetch(orgApi(org,'files'),{method:'POST',body:fd});
-      if(!res.ok){const b=await res.json().catch(()=>({error:'Upload failed'}));throw new Error(b.error);}
+      if(!res.ok){const b=await res.json().catch(()=>({error:'Upload failed'}));throw new Error(userMessage({ message: b.error, status: res.status }, 'We couldn’t upload that file. Please try again.'));}
       await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]});
       setRevNotes(v=>({...v,[key]:''})); setExpanded(v=>({...v,[key]:true}));
       toast.push({tone:'success',title:'New revision uploaded',description:f.name});
-    }catch(err:any){ toast.push({tone:'error',title:'Revision upload failed',description:err.message}); }
+    }catch(err:any){ toast.push({tone:'error',title:'Revision upload failed',description:userMessage(err, 'We couldn’t upload that revision. Please try again.')}); }
     finally{ setUploading(false); }
   }
   async function handleRevisionUpload(e:React.ChangeEvent<HTMLInputElement>,parent:any,key:string){

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { useDisplayCurrency, useDisplayMoney } from './DisplayCurrencyProvider';
 import { CURRENCIES, PROJECT_TYPES, RESOURCE_MAP } from '@/lib/resources';
 import { LINE_CATEGORIES } from '@/lib/financial';
@@ -118,7 +119,7 @@ export default function QuoteStudio({
       await qc.invalidateQueries({ queryKey:['quote-templates',org] });
       setSaveOpen(false);
       toast.push({ tone:'success', title:body.action === 'update' ? 'Template updated' : 'Template saved', description:'It is ready for the next quotation.' });
-    } catch (e:any) { toast.push({ tone:'error', title:'Could not save template', description:e.message }); }
+    } catch (e:any) { toast.push({ tone:'error', title:'Could not save template', description:userMessage(e, 'We couldn’t save the template. Please try again.') }); }
     finally { setBusy(false); }
   }
   async function updateTemplate(t: QuoteTemplate) {
@@ -131,7 +132,7 @@ export default function QuoteStudio({
       setActiveTemplateId(t.id);
       await qc.invalidateQueries({ queryKey:['quote-templates',org] });
       toast.push({ tone:'success', title:'Template refreshed', description:`“${t.name}” now matches this draft.` });
-    } catch (e:any) { toast.push({ tone:'error', title:'Could not update template', description:e.message }); }
+    } catch (e:any) { toast.push({ tone:'error', title:'Could not update template', description:userMessage(e, 'We couldn’t update the template. Please try again.') }); }
     finally { setBusy(false); }
   }
   async function removeTemplate(t: QuoteTemplate) {
@@ -141,7 +142,7 @@ export default function QuoteStudio({
       if (activeTemplateId === t.id) setActiveTemplateId(null);
       await qc.invalidateQueries({ queryKey:['quote-templates',org] });
       toast.push({ tone:'success', title:'Template deleted' });
-    } catch (e:any) { toast.push({ tone:'error', title:'Could not delete template', description:e.message }); }
+    } catch (e:any) { toast.push({ tone:'error', title:'Could not delete template', description:userMessage(e, 'We couldn’t delete the template. Please try again.') }); }
     finally { setBusy(false); setDeleteFor(null); }
   }
   async function createClient() {
@@ -155,7 +156,7 @@ export default function QuoteStudio({
       await qc.invalidateQueries({ queryKey:['refSearch',org,'clients'] });
       setShowNewClient(false); setNewClientName('');
       toast.push({ tone:'success', title:'Client added', description:`${name} is now selected for this quotation.` });
-    } catch (e:any) { toast.push({ tone:'error', title:'Could not add client', description:e.message }); }
+    } catch (e:any) { toast.push({ tone:'error', title:'Could not add client', description:userMessage(e, 'We couldn’t add that client. Please try again.') }); }
     finally { setCreatingClient(false); }
   }
   async function saveQuote() {
@@ -163,7 +164,7 @@ export default function QuoteStudio({
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
       goStep(nextErrors.items ? 2 : 1);
-      toast.push({ tone:'error', title:'A few details are still needed', description:Object.values(nextErrors)[0] });
+      toast.push({ tone:'error', title:'A few details are still needed', description:userMessage(Object.values(nextErrors)[0], 'Please check the quotation details and try again.') });
       return;
     }
     setSaving(true);
@@ -176,7 +177,7 @@ export default function QuoteStudio({
       await qc.invalidateQueries({ queryKey:['records',org,'estimates'] });
       toast.push({ tone:'success', title:mode === 'edit' ? 'Quotation updated' : 'Quotation created', description:`${res.row.number} · ${formatMoney(res.row.total, res.row.currency || draft.currency)}` });
       router.push(`/${org}/m/estimates?open=${encodeURIComponent(res.row.id)}`);
-    } catch (e:any) { toast.push({ tone:'error', title:'Could not save quotation', description:e.message }); }
+    } catch (e:any) { toast.push({ tone:'error', title:'Could not save quotation', description:userMessage(e, 'We couldn’t save the quotation. Please try again.') }); }
     finally { setSaving(false); }
   }
 

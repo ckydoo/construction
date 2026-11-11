@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
 import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
 import { resourceFullyEnabled } from '@/lib/module-visibility';
@@ -54,11 +55,11 @@ export default function SettingsPage(){
   async function send(action:string,body:any={},method:'PATCH'|'POST'='PATCH'){
     setBusy(true);setMsg('');
     try{const r=await apiSend(orgApi(org,'settings'),method,{action,...body});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]}),qc.invalidateQueries({queryKey:['overview',org]})]);
-      toast.push({tone:'success',title:'Settings updated',description:r.message||'Your changes have been saved.'});return r;
-    }catch(e:any){toast.push({tone:'error',title:'Could not save',description:e.message});}finally{setBusy(false);setConfirm(null);} }
+      toast.push({tone:'success',title:'Settings updated',description:'Your changes have been saved.'});return r;
+    }catch(e:any){toast.push({tone:'error',title:'Could not save',description:userMessage(e, 'We couldn’t save those settings. Please try again.')});}finally{setBusy(false);setConfirm(null);} }
   async function saveGeneral(e:React.FormEvent){e.preventDefault();setSaving(true);
     try{await apiSend(orgApi(org,'settings'),'PATCH',{action:'updateOrg',...form});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]})]);toast.push({tone:'success',title:'Company details saved'});}
-    catch(e:any){toast.push({tone:'error',title:'Save failed',description:e.message});}finally{setSaving(false);} }
+    catch(e:any){toast.push({tone:'error',title:'Save failed',description:userMessage(e, 'We couldn’t save your company details. Please try again.')});}finally{setSaving(false);} }
   function onLogo(file:File|undefined){
     if(!file) return;
     if(!['image/png','image/jpeg'].includes(file.type)){toast.push({tone:'error',title:'Use a PNG or JPG image',description:'Your company logo must be a PNG or JPG file.'});return;}

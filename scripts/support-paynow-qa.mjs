@@ -77,12 +77,15 @@ await check('Paynow is primary in runtime code and UI', async () => {
   assert.match(billing, /primaryGateway: 'paynow' as const, paynowPrimary: true/);
   assert.match(billing, /paynowLiveReady\(\) \|\| dpoLiveReady\(\)/);
   const page = read('src/app/[org]/billing/page.tsx');
-  assert.match(page, /Paynow primary · DPO Pay fallback/);
+  assert.match(page, /Pay with Paynow/);
+  assert.match(page, /Billing is not active yet/);
+  assert.match(page, /Payment options/);
+  assert.doesNotMatch(page, /Shadow mode|primary subscription rail|webhooks|tokenisation|environment keys|callback secrets|Stripe was removed|grandfathered comped|BILLING_ENABLED|DPO fallback configured|Saved DPO payment token/);
   assert.doesNotMatch(page, /DPO Pay primary/);
   const cron = read('src/lib/billing-cron.ts');
   assert.match(cron, /Paynow invoice will be ready/);
   assert.match(cron, /Pay USD .* by Paynow/);
-  return 'primaryGateway paynow · UI/lifecycle copy updated';
+  return 'primaryGateway paynow · plain-language billing UI';
 });
 
 await check('DPO code, webhooks, env keys and fallback QA remain configured', async () => {

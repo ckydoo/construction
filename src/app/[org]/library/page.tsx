@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, Field, ConfirmDialog } from '@/components/ui';
 import Overlay from '@/components/Overlay';
 import { useToast } from '@/components/Providers';
@@ -79,7 +80,7 @@ export default function LibraryPage() {
   async function run(fn: () => Promise<any>, ok: string) {
     setBusy(true);
     try { await fn(); toast.push({ tone: 'success', title: ok }); await invalidate(); }
-    catch (e: any) { toast.push({ tone: 'error', title: 'Could not save', description: e.message }); }
+    catch (e: any) { toast.push({ tone: 'error', title: 'Could not save', description: userMessage(e, 'We couldn’t save that change. Please try again.') }); }
     finally { setBusy(false); setConfirm(null); setShowNew(false); setNewName(''); setRename(null); setMoveFor(null); }
   }
 
@@ -99,9 +100,9 @@ export default function LibraryPage() {
       }
       try {
         const res = await fetch(orgApi(org, 'files'), { method: 'POST', body: fd });
-        if (!res.ok) { const b = await res.json().catch(() => ({ error: 'Upload failed' })); throw new Error(b.error); }
+        if (!res.ok) { const b = await res.json().catch(() => ({ error: 'Upload failed' })); throw new Error(userMessage({ message: b.error, status: res.status }, 'We couldn’t upload that file. Please try again.')); }
         ok++;
-      } catch (e: any) { toast.push({ tone: 'error', title: `Could not upload ${file.name}`, description: e.message }); }
+      } catch (e: any) { toast.push({ tone: 'error', title: `Could not upload ${file.name}`, description: userMessage(e, 'We couldn’t upload that file. Please try again.') }); }
     }
     setUploading(false);
     if (revisionOf) setMoveFor(null);
@@ -116,7 +117,7 @@ export default function LibraryPage() {
       await apiSend(orgApi(org, 'library'), 'POST', { action: 'moveFile', fileId, folderKey });
       toast.push({ tone: 'success', title: 'File moved', description: `Moved to ${tree.byKey.get(folderKey)?.name || 'folder'}.` });
       await invalidate();
-    } catch (e: any) { toast.push({ tone: 'error', title: 'Could not move file', description: e.message }); }
+    } catch (e: any) { toast.push({ tone: 'error', title: 'Could not move file', description: userMessage(e, 'We couldn’t move that file. Please try again.') }); }
     finally { setBusy(false); }
   }
 
@@ -160,7 +161,7 @@ export default function LibraryPage() {
       try {
         const payload = JSON.parse(e.dataTransfer.getData(DRAG_FILE_MIME) || '{}');
         if (payload.id) void moveDroppedFile(String(payload.id), key, payload.folderKey || undefined);
-      } catch { toast.push({ tone: 'error', title: 'Could not move file', description: 'The drag information was incomplete.' }); }
+      } catch { toast.push({ tone: 'error', title: 'Could not move file', description: 'We couldn’t move that file. Please try dragging it again.' }); }
       return;
     }
     const files = Array.from(e.dataTransfer.files || []);

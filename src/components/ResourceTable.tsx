@@ -7,6 +7,7 @@ import { RESOURCE_MAP, type ResourceDef, toneFor } from '@/lib/resources';
 import { canWrite, canDelete } from '@/lib/catalog';
 import { resourceFullyEnabled, visibleRefTargets, visibleColumns, visibleFields } from '@/lib/module-visibility';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
+import { userMessage } from '@/lib/user-message';
 import { money as baseMoney, num, date, ago } from '@/lib/format';
 import { useDisplayMoney } from './DisplayCurrencyProvider';
 import { Button, Icon, Badge, StatusPill, Skeleton, TableSkeleton, EmptyState, Card, ConfirmDialog, ProgressBar } from './ui';
@@ -133,7 +134,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       qc.setQueryData(listKey,(old:any)=>old?{...old,rows:[temp,...old.rows],total:old.total+1}:old);
       return {prev};
     },
-    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Could not create record',description:e.message}); setServerErrors(e.details); },
+    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Could not create record',description:userMessage(e, 'We couldn’t create that record. Please try again.')}); setServerErrors(e.details); },
     onSuccess:(r:any)=>{ setFormOpen(false); setEditing(null); setServerErrors(undefined); toast.push({tone:'success',title:`${def.singular} created`,description:`${r.row.title} · ${r.row.number}`}); },
     onSettled:invalidate });
   const updateMut=useMutation({ mutationFn:({id,values}:any)=>apiSend(orgApi(org,`records/${resource}/${id}`),'PATCH',values),
@@ -144,21 +145,21 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       setDetailRow((d:any)=>d?.id===id?{...d,...values}:d);
       return {prev};
     },
-    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Update failed — rolled back',description:e.message}); },
+    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Could not save changes',description:userMessage(e, 'We couldn’t save those changes. Please try again.')}); },
     onSuccess:()=>{ if(!editing)toast.push({tone:'success',title:`${def.singular} updated`}); else {setFormOpen(false);setEditing(null);toast.push({tone:'success',title:'Changes saved'});} setServerErrors(undefined); },
     onSettled:invalidate });
   const deleteMut=useMutation({ mutationFn:(id:string)=>apiSend(orgApi(org,`records/${resource}/${id}`),'DELETE'),
     onMutate:async(id:string)=>{ await qc.cancelQueries({queryKey:['records',org,resource]}); const prev=qc.getQueryData(listKey);
       qc.setQueryData(listKey,(old:any)=>old?{...old,rows:old.rows.filter((r:any)=>r.id!==id),total:Math.max(0,old.total-1)}:old); return {prev}; },
-    onError:(e:any,_v,ctx:any)=>{if(ctx?.prev)qc.setQueryData(listKey,ctx.prev);toast.push({tone:'error',title:'Delete failed — rolled back',description:e.message});},
+    onError:(e:any,_v,ctx:any)=>{if(ctx?.prev)qc.setQueryData(listKey,ctx.prev);toast.push({tone:'error',title:'Could not delete',description:userMessage(e, 'We couldn’t delete that item. Please try again.')});},
     onSuccess:()=>{setDetailRow(null);toast.push({tone:'success',title:`${def.singular} deleted`});}, onSettled:invalidate });
   const bulkMut=useMutation({ mutationFn:(ids:string[])=>apiSend(orgApi(org,`records/${resource}/bulk`),'DELETE',{ids}),
     onMutate:async(ids:string[])=>{await qc.cancelQueries({queryKey:['records',org,resource]});const prev=qc.getQueryData(listKey);
       qc.setQueryData(listKey,(old:any)=>old?{...old,rows:old.rows.filter((r:any)=>!ids.includes(r.id)),total:Math.max(0,old.total-ids.length)}:old);return {prev};},
-    onError:(e:any,_v,ctx:any)=>{if(ctx?.prev)qc.setQueryData(listKey,ctx.prev);toast.push({tone:'error',title:'Bulk delete failed',description:e.message});},
+    onError:(e:any,_v,ctx:any)=>{if(ctx?.prev)qc.setQueryData(listKey,ctx.prev);toast.push({tone:'error',title:'Could not delete selected items',description:userMessage(e, 'We couldn’t delete the selected items. Please try again.')});},
     onSuccess:(_d,v:string[])=>{setSelected(new Set());setConfirm(null);toast.push({tone:'success',title:`Deleted ${v.length} records`});},onSettled:invalidate });
 
-  if(!def) return <Card><EmptyState title="Unknown module" description="This resource is not part of the catalogue."/></Card>;
+  if(!def) return <Card><EmptyState title="This page isn’t available" description="The link may be out of date. Go back to your dashboard and choose a section from there."/></Card>;
   if(meta&&!enabled) return <Card><EmptyState icon="Lock" title="This section is switched off" description={`${def.label} is not part of your current workspace. An owner or admin can switch it on in Settings → Sections.`} action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Settings">Open settings</Button></Link>}/></Card>;
 
   const cols=visibleColumns(def,config);
