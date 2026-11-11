@@ -3,12 +3,25 @@
 import { RESOURCE_MAP, type ResourceDef } from './resources';
 import type { CompanyProfile } from './company';
 
+export type LineCategory = 'labour' | 'materials' | 'plant' | 'subcontract' | 'overheads';
+export const LINE_CATEGORIES: {
+  id: LineCategory; label: string; recordKey: string; hint: string;
+}[] = [
+  { id:'labour', label:'Labour', recordKey:'labourCost', hint:'Site crew, supervision and install time' },
+  { id:'materials', label:'Materials', recordKey:'materialCost', hint:'Cement, steel, finishes, consumables' },
+  { id:'plant', label:'Plant & equipment', recordKey:'plantCost', hint:'Machines, scaffolding, transport' },
+  { id:'subcontract', label:'Subcontractors', recordKey:'subcontractCost', hint:'Specialist packages and hired teams' },
+  { id:'overheads', label:'Overheads', recordKey:'overheads', hint:'Site running costs, permits and support' },
+];
+
 export type DocLine = {
   description: string;
   detail: string;
   qty: number;
   unitPrice: number;
   total: number;
+  /** Optional pricing bucket used by Quote Studio and cost roll-ups. */
+  category?: LineCategory;
 };
 
 type FinancialDocConfig = {
@@ -78,7 +91,9 @@ const normaliseLine = (raw: any): DocLine | null => {
   const unitPrice = n(raw.unitPrice ?? raw.rate ?? raw.price ?? 0);
   const total = n(raw.total ?? raw.amount ?? qty * unitPrice);
   if (!description && !detail && !unitPrice && !total) return null;
-  return { description: description || 'Item', detail, qty, unitPrice, total };
+  const rawCategory = raw && typeof raw === 'object' && raw.category != null ? String(raw.category) : '';
+  const category = LINE_CATEGORIES.some(c => c.id === rawCategory) ? rawCategory as LineCategory : undefined;
+  return { description: description || 'Item', detail, qty, unitPrice, total, ...(category ? { category } : {}) };
 };
 
 export function normaliseLines(raw: any): DocLine[] {

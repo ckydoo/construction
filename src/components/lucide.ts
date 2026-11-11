@@ -6,6 +6,7 @@ export {
   ArrowUpDown, ArrowUpRight, BadgeCheck, Banknote, BarChart3, Bell, BookOpen, Briefcase,
   Building, Building2, Calendar, CalendarRange, Camera, Check, CheckCircle2, CheckSquare,
   ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, CircleDot, CircleSlash,
+  CloudUpload, FolderInput, GripVertical, MoveRight, Quote,
   ClipboardCheck, ClipboardList, Clock, Contact, Copy, CreditCard, Database, Download,
   ExternalLink, Eye, EyeOff, Factory, FileDown, FileInput, FileSignature, FileText, Filter,
   Folder, FolderOpen, Gauge, GitPullRequestArrow, Globe, GraduationCap, Handshake, HardHat, Hash,

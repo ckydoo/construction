@@ -65,6 +65,9 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const config=meta?.config||{modules:[],resources:[]};
   const canEdit=canWrite(role,resource), canRemove=canDelete(role);
   const enabled=!meta||resourceFullyEnabled(config,resource);
+  const quoteStudio=resource==='estimates';
+  const openNewRecord=()=>{ setServerErrors(undefined); if(quoteStudio) router.push(`/${org}/quotes/new`); else { setEditing(null); setFormOpen(true); } };
+  const openEditRecord=(row:any)=>{ setServerErrors(undefined); if(quoteStudio) router.push(`/${org}/quotes/${encodeURIComponent(row.id)}/edit`); else { setEditing(row); setFormOpen(true); } };
   const refTargets=useMemo(()=>visibleRefTargets(def||({fields:[],columns:[]} as any),config),[def,meta]);
   const {data:refs}=useQuery<RefOptions>({ queryKey:['refs',org,resource], queryFn:async()=>{
     const entries=await Promise.all(refTargets.map(async r=>{ try{const d=await apiGet(orgApi(org,`records/${r}?mode=refs&limit=25`));return [r,d.options];}catch{return [r,[]];} }));
@@ -108,7 +111,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
     return out;
   },[refTargets,refs,rowRefs]);
 
-  useEffect(()=>{ if(initialNew){setEditing(null);setFormOpen(true);} },[initialNew]);
+  useEffect(()=>{ if(initialNew){ if(resource==='estimates') router.replace(`/${org}/quotes/new`); else { setEditing(null); setServerErrors(undefined); setFormOpen(true); } } },[initialNew,resource,org,router]);
   useEffect(()=>{
     if(!initialOpenId) return;
     // Every project opens its full 360° page; the side drawer is for registers.
@@ -173,7 +176,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       <div className="flex flex-wrap items-center gap-2">
         <a href={csvHref} download><Button icon="Download" size="sm">Export CSV</Button></a>
         <Button variant="ghost" size="icon" onClick={()=>refetch()} title="Refresh"><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
-        {canEdit&&<Button variant="primary" size="sm" icon="Plus" onClick={()=>{setEditing(null);setServerErrors(undefined);setFormOpen(true);}}>New {def.singular}</Button>}
+        {canEdit&&<Button variant="primary" size="sm" icon="Plus" onClick={openNewRecord}>New {def.singular}</Button>}
       </div>
     </div>}
 
@@ -214,7 +217,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
             {isLoading&&!data?Array.from({length:6}).map((_,i)=><tr key={i}>{Array.from({length:cols.length+2}).map((__,j)=><td key={j} className="table-td"><Skeleton className={`h-3.5 ${j===1?'w-40':'w-20'}`}/></td>)}</tr>):
             rows.length===0?<tr><td colSpan={cols.length+2}><EmptyState compact icon={def.icon} title={q||status!=='ALL'?'No matching records':`No ${def.label.toLowerCase()} yet`}
               description={q||status!=='ALL'?'Try a different search or clear your filters.':`Create your first ${def.singular.toLowerCase()} to get started, or load sample data to look around.`}
-              action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={()=>{setEditing(null);setFormOpen(true);}}>New {def.singular}</Button>{!q&&<Link href={`/${org}/settings`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
+              action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={openNewRecord}>New {def.singular}</Button>{!q&&<Link href={`/${org}/settings`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
             rows.map(r=><tr key={r.id} onClick={()=>openRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
@@ -224,7 +227,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
                 {resource==='projects'&&<Link href={`/${org}/projects/${encodeURIComponent(r.id)}`} aria-label={`Open full page for ${r.title||r.number}`} title="Open full project page" className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700"><Lucide.ExternalLink size={14}/></Link>}
                 {canEdit&&CONVERTIBLE_RESOURCE_IDS.has(resource)&&<button aria-label={`Convert ${r.title||r.number}`} onClick={()=>setConvertRow(r)} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Convert to…"><Lucide.ArrowRightLeft size={14}/></button>}
-                {canEdit&&<button aria-label={`Edit ${r.title||r.number}`} onClick={()=>{setEditing(r);setServerErrors(undefined);setFormOpen(true);}} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
+                {canEdit&&<button aria-label={`Edit ${r.title||r.number}`} onClick={()=>openEditRecord(r)} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
                 {canRemove&&<button aria-label={`Delete ${r.title||r.number}`} onClick={()=>setConfirm({ids:[r.id],label:r.title||r.number})} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Delete"><Lucide.Trash2 size={14}/></button>}
               </div></td>
             </tr>)}
@@ -237,11 +240,11 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       </div>
     </Card>
 
-    {canEdit&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={mergedRefs} defaultProjectId={fixedProjectId} org={org}
+    {canEdit&&!quoteStudio&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={mergedRefs} defaultProjectId={fixedProjectId} org={org}
       submitting={createMut.isPending||updateMut.isPending} serverErrors={serverErrors}
       onSubmit={(values)=>editing?updateMut.mutate({id:editing.id,values}):createMut.mutate(values)}/>}
     {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={mergedRefs} canEdit={canEdit} canRemove={canRemove}
-      onEdit={()=>{setEditing(detailRow);setDetailRow(null);setFormOpen(true);}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
+      onEdit={()=>{if(detailRow){ const target=detailRow; setDetailRow(null); openEditRecord(target); }}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
     {convertRow&&<ConvertFlow org={org} resource={resource} row={convertRow} open={!!convertRow} onClose={()=>setConvertRow(null)}/>}
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={bulkMut.isPending||deleteMut.isPending}
       title={`Delete ${confirm?.label||'record'}?`} description="This record will be moved to the recycle bin (soft delete). You can restore it from the database."

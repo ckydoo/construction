@@ -27,6 +27,7 @@ const C = {
 const SECTIONS = [
   { id: 'flow', label: 'How a job flows' },
   { id: 'convert', label: 'Convert to…' },
+  { id: 'studio', label: 'Quote Studio & files' },
   { id: 'modules', label: 'Every module' },
   { id: 'home', label: 'Your home screen' },
   { id: 'everyday', label: 'Everyday work' },
@@ -437,6 +438,36 @@ export default function DocumentationPage() {
         </table>
       </Card>
       <p className="caption">The drawer also shows a nine-stage strip: what is done, where you are now, and what is still to come. Completed stages open the actual record. Status changes such as WON, AWARDED, ISSUED and PAID are still made with the inline dropdown on the list.</p>
+    </Section>
+
+    <Section id="studio" title="Quote Studio & drag-and-drop files" kicker="Two faster ways to work: a guided quotation builder with reusable packages, and a document library you can organise by dragging files where they belong.">
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Card className="p-4">
+          <div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"><Icon name="Wand2" size={18}/></span><div><h3 className="card-title">Quote Studio</h3><p className="caption mt-0.5">New Quote and Edit now open a full-page, five-step builder instead of the generic form.</p></div></div>
+          <div className="mt-3 space-y-2">
+            {[
+              ['Start', 'Begin blank or load a built-in package such as Renovation, Concrete & civils, Maintenance or Electrical.'],
+              ['Client & job', 'Choose a client, add one inline if needed, and set the title, currency and date.'],
+              ['Build the price', 'Add plain-language lines by cost category; quantities, rates, cost buckets, markup and the final total recalculate live.'],
+              ['Scope & terms', 'Use one-click snippets for inclusions, exclusions, validity, access and payment terms.'],
+              ['Review & save', 'Check a branded live preview, set the status, then save. The result is a normal quote with a PDF and the full Convert to… chain.'],
+            ].map(([t,d],i)=><div key={t} className="flex gap-2.5"><span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-slate-100 text-[10px] font-bold text-ink-700 dark:bg-ink-800 dark:text-slate-200">{i+1}</span><div><p className="text-[12px] font-semibold">{t}</p><p className="caption">{d}</p></div></div>)}
+          </div>
+          <p className="caption mt-3">Save any draft as a <strong>reusable template</strong>. Templates keep the title, lines, markup and scope — never a client or a date — and can be used, updated or deleted by your workspace.</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300"><Icon name="CloudUpload" size={18}/></span><div><h3 className="card-title">Documents & files</h3><p className="caption mt-0.5">Drag files in to upload, drag documents between folders, and drop a replacement onto an existing file for a new revision.</p></div></div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {[
+              ['CloudUpload', 'Drop to upload', 'Drop one or many files into the current folder, or straight onto any folder card.'],
+              ['FolderInput', 'Drag to organise', 'Use the grip handle beside a document to move it onto another job or custom folder.'],
+              ['GitBranch', 'Drop a revision', 'Drop a new file onto an existing document card; older revisions stay attached and visible.'],
+              ['Paperclip', 'Record attachments', 'Record drawers also have a drop zone for drawings, photos and signed paperwork.'],
+            ].map(([i,t,d])=><div key={t} className="rounded-md border divider p-3"><Icon name={i} size={16} className="text-brand-600"/><p className="mt-2 text-[12px] font-semibold">{t}</p><p className="caption mt-0.5">{d}</p></div>)}
+          </div>
+          <p className="caption mt-3">The usual file picker, permissions, 12 MB limit, revision badges and controlled-document register are all still there — drag-and-drop is an easier way to reach them.</p>
+        </Card>
+      </div>
     </Section>
 
     <Section id="modules" title="Every module and what it does" kicker="All 34 modules and 49 registers in MYLA, generated from the same catalogue that builds the sidebar. Search by name or by what the module holds; a grey card is simply switched off for your company.">

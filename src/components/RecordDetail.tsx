@@ -11,6 +11,7 @@ import { Button, Card, CardHead, Drawer, StatusPill, Badge, Skeleton, Icon } fro
 import { money, num, date } from '@/lib/format';
 import { useToast } from './Providers';
 import ConvertFlow from './ConvertFlow';
+import FileDropZone, { isExternalFileDrag } from './FileDropZone';
 import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import type { RefOptions } from './RecordForm';
 
@@ -19,7 +20,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   refs:RefOptions; canEdit:boolean; canRemove:boolean; inline?:boolean;
 }){
   const active=open||inline;
-  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({}); const [convertOpen,setConvertOpen]=useState(false);
+  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({}); const [convertOpen,setConvertOpen]=useState(false); const [dropRevisionId,setDropRevisionId]=useState<string|null>(null);
   const canConvert=canEdit&&!!row?.id&&CONVERTIBLE_RESOURCE_IDS.has(def.id);
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const config=meta?.config||{modules:[],resources:[]};
@@ -30,8 +31,8 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
     catch(e:any){ toast.push({tone:'error',title:'Could not post comment',description:e.message}); } finally{ setSending(false); }
   }
-  async function handleUpload(e:React.ChangeEvent<HTMLInputElement>){
-    const files=Array.from(e.target.files||[]); if(!files.length) return;
+  async function uploadFiles(files:File[]){
+    if(!files.length) return;
     setUploading(true); let ok=0;
     for(const f of files){
       const fd=new FormData(); fd.append('file',f); fd.append('recordId',row.id); fd.append('resource',def.id);
@@ -39,15 +40,18 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
       catch(err:any){ toast.push({tone:'error',title:'Upload failed',description:`${f.name}: ${err.message}`}); }
     }
     await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]});
-    setUploading(false); e.target.value='';
+    setUploading(false);
     if(ok) toast.push({tone:'success',title:`${ok} file${ok>1?'s':''} attached`});
+  }
+  async function handleUpload(e:React.ChangeEvent<HTMLInputElement>){
+    await uploadFiles(Array.from(e.target.files||[])); e.target.value='';
   }
   async function removeFile(id:string,name:string){
     try{ await apiSend(orgApi(org,`files/${id}`),'DELETE'); await qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); toast.push({tone:'success',title:'Attachment removed',description:name}); }
     catch(e:any){ toast.push({tone:'error',title:'Could not remove file',description:e.message}); }
   }
-  async function handleRevisionUpload(e:React.ChangeEvent<HTMLInputElement>,parent:any,key:string){
-    const f=e.target.files?.[0]; if(!f) return;
+  async function handleRevisionFiles(files:File[],parent:any,key:string){
+    const f=files[0]; if(!f) return;
     setUploading(true);
     try{
       const fd=new FormData(); fd.append('file',f); fd.append('recordId',row.id); fd.append('resource',def.id);
@@ -58,7 +62,10 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
       setRevNotes(v=>({...v,[key]:''})); setExpanded(v=>({...v,[key]:true}));
       toast.push({tone:'success',title:'New revision uploaded',description:f.name});
     }catch(err:any){ toast.push({tone:'error',title:'Revision upload failed',description:err.message}); }
-    finally{ setUploading(false); e.target.value=''; }
+    finally{ setUploading(false); }
+  }
+  async function handleRevisionUpload(e:React.ChangeEvent<HTMLInputElement>,parent:any,key:string){
+    await handleRevisionFiles(Array.from(e.target.files||[]),parent,key); e.target.value='';
   }
   function display(f:any,v:any){
     if(v===null||v===undefined||v==='') return <span className="muted">—</span>;
@@ -117,10 +124,16 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
         <div className="flex items-center gap-2"><Icon name="Paperclip" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Attachments & revisions</h3><Badge tone="slate">{groups.length} doc{groups.length===1?'':'s'} · {allFiles.length} file{allFiles.length===1?'':'s'}</Badge></div>
         {canEdit&&<label className="btn-outline btn-sm cursor-pointer"><Icon name="Upload" size={13}/>{uploading?'Uploading…':'Upload file'}<input type="file" multiple className="hidden" onChange={handleUpload} disabled={uploading}/></label>}
       </div>
+      {canEdit&&<FileDropZone compact className="mb-3" onFiles={uploadFiles} uploading={uploading} title="Drop files here to attach" description="Drop drawings, photos or signed documents. Revisions are kept together automatically."/>}
       {isLoading?<Skeleton className="h-16"/>:!groups.length?<p className="rounded-md border divider bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No files attached yet. Upload drawings, photos, signed certificates or supporting documents (up to 12 MB each).</p>:
         <div className="space-y-3">{groups.map(g=>{
           const cur=g.items[0]; const older=g.items.slice(1);
-          return <div key={g.key} className="overflow-hidden rounded-lg border divider">
+          return <div key={g.key}
+            className={`overflow-hidden rounded-lg border transition ${dropRevisionId===g.key?'border-brand-500 bg-brand-50/60 dark:bg-brand-500/10':'divider'}`}
+            onDragOver={e=>{ if(canEdit&&isExternalFileDrag(e)){ e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect='copy'; setDropRevisionId(g.key); } }}
+            onDragLeave={e=>{ if(isExternalFileDrag(e)){ e.preventDefault(); e.stopPropagation(); if(dropRevisionId===g.key) setDropRevisionId(null); } }}
+            onDrop={e=>{ if(canEdit&&isExternalFileDrag(e)){ e.preventDefault(); e.stopPropagation(); setDropRevisionId(null); void handleRevisionFiles(Array.from(e.dataTransfer.files||[]),cur,g.key); } }}
+          >
             <div className="flex items-center gap-3 p-2.5">
               {cur.mime?.startsWith('image/')?<img src={orgApi(org,`files/${cur.id}`)} alt={cur.fileName} className="h-9 w-9 shrink-0 rounded object-cover"/>:<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-ink-500 dark:bg-ink-800"><Icon name={cur.mime?.includes('pdf')?'FileText':'FileImage'} size={16}/></span>}
               <div className="min-w-0 flex-1"><div className="flex items-center gap-2"><p className="truncate text-xs font-medium">{cur.fileName}</p><Badge tone="green">{cur.revisionLabel||'Rev A'}</Badge></div><p className="truncate text-[11px] muted">{Math.max(1,Math.round(cur.size/1024))} KB · {cur.uploadedByName} · {date(cur.createdAt)}{cur.note?` · ${cur.note}`:''}</p></div>
