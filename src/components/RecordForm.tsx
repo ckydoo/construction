@@ -29,8 +29,10 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   const [values,setValues]=useState<Record<string,any>>({});
   const [errors,setErrors]=useState<Record<string,string>>({});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
-  const config:ConfigLike=meta?.config||{modules:[],resources:[]};
-  const fields=useMemo(()=>visibleFields(def,config),[def,meta]);
+  const config:ConfigLike|undefined=meta?.config;
+  // Until workspace settings arrive, keep every non-hidden field visible. A
+  // blank fallback config would hide required ref fields such as Job / project.
+  const fields=useMemo(()=>config?visibleFields(def,config):def.fields.filter(f=>!f.hidden),[def,config]);
   useEffect(()=>{ if(open){ setValues(initialValues(def,initial,defaultProjectId)); setErrors({}); } },[open,initial,def,defaultProjectId]);
   useEffect(()=>{ if(serverErrors) setErrors(serverErrors); },[serverErrors]);
   const set=(k:string,v:any)=>{ setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };

@@ -128,7 +128,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose }: {
                 </div>
                 {o.existing
                   ? <Link href={o.existing.href} className="btn-outline btn-sm whitespace-nowrap"><Lucide.ExternalLink size={13} />Open {o.existing.number || 'created'}</Link>
-                  : <Button size="sm" variant="primary" icon="ArrowRightLeft" loading={busy === o.id} disabled={!!busy} onClick={() => submit(o.id)}>Create</Button>}
+                  : <Button size="sm" variant="primary" icon="ArrowRightLeft" loading={busy === o.id} disabled={!!busy} onClick={() => submit(o.id)}>{o.label}</Button>}
               </div>
               <div className="mt-3 grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
                 {o.preview.map((p, i) => <div key={`${p.label}-${i}`} className="flex min-w-0 items-baseline gap-1.5 text-[11px]">

@@ -17,3 +17,11 @@ __pycache__/
 
 # Supabase CLI local temp
 supabase/.temp/
+
+# Local tester-pilot kit: live test credentials and generated evidence stay local
+TESTER_ACCOUNT.json
+TEST_HERE.md
+TESTER_FEEDBACK.md
+TEST_RESULTS.md
+screenshots/tester-here-dashboard.png
+scripts/tester-here-*.mjs

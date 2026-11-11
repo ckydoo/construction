@@ -27,12 +27,17 @@ export default function DashboardPage(){
   const [period,setPeriod]=useState<'3'|'6'>('6');
   const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
-  const {data:workQueue}:any=useQuery({queryKey:['work-items',org],queryFn:()=>apiGet(orgApi(org,'work-items')),staleTime:30_000});
-  const {data:profitability}:any=useQuery({queryKey:['profitability',org],queryFn:()=>apiGet(orgApi(org,'profitability')),staleTime:60_000});
-  const {data:threeWay}:any=useQuery({queryKey:['three-way-match',org],queryFn:()=>apiGet(orgApi(org,'three-way-match')),staleTime:60_000});
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);
+  // Starter workspaces do not have procurement/ordering switched on. Asking for
+  // three-way match data before those sections exist produces a forbidden 403
+  // and a noisy console error on an otherwise clean first-run dashboard.
+  const showProfitability=mod('reports')&&on('projects');
+  const showThreeWay=mod('procurement')&&mod('finance')&&on('purchaseOrders')&&on('apBills');
+  const {data:workQueue}:any=useQuery({queryKey:['work-items',org],queryFn:()=>apiGet(orgApi(org,'work-items')),staleTime:30_000,enabled:mod('dashboard')});
+  const {data:profitability}:any=useQuery({queryKey:['profitability',org],queryFn:()=>apiGet(orgApi(org,'profitability')),staleTime:60_000,enabled:showProfitability});
+  const {data:threeWay}:any=useQuery({queryKey:['three-way-match',org],queryFn:()=>apiGet(orgApi(org,'three-way-match')),staleTime:60_000,enabled:showThreeWay});
   const showJobs=on('projects')||on('estimates');
   const k=data?.kpis; const series=(data?.revenueSeries||[]).slice(-Number(period));
   const totalRecords=Object.entries(data?.counts||{}).filter(([k])=>on(k)).reduce((a,[,b])=>a+Number(b||0),0);
@@ -54,13 +59,13 @@ export default function DashboardPage(){
         <p className="mt-0.5 text-xs muted">{workQueue.summary.actionable} waiting on you · {workQueue.summary.overdue} late · {workQueue.summary.escalated} escalated</p></div>
       <Link href={`/${org}/my-work`} className="btn-primary btn-sm inline-flex items-center gap-1.5"><Icon name="ArrowRight" size={15}/>Open My work</Link>
     </Card>}
-    {profitability&&profitability.summary.projectCount>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
+    {showProfitability&&profitability&&profitability.summary.projectCount>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
       <span data-testid="dashboard-profitability" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name="Gauge" size={18}/></span>
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">Forecast margin {money(profitability.summary.forecastMargin, profitability.base, true)} across {num(profitability.summary.projectCount)} job{profitability.summary.projectCount===1?'':'s'}</p>
         <p className="mt-0.5 text-xs muted">{pct(profitability.summary.marginPct)} of revised contract · {num(profitability.summary.atRisk)} at risk · {num(profitability.summary.watch)} to watch · workspace base {profitability.base}</p></div>
       <Link href={`/${org}/profitability`} className="btn-outline btn-sm inline-flex items-center gap-1.5"><Icon name="TrendingUp" size={15}/>Open job profitability</Link>
     </Card>}
-    {threeWay&&threeWay.summary.orders>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
+    {showThreeWay&&threeWay&&threeWay.summary.orders>0&&<Card className="flex flex-wrap items-center gap-3 p-3.5">
       <span data-testid="dashboard-three-way-match" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name="ClipboardCheck" size={18}/></span>
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{num(threeWay.summary.blocked)} payment hold{threeWay.summary.blocked===1?'':'s'} · {num(threeWay.summary.review)} order{threeWay.summary.review===1?'':'s'} to review</p>
         <p className="mt-0.5 text-xs muted">{num(threeWay.summary.matched)} matched · {num(threeWay.summary.orphanBills)} bills without a PO · {num(threeWay.summary.orphanReceipts)} deliveries without a PO · workspace base {threeWay.base}</p></div>
