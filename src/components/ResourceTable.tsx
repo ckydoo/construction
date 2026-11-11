@@ -7,7 +7,8 @@ import { RESOURCE_MAP, type ResourceDef, toneFor } from '@/lib/resources';
 import { canWrite, canDelete } from '@/lib/catalog';
 import { resourceFullyEnabled, visibleRefTargets, visibleColumns, visibleFields } from '@/lib/module-visibility';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { money, num, date, ago } from '@/lib/format';
+import { money as baseMoney, num, date, ago } from '@/lib/format';
+import { useDisplayMoney } from './DisplayCurrencyProvider';
 import { Button, Icon, Badge, StatusPill, Skeleton, TableSkeleton, EmptyState, Card, ConfirmDialog, ProgressBar } from './ui';
 import { useToast } from './Providers';
 import RecordForm, { type RefOptions } from './RecordForm';
@@ -21,6 +22,7 @@ type ListData = { rows:any[]; total:number; page:number; pages:number; pageSize:
 const PAGE_SIZE=25;
 
 function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:RefOptions;org:string}){
+  const formatMoney=useDisplayMoney();
   const f=def.fields.find(x=>x.key===col);
   const v=row[col];
   if(col==='number') return <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-ink-600 dark:bg-ink-800 dark:text-slate-300">{v||'—'}</span>;
@@ -30,7 +32,7 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
     if(col===def.titleKey) return <span className="font-medium text-ink-900 dark:text-white">{v}</span>;
     return <span className="max-w-[200px] truncate">{String(v)}</span>;
   }
-  if(f.type==='currency') return <span className="font-medium tabular-nums">{money(v,row.currency||'USD')}</span>;
+  if(f.type==='currency') return <span className="font-medium tabular-nums" title={`Original amount: ${baseMoney(v,row.currency||'USD')}`}>{formatMoney(v,row.currency||'USD')}</span>;
   if(f.type==='number') return <span className="tabular-nums">{num(v)}</span>;
   if(f.type==='percent') return <div className="flex min-w-[90px] items-center justify-end gap-2"><span className="w-8 text-right text-xs tabular-nums">{Math.round(Number(v)||0)}%</span><div className="w-12"><ProgressBar value={v}/></div></div>;
   if(f.type==='date') return <span className="tabular-nums">{date(v)}</span>;

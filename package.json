@@ -41,7 +41,8 @@
     "audit:dpo-prod": "node scripts/dpo-production-smoke.mjs",
     "audit:platform-config": "node scripts/platform-config-qa.mjs",
     "audit:convert": "node scripts/conversion-qa.mjs",
-    "audit:quote-studio": "node scripts/quote-studio-qa.mjs"
+    "audit:quote-studio": "node scripts/quote-studio-qa.mjs",
+    "audit:topbar": "node scripts/topbar-currency-qa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

@@ -7,6 +7,7 @@ import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { money, num, date, ago } from '@/lib/format';
 import { Button, Card, CardHead, Icon, Badge, StatusPill, Field, Tabs, Skeleton, EmptyState, ProgressBar, Drawer, ConfirmDialog } from '@/components/ui';
 import { useToast } from '@/components/Providers';
+import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 
 type WalletRow = {
   clientId:string; clientName:string; clientNumber:string|null; clientStatus:string|null;
@@ -32,6 +33,7 @@ const KINDS:Record<string,{label:string;tone:string}> = {
 };
 
 function Inner(){
+  const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
   const {org}=useParams<{org:string}>();
   const sp=useSearchParams(); const qc=useQueryClient(); const toast=useToast();
   const deepClient=sp.get('client');
@@ -75,7 +77,7 @@ function Inner(){
     try{
       const r:any=await apiSend(orgApi(org,`wallets/${selected}`),'POST',{action,...body});
       toast.push({tone:'success',title:action==='topup'?'Funds added':action==='allocate'?'Project funded':'Entry reversed',
-        description:`New balance ${money(r.balance,detail?.wallet.currency||'USD')}`});
+        description:`New balance ${formatMoney(r.balance,detail?.wallet.currency||'USD')}`});
       setTopup({amount:'',reference:'',method:'Bank transfer (USD)',note:''});
       setAlloc(v=>({...v,amount:'',note:''}));
       await invalidate();
@@ -99,14 +101,15 @@ function Inner(){
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16}/></Button>
         <Link href={`/${org}/m/clients`}><Button variant="outline" size="sm" icon="Handshake">Clients</Button></Link></div>
     </div>
+    {display.preference&&display.currency!==base&&<div className="rounded-md border border-brand-200 bg-brand-50 px-4 py-2.5 text-xs text-brand-800 dark:border-brand-500/20 dark:bg-brand-500/10 dark:text-brand-200">Viewing wallet amounts in {display.currency}. Saved wallet balances and workspace reporting totals stay in their original currencies.</div>}
     {!canTopup&&<div className="rounded-md border divider bg-slate-50 px-4 py-2.5 text-xs muted dark:bg-ink-900">
       {canAllocate?'You can fund your own projects from this wallet. Only owners, admins and finance managers can add funds or reverse entries.'
         :'Read-only wallet access. Contact an administrator for funding changes.'}
     </div>}
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {[['Available balance',money(s?.totalBalance,base),'Across all client wallets','Wallet','brand'],
-        ['Funded to projects',money(s?.totalAllocated,base),`${num(s?.fundedProjects)} projects funded`,'ArrowUpRight','blue'],
-        ['Total topped up',money(s?.totalToppedUp,base),'All-time admin deposits','Landmark','green'],
+      {[['Available balance',formatMoney(s?.totalBalance,base),'Across all client wallets','Wallet','brand'],
+        ['Funded to projects',formatMoney(s?.totalAllocated,base),`${num(s?.fundedProjects)} projects funded`,'ArrowUpRight','blue'],
+        ['Total topped up',formatMoney(s?.totalToppedUp,base),'All-time admin deposits','Landmark','green'],
         ['Active wallets',`${num(s?.fundedWallets)} / ${num(s?.clientCount)}`,'Clients with wallet activity','CreditCard','violet'],
       ].map(([l,v,sub])=><Card key={String(l)} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 truncate text-[20px] font-semibold tabular-nums tracking-tight text-ink-900 dark:text-white">{v}</p><p className="caption mt-0.5">{sub}</p></Card>)}
     </div>
@@ -119,9 +122,9 @@ function Inner(){
         <tr><th className="table-th">Client</th><th className="table-th text-right">Wallet balance</th><th className="table-th text-right">Topped up</th><th className="table-th text-right">Allocated</th><th className="table-th hidden text-right sm:table-cell">Projects</th><th className="table-th hidden md:table-cell">Last activity</th><th className="table-th"/></tr></thead>
         <tbody className="divide-y divider">{rows.map(w=><tr key={w.clientId} className="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/50" onClick={()=>{setSelected(w.clientId);setTab('ledger');}}>
           <td className="table-td"><div className="flex items-center gap-2.5"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-400"><Icon name="Building2" size={15}/></span><div className="min-w-0"><p className="truncate font-medium text-ink-900 dark:text-white">{w.clientName}</p><p className="truncate text-[10px] muted">{w.clientNumber||'—'} · {w.txCount} entries</p></div></div></td>
-          <td className="table-td text-right"><span className="font-semibold tabular-nums">{money(w.balance,w.currency)}</span>{w.toppedUp>0&&<div className="ml-auto mt-1 w-24"><ProgressBar value={w.toppedUp?Math.min(100,w.netAllocated/w.toppedUp*100):0}/></div>}</td>
-          <td className="table-td text-right tabular-nums muted">{money(w.toppedUp,w.currency)}</td>
-          <td className="table-td text-right tabular-nums muted">{money(w.netAllocated,w.currency)}</td>
+          <td className="table-td text-right"><span className="font-semibold tabular-nums">{formatMoney(w.balance,w.currency)}</span>{w.toppedUp>0&&<div className="ml-auto mt-1 w-24"><ProgressBar value={w.toppedUp?Math.min(100,w.netAllocated/w.toppedUp*100):0}/></div>}</td>
+          <td className="table-td text-right tabular-nums muted">{formatMoney(w.toppedUp,w.currency)}</td>
+          <td className="table-td text-right tabular-nums muted">{formatMoney(w.netAllocated,w.currency)}</td>
           <td className="table-td hidden text-right sm:table-cell"><Badge tone={w.projectCount?'blue':'slate'}>{w.projectCount} funded</Badge></td>
           <td className="table-td hidden muted md:table-cell">{w.lastActivity?ago(w.lastActivity):'—'}</td>
           <td className="table-td text-right"><Button size="sm" variant="ghost" icon="ChevronRight" onClick={(e:any)=>{e.stopPropagation();setSelected(w.clientId);setTab('ledger');}}>Open</Button></td>
@@ -135,9 +138,9 @@ function Inner(){
       {detailLoading||!detail?<div className="space-y-3 p-5"><Skeleton className="h-24"/><Skeleton className="h-60"/></div>:
       <div className="space-y-4">
         <div className="grid gap-3 px-5 pt-5 sm:grid-cols-3">
-          <div className="rounded-md border divider bg-slate-50 p-3.5 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wider muted">Amount left</p><p className="mt-1 text-2xl font-semibold tracking-tight">{money(detail.wallet.balance,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.totals.transactions} recorded movements</p></div>
-          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Total added</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(detail.totals.toppedUp,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">Deposits</p></div>
-          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Active funding</p><p className="mt-1 text-xl font-semibold tabular-nums">{money(detail.totals.allocated,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.projects.filter(p=>p.fundedAmount>0).length} projects</p></div>
+          <div className="rounded-md border divider bg-slate-50 p-3.5 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wider muted">Amount left</p><p className="mt-1 text-2xl font-semibold tracking-tight">{formatMoney(detail.wallet.balance,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.totals.transactions} recorded movements</p></div>
+          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Total added</p><p className="mt-1 text-xl font-semibold tabular-nums">{formatMoney(detail.totals.toppedUp,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">Deposits</p></div>
+          <div className="rounded-md border divider p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">Active funding</p><p className="mt-1 text-xl font-semibold tabular-nums">{formatMoney(detail.totals.allocated,detail.wallet.currency)}</p><p className="mt-1 text-[11px] muted">{detail.projects.filter(p=>p.fundedAmount>0).length} projects</p></div>
         </div>
         <div className="px-5"><Tabs tabs={[{id:'ledger',label:'Ledger',count:detail.ledger.length},{id:'projects',label:'Projects',count:detail.projects.length},...(canTopup?[{id:'topup',label:'Add funds'}]:[]),...(canAllocate?[{id:'fund',label:'Fund a project'}]:[])]} active={tab} onChange={setTab}/></div>
         {tab==='ledger'&&<div className="px-5 pb-5">
@@ -146,16 +149,16 @@ function Inner(){
             <tbody className="divide-y divider">{detail.ledger.map(t=><tr key={t.id} className={t.reversedAt?'opacity-55':''}>
               <td className="table-th"><Badge tone={KINDS[t.kind]?.tone||'slate'}>{KINDS[t.kind]?.label||t.kind}</Badge><p className="mt-1 text-[10px] muted">{date(t.createdAt)}</p></td>
               <td className="table-th"><p className="truncate text-ink-800 dark:text-slate-200">{t.note||t.reference||t.method||'—'}</p><p className="truncate text-[10px] muted">{t.actorName}{t.reversedAt?' · reversed':''}{t.projectId?` · ${detail.projects.find(p=>p.id===t.projectId)?.name||'project'}`:''}</p></td>
-              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${t.amount>0?'text-emerald-600 dark:text-emerald-400':'text-ink-800 dark:text-slate-200'}`}>{t.amount>0?'+':''}{money(t.amount,t.currency)}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums muted">{money(t.balanceAfter,t.currency)}</td>
+              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${t.amount>0?'text-emerald-600 dark:text-emerald-400':'text-ink-800 dark:text-slate-200'}`}>{t.amount>0?'+':''}{formatMoney(t.amount,t.currency)}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums muted">{formatMoney(t.balanceAfter,t.currency)}</td>
               <td className="px-2 py-2.5 text-right">{canReverse&&t.kind==='ALLOCATION'&&!t.reversedAt&&<button aria-label="Reverse this allocation" className="rounded-md p-1.5 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10" title="Reverse this allocation" onClick={()=>setConfirm({tx:t})}><Icon name="RotateCcw" size={14}/></button>}</td>
             </tr>)}</tbody></table></div>}
         </div>}
         {tab==='projects'&&<div className="space-y-2 px-5 pb-5">
           {!detail.projects.length?<EmptyState compact icon="HardHat" title="No projects for this client" description="Create a project linked to this client before allocating wallet funds."/>:
-          detail.projects.map(p=><div key={p.id} className="rounded-md border divider p-3"><div className="flex flex-wrap items-center justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-medium">{p.name}</p><p className="text-[11px] muted">{p.code} · contract {money(p.contractValue,detail.wallet.currency)}</p></div><StatusPill status={p.status||undefined}/></div>
-            <div className="mt-3 flex items-center gap-3"><div className="flex-1"><ProgressBar value={p.contractValue?p.fundedAmount/p.contractValue*100:0}/></div><span className="text-xs font-semibold tabular-nums">{money(p.fundedAmount,detail.wallet.currency)}</span></div>
-            <p className="mt-1.5 text-[11px] muted">{money(p.remainingToFund,detail.wallet.currency)} remaining to fund</p></div>)}
+          detail.projects.map(p=><div key={p.id} className="rounded-md border divider p-3"><div className="flex flex-wrap items-center justify-between gap-2"><div className="min-w-0"><p className="truncate text-sm font-medium">{p.name}</p><p className="text-[11px] muted">{p.code} · contract {formatMoney(p.contractValue,detail.wallet.currency)}</p></div><StatusPill status={p.status||undefined}/></div>
+            <div className="mt-3 flex items-center gap-3"><div className="flex-1"><ProgressBar value={p.contractValue?p.fundedAmount/p.contractValue*100:0}/></div><span className="text-xs font-semibold tabular-nums">{formatMoney(p.fundedAmount,detail.wallet.currency)}</span></div>
+            <p className="mt-1.5 text-[11px] muted">{formatMoney(p.remainingToFund,detail.wallet.currency)} remaining to fund</p></div>)}
         </div>}
         {tab==='topup'&&canTopup&&<form className="grid gap-4 px-4 pb-4 sm:grid-cols-2" onSubmit={e=>{e.preventDefault();act('topup',{...topup,amount:Number(topup.amount)},Number(topup.amount)||0);}}>
           <Field label="Amount" required><input className="input" type="number" min="0.01" step="0.01" value={topup.amount} onChange={e=>setTopup({...topup,amount:e.target.value})} placeholder="250000"/></Field>
@@ -168,7 +171,7 @@ function Inner(){
           <Field label="Project" required><select className="select" value={alloc.projectId} onChange={e=>setAlloc({...alloc,projectId:e.target.value})}>{detail.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></Field>
           <Field label="Amount" required><input className="input" type="number" min="0.01" step="0.01" value={alloc.amount} onChange={e=>setAlloc({...alloc,amount:e.target.value})} placeholder="100000"/></Field>
           <div className="sm:col-span-2"><Field label="Note"><input className="input" value={alloc.note} onChange={e=>setAlloc({...alloc,note:e.target.value})} placeholder="Mobilisation advance"/></Field></div>
-          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3"><p className="text-[11px] muted">Available: {money(detail.wallet.balance,detail.wallet.currency)} · funds can only go to this client's own projects.</p><Button variant="primary" type="submit" loading={busy} icon="ArrowUpRight" disabled={!detail.projects.length}>Fund project</Button></div>
+          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3"><p className="text-[11px] muted">Available: {formatMoney(detail.wallet.balance,detail.wallet.currency)} · funds can only go to this client's own projects.</p><Button variant="primary" type="submit" loading={busy} icon="ArrowUpRight" disabled={!detail.projects.length}>Fund project</Button></div>
         </form>}
       </div>}
     </Drawer>

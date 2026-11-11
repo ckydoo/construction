@@ -8,6 +8,7 @@ import { money, num, ago, pct } from '@/lib/format';
 import { resourceFullyEnabled, moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
+import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 
 type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string; fx?:any };
 
@@ -21,6 +22,7 @@ function Kpi({label,value,sub,loading}:{label:string;value:string;sub?:string;lo
 }
 
 export default function DashboardPage(){
+  const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
   const {org}=useParams<{org:string}>();
   const [period,setPeriod]=useState<'3'|'6'>('6');
   const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
@@ -39,7 +41,7 @@ export default function DashboardPage(){
   const projects=(data?.projects||[]).filter(()=>on('projects'));
   return <div className="space-y-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="heading">Your business today</h1><p className="caption mt-1">Jobs, money and things needing attention · {new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p></div>
+      <div><h1 className="heading">Your business today</h1><p className="caption mt-1">Jobs, money and things needing attention · {new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}{display.preference&&<> · viewing money in <span className="font-semibold text-brand-600 dark:text-brand-300">{display.currency}</span>; reports stay in {base}</>}</p></div>
       <div className="flex items-center gap-2"><div className="flex rounded-md border divider bg-white p-0.5 dark:bg-ink-900">{(['3','6'] as const).map(p=><button key={p} onClick={()=>setPeriod(p)} className={`rounded px-2.5 py-1 text-xs font-medium ${period===p?'bg-slate-100 text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{p}M</button>)}</div>
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
         {on('projects')&&<Link href={`/${org}/m/projects?new=1`}><Button variant="primary" size="sm" icon="Plus">New job</Button></Link>}</div>
@@ -48,10 +50,10 @@ export default function DashboardPage(){
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 gap-px bg-slate-200 sm:grid-cols-3 xl:grid-cols-5 dark:bg-ink-800">
         {on('projects')&&<Kpi loading={isLoading} label="Jobs running" value={num(k?.activeProjects)} sub={`${num(k?.pipelineProjects)} being quoted`}/>}
-        {showJobs&&<Kpi loading={isLoading} label="Value of jobs" value={money(k?.contractValue,base,true)} sub={`${money(k?.pipelineValue,base,true)} quotes in hand`}/>}
-        {mod('finance')&&<Kpi loading={isLoading} label="Invoiced to date" value={money(k?.billed,base,true)} sub={`${money(k?.certifiedValue,base,true)} certified for payment`}/>}
-        {mod('finance')&&<Kpi loading={isLoading} label="Money owed to you" value={money(k?.outstanding,base,true)} sub={`${money(k?.payables,base,true)} you owe suppliers`}/>}
-        {mod('wallets')&&<Kpi loading={isLoading} label="Client money in hand" value={money(k?.walletBalance,base,true)} sub={`${money(k?.walletFunded,base,true)} set aside for jobs`}/>}
+        {showJobs&&<Kpi loading={isLoading} label="Value of jobs" value={formatMoney(k?.contractValue,base,true)} sub={`${formatMoney(k?.pipelineValue,base,true)} quotes in hand`}/>}
+        {mod('finance')&&<Kpi loading={isLoading} label="Invoiced to date" value={formatMoney(k?.billed,base,true)} sub={`${formatMoney(k?.certifiedValue,base,true)} certified for payment`}/>}
+        {mod('finance')&&<Kpi loading={isLoading} label="Money owed to you" value={formatMoney(k?.outstanding,base,true)} sub={`${formatMoney(k?.payables,base,true)} you owe suppliers`}/>}
+        {mod('wallets')&&<Kpi loading={isLoading} label="Client money in hand" value={formatMoney(k?.walletBalance,base,true)} sub={`${formatMoney(k?.walletFunded,base,true)} set aside for jobs`}/>}
       </div>
     </Card>
     {!isLoading&&showMoney&&fx&&fx.enabled.length>1&&<Card><CardHead title="Currencies in your totals" subtitle={`Reporting in ${fx.base} · rates set in Settings → Currencies`} action={<Link href={`/${org}/settings`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">Manage rates →</Link>}/>
@@ -65,12 +67,12 @@ export default function DashboardPage(){
       <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-3">{(data?.wallets||[]).slice(0,6).map(w=><Link key={w.clientId} href={`/${org}/wallets?client=${encodeURIComponent(w.clientId)}`} className="flex items-center gap-3 bg-white px-4 py-2.5 transition hover:bg-slate-50 dark:bg-ink-900 dark:hover:bg-ink-800/60">
         <Icon name="Wallet" size={15} className="shrink-0 text-ink-400"/>
         <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{w.clientName}</p><p className="text-[10px] muted">Ready to put on jobs</p></div>
-        <span className="text-[13px] font-semibold tabular-nums">{money(w.balance,w.currency)}</span></Link>)}</div></Card>}
+        <span className="text-[13px] font-semibold tabular-nums">{formatMoney(w.balance,w.currency)}</span></Link>)}</div></Card>}
     <div className="grid gap-4 lg:grid-cols-3">
-      {mod('finance')&&<Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed" subtitle="Last 6 months · tax invoices raised" action={<Badge tone="green">{money(k?.billed,base,true)} total</Badge>}/>
-        <div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[180px]"/>:series.length?<BarChart data={series} height={180}/>:<EmptyState compact icon="BarChart3" title="No invoices yet"/>}</div></Card>}
+      {mod('finance')&&<Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed" subtitle="Last 6 months · tax invoices raised" action={<Badge tone="green">{formatMoney(k?.billed,base,true)} total</Badge>}/>
+        <div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[180px]"/>:series.length?<BarChart data={series} height={180} currency={base} personal/>:<EmptyState compact icon="BarChart3" title="No invoices yet"/>}</div></Card>}
       {on('budgets')&&<Card className="overflow-hidden"><CardHead title="Where the money went" subtitle="From your job budgets"/>
-        <div className="p-4">{isLoading?<div className="space-y-3">{Array.from({length:5}).map((_,i)=><Skeleton key={i} className="h-5"/>)}</div>:data?.costBreakdown?.length?<DonutChart data={data.costBreakdown} size={148}/>:<EmptyState compact icon="PieChart" title="No budget lines"/>}</div></Card>}
+        <div className="p-4">{isLoading?<div className="space-y-3">{Array.from({length:5}).map((_,i)=><Skeleton key={i} className="h-5"/>)}</div>:data?.costBreakdown?.length?<DonutChart data={data.costBreakdown} size={148} currency={base} personal/>:<EmptyState compact icon="PieChart" title="No budget lines"/>}</div></Card>}
     </div>
     <div className="grid gap-4 lg:grid-cols-3">
       {on('projects')&&<Card className="lg:col-span-2 overflow-hidden"><CardHead title="How your jobs are doing" subtitle={`${projects.length} jobs running · ${pct(k?.progress)} average progress`} action={<Link href={`/${org}/m/projects`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">View all →</Link>}/>
@@ -78,7 +80,7 @@ export default function DashboardPage(){
           <span className={`h-2 w-2 shrink-0 rounded-sm ${p.health==='ON_TRACK'?'bg-emerald-500':'bg-amber-500'}`}/>
           <div className="min-w-[190px] flex-1"><p className="truncate text-[13px] font-medium text-ink-900 dark:text-white">{p.name}</p><p className="text-[11px] muted">{p.type} · {p.location}</p></div>
           <div className="w-32"><div className="mb-1 flex justify-between text-[11px] muted"><span>Progress</span><span className="font-semibold text-ink-700 dark:text-slate-200">{p.progress}%</span></div><ProgressBar value={p.progress} tone={p.health==='ON_TRACK'?'brand':'amber'}/></div>
-          <div className="hidden w-28 text-right sm:block"><p className="text-[13px] font-semibold tabular-nums">{money(p.contractValue,p.currency||base,true)}</p><p className="text-[11px] muted">contract</p></div>
+          <div className="hidden w-28 text-right sm:block"><p className="text-[13px] font-semibold tabular-nums">{formatMoney(p.contractValue,p.currency||base,true)}</p><p className="text-[11px] muted">contract</p></div>
           <Icon name="ChevronRight" size={15} className="text-slate-300"/></Link>)}</div>:<EmptyState compact icon="HardHat" title="No jobs running"/>}</Card>}
       <Card className="overflow-hidden"><CardHead title="Needs your attention" subtitle="From today's records" action={<Badge tone="amber">{attention.length} items</Badge>}/>
         {isLoading?<div className="space-y-3 p-4">{Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-12"/>)}</div>:<div className="divide-y divider">{attention.slice(0,6).map((a:any,i)=><Link key={i} href={`/${org}${a.href}`} className="flex items-start gap-3 px-4 py-2.5 transition hover:bg-slate-50 dark:hover:bg-ink-800/60">

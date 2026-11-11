@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { money } from '@/lib/format';
+import { useDisplayCurrency, useDisplayMoney } from './DisplayCurrencyProvider';
 import { CURRENCIES, PROJECT_TYPES, RESOURCE_MAP } from '@/lib/resources';
 import { LINE_CATEGORIES } from '@/lib/financial';
 import { resourceFullyEnabled } from '@/lib/module-visibility';
@@ -39,6 +39,7 @@ export default function QuoteStudio({
   org: string; mode: 'create' | 'edit'; recordId?: string; initialRow?: any;
 }) {
   const router = useRouter(); const qc = useQueryClient(); const toast = useToast();
+  const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
   const [draft, setDraft] = useState<QuoteDraft>(() => initialRow ? quoteDraftFromRow(initialRow) : blankQuoteDraft());
   const [step, setStep] = useState(mode === 'edit' ? 1 : 0);
   const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
@@ -173,7 +174,7 @@ export default function QuoteStudio({
         ? await apiSend(orgApi(org,endpoint), 'PATCH', payload)
         : await apiSend(orgApi(org,endpoint), 'POST', payload);
       await qc.invalidateQueries({ queryKey:['records',org,'estimates'] });
-      toast.push({ tone:'success', title:mode === 'edit' ? 'Quotation updated' : 'Quotation created', description:`${res.row.number} · ${money(res.row.total, res.row.currency || draft.currency)}` });
+      toast.push({ tone:'success', title:mode === 'edit' ? 'Quotation updated' : 'Quotation created', description:`${res.row.number} · ${formatMoney(res.row.total, res.row.currency || draft.currency)}` });
       router.push(`/${org}/m/estimates?open=${encodeURIComponent(res.row.id)}`);
     } catch (e:any) { toast.push({ tone:'error', title:'Could not save quotation', description:e.message }); }
     finally { setSaving(false); }
@@ -201,11 +202,12 @@ export default function QuoteStudio({
       <Badge tone="blue">{step+1} / {QUOTE_STEPS.length}</Badge>
     </div>
     <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800"><div className="h-full rounded-full bg-brand-500 transition-all duration-500" style={{width:`${progress}%`}}/></div>
+    {display.preference&&display.currency!==draft.currency&&<p className="mt-2 text-[10px] leading-relaxed muted">Viewing amounts in {display.currency}; the quotation will be saved in {draft.currency}.</p>}
     <div className="mt-4 space-y-2 text-xs">
       <div className="flex justify-between"><span className="muted">Priced lines</span><span className="font-semibold tabular-nums">{totals.lines.length}</span></div>
-      <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{money(totals.subtotal,draft.currency)}</span></div>
-      <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{money(totals.markupAmount,draft.currency)}</span></div>
-      <div className="flex justify-between border-t divider pt-2 text-base"><span className="font-semibold">Quote total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{money(totals.total,draft.currency)}</span></div>
+      <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{formatMoney(totals.subtotal,draft.currency)}</span></div>
+      <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount,draft.currency)}</span></div>
+      <div className="flex justify-between border-t divider pt-2 text-base"><span className="font-semibold">Quote total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total,draft.currency)}</span></div>
     </div>
     <div className="mt-4 space-y-1.5 border-t divider pt-3">
       {[
@@ -251,7 +253,7 @@ export default function QuoteStudio({
               return <button type="button" key={t.id} onClick={()=>useTemplate(t)} className={`group rounded-lg border divider bg-gradient-to-br ${t.accent||'from-slate-50 to-white'} p-4 text-left transition hover:-translate-y-0.5 hover:border-brand-400 hover:shadow-panel dark:from-ink-900 dark:to-ink-950`}>
                 <div className="flex items-start justify-between gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-brand-600 shadow-card dark:bg-ink-900 dark:text-brand-300"><Icon name={t.icon||'FileText'} size={17}/></span><Icon name="ArrowRight" size={15} className="mt-1 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-600"/></div>
                 <p className="mt-3 text-sm font-semibold text-ink-900 dark:text-white">{t.name}</p><p className="mt-1 text-[11px] leading-relaxed muted">{t.description}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5"><Badge tone="slate">{t.payload.items.length} lines</Badge><Badge tone="blue">{t.payload.markup}% markup</Badge><Badge tone="green">{money(previewTotals.total,t.payload.currency)}</Badge></div>
+                <div className="mt-3 flex flex-wrap gap-1.5"><Badge tone="slate">{t.payload.items.length} lines</Badge><Badge tone="blue">{t.payload.markup}% markup</Badge><Badge tone="green">{formatMoney(previewTotals.total,t.payload.currency)}</Badge></div>
               </button>;
             })}</div>
           </Card>
@@ -289,7 +291,7 @@ export default function QuoteStudio({
           </Card>
           <Card className="p-4"><div className="grid gap-4 sm:grid-cols-[220px_minmax(0,1fr)]"><div><Field label="Markup" hint="Added to your cost subtotal to cover overhead, risk and profit."><div className="relative"><input className="input pr-9" type="number" min="0" max="1000" step="any" value={draft.markup} onChange={e=>setField('markup',Math.max(0,Math.min(1000,Number(e.target.value)||0)))}/><span className="absolute right-3 top-2 text-xs muted">%</span></div></Field>
             <div className="mt-2 flex flex-wrap gap-1.5">{[10,15,20,25].map(v=><button type="button" key={v} onClick={()=>setField('markup',v)} className={`rounded border px-2 py-1 text-[11px] font-semibold ${draft.markup===v?'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300':'divider muted hover:border-brand-400'}`}>{v}%</button>)}</div></div>
-            <div className="rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Cost breakdown</p><div className="mt-2 grid gap-2 sm:grid-cols-2">{LINE_CATEGORIES.map(c=><div key={c.id} className="flex items-center justify-between gap-2 text-xs"><span className="muted">{c.label}</span><span className="font-semibold tabular-nums">{money(totals.byCategory[c.id],draft.currency)}</span></div>)}</div><p className="mt-3 border-t divider pt-2 text-[11px] leading-relaxed muted">Subtotal + {totals.markupPct}% markup = <span className="font-semibold text-ink-900 dark:text-white">{money(totals.total,draft.currency)}</span> quotation total.</p></div></div>
+            <div className="rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Cost breakdown</p><div className="mt-2 grid gap-2 sm:grid-cols-2">{LINE_CATEGORIES.map(c=><div key={c.id} className="flex items-center justify-between gap-2 text-xs"><span className="muted">{c.label}</span><span className="font-semibold tabular-nums">{formatMoney(totals.byCategory[c.id],draft.currency)}</span></div>)}</div><p className="mt-3 border-t divider pt-2 text-[11px] leading-relaxed muted">Subtotal + {totals.markupPct}% markup = <span className="font-semibold text-ink-900 dark:text-white">{formatMoney(totals.total,draft.currency)}</span> quotation total.</p></div></div>
           </Card>
         </div>}
 

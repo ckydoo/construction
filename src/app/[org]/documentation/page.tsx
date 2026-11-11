@@ -485,6 +485,7 @@ export default function DocumentationPage() {
             [4, 'Needs your attention', 'Late payments, unanswered questions and jobs falling behind.'],
             [5, 'What changed today', 'Who added or changed a record, so nothing quietly disappears.'],
             [6, 'Sidebar sections', 'Only the parts of MYLA switched on for your company appear here.'],
+            [7, 'Top bar currency & menus', 'Pick a personal display currency from the top bar; click away or press Escape to close any open top-bar menu. Reports and saved records keep their own currency.'],
           ].map(([n, t, d]) => <div key={n} className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-500 text-[10px] font-bold text-white">{n}</span>
             <div><p className="text-[12px] font-semibold text-ink-900 dark:text-white">{t}</p><p className="caption">{d}</p></div>

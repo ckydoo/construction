@@ -8,6 +8,7 @@ import { money, num, pct } from '@/lib/format';
 import { resourceFullyEnabled, moduleEnabled } from '@/lib/module-visibility';
 import { Card, CardHead, Button, Icon, Badge, Skeleton, EmptyState, Field } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
+import { useDisplayCurrency } from '@/components/DisplayCurrencyProvider';
 
 const REPORTS = [
   { group:'Clients & jobs', items:[
@@ -42,6 +43,7 @@ const REPORTS = [
   ]},
 ];
 export default function ReportsPage(){
+  const display=useDisplayCurrency();
   const {org}=useParams<{org:string}>();
   const [group,setGroup]=useState('All');
   const [builderResource,setBuilderResource]=useState('projects');
@@ -59,7 +61,7 @@ export default function ReportsPage(){
   const statuses=(defs.find((d:any)=>d.id===builderResource)?.statusOptions)||[];
   useEffect(()=>{ if(meta&&!on(builderResource)&&defs[0]) setBuilderResource(defs[0].id); },[meta]); // eslint-disable-line
   return <div className="space-y-4">
-    <div><h1 className="heading">Reports</h1><p className="mt-1 caption">Ready-made lists from your own records. Download any view as a CSV for Excel or your bookkeeper.</p></div>
+    <div><h1 className="heading">Reports</h1><p className="mt-1 caption">Ready-made lists from your own records. Download any view as a CSV for Excel or your bookkeeper.</p>{display.preference&&display.currency!==base&&<p className="mt-2 text-[11px] font-medium text-brand-700 dark:text-brand-300">Reports stay in the workspace base currency, {base}. Your personal {display.currency} view applies to lists, dashboards and record details.</p>}</div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {isLoading?Array.from({length:4}).map((_,i)=><Skeleton key={i} className="h-24"/>):[
         ['Records kept',num(Object.entries(ov?.counts||{}).filter(([k])=>on(k)).reduce((a:number,[,b]:any)=>a+Number(b),0)),true],
@@ -71,8 +73,8 @@ export default function ReportsPage(){
     {fx&&fx.enabled.length>1&&(mod('finance')||mod('billing')||mod('wallets'))&&<Card><CardHead title="Money by currency" subtitle={`Converted to ${base} for reporting · manual rates from Settings`}/>
       <div className="grid gap-px bg-slate-200 dark:bg-ink-800 sm:grid-cols-2 lg:grid-cols-4">{fx.enabled.map((c:string)=>{const row=(fx.byCurrency||[]).find((x:any)=>x.currency===c);return <div key={c} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-[11px] font-semibold uppercase muted">{c}{c===fx.base?' · base':''}</p><p className="mt-1 text-[15px] font-semibold tabular-nums">{money(row?.amount||0,c,true)}</p><p className="text-[10px] muted">{c===fx.base?'As entered':`${money(row?.baseAmount||0,fx.base,true)} in ${fx.base}`}</p></div>;})}</div></Card>}
     <div className="grid gap-4 lg:grid-cols-3">
-      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed over time" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170}/>}</div></Card>
-      <Card className="overflow-hidden"><CardHead title="Where costs went" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
+      <Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed over time" subtitle="Client invoices by month"/><div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[170px]"/>:<BarChart data={ov?.revenueSeries||[]} height={170} currency={base}/>}</div></Card>
+      <Card className="overflow-hidden"><CardHead title="Where costs went" subtitle="Actual cost by category"/><div className="p-4">{isLoading?<Skeleton className="h-[160px]"/>:ov?.costBreakdown?.length?<DonutChart data={ov.costBreakdown} size={140} currency={base}/>:<EmptyState compact icon="PieChart" title="No cost data"/>}</div></Card>
     </div>
     <Card><CardHead title="Make your own list" subtitle="Choose a list, filter it, then download"/>
       <div className="grid gap-4 p-4 sm:grid-cols-3">

@@ -1,12 +1,15 @@
 'use client';
 import { Badge, Icon } from './ui';
-import { money, date } from '@/lib/format';
+import { date } from '@/lib/format';
+import { useDisplayCurrency, useDisplayMoney } from './DisplayCurrencyProvider';
 import { LINE_CATEGORIES } from '@/lib/financial';
 import { quoteTotals, type QuoteDraft } from '@/lib/quote-studio';
 
 export default function QuotePreview({
   draft, clientLabel = '', orgName = 'Your company',
 }: { draft: QuoteDraft; clientLabel?: string; orgName?: string }) {
+  const formatMoney=useDisplayMoney();
+  const { preference, currency: displayCurrency }=useDisplayCurrency();
   const totals = quoteTotals(draft);
   const shown = totals.lines.slice(0, 8);
   const more = totals.lines.length - shown.length;
@@ -19,6 +22,7 @@ export default function QuotePreview({
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-300">Quotation preview</p>
           <h3 className="mt-1 truncate text-lg font-semibold">{draft.name || 'Untitled quotation'}</h3>
           <p className="mt-0.5 truncate text-[11px] text-slate-300">{orgName} · {draft.currency} · {draft.workType || 'General works'}</p>
+          {preference&&displayCurrency!==draft.currency&&<p className="mt-1 text-[10px] font-medium text-brand-200">Viewing in {displayCurrency} · document currency {draft.currency}</p>}
         </div>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-ink-950"><Icon name="Quote" size={18}/></span>
       </div>
@@ -38,14 +42,14 @@ export default function QuotePreview({
           <div className="min-w-0"><p className="truncate font-medium text-ink-800 dark:text-slate-200">{l.description}</p>
             <p className="truncate text-[10px] muted">{l.detail || LINE_CATEGORIES.find(c => c.id === l.category)?.label}</p></div>
           <span className="text-right tabular-nums muted">{l.qty}</span>
-          <span className="text-right font-medium tabular-nums">{money(l.qty * l.unitPrice, draft.currency)}</span>
+          <span className="text-right font-medium tabular-nums">{formatMoney(l.qty * l.unitPrice, draft.currency)}</span>
         </div>)}
         {more > 0 && <p className="pt-1 text-[10px] muted">+ {more} more line{more === 1 ? '' : 's'} in the full quotation</p>}
       </div>
       <div className="mt-4 ml-auto max-w-[260px] space-y-1.5 rounded-lg border divider bg-slate-50 p-3 text-xs dark:bg-ink-950/50">
-        <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{money(totals.subtotal, draft.currency)}</span></div>
-        <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{money(totals.markupAmount, draft.currency)}</span></div>
-        <div className="flex justify-between border-t divider pt-1.5 text-sm"><span className="font-semibold">Quotation total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{money(totals.total, draft.currency)}</span></div>
+        <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{formatMoney(totals.subtotal, draft.currency)}</span></div>
+        <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount, draft.currency)}</span></div>
+        <div className="flex justify-between border-t divider pt-1.5 text-sm"><span className="font-semibold">Quotation total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total, draft.currency)}</span></div>
       </div>
       {draft.scope && <div className="mt-4 border-t divider pt-3"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Scope & terms</p><p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-ink-700 dark:text-slate-300">{draft.scope}</p></div>}
     </div>

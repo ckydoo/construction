@@ -1,6 +1,6 @@
 'use client';
 import { Button, Icon } from './ui';
-import { money } from '@/lib/format';
+import { useDisplayCurrency, useDisplayMoney } from './DisplayCurrencyProvider';
 import { LINE_CATEGORIES, type LineCategory } from '@/lib/financial';
 import { emptyQuoteLine, type QuoteLine } from '@/lib/quote-studio';
 
@@ -19,6 +19,8 @@ export default function QuoteLinesEditor({
 }: {
   value: QuoteLine[]; onChange: (lines: QuoteLine[]) => void; currency?: string;
 }) {
+  const formatMoney=useDisplayMoney();
+  const { preference, currency: displayCurrency }=useDisplayCurrency();
   const lines = value.length ? value : [emptyQuoteLine('labour')];
   const update = (i: number, patch: Partial<QuoteLine>) => onChange(lines.map((l, j) => {
     if (i !== j) return l;
@@ -46,7 +48,7 @@ export default function QuoteLinesEditor({
             {LINE_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
           <span className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${tone[l.category]}`}>{LINE_CATEGORIES.find(c => c.id === l.category)?.label}</span>
-          <span className="ml-auto text-xs font-semibold tabular-nums text-ink-900 dark:text-white">{money(l.total, currency)}</span>
+          <span className="ml-auto text-xs font-semibold tabular-nums text-ink-900 dark:text-white">{formatMoney(l.total, currency)}</span>
           <div className="flex gap-0.5">
             <button type="button" className="rounded p-1.5 muted hover:bg-slate-100 dark:hover:bg-ink-800" title="Move up" onClick={() => move(i, -1)}><Icon name="ChevronUp" size={13}/></button>
             <button type="button" className="rounded p-1.5 muted hover:bg-slate-100 dark:hover:bg-ink-800" title="Move down" onClick={() => move(i, 1)}><Icon name="ChevronDown" size={13}/></button>
@@ -74,8 +76,8 @@ export default function QuoteLinesEditor({
       {LINE_CATEGORIES.map(c => <button type="button" key={c.id} onClick={() => add(c.id)}
         className="rounded-md border divider bg-white px-2.5 py-1.5 text-[11px] font-medium text-ink-700 transition hover:border-brand-400 hover:text-brand-700 dark:bg-ink-900 dark:text-slate-200">
         <Icon name="Plus" size={11} className="mr-1 inline"/>{c.label}</button>)}
-      <span className="ml-auto text-xs font-semibold tabular-nums text-ink-900 dark:text-white">Cost subtotal {money(subtotal, currency)}</span>
+      <span className="ml-auto text-xs font-semibold tabular-nums text-ink-900 dark:text-white">Cost subtotal {formatMoney(subtotal, currency)}</span>
     </div>
-    <p className="caption">Enter a description, quantity and unit rate. The builder recalculates each line, the five cost buckets and the final total as you type.</p>
+    <p className="caption">Enter a description, quantity and unit rate. The builder recalculates each line, the five cost buckets and the final total as you type.{preference&&displayCurrency!==currency&&<> Rates are entered in {currency}; displayed totals are shown in {displayCurrency}.</>}</p>
   </div>;
 }

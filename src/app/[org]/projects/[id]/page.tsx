@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
-import { money, date, pct, num } from '@/lib/format';
+import { date, pct, num } from '@/lib/format';
+import { useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 import { Card, CardHead, Button, Icon, Badge, StatusPill, Skeleton, Tabs, ProgressBar, EmptyState } from '@/components/ui';
 import ResourceTable from '@/components/ResourceTable';
 import RecordDetail from '@/components/RecordDetail';
@@ -19,6 +20,7 @@ const TABS=[
   {id:'team',label:'Team & plant'},{id:'record',label:'Record & files'},
 ];
 export default function ProjectPage(){
+  const formatMoney=useDisplayMoney();
   const {org,id}=useParams<{org:string;id:string}>();
   const [tab,setTab]=useState('overview');
   const {data,isLoading}=useQuery({queryKey:['project',org,id],queryFn:()=>apiGet(orgApi(org,`projects/${id}`))});
@@ -71,13 +73,13 @@ export default function ProjectPage(){
     ['Record currency',recordCur],['Reporting currency',cur],
   ];
   const kpis:[string,string][]=[
-    ['Contract value',money(d?.contractValue ?? p.contractValue,cur)],
-    ['Cost to date',money(d?.costToDate ?? p.costToDate,cur)],
-    ['Projected margin',money(margin,cur)],
+    ['Contract value',formatMoney(d?.contractValue ?? p.contractValue,cur)],
+    ['Cost to date',formatMoney(d?.costToDate ?? p.costToDate,cur)],
+    ['Projected margin',formatMoney(margin,cur)],
   ];
   const billedOn=on('arInvoices'), certifiedOn=on('paymentApps');
   if(billedOn||certifiedOn){
-    const parts=[billedOn?money(t?.billed,cur):null,certifiedOn?money(t?.certified,cur):null].filter(Boolean) as string[];
+    const parts=[billedOn?formatMoney(t?.billed,cur):null,certifiedOn?formatMoney(t?.certified,cur):null].filter(Boolean) as string[];
     kpis.push([billedOn&&certifiedOn?'Billed / certified':billedOn?'Billed':'Certified',parts.join(' / ')]);
   }
   return <div className="space-y-4">
@@ -95,12 +97,12 @@ export default function ProjectPage(){
     <Tabs tabs={tabs} active={tab} onChange={setTab}/>
     {tab==='overview'&&<div className="grid gap-4 lg:grid-cols-2">
       {showSnapshot&&<Card><CardHead title="Financial snapshot" subtitle="Figures from the sections switched on in this workspace"/>
-        <div className="grid grid-cols-2 gap-2.5 p-4">{snapshotRows.map(([l,v])=><div key={l} className="rounded-md border divider bg-slate-50/60 p-3 dark:bg-ink-950/40"><p className="text-[11px] muted">{l}</p><p className="mt-1 text-sm font-semibold tabular-nums">{money(v,cur)}</p></div>)}</div></Card>}
+        <div className="grid grid-cols-2 gap-2.5 p-4">{snapshotRows.map(([l,v])=><div key={l} className="rounded-md border divider bg-slate-50/60 p-3 dark:bg-ink-950/40"><p className="text-[11px] muted">{l}</p><p className="mt-1 text-sm font-semibold tabular-nums">{formatMoney(v,cur)}</p></div>)}</div></Card>}
       {showWallet&&<Card><CardHead title="Client wallet funding" subtitle="Prepaid client funds allocated to this project" action={data?.wallet?.href&&<Link href={`/${org}${data.wallet.href}`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">Open wallet →</Link>}/>
-        <div className="space-y-3 p-4"><div className="flex items-end justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-wider muted">Funded from wallet</p><p className="mt-1 text-2xl font-semibold tracking-tight">{money(t?.walletFunded,cur)}</p></div><Badge tone="green">{num(t?.walletFundingPct)}% of contract</Badge></div>
+        <div className="space-y-3 p-4"><div className="flex items-end justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-wider muted">Funded from wallet</p><p className="mt-1 text-2xl font-semibold tracking-tight">{formatMoney(t?.walletFunded,cur)}</p></div><Badge tone="green">{num(t?.walletFundingPct)}% of contract</Badge></div>
           <ProgressBar value={t?.walletFundingPct||0} tone="green"/>
-          <div className="grid grid-cols-2 gap-3">{[['Contract value',money(t?.walletTarget||0,cur)],['Remaining to fund',money(t?.walletRemaining,cur)],['Client',data?.wallet?.clientName||'—'],['Wallet balance',data?.wallet?.balance!==null&&data?.wallet?.balance!==undefined?money(data.wallet.balance,data.wallet.currency):'—']].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3 dark:bg-ink-950/40"><p className="text-[11px] muted">{l}</p><p className="mt-0.5 truncate text-xs font-semibold tabular-nums">{v}</p></div>)}</div>
-          {(data?.wallet?.transactions||[]).length>0&&<div className="border-t divider pt-3"><p className="mb-2 text-[10px] font-semibold uppercase tracking-wider muted">Recent allocations</p><div className="space-y-1.5">{data.wallet.transactions.slice(0,3).map((x:any)=><div key={x.id} className="flex items-center gap-2 text-[11px]"><Badge tone={x.reversedAt?'slate':'blue'}>{x.reversedAt?'Reversed':'Allocated'}</Badge><span className="min-w-0 flex-1 truncate muted">{x.note||x.actorName}</span><span className="font-semibold tabular-nums">{money(Math.abs(x.amountBase ?? x.amount),cur)}</span></div>)}</div></div>}
+          <div className="grid grid-cols-2 gap-3">{[['Contract value',formatMoney(t?.walletTarget||0,cur)],['Remaining to fund',formatMoney(t?.walletRemaining,cur)],['Client',data?.wallet?.clientName||'—'],['Wallet balance',data?.wallet?.balance!==null&&data?.wallet?.balance!==undefined?formatMoney(data.wallet.balance,data.wallet.currency):'—']].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3 dark:bg-ink-950/40"><p className="text-[11px] muted">{l}</p><p className="mt-0.5 truncate text-xs font-semibold tabular-nums">{v}</p></div>)}</div>
+          {(data?.wallet?.transactions||[]).length>0&&<div className="border-t divider pt-3"><p className="mb-2 text-[10px] font-semibold uppercase tracking-wider muted">Recent allocations</p><div className="space-y-1.5">{data.wallet.transactions.slice(0,3).map((x:any)=><div key={x.id} className="flex items-center gap-2 text-[11px]"><Badge tone={x.reversedAt?'slate':'blue'}>{x.reversedAt?'Reversed':'Allocated'}</Badge><span className="min-w-0 flex-1 truncate muted">{x.note||x.actorName}</span><span className="font-semibold tabular-nums">{formatMoney(Math.abs(x.amountBase ?? x.amount),cur)}</span></div>)}</div></div>}
         </div></Card>}
       {[on('tasks'),on('rfis'),on('punchLists'),on('incidents'),on('changeOrders'),on('documents')].some(Boolean)&&<Card><CardHead title="Delivery status" subtitle="Counts across project registers"/>
         <div className="grid grid-cols-2 gap-2.5 p-4">{[['Tasks complete',`${t?.tasksComplete||0} / ${t?.tasksTotal||0}`,on('tasks')],['Open RFIs',(g.rfis||[]).filter((x:any)=>x.status!=='CLOSED').length,on('rfis')],['Open punch items',(g.punchLists||[]).filter((x:any)=>x.status!=='CLOSED').length,on('punchLists')],['Safety incidents',(g.incidents||[]).length,on('incidents')],['Change orders',(g.changeOrders||[]).length,on('changeOrders')],['Documents',(g.documents||[]).length,on('documents')]].filter((x:any)=>x[2]).map(([l,v]:any)=><div key={String(l)} className="flex items-center justify-between rounded-lg border divider px-3 py-2.5"><span className="text-xs muted">{l}</span><span className="text-sm font-semibold tabular-nums">{v}</span></div>)}</div></Card>}

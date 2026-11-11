@@ -8,7 +8,8 @@ import { normaliseLines } from '@/lib/financial';
 import { visibleFields, resourceFullyEnabled, moduleEnabled, hrefVisible } from '@/lib/module-visibility';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { Button, Card, CardHead, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
-import { money, num, date } from '@/lib/format';
+import { num, date } from '@/lib/format';
+import { useDisplayMoney } from './DisplayCurrencyProvider';
 import { useToast } from './Providers';
 import ConvertFlow from './ConvertFlow';
 import FileDropZone, { isExternalFileDrag } from './FileDropZone';
@@ -20,6 +21,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   refs:RefOptions; canEdit:boolean; canRemove:boolean; inline?:boolean;
 }){
   const active=open||inline;
+  const formatMoney=useDisplayMoney();
   const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({}); const [convertOpen,setConvertOpen]=useState(false); const [dropRevisionId,setDropRevisionId]=useState<string|null>(null);
   const canConvert=canEdit&&!!row?.id&&CONVERTIBLE_RESOURCE_IDS.has(def.id);
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
@@ -69,14 +71,14 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   }
   function display(f:any,v:any){
     if(v===null||v===undefined||v==='') return <span className="muted">—</span>;
-    if(f.type==='currency') return <span className="font-medium">{money(v)}</span>;
+    if(f.type==='currency') return <span className="font-medium">{formatMoney(v)}</span>;
     if(f.type==='number') return num(v);
     if(f.type==='percent') return `${num(v)}%`;
     if(f.type==='date') return date(v);
     if(f.type==='boolean') return v?<Badge tone="green">Yes</Badge>:<Badge tone="slate">No</Badge>;
     if(f.type==='tags') return <div className="flex flex-wrap gap-1">{(Array.isArray(v)?v:[v]).map((t:string)=><Badge key={t} tone="blue">{t}</Badge>)}</div>;
     if(f.type==='ref'){ const o=(refs[f.ref||'']||[]).find(x=>x.value===v); return <span className="text-brand-700 dark:text-brand-300">{o?.label||String(v).slice(-8)}</span>; }
-    if(f.type==='items'){ const lines=normaliseLines(v); return lines.length?<div className="overflow-x-auto rounded border divider"><table className="w-full text-xs"><thead className="bg-slate-50 dark:bg-ink-800/60"><tr><th className="px-2 py-1.5 text-left">Description</th><th className="px-2 py-1.5 text-right">Qty</th><th className="px-2 py-1.5 text-right">Unit</th><th className="px-2 py-1.5 text-right">Subtotal</th></tr></thead><tbody>{lines.map((l,i)=><tr key={i} className="border-t divider"><td className="px-2 py-1.5">{l.description}{l.detail&&<span className="block muted">{l.detail}</span>}</td><td className="px-2 py-1.5 text-right tabular-nums">{num(l.qty)}</td><td className="px-2 py-1.5 text-right tabular-nums">{money(l.unitPrice,row?.currency)}</td><td className="px-2 py-1.5 text-right font-semibold tabular-nums">{money(l.total,row?.currency)}</td></tr>)}</tbody></table></div>:<span className="muted">—</span>; }
+    if(f.type==='items'){ const lines=normaliseLines(v); return lines.length?<div className="overflow-x-auto rounded border divider"><table className="w-full text-xs"><thead className="bg-slate-50 dark:bg-ink-800/60"><tr><th className="px-2 py-1.5 text-left">Description</th><th className="px-2 py-1.5 text-right">Qty</th><th className="px-2 py-1.5 text-right">Unit</th><th className="px-2 py-1.5 text-right">Subtotal</th></tr></thead><tbody>{lines.map((l,i)=><tr key={i} className="border-t divider"><td className="px-2 py-1.5">{l.description}{l.detail&&<span className="block muted">{l.detail}</span>}</td><td className="px-2 py-1.5 text-right tabular-nums">{num(l.qty)}</td><td className="px-2 py-1.5 text-right tabular-nums">{formatMoney(l.unitPrice,row?.currency)}</td><td className="px-2 py-1.5 text-right font-semibold tabular-nums">{formatMoney(l.total,row?.currency)}</td></tr>)}</tbody></table></div>:<span className="muted">—</span>; }
     if(f.key==='status') return <StatusPill status={v}/>;
     return <span className="whitespace-pre-wrap break-words">{String(v)}</span>;
   }
@@ -105,7 +107,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
         <Badge tone="slate">{relatedGroups.reduce((n:number,g:any)=>n+g.items.length,0)} across modules</Badge></div>
       {showWallet&&<div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/50">
         <span className="flex h-8 w-8 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-900"><Icon name="CreditCard" size={16}/></span>
-        <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-wider muted">Client wallet</p><p className="text-sm font-semibold tabular-nums">{related.wallet.balance!==null?money(related.wallet.balance,related.wallet.currency):`${money(related.wallet.fundedToProjects,related.wallet.currency)} funded to this project`}</p></div>
+        <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-wider muted">Client wallet</p><p className="text-sm font-semibold tabular-nums">{related.wallet.balance!==null?formatMoney(related.wallet.balance,related.wallet.currency):`${formatMoney(related.wallet.fundedToProjects,related.wallet.currency)} funded to this project`}</p></div>
         <Link href={`/${org}${related.wallet.href}`} className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open wallet →</Link></div>}
       {!related?<Skeleton className="h-14"/>:!relatedGroups.length?<p className="rounded-md border divider bg-slate-50 p-4 text-center text-xs muted dark:bg-ink-950/50">No other modules link to this record yet.</p>:
         <div className="space-y-2.5">{relatedGroups.map((g:any)=><div key={g.resource} className="rounded-lg border divider p-3">

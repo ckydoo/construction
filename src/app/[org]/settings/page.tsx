@@ -123,6 +123,7 @@ export default function SettingsPage(){
 
     {tab==='currency'&&currencyForm&&<div className="space-y-4">
       <Card><CardHead title="Currencies & exchange rates" subtitle="Records keep the currency they were entered in; reports show totals in your base currency"/>
+        <p className="caption px-4 pt-3">Need a quick personal view instead? Use the currency button in the top bar. It changes only this browser's display and does not alter the workspace base currency or shared rates.</p>
         <div className="space-y-5 p-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Base / reporting currency" hint="All dashboard, report and wallet totals convert into this currency."><select className="select" disabled={!caps.includes('settings.manage')} value={currencyForm.base} onChange={e=>{

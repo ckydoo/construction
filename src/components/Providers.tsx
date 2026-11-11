@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle, Info, X, XCircle } from 'lucide-react';
+import { DisplayCurrencyProvider } from './DisplayCurrencyProvider';
 
 const QueryClientSingleton = () => new QueryClient({ defaultOptions:{ queries:{ staleTime:20_000, refetchOnWindowFocus:false, retry:1 }, mutations:{ retry:0 } } });
 
@@ -38,5 +39,5 @@ export default function Providers({children}:{children:React.ReactNode}){
     const id=Date.now()+Math.random(); setToasts(s=>[...s.slice(-3),{...t,id}]);
     setTimeout(()=>remove(id),4200);
   },[remove]);
-  return <QueryClientProvider client={qc}><Ctx.Provider value={{push}}>{children}<ToastHost items={toasts} remove={remove}/></Ctx.Provider></QueryClientProvider>;
+  return <QueryClientProvider client={qc}><DisplayCurrencyProvider><Ctx.Provider value={{push}}>{children}<ToastHost items={toasts} remove={remove}/></Ctx.Provider></DisplayCurrencyProvider></QueryClientProvider>;
 }
