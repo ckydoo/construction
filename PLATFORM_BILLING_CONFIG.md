@@ -137,3 +137,14 @@ Before enabling billing for real, add `platform` to the `RESERVED` set in
 `src/middleware.ts` so the platform config API stays reachable when the billing
 hard-lock is active; that is a future runtime change, intentionally excluded
 from this stage-only task.
+
+## 6. Commit record
+
+- Code/DB/API/docs commit: `1a8eeb9c71ad4ff331acba832a88ccdeb8390a2f` —
+  "Add stage-only platform-owner billing config DB/API layer".
+- Live migration applied separately via Supabase connector:
+  `platform_billing_config_v1` on `oeadisqfuyhelppinaxw`.
+- **No Vercel deployment.** Production still serves code
+  `bd38a90721be86016e9c8dbf937d1b6a4fc365d6`; the earlier docs-only commit
+  `71ce674cdc380ab8640baf09ab02ca5fd6913265` and this work are ahead of deployed
+  code until an explicit future deploy is requested.
