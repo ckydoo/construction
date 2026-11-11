@@ -6,6 +6,7 @@ import { readGuard, writeGuard, deleteGuard, capabilityGuard } from '@/lib/guard
 import { buildScope } from '@/lib/access';
 import { getRecord, updateRecord, deleteRecord } from '@/lib/records';
 import { commentView, attachmentView } from '@/lib/views';
+import { validateWorkflowTransition } from '@/lib/workflow';
 
 type Ctx = { params: Promise<{ org: string; resource: string; id: string }> };
 
@@ -35,10 +36,16 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!a || !def) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.update'); if (g) return g;
   const scope = await buildScope(a);
-  if (!(await getRecord(a.orgId, resource, id, scope))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  const prior = await getRecord(a.orgId, resource, id, scope);
+  if (!prior) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const body = await req.json();
+  // A waiting-for-approval record cannot be pushed to an arbitrary status by
+  // editing a dropdown or calling the API directly. Use the work-item action.
+  const nextStatus = body && typeof body === 'object' ? String(body.status || '') : '';
+  const transition = validateWorkflowTransition(resource, String(prior.status || ''), nextStatus, a.role);
+  if (!transition.ok) return NextResponse.json({ error: transition.error, workflowGuarded: true }, { status: transition.status });
   const result = await updateRecord(a.orgId, a.userId, a.name, def, id, body);
-  if (!result.ok) return NextResponse.json({ error: 'Validation failed', errors: result.errors }, { status: 400 });
+  if (!result.ok) return NextResponse.json({ error: 'Validation failed', errors: result.errors }, { status: (result as any).status || 400 });
   return NextResponse.json({ row: result.row });
 }
 

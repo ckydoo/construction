@@ -27,6 +27,7 @@ export default function DashboardPage(){
   const [period,setPeriod]=useState<'3'|'6'>('6');
   const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
+  const {data:workQueue}:any=useQuery({queryKey:['work-items',org],queryFn:()=>apiGet(orgApi(org,'work-items')),staleTime:30_000});
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);
@@ -45,6 +46,12 @@ export default function DashboardPage(){
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
         {on('projects')&&<Link href={`/${org}/m/projects?new=1`}><Button variant="primary" size="sm" icon="Plus">New job</Button></Link>}</div>
     </div>
+    {workQueue&&<Card className="flex flex-wrap items-center gap-3 border-brand-200 bg-brand-50/60 p-3.5 dark:border-brand-500/20 dark:bg-brand-500/5">
+      <span data-testid="dashboard-my-work" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-brand-700 shadow-sm dark:bg-ink-900 dark:text-brand-300"><Icon name="Inbox" size={18}/></span>
+      <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{workQueue.summary.total ? `${num(workQueue.summary.total)} item${workQueue.summary.total===1?'':'s'} need a decision or close-out` : 'You are all caught up'}</p>
+        <p className="mt-0.5 text-xs muted">{workQueue.summary.actionable} waiting on you · {workQueue.summary.overdue} late · {workQueue.summary.escalated} escalated</p></div>
+      <Link href={`/${org}/my-work`} className="btn-primary btn-sm inline-flex items-center gap-1.5"><Icon name="ArrowRight" size={15}/>Open My work</Link>
+    </Card>}
     {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description="Load sample data to look around, or start by adding your first client and job." action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Database">Load sample data</Button></Link>}/></Card>}
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 gap-px bg-slate-200 sm:grid-cols-3 xl:grid-cols-5 dark:bg-ink-800">

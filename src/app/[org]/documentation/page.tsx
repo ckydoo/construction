@@ -242,7 +242,7 @@ const EVERYDAY: { title: string; icon: string; blurb: string; steps: Step[] }[] 
 ];
 
 const MODULE_MAP = [
-  { group: 'Overview', icon: 'LayoutDashboard', holds: 'Your day at a glance and this guide', items: [{ label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }] },
+  { group: 'Overview', icon: 'LayoutDashboard', holds: 'Your decisions, day at a glance and this guide', items: [{ label: 'My work', href: 'my-work' }, { label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }] },
   { group: 'Clients & quotes', icon: 'Handshake', holds: 'Clients, enquiries, quotes and tenders', items: [{ label: 'Clients', href: 'm/clients' }, { label: 'Enquiries & leads', href: 'm/leads' }, { label: 'Quotes & estimates', href: 'm/estimates' }, { label: 'Tenders & bids', href: 'm/bids' }] },
   { group: 'Jobs & sites', icon: 'HardHat', holds: 'Jobs, tasks, site queries and site diaries', items: [{ label: 'Jobs & projects', href: 'm/projects' }, { label: 'Job tasks & programme', href: 'm/tasks' }, { label: 'Site queries', href: 'm/rfis' }, { label: 'Site diaries', href: 'm/dailyLogs' }] },
   { group: 'Materials & suppliers', icon: 'Truck', holds: 'Suppliers, orders, deliveries and stock', items: [{ label: 'Suppliers', href: 'm/vendors' }, { label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Stock & materials', href: 'm/inventory' }] },
@@ -303,7 +303,7 @@ const TIER_HELP: Record<string, string> = {
   ENTERPRISE: 'Largest groups and connections',
 };
 const SPECIAL_LINKS: Record<string, { label: string; href: string }[]> = {
-  dashboard: [{ label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }],
+  dashboard: [{ label: 'My work', href: 'my-work' }, { label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }],
   company: [{ label: 'Settings', href: 'settings' }],
   scheduling: [{ label: 'Job tasks & programme', href: 'm/tasks' }],
   documents: [{ label: 'Document library', href: 'library' }],
@@ -486,6 +486,7 @@ export default function DocumentationPage() {
             [5, 'What changed today', 'Who added or changed a record, so nothing quietly disappears.'],
             [6, 'Sidebar sections', 'Only the parts of MYLA switched on for your company appear here.'],
             [7, 'Top bar currency & menus', 'Pick a personal display currency from the top bar; click away or press Escape to close any open top-bar menu. Reports and saved records keep their own currency.'],
+            [8, 'My work', 'Approvals, late answers and open safety or quality actions come to one queue. Approve, reject or close from the card; the status change is guarded and audited.'],
           ].map(([n, t, d]) => <div key={n} className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-500 text-[10px] font-bold text-white">{n}</span>
             <div><p className="text-[12px] font-semibold text-ink-900 dark:text-white">{t}</p><p className="caption">{d}</p></div>

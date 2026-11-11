@@ -207,12 +207,18 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
   return { ok:true as const, row:toRow(rec) };
 }
 
-export async function updateRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, id:string, input:Record<string,any>) {
+export async function updateRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, id:string, input:Record<string,any>, opts?:{ expectedStatus?:string }) {
   const sb = await supabase();
   const { data: existing } = await sb.from('records').select('*')
     .eq('id', id).eq('organization_id', orgId).eq('resource', def.id)
     .is('deleted_at', null).maybeSingle();
   if (!existing) return { ok:false as const, errors:{ _:'Record not found' } };
+  // Optional optimistic concurrency for approval actions: a second approver
+  // cannot silently overwrite a decision that landed while they were reading.
+  const expected = opts?.expectedStatus;
+  if (expected && String(existing.status || '') !== expected) {
+    return { ok:false as const, errors:{ _:'This record has already been actioned. Refresh My work.' }, status:409 as const };
+  }
   const prior: Record<string,any> = (existing.data && typeof existing.data === 'object') ? existing.data : {};
   // PATCH semantics: only supplied keys change; all other fields are preserved.
   // When the structured line editor is used, derive net/VAT/total from its rows;
@@ -228,10 +234,13 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   const clean: Record<string,any> = { ...v.clean, number:existing.number, status, projectId };
   for (const f of def.fields) if (f.readOnly) clean[f.key] = prior[f.key] ?? null;
 
-  const { data: rec, error } = await sb.from('records')
+  let query = sb.from('records')
     .update({ title, status, project_id: projectId, data: clean })
-    .eq('id', id).select('*').single();
+    .eq('id', id);
+  if (expected) query = query.eq('status', expected);
+  const { data: rec, error } = await query.select('*').maybeSingle();
   if (error) dbError(error);
+  if (!rec) return { ok:false as const, errors:{ _:'This record has already been actioned. Refresh My work.' }, status:409 as const };
   await logActivity(orgId, userId, actor, 'UPDATE', def.id, `Updated ${def.singular.toLowerCase()} “${title}” (${existing.number})`);
   return { ok:true as const, row:toRow(rec) };
 }

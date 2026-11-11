@@ -10,6 +10,7 @@ export const EMPTY_CONFIG: ConfigLike = { modules: [], resources: [] };
 
 export const SPECIAL_ROUTE_MODULES: Record<string, string> = {
   dashboard: 'dashboard',
+  'my-work': 'dashboard',
   documentation: 'dashboard',
   library: 'documents',
   quotes: 'estimating',
@@ -68,7 +69,7 @@ export function hrefVisible(rawHref: string | null | undefined, config: ConfigLi
   const href = rawHref.split(/[?#]/)[0];
   const resource = href.match(/(?:^|\/)m\/([^/]+)/)?.[1];
   if (resource) return resourceFullyEnabled(config, resource);
-  const special = href.match(/(?:^|\/)(dashboard|documentation|library|quotes|wallets|reports)(?:\/|$)/)?.[1];
+  const special = href.match(/(?:^|\/)(dashboard|my-work|documentation|library|quotes|wallets|reports)(?:\/|$)/)?.[1];
   if (special) {
     if (special === 'library') return resourceFullyEnabled(config, 'documents');
     if (special === 'quotes') return resourceFullyEnabled(config, 'estimates');
