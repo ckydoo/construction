@@ -38,7 +38,8 @@
     "audit:features": "node scripts/feature-audit.mjs",
     "audit:finance": "node scripts/finance-module-audit.mjs",
     "audit:billing": "node scripts/billing-audit.mjs",
-    "audit:dpo-prod": "node scripts/dpo-production-smoke.mjs"
+    "audit:dpo-prod": "node scripts/dpo-production-smoke.mjs",
+    "audit:platform-config": "node scripts/platform-config-qa.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

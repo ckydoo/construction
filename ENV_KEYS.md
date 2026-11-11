@@ -55,4 +55,24 @@ npm run db:seed            # creates Auth users + demo data
 
 Sections 3–10 of `.env.example` name slots for S3/R2, email/SMTP, SMS/WhatsApp, DPO Pay by Network, Paynow Zimbabwe, PayPal, maps/weather, Google/Microsoft SSO, Xero/QuickBooks/Sage, webhooks, Slack/Teams, Sentry and OpenAI. Stripe is no longer used by subscriptions: a Zimbabwe-registered entity cannot receive native Stripe payouts. Adding a value does **not** enable a feature; tell me which connector to wire and I'll implement it.
 
+## 5. Platform-owner billing config: secrets stay here, not in Postgres
+
+The stage-only platform config layer (`PLATFORM_BILLING_CONFIG.md`) stores
+non-secret settings, effective-dated prices, gateway readiness flags and comped
+overrides in Supabase. It deliberately has **no credential columns**. Keep these
+in encrypted env/Vercel only:
+
+| Variable | Exposure | Why it is env-only |
+|---|---|---|
+| `DPO_COMPANY_TOKEN` | Server only | Live DPO merchant credential; never in `gateway_config`. |
+| `DPO_CALLBACK_SECRET`, `DPO_PUSH_SECRET` | Server only | Webhook authenticity; never in the DB or API payloads. |
+| `PAYNOW_INTEGRATION_ID`, `PAYNOW_INTEGRATION_KEY` | Server only | Paynow hash/merchant credentials. |
+| `CRON_SECRET` | Server only | Vercel cron bearer token. |
+| `BILLING_ENABLED`, `DPO_LIVE_MODE` | Server only | Hard master switches; DB flags cannot bypass them. |
+
+The platform API rejects secret-like field names and refuses to enable billing
+or DPO live mode unless these env switches/credentials are present. The billing
+runtime still reads code constants/env; the DB config is staged desired state
+only.
+
 **Removed with the Supabase rewrite:** `DATABASE_URL`, `SEED_DEMO`, `UPLOAD_ROOT`, `SESSION_SECRET`. There is no local SQLite database, no disk upload root and no custom session table. Supabase Auth owns sessions; Postgres owns all data; Supabase Storage owns binaries.

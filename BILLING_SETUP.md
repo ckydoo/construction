@@ -64,6 +64,12 @@ deleted. Existing organisations are grandfathered active/comped with no expiry.
 - QA: `scripts/billing-audit.mjs` uses a local DPO v6 mock and a production smoke
   script; `scripts/check-env.mjs` and `.env.example` document the DPO slots.
   `SUBSCRIPTION_QA_REPORT.md` records the local **10/10** DPO checks.
+- Platform-owner config (stage-only): `PLATFORM_BILLING_CONFIG.md` documents the
+  new `platform_admins`, `platform_settings`, `gateway_config`,
+  versioned `pricing_plans`, `platform_config_audit` and
+  `organization_billing_overrides` tables plus `GET/POST /api/platform/config`.
+  Company users have no direct access; secrets remain env-only; the billing
+  runtime is **not** wired to these tables yet.
 
 ## Go-live prerequisites — NOT yet supplied
 
