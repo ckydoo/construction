@@ -10,6 +10,8 @@ import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { Button, Card, CardHead, Drawer, StatusPill, Badge, Skeleton, Icon } from './ui';
 import { money, num, date } from '@/lib/format';
 import { useToast } from './Providers';
+import ConvertFlow from './ConvertFlow';
+import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import type { RefOptions } from './RecordForm';
 
 export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,refs,canEdit,canRemove,inline=false}:{
@@ -17,7 +19,8 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   refs:RefOptions; canEdit:boolean; canRemove:boolean; inline?:boolean;
 }){
   const active=open||inline;
-  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({});
+  const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({}); const [convertOpen,setConvertOpen]=useState(false);
+  const canConvert=canEdit&&!!row?.id&&CONVERTIBLE_RESOURCE_IDS.has(def.id);
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const config=meta?.config||{modules:[],resources:[]};
   const fields=visibleFields(def,config);
@@ -82,7 +85,9 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   })();
   const body = <>
 
-    <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}</div></div>
+    <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}
+      {row?.sourceResource&&row?.sourceId&&<Link href={row.sourceResource==='projects'?`/${org}/projects/${encodeURIComponent(row.sourceId)}`:`/${org}/m/${row.sourceResource}?open=${encodeURIComponent(row.sourceId)}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">Converted from {row.sourceLabel||row.sourceNumber||row.sourceResource} →</Link>}
+    </div></div>
     <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'||f.type==='items'?'sm:col-span-2':''}>
         <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,row?.[f.key])}</div>
@@ -137,16 +142,20 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   </>;
   const title=row?.title||def.singular;
   const subtitle=`${row?.number||''} · ${def.singular}`;
-  const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2"><a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;
+  const convertButton = canConvert&&<Button size="sm" variant="outline" icon="ArrowRightLeft" onClick={()=>setConvertOpen(true)}>Convert to…</Button>;
+  const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2">{convertButton}<a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;
   const inlineActions = <div className="flex flex-wrap gap-2">
+    {convertButton}
     <a href={orgApi(org,`pdf/${def.id}/${row.id}`)} download><Button size="sm" icon="FileDown">PDF</Button></a>
     {canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}
     {canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}
   </div>;
+  const flow = canConvert&&<ConvertFlow org={org} resource={def.id} row={row} open={convertOpen} onClose={()=>setConvertOpen(false)}/>;
   if(inline) return <Card className="overflow-hidden">
     <CardHead title={`${title} · record & files`} subtitle="Full project record, linked modules, comments and document revisions" action={inlineActions}/>
     {body}
+    {flow}
   </Card>;
-  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer}>{body}</Drawer>;
+  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer}>{body}{flow}</Drawer>;
 
 }

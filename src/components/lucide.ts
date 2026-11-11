@@ -2,6 +2,7 @@
    client component makes the dev bundle enormous; this keeps only what we use. */
 export {
   Activity, AlertCircle, AlertTriangle, AlignLeft, ArrowDownRight, ArrowLeft, ArrowRight,
+  ArrowRightLeft, CornerDownRight, Workflow,
   ArrowUpDown, ArrowUpRight, BadgeCheck, Banknote, BarChart3, Bell, BookOpen, Briefcase,
   Building, Building2, Calendar, CalendarRange, Camera, Check, CheckCircle2, CheckSquare,
   ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Circle, CircleDot, CircleSlash,

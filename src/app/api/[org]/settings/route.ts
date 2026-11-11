@@ -237,7 +237,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     const def = getResource(resource); if (!def) return NextResponse.json({ error: 'Unknown resource' }, { status: 404 });
     const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.create'); if (g) return g;
     const rows: Record<string, any>[] = b.rows || []; let ok = 0, failed = 0;
-    for (const row of rows.slice(0, 200)) {
+    const hidden = new Set(def.fields.filter(f => f.hidden).map(f => f.key));
+    for (const raw of rows.slice(0, 200)) {
+      // CSV import must not be able to forge Convert to… provenance links.
+      const row: Record<string, any> = Object.fromEntries(Object.entries(raw).filter(([k]) => !hidden.has(k)));
       const r = await createRecord(a.orgId, a.userId, a.name, def, row, a.config.limits);
       if (r.ok) ok++; else failed++;
     }

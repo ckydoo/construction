@@ -3,8 +3,15 @@
  * Every illustration is inline SVG/CSS: crisp, theme-aware and offline. */
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, Badge, Icon } from '@/components/ui';
 import * as Lucide from '@/components/lucide';
+import { MODULES } from '@/lib/catalog';
+import { RESOURCES, RESOURCE_MAP } from '@/lib/resources';
+import { CHAIN_STAGES } from '@/lib/conversion-chain';
+import { moduleEnabled, hrefVisible } from '@/lib/module-visibility';
+import { apiGet, orgApi } from '@/lib/client';
 
 const C = {
   box: 'fill-white stroke-slate-200 dark:fill-ink-900 dark:stroke-ink-700',
@@ -19,6 +26,8 @@ const C = {
 
 const SECTIONS = [
   { id: 'flow', label: 'How a job flows' },
+  { id: 'convert', label: 'Convert to…' },
+  { id: 'modules', label: 'Every module' },
   { id: 'home', label: 'Your home screen' },
   { id: 'everyday', label: 'Everyday work' },
   { id: 'small', label: 'Start small' },
@@ -273,6 +282,107 @@ function Section({ id, title, kicker, children }: { id: string; title: string; k
   </section>;
 }
 
+/* ── The "Convert to…" chain, in the exact words used on the buttons ─────── */
+const CONVERSION_STEPS: [string, string][] = [
+  ['Client', 'Log an enquiry'],
+  ['Enquiry', 'Convert to quotation'],
+  ['Quote', 'Convert to tender  ·  Award as job + contract'],
+  ['Tender', 'Award as job + contract'],
+  ['Job', 'Create prime contract  ·  Create payment certificate'],
+  ['Contract', 'Create payment certificate'],
+  ['Payment certificate', 'Convert to tax invoice'],
+  ['Tax invoice', 'Record receipt in full'],
+];
+
+/* ── Every module, generated from the live catalogue so it never goes stale ─ */
+const TIER_HELP: Record<string, string> = {
+  CORE: 'Essential — on for every workspace',
+  STANDARD: 'Switched on as the company grows',
+  ADVANCED: 'For a particular kind of work',
+  ENTERPRISE: 'Largest groups and connections',
+};
+const SPECIAL_LINKS: Record<string, { label: string; href: string }[]> = {
+  dashboard: [{ label: 'Dashboard', href: 'dashboard' }, { label: 'Documentation', href: 'documentation' }],
+  company: [{ label: 'Settings', href: 'settings' }],
+  scheduling: [{ label: 'Job tasks & programme', href: 'm/tasks' }],
+  documents: [{ label: 'Document library', href: 'library' }],
+  wallets: [{ label: 'Client wallets', href: 'wallets' }],
+  reports: [{ label: 'Reports', href: 'reports' }, { label: 'Billing & subscription', href: 'billing' }],
+  audit: [{ label: 'Settings → activity & alerts', href: 'settings' }],
+  portal: [{ label: 'Settings → users & roles', href: 'settings' }],
+  integrations: [{ label: 'Settings → connections', href: 'settings' }],
+};
+
+function ModuleDirectory({ org }: { org: string }) {
+  const [search, setSearch] = useState('');
+  const [group, setGroup] = useState('ALL');
+  const { data: meta }: any = useQuery({ queryKey: ['meta', org], queryFn: () => apiGet(orgApi(org, 'meta')) });
+  const config = meta?.config || { modules: [], resources: [] };
+  const groups = useMemo(() => Array.from(new Set(MODULES.map(m => m.group))), []);
+  const enabledCount = useMemo(() => MODULES.filter(m => moduleEnabled(config, m.id)).length, [config]);
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return MODULES.filter(m => {
+      if (group !== 'ALL' && m.group !== group) return false;
+      if (!needle) return true;
+      const hay = [m.label, m.description, m.group, m.tier, m.id,
+        ...m.resources.map(r => `${r} ${RESOURCE_MAP[r]?.label || ''} ${RESOURCE_MAP[r]?.description || ''}`)]
+        .join(' ').toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [search, group]);
+
+  return <div className="space-y-3">
+    <Card className="p-3.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[220px] flex-1"><Lucide.Search size={15} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search modules, registers or what they do…"/></div>
+        <select className="select w-auto min-w-[170px]" value={group} onChange={e => setGroup(e.target.value)}>
+          <option value="ALL">All groups</option>{groups.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+        {(search || group !== 'ALL') && <ButtonClear onClick={() => { setSearch(''); setGroup('ALL'); }}/>}
+        <span className="ml-auto text-xs muted">{filtered.length} shown · {enabledCount}/{MODULES.length} switched on · {RESOURCES.length} registers</span>
+      </div>
+      <div className="mt-2.5 flex flex-wrap gap-1.5 border-t divider pt-2.5">
+        {Object.entries(TIER_HELP).map(([tier, help]) => <span key={tier} className="rounded-md border divider px-2 py-1 text-[10px]"><strong>{tier}</strong> · {help}</span>)}
+      </div>
+    </Card>
+
+    {!filtered.length && <Card className="p-4"><p className="caption">No module matches that search. Try a different word or clear the filters.</p></Card>}
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {filtered.map(m => {
+        const on = moduleEnabled(config, m.id);
+        const registers = m.resources.map(id => RESOURCE_MAP[id]).filter(Boolean);
+        const specials = (SPECIAL_LINKS[m.id] || []).filter(l => hrefVisible(`/${org}/${l.href}`, config));
+        return <Card key={m.id} className={`p-3.5 ${on ? '' : 'opacity-75'}`}>
+          <div className="flex items-start gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider bg-slate-50 text-ink-600 dark:bg-ink-950/40 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5"><p className="card-title">{m.label}</p><Badge tone={on ? 'green' : 'slate'}>{on ? 'On' : 'Not switched on'}</Badge></div>
+              <p className="mt-0.5 text-[10px] uppercase tracking-wide muted">{m.group} · {m.tier}</p>
+              <p className="caption mt-1.5">{m.description}</p>
+            </div>
+          </div>
+          <div className="mt-3 border-t divider pt-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide muted">What it holds</p>
+            {registers.length ? <div className="mt-1.5 flex flex-wrap gap-1.5">{registers.map(r => {
+              const visible = on && hrefVisible(`/m/${r.id}`, config);
+              return visible
+                ? <Link key={r.id} href={`/${org}/m/${r.id}`} className="rounded-md border border-slate-200 px-2 py-1 text-[10px] font-medium text-ink-600 hover:border-brand-400 hover:text-brand-700 dark:border-ink-700 dark:text-slate-300">{r.label} →</Link>
+                : <span key={r.id} className="rounded-md border divider px-2 py-1 text-[10px] muted">{r.label}</span>;
+            })}</div> : <p className="caption mt-1">A page or settings area — no separate record list.</p>}
+            {specials.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{specials.map(l => <Link key={l.href} href={`/${org}/${l.href}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[10px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">{l.label} →</Link>)}</div>}
+            {!on && <p className="mt-2 caption">An owner can switch this on in <Link href={`/${org}/settings`} className="font-medium text-brand-700 hover:underline dark:text-brand-300">Settings → Sections</Link>.</p>}
+          </div>
+        </Card>;
+      })}
+    </div>
+  </div>;
+}
+
+function ButtonClear({ onClick }: { onClick: () => void }) {
+  return <button onClick={onClick} className="btn-outline btn-sm h-8 px-2 text-[11px]"><Lucide.X size={13}/>Clear</button>;
+}
+
 export default function DocumentationPage() {
   const { org } = useParams<{ org: string }>();
   return <div className="space-y-6 pb-4">
@@ -304,6 +414,33 @@ export default function DocumentationPage() {
           </div>)}
         </div>
       </Card>
+    </Section>
+
+    <Section id="convert" title="Convert to… — one job, one continuous flow" kicker="You do not retype the same job at every stage. Open any record in the chain and press Convert to… to create the next linked draft with the details already filled in.">
+      <Card className="p-4">
+        <FlowStrip steps={CHAIN_STAGES.map(s => ({ label: s.short, sub: s.optional ? 'Optional step' : s.singular }))}/>
+        <p className="caption mt-3">A tender is optional — a quote can be awarded straight to a job. Every conversion creates a <strong>new</strong> record, links it back to the one you came from, and leaves the original intact. Each step can only be done once, so a double click will not create duplicates.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {[
+            ['Where the button is', 'In a record drawer footer, in the Actions column of any list, and on the project 360° record tab.'],
+            ['What it copies', 'Client, job, itemised lines, the quoted total, the certified net amount, VAT, dates and the contract form.'],
+            ['What it never does', 'It never deletes records, never skips your role permissions or module switches, and never overwrites the source except the status shown in the preview.'],
+          ].map(([t, d]) => <div key={t} className="rounded-md border divider p-3"><p className="text-[12px] font-semibold">{t}</p><p className="caption mt-1">{d}</p></div>)}
+        </div>
+      </Card>
+      <Card className="overflow-x-auto">
+        <table className="w-full min-w-[520px]">
+          <thead><tr className="border-b divider bg-slate-50 dark:bg-ink-950/40"><th className="table-th">If you are on a…</th><th className="table-th">Press…</th></tr></thead>
+          <tbody>{CONVERSION_STEPS.map(([from, button], i) => <tr key={from} className={i ? 'border-t divider' : ''}>
+            <td className="table-td font-medium">{from}</td><td className="table-td muted">{button}</td>
+          </tr>)}</tbody>
+        </table>
+      </Card>
+      <p className="caption">The drawer also shows a nine-stage strip: what is done, where you are now, and what is still to come. Completed stages open the actual record. Status changes such as WON, AWARDED, ISSUED and PAID are still made with the inline dropdown on the list.</p>
+    </Section>
+
+    <Section id="modules" title="Every module and what it does" kicker="All 34 modules and 49 registers in MYLA, generated from the same catalogue that builds the sidebar. Search by name or by what the module holds; a grey card is simply switched off for your company.">
+      <ModuleDirectory org={org}/>
     </Section>
 
     <Section id="home" title="Your home screen" kicker="The first page you see each morning. The numbers below are an illustration — your own screen shows your own jobs and money.">

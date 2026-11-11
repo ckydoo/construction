@@ -47,7 +47,7 @@ export function visibleResourceIds(config: ConfigLike): string[] {
 }
 /** Hide form/detail columns and reference fields that point at a disabled module. */
 export function visibleFields(def: ResourceDef, config: ConfigLike): Field[] {
-  return def.fields.filter(f => f.type !== 'ref' || resourceFullyEnabled(config, f.ref));
+  return def.fields.filter(f => !f.hidden && (f.type !== 'ref' || resourceFullyEnabled(config, f.ref)));
 }
 export function visibleColumns(def: ResourceDef, config: ConfigLike): string[] {
   return def.columns.filter(c => {

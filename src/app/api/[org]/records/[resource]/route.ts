@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: Ctx) {
   }, scope);
   if (qp.mode === 'csv') {
     const eg = capabilityGuard(a.role, 'exports'); if (eg) return eg;
-    const cols = def.fields.map(f => ({ key: f.key, label: f.label }));
+    const cols = def.fields.filter(f => !f.hidden).map(f => ({ key: f.key, label: f.label }));
     const header = ['Record no.', ...cols.map(c => c.label)].map(csvCell).join(',');
     const body = result.rows.map(r => [r.number || '', ...cols.map(c => csvCell(Array.isArray(r[c.key]) ? r[c.key].join('; ') : r[c.key]))].join(',')).join('\n');
     return new NextResponse(`${header}\n${body}`, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${resource}.csv"` } });

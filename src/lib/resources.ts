@@ -7,6 +7,7 @@ export type Field = {
   key: string; label: string; type: FieldType; required?: boolean; options?: string[];
   ref?: string; placeholder?: string; defaultValue?: unknown; hint?: string; wide?: boolean;
   /** Derived from another module — never editable through the generic form. */ readOnly?: boolean;
+  /** Stored in data but never shown in forms, detail panels, PDFs or CSV. */ hidden?: boolean;
 };
 export type ResourceDef = {
   id: string; label: string; singular: string; module: string; group: string; icon: string;
@@ -27,6 +28,14 @@ const E=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'ema
 const PH=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'phone',...o});
 const TG=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'tags',...o});
 const IT=(k:string,l:string,o:Partial<Field>={}):Field=>({key:k,label:l,type:'items',wide:true,...o});
+/* Hidden provenance written by the Convert to… flow. Declared as fields so
+   createRecord()/updateRecord() preserve them across later edits. */
+const CONV=():Field[]=>[
+  T('sourceResource','Converted from resource',{hidden:true}),
+  T('sourceId','Converted from record id',{hidden:true}),
+  T('sourceNumber','Converted from number',{hidden:true}),
+  T('sourceLabel','Converted from label',{hidden:true}),
+];
 const STS=(o:string[],d?:string)=>S('status','Status',o,{defaultValue:d||o[0]});
 const PRJ=(req=false)=>R('projectId','Job / project','projects',{required:req});
 
@@ -62,23 +71,23 @@ export const RESOURCES: ResourceDef[] = [
 
   d('leads','Enquiries & leads','Enquiry','pipeline','Clients & quotes','Target','OPP','name',
     'Bid pipeline with probability, expected value and win/loss tracking.',
-    [T('name','Opportunity',{required:true}),R('clientId','Client','clients'),S('stage','Stage',['IDENTIFIED','QUALIFIED','BID_PREP','SUBMITTED','NEGOTIATION','WON','LOST']),C('value','Estimated value'),P('probability','Win probability (%)'),S('workType','Work type',PROJECT_TYPES),D('dueDate','Tender / decision date'),R('owner','Opportunity owner','employees'),S('source','Source',['Tender portal','Referral','Repeat client','Direct approach','Public advert']),A('notes','Notes'),STS(['OPEN','ON_HOLD','WON','LOST'],'OPEN')],
+    [T('name','Opportunity',{required:true}),R('clientId','Client','clients'),S('stage','Stage',['IDENTIFIED','QUALIFIED','BID_PREP','SUBMITTED','NEGOTIATION','WON','LOST']),C('value','Estimated value'),P('probability','Win probability (%)'),S('workType','Work type',PROJECT_TYPES),D('dueDate','Tender / decision date'),R('owner','Opportunity owner','employees'),S('source','Source',['Tender portal','Referral','Repeat client','Direct approach','Public advert']),A('notes','Notes'),STS(['OPEN','ON_HOLD','WON','LOST'],'OPEN'),...CONV()],
     ['number','name','clientId','stage','value','probability','dueDate','status'],{statusOptions:['OPEN','ON_HOLD','WON','LOST'],amountKey:'value',dateKey:'dueDate'}),
 
   d('estimates','Quotes & estimates','Quote','estimating','Clients & quotes','Calculator','EST','name',
     'Cost estimates with labour, material, plant, markup and revision history.',
-    [T('name','Estimate title',{required:true}),R('clientId','Client','clients'),R('leadId','Opportunity','leads'),S('workType','Work type',PROJECT_TYPES),C('labourCost','Labour cost'),C('materialCost','Material cost'),C('plantCost','Plant & equipment'),C('subcontractCost','Subcontract cost'),C('overheads','Overheads'),P('markup','Markup (%)'),C('total','Bid total'),N('revision','Revision',{defaultValue:0}),D('submittedDate','Submitted'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope & exclusions'),IT('items','Itemised lines'),STS(['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],'DRAFT')],
+    [T('name','Estimate title',{required:true}),R('clientId','Client','clients'),R('leadId','Opportunity','leads'),S('workType','Work type',PROJECT_TYPES),C('labourCost','Labour cost'),C('materialCost','Material cost'),C('plantCost','Plant & equipment'),C('subcontractCost','Subcontract cost'),C('overheads','Overheads'),P('markup','Markup (%)'),C('total','Bid total'),N('revision','Revision',{defaultValue:0}),D('submittedDate','Submitted'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope & exclusions'),IT('items','Itemised lines'),STS(['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],'DRAFT'),...CONV()],
     ['number','name','clientId','total','markup','revision','submittedDate','status'],{statusOptions:['DRAFT','INTERNAL_REVIEW','SUBMITTED','AWARDED','LOST','ARCHIVED'],amountKey:'total',dateKey:'submittedDate'}),
 
   d('bids','Tenders & bids','Tender','estimating','Clients & quotes','FileText','BID','name',
     'Tender submissions, addenda, bond requirements and outcomes.',
-    [T('name','Tender name',{required:true}),R('clientId','Client','clients'),T('tenderNo','Tender number'),C('bidValue','Bid value'),D('closingDate','Closing date'),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('bidBond','Bid bond / security'),S('outcome','Outcome',['PENDING','AWARDED','LOST','WITHDRAWN','DISQUALIFIED']),R('estimator','Estimator','employees'),A('notes','Notes'),IT('items','Itemised lines')],
+    [T('name','Tender name',{required:true}),R('clientId','Client','clients'),T('tenderNo','Tender number'),C('bidValue','Bid value'),D('closingDate','Closing date'),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('bidBond','Bid bond / security'),S('outcome','Outcome',['PENDING','AWARDED','LOST','WITHDRAWN','DISQUALIFIED']),R('estimator','Estimator','employees'),A('notes','Notes'),IT('items','Itemised lines'),...CONV()],
     ['number','name','clientId','bidValue','closingDate','outcome'],{amountKey:'bidValue',dateKey:'closingDate'}),
 
   // ---------------- PROJECT DELIVERY ----------------
   d('projects','Jobs & projects','Job','projects','Jobs & sites','HardHat','PRJ','name',
     'Project portfolio: contract value, programme, budget, team and health.',
-    [T('name','Project name',{required:true,placeholder:'e.g. Borrowdale Corporate Park – Phase 2'}),T('code','Project code'),R('clientId','Client','clients'),S('type','Project type',PROJECT_TYPES),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),T('location','Site location'),C('contractValue','Contract value'),C('budget','Approved budget'),C('costToDate','Cost to date'),C('fundedAmount','Funded from client wallet',{readOnly:true,hint:'Sum of active wallet allocations'}),C('remainingToFund','Remaining to fund',{readOnly:true}),P('progress','Physical progress (%)'),D('startDate','Start date'),D('endDate','Planned completion'),D('actualCompletion','Actual completion'),R('manager','Project manager','employees'),S('health','Health',['ON_TRACK','AT_RISK','DELAYED','ON_HOLD']),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope of works'),STS(PROJECT_STATUSES,'ACTIVE')],
+    [T('name','Project name',{required:true,placeholder:'e.g. Borrowdale Corporate Park – Phase 2'}),T('code','Project code'),R('clientId','Client','clients'),S('type','Project type',PROJECT_TYPES),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),T('location','Site location'),C('contractValue','Contract value'),C('budget','Approved budget'),C('costToDate','Cost to date'),C('fundedAmount','Funded from client wallet',{readOnly:true,hint:'Sum of active wallet allocations'}),C('remainingToFund','Remaining to fund',{readOnly:true}),P('progress','Physical progress (%)'),D('startDate','Start date'),D('endDate','Planned completion'),D('actualCompletion','Actual completion'),R('manager','Project manager','employees'),S('health','Health',['ON_TRACK','AT_RISK','DELAYED','ON_HOLD']),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('scope','Scope of works'),STS(PROJECT_STATUSES,'ACTIVE'),...CONV()],
     ['number','name','code','clientId','type','contractValue','progress','health','status'],{statusOptions:PROJECT_STATUSES,amountKey:'contractValue',dateKey:'startDate'}),
 
   d('tasks','Job tasks & programme','Task','projects','Jobs & sites','ListTodo','TSK','name',
@@ -88,7 +97,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('contracts','Contracts','Contract','contracts','Jobs & sites','FileSignature','CTR','name',
     'Prime contracts, subcontracts and employer agreements.',
-    [T('name','Contract title',{required:true}),PRJ(true),R('clientId','Client','clients'),R('counterparty','Counterparty','subcontractors'),S('kind','Contract kind',['Prime contract','Subcontract','Consultancy','Supply agreement','Framework / call-off']),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('value','Contract sum'),D('signedDate','Signed date'),D('completionDate','Completion date'),P('retentionPct','Retention (%)'),N('defectsPeriod','Defects period (months)'),T('insuranceRef','Insurance / bond ref'),IT('items','Itemised lines'),STS(['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],'ACTIVE')],
+    [T('name','Contract title',{required:true}),PRJ(true),R('clientId','Client','clients'),R('counterparty','Counterparty','subcontractors'),S('kind','Contract kind',['Prime contract','Subcontract','Consultancy','Supply agreement','Framework / call-off']),S('contractFlavour','Contract form',CONTRACT_FLAVOURS),C('value','Contract sum'),D('signedDate','Signed date'),D('completionDate','Completion date'),P('retentionPct','Retention (%)'),N('defectsPeriod','Defects period (months)'),T('insuranceRef','Insurance / bond ref'),IT('items','Itemised lines'),STS(['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],'ACTIVE'),...CONV()],
     ['number','name','projectId','kind','value','signedDate','status'],{projectScoped:true,statusOptions:['DRAFT','ACTIVE','VARIED','COMPLETED','TERMINATED'],amountKey:'value',dateKey:'signedDate'}),
 
   d('changeOrders','Variations & extras','Variation','contracts','Jobs & sites','GitPullRequestArrow','CO','name',
@@ -267,12 +276,12 @@ export const RESOURCES: ResourceDef[] = [
 
   d('arInvoices','Client invoices','Tax invoice','finance','Money & invoices','FileText','INV','name',
     'Accounts receivable invoices, VAT and ageing.',
-    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT')],
+    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
     ['number','name','clientId','projectId','invoiceDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'invoiceDate'}),
 
   d('paymentApps','Payment certificates','Payment certificate','billing','Money & invoices','Receipt','PC','name',
     'Interim payment applications, certified value, retention and net due.',
-    [T('name','Certificate reference',{required:true}),PRJ(true),R('clientId','Client','clients'),N('certificateNo','Certificate no.'),D('periodEnd','Period ending'),C('workValue','Gross work value'),C('variationsValue','Approved variations'),C('previousCertified','Previously certified'),C('grossCertified','Gross certified'),C('retentionHeld','Retention held'),C('advanceRecoupment','Advance recoupment'),C('netCertified','Net certified'),C('vatAmount','VAT'),R('certifiedBy','Certified by','contacts'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],'DRAFT')],
+    [T('name','Certificate reference',{required:true}),PRJ(true),R('clientId','Client','clients'),N('certificateNo','Certificate no.'),D('periodEnd','Period ending'),C('workValue','Gross work value'),C('variationsValue','Approved variations'),C('previousCertified','Previously certified'),C('grossCertified','Gross certified'),C('retentionHeld','Retention held'),C('advanceRecoupment','Advance recoupment'),C('netCertified','Net certified'),C('vatAmount','VAT'),R('certifiedBy','Certified by','contacts'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],'DRAFT'),...CONV()],
     ['number','name','projectId','certificateNo','periodEnd','grossCertified','netCertified','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','CERTIFIED','PARTIALLY_PAID','PAID'],amountKey:'netCertified',dateKey:'periodEnd'}),
 
   d('apBills','Supplier bills','Supplier bill','finance','Money & invoices','FileInput','BILL','name',
@@ -282,7 +291,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('payments','Payments & receipts','Payment / receipt','finance','Money & invoices','Banknote','PYM','name',
     'Cash in and out against invoices and bills.',
-    [T('name','Payment reference',{required:true}),S('direction','Direction',['RECEIPT','PAYMENT']),R('clientId','Client','clients'),R('vendorId','Supplier','vendors'),PRJ(),D('paymentDate','Date'),C('amount','Amount'),S('method','Method',['Bank transfer','RTGS','Mobile money','Cash','Cheque','Card','Offset']),T('bankAccount','Bank account'),T('reference','Bank reference'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),IT('items','Itemised lines'),STS(['PENDING','CLEARED','RECONCILED','REVERSED'],'CLEARED')],
+    [T('name','Payment reference',{required:true}),S('direction','Direction',['RECEIPT','PAYMENT']),R('clientId','Client','clients'),R('vendorId','Supplier','vendors'),PRJ(),D('paymentDate','Date'),C('amount','Amount'),S('method','Method',['Bank transfer','RTGS','Mobile money','Cash','Cheque','Card','Offset']),T('bankAccount','Bank account'),T('reference','Bank reference'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),IT('items','Itemised lines'),STS(['PENDING','CLEARED','RECONCILED','REVERSED'],'CLEARED'),...CONV()],
     ['number','name','direction','paymentDate','amount','method','status'],{statusOptions:['PENDING','CLEARED','RECONCILED','REVERSED'],amountKey:'amount',dateKey:'paymentDate'}),
 
   // ---------------- SPECIALISED ----------------

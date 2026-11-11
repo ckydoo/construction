@@ -12,6 +12,8 @@ import { Button, Icon, Badge, StatusPill, Skeleton, TableSkeleton, EmptyState, C
 import { useToast } from './Providers';
 import RecordForm, { type RefOptions } from './RecordForm';
 import RecordDetail from './RecordDetail';
+import ConvertFlow from './ConvertFlow';
+import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import SearchSelect from './SearchSelect';
 import { useRouter } from 'next/navigation';
 
@@ -55,6 +57,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const [selected,setSelected]=useState<Set<string>>(new Set());
   const [formOpen,setFormOpen]=useState(false), [editing,setEditing]=useState<any>(null), [detailRow,setDetailRow]=useState<any>(null);
   const [confirm,setConfirm]=useState<{ids:string[];label:string}|null>(null);
+  const [convertRow,setConvertRow]=useState<any>(null);
   const [serverErrors,setServerErrors]=useState<Record<string,string>|undefined>();
 
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
@@ -220,6 +223,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
               </td>)}
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
                 {resource==='projects'&&<Link href={`/${org}/projects/${encodeURIComponent(r.id)}`} aria-label={`Open full page for ${r.title||r.number}`} title="Open full project page" className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700"><Lucide.ExternalLink size={14}/></Link>}
+                {canEdit&&CONVERTIBLE_RESOURCE_IDS.has(resource)&&<button aria-label={`Convert ${r.title||r.number}`} onClick={()=>setConvertRow(r)} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Convert to…"><Lucide.ArrowRightLeft size={14}/></button>}
                 {canEdit&&<button aria-label={`Edit ${r.title||r.number}`} onClick={()=>{setEditing(r);setServerErrors(undefined);setFormOpen(true);}} className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700" title="Edit"><Lucide.Pencil size={14}/></button>}
                 {canRemove&&<button aria-label={`Delete ${r.title||r.number}`} onClick={()=>setConfirm({ids:[r.id],label:r.title||r.number})} className="rounded-md p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Delete"><Lucide.Trash2 size={14}/></button>}
               </div></td>
@@ -238,6 +242,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       onSubmit={(values)=>editing?updateMut.mutate({id:editing.id,values}):createMut.mutate(values)}/>}
     {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={mergedRefs} canEdit={canEdit} canRemove={canRemove}
       onEdit={()=>{setEditing(detailRow);setDetailRow(null);setFormOpen(true);}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
+    {convertRow&&<ConvertFlow org={org} resource={resource} row={convertRow} open={!!convertRow} onClose={()=>setConvertRow(null)}/>}
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={bulkMut.isPending||deleteMut.isPending}
       title={`Delete ${confirm?.label||'record'}?`} description="This record will be moved to the recycle bin (soft delete). You can restore it from the database."
       onConfirm={()=>{if(!confirm)return;setConfirm(null);if(confirm.ids.length===1)deleteMut.mutate(confirm.ids[0]);else bulkMut.mutate(confirm.ids);}}/>
