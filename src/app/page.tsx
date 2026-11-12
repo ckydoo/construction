@@ -14,8 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
   if (host !== 'myla.co.zw') return {};
   return { title: 'MYLA | Construction management software for Zimbabwe', description,
     alternates: { canonical: 'https://myla.co.zw/' },
-    openGraph: { title: 'MYLA | Construction management, connected', description, url: 'https://myla.co.zw/', siteName: 'MYLA', type: 'website', images: [{ url: 'https://myla.co.zw/landing/myla-dashboard.webp', alt: 'MYLA construction management dashboard' }] },
-    twitter: { card: 'summary_large_image', title: 'MYLA | Construction management, connected', description, images: ['https://myla.co.zw/landing/myla-dashboard.webp'] },
+    openGraph: { title: 'MYLA | Construction management software', description, url: 'https://myla.co.zw/', siteName: 'MYLA', type: 'website', images: [{ url: 'https://myla.co.zw/landing/myla-dashboard.webp', alt: 'MYLA construction management dashboard' }] },
+    twitter: { card: 'summary_large_image', title: 'MYLA | Construction management software', description, images: ['https://myla.co.zw/landing/myla-dashboard.webp'] },
     robots: { index: true, follow: true } };
 }
 export default async function Home(){
@@ -45,7 +45,6 @@ function Landing(){
       <div className="relative mx-auto max-w-[1280px] px-6 pb-14 pt-16 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-28">
         <div className="grid items-center gap-12 lg:grid-cols-[.92fr_1.08fr] lg:gap-14">
           <div className="min-w-0">
-            <p className="flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[.18em] text-[#a65b08]"><span className="h-2 w-2 rounded-full bg-[#ed820d]"/> Construction management, connected</p>
             <h1 className="mt-6 max-w-[600px] text-[43px] font-semibold leading-[1.08] tracking-[-.045em] sm:text-[58px] xl:text-[67px]">Your projects. Your people. <span className="text-[#df790a]">One clear picture.</span></h1>
             <p className="mt-6 max-w-[500px] text-[16px] leading-8 text-[#596e79] sm:text-[17px]">Keep your construction business moving with projects, procurement, finances and your team together in one workspace.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3"><a href={APP} className="inline-flex min-h-12 items-center gap-3 rounded-md bg-[#ed820d] px-6 py-4 text-sm font-bold text-[#102c40] transition hover:bg-[#ff9d25]">Start your free trial <ArrowRight size={17}/></a><a href="#platform" className="inline-flex min-h-12 items-center gap-2 rounded-md border border-[#cedad3] bg-white px-6 py-4 text-sm font-semibold hover:border-[#9aaea4]">See how MYLA works</a></div>
@@ -86,6 +85,6 @@ function Landing(){
       ['Does everyone see the same information?','Access depends on each user’s role and the sections enabled for your workspace.'],
     ].map(([q,a])=><details key={q} className="group py-6"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-base font-semibold marker:content-none">{q}<span aria-hidden="true" className="text-xl font-normal text-[#ca720d] group-open:rotate-45">+</span></summary><p className="mt-4 max-w-2xl text-sm leading-7 text-[#637583]">{a}</p></details>)}</div></div></section>
     <section className="bg-[#102c40] text-white"><div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-8 px-6 py-20 lg:px-10"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-[#f5a435]">Ready when you are</p><h2 className="mt-4 text-4xl font-semibold tracking-[-.035em] sm:text-5xl">Make room for better work.</h2><p className="mt-4 text-sm text-[#a6b7bc]">Bring your construction business together with MYLA.</p></div><a href={APP} className="inline-flex items-center gap-3 rounded-md bg-[#f4931d] px-6 py-4 text-sm font-bold text-[#102c40] hover:bg-[#ffac42]">Open MYLA <ArrowRight size={17}/></a></div></section>
-    <footer className="bg-[#0b2231] text-[#91a4ab]"><div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-5 px-6 py-8 text-xs lg:px-10"><span>© {new Date().getFullYear()} MYLA. Construction management, connected.</span><div className="flex gap-6"><a href="#features" className="hover:text-white">Capabilities</a><a href="#pricing" className="hover:text-white">Pricing</a><a href={APP} className="hover:text-white">Sign in</a></div></div></footer><Analytics/>
+    <footer className="bg-[#0b2231] text-[#91a4ab]"><div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-5 px-6 py-8 text-xs lg:px-10"><span>© {new Date().getFullYear()} MYLA.</span><div className="flex gap-6"><a href="#features" className="hover:text-white">Capabilities</a><a href="#pricing" className="hover:text-white">Pricing</a><a href={APP} className="hover:text-white">Sign in</a></div></div></footer><Analytics/>
   </main>;
 }
