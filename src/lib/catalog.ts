@@ -228,6 +228,59 @@ export const SUB_PORTAL_READ = [
   'dailyLogs','meetings','punchLists','toolboxTalks','incidents',
 ];
 
+
+export const RESOURCE_GROUPS: Record<string, string[]> = {
+  'Clients & quotes': ['clients','contacts','leads','estimates','bids'],
+  'Jobs & sites': ['projects','tasks','contracts','changeOrders','rfis','submittals','documents','dailyLogs','meetings','punchLists','permits'],
+  'Materials & suppliers': ['vendors','subcontractors','requisitions','purchaseOrders','goodsReceipts','inventory','warehouses','equipment','workOrders'],
+  'Money & invoices': ['accounts','journals','budgets','arInvoices','paymentApps','apBills','payments'],
+  'Overview': [],
+  'Reports & extras': [],
+  'Safety & quality': ['toolboxTalks','incidents','inspections','ncrs','itps'],
+  'Settings': [],
+  'Specialist modules': ['units','rentalContracts','commissioning'],
+  'Staff & wages': ['employees','departments','crews','timesheets','leaveRequests','payRuns','expenses','certifications','training'],
+};
+
+export const NAV_GROUPS: Record<string, string[]> = {
+  OWNER: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Settings','Specialist modules'],
+  ADMIN: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Settings','Specialist modules'],
+  PROJECT_MANAGER: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Safety & quality','Reports & extras','Settings'],
+  SITE_ENGINEER: ['Overview','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Reports & extras','Settings'],
+  FINANCE_MANAGER: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Money & invoices','Reports & extras','Settings'],
+  ACCOUNTANT: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Money & invoices','Reports & extras','Settings'],
+  HR_MANAGER: ['Overview','Staff & wages','Safety & quality','Reports & extras','Settings'],
+  PROCUREMENT: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Money & invoices','Reports & extras','Settings'],
+  SAFETY_OFFICER: ['Overview','Jobs & sites','Staff & wages','Safety & quality','Reports & extras','Settings'],
+  PLANT_MANAGER: ['Overview','Jobs & sites','Materials & suppliers','Reports & extras','Settings'],
+  ESTIMATOR: ['Overview','Clients & quotes','Jobs & sites','Reports & extras','Settings'],
+  VIEWER: ['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Settings','Specialist modules'],
+  CLIENT_EXTERNAL: ['Overview','Clients & quotes','Jobs & sites','Money & invoices','Safety & quality','Specialist modules'],
+  SUBCONTRACTOR_EXTERNAL: ['Overview','Jobs & sites','Materials & suppliers','Safety & quality','Staff & wages'],
+};
+
+const WORKFLOW_READ_OVERRIDES: Record<string, string[]> = {
+  OWNER: ['timesheets','changeOrders','requisitions','purchaseOrders','expenses','leaveRequests','submittals','paymentApps','rfis','punchLists','incidents','ncrs'],
+  ADMIN: ['timesheets','changeOrders','requisitions','purchaseOrders','expenses','leaveRequests','submittals','paymentApps','rfis','punchLists','incidents','ncrs'],
+  PROJECT_MANAGER: ['timesheets','changeOrders','requisitions','purchaseOrders','leaveRequests','submittals','rfis','punchLists','incidents','ncrs'],
+  SITE_ENGINEER: ['timesheets','submittals','rfis','punchLists','incidents','ncrs'],
+  FINANCE_MANAGER: ['changeOrders','requisitions','purchaseOrders','expenses','paymentApps'],
+  ACCOUNTANT: ['expenses','paymentApps'],
+  HR_MANAGER: ['leaveRequests'],
+  PROCUREMENT: ['requisitions','purchaseOrders'],
+  SAFETY_OFFICER: ['punchLists','incidents','ncrs'],
+  ESTIMATOR: ['timesheets','changeOrders','submittals','rfis'],
+};
+
+const resourcesInGroups = (wanted: string[]) =>
+  Array.from(new Set(wanted.flatMap(g => RESOURCE_GROUPS[g] || [])));
+const readFor = (role: string) =>
+  Array.from(new Set([...resourcesInGroups(NAV_GROUPS[role] || []), ...(WORKFLOW_READ_OVERRIDES[role] || [])]));
+export function navGroupsFor(role: string): string[] { return NAV_GROUPS[role] || NAV_GROUPS.VIEWER; }
+export function resourceNavGroup(resource: string): string | undefined {
+  return Object.keys(RESOURCE_GROUPS).find(g => RESOURCE_GROUPS[g].includes(resource));
+}
+
 export type RoleRule = {
   read: '*' | string[]; readDeny?: string[];
   write: '*' | string[]; writeDeny?: string[];
@@ -246,32 +299,32 @@ const caps = (extra: Capability[], remove: Capability[] = []) =>
 export const ROLE_RULES: Record<string, RoleRule> = {
   OWNER:            { read:'*', write:'*', delete:true, scoped:false, capabilities:[...ALL_CAPS] },
   ADMIN:            { read:'*', write:'*', delete:true, scoped:false, capabilities:[...ALL_CAPS] },
-  PROJECT_MANAGER:  { read:'*', readDeny:['accounts','journals','payRuns'], write:'*',
+  PROJECT_MANAGER:  { read:readFor('PROJECT_MANAGER'), readDeny:['accounts','journals','payRuns'], write:'*',
                       writeDeny:FINANCE_REGISTERS, delete:true, scoped:false,
                       capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete','wallet.allocate']) },
-  SITE_ENGINEER:    { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+  SITE_ENGINEER:    { read:readFor('SITE_ENGINEER'), readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
                       writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
                       capabilities:caps(['records.create','records.update','files.upload']) },
-  FINANCE_MANAGER:  { read:'*', write:'*', writeDeny:[...HSE_REGISTERS,'dailyLogs','toolboxTalks'],
+  FINANCE_MANAGER:  { read:readFor('FINANCE_MANAGER'), write:'*', writeDeny:[...HSE_REGISTERS,'dailyLogs','toolboxTalks'],
                       delete:true, scoped:false,
                       capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete','integrity','wallet.topup','wallet.allocate','wallet.refund']) },
-  ACCOUNTANT:       { read:'*', write:'*', writeDeny:[...HSE_REGISTERS,'employees','dailyLogs','projects','contracts'],
+  ACCOUNTANT:       { read:readFor('ACCOUNTANT'), write:'*', writeDeny:[...HSE_REGISTERS,'employees','dailyLogs','projects','contracts'],
                       delete:false, scoped:false,
                       capabilities:caps(['records.create','records.update','files.upload','integrity']) },
-  HR_MANAGER:       { read:'*', readDeny:FINANCE_REGISTERS, write:'*',
+  HR_MANAGER:       { read:readFor('HR_MANAGER'), readDeny:FINANCE_REGISTERS, write:'*',
                       writeDeny:[...FINANCE_REGISTERS,'projects','contracts','purchaseOrders'], delete:true, scoped:false,
                       capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete']) },
-  PROCUREMENT:      { read:'*', write:'*', writeDeny:[...FINANCE_REGISTERS,'employees'], delete:true, scoped:false,
+  PROCUREMENT:      { read:readFor('PROCUREMENT'), write:'*', writeDeny:[...FINANCE_REGISTERS,'employees'], delete:true, scoped:false,
                       capabilities:caps(['records.create','records.update','records.delete','files.upload','files.delete']) },
-  SAFETY_OFFICER:   { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+  SAFETY_OFFICER:   { read:readFor('SAFETY_OFFICER'), readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
                       writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
                       capabilities:caps(['records.create','records.update','files.upload']) },
-  PLANT_MANAGER:    { read:'*', readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
+  PLANT_MANAGER:    { read:readFor('PLANT_MANAGER'), readDeny:[...FINANCE_REGISTERS,'employees'], write:'*',
                       writeDeny:[...FINANCE_REGISTERS,...HR_REGISTERS], delete:false, scoped:false,
                       capabilities:caps(['records.create','records.update','files.upload']) },
-  ESTIMATOR:        { read:'*', write:'*', writeDeny:[...FINANCE_REGISTERS,'payRuns'], delete:false, scoped:false,
+  ESTIMATOR:        { read:readFor('ESTIMATOR'), write:'*', writeDeny:[...FINANCE_REGISTERS,'payRuns'], delete:false, scoped:false,
                       capabilities:caps(['records.create','records.update','files.upload']) },
-  VIEWER:           { read:'*', write:[], delete:false, scoped:false,
+  VIEWER:           { read:readFor('VIEWER'), write:[], delete:false, scoped:false,
                       capabilities:['exports','wallet.read','project360','settings.view'] },
   CLIENT_EXTERNAL:  { read:CLIENT_PORTAL_READ, write:[], delete:false, scoped:true,
                       capabilities:['comments.create','exports','project360','wallet.read','wallet.allocate'] },

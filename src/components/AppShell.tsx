@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
-import { canRead, canWrite, canCapability, ROLES } from '@/lib/catalog';
+import { canRead, canWrite, canCapability, ROLES, navGroupsFor, resourceNavGroup } from '@/lib/catalog';
 import { moduleEnabled, resourceFullyEnabled, hrefVisible } from '@/lib/module-visibility';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
@@ -83,7 +83,9 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     if(!meta) return [];
     const groups:Record<string,any[]>={};
     const role=meta.role||'ADMIN';
+    const allowed=new Set(navGroupsFor(role));
     for(const s of SPECIAL){
+      if(!allowed.has(s.group)) continue;
       if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
       if((s as any).alsoModule && !moduleEnabled(meta.config,(s as any).alsoModule)) continue;
       if((s as any).resource && !resourceFullyEnabled(meta.config,(s as any).resource)) continue;
@@ -92,6 +94,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       (groups[s.group] ||= []).push({...s});
     }
     for(const r of meta.resources){
+      if(!allowed.has(r.group)) continue;
       if(HIDDEN_RESOURCE_NAV.has(r.id)) continue;
       if(!resourceFullyEnabled(meta.config,r.id)) continue;
       if(!canRead(role,r.id)) continue;
@@ -155,7 +158,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <div className="relative" ref={quickRef}>
           <button aria-label="Quick create" aria-haspopup="menu" aria-expanded={quickOpen} className="btn-ghost btn-icon" onClick={()=>{setQuickOpen(v=>!v);setNotifOpen(false);setUserOpen(false);setCurrencyOpen(false);}} title="Quick create"><Lucide.Plus size={19}/></button>
           {quickOpen&&<div data-testid="topbar-quick-panel" className="panel fixed left-1/2 top-14 z-30 w-[min(240px,calc(100vw-2rem))] -translate-x-1/2 p-2 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:w-60 sm:translate-x-0"><p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider muted">Quick create</p>
-            {QUICK_CREATE.filter(id=>resourceFullyEnabled(meta?.config||{modules:[],resources:[]},id)&&canWrite(meta?.role||'ADMIN',id)).map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-md px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
+            {QUICK_CREATE.filter(id=>resourceFullyEnabled(meta?.config||{modules:[],resources:[]},id)&&canWrite(meta?.role||'ADMIN',id)&&new Set(navGroupsFor(meta?.role||'ADMIN')).has(resourceNavGroup(id)||'')).map(id=>{const r=meta?.resources.find(x=>x.id===id); if(!r)return null; return <Link key={id} href={`/${orgSlug}/m/${id}?new=1`} onClick={()=>setQuickOpen(false)} className="flex items-center gap-2.5 rounded-md px-2 py-2 text-xs font-medium text-ink-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-ink-800"><Icon name={r.icon} size={15}/>{r.singular}</Link>;})}
           </div>}
         </div>
         <div className="relative" ref={currencyRef}>
@@ -206,7 +209,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       </main>
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex h-12 items-center justify-around border-t divider bg-white dark:bg-ink-900 lg:hidden">
-        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard'},{h:'/my-work',i:'Inbox',l:'My work',m:'dashboard'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view'}].filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
+        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard',g:'Overview'},{h:'/my-work',i:'Inbox',l:'My work',m:'dashboard',g:'Overview'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects',g:'Jobs & sites'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets',g:'Staff & wages'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read',g:'Money & invoices'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view',g:'Settings'}].filter(x=>new Set(navGroupsFor(meta?.role||'ADMIN')).has((x as any).g)).filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
       </nav>
       <div className="h-12 lg:hidden"/>
     </div>
