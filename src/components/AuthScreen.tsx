@@ -95,7 +95,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         <p className="mt-1.5 text-[13px] muted">
           {view==='login'&&'Sign in to your construction workspace.'}
           {view==='register'&&'Create an account, then tell us about your company.'}
-          {view==='forgot'&&'Enter your work email and we’ll send a secure link.'}
+          {view==='forgot'&&'Password reset emails aren’t being delivered yet — ask your administrator if you’re locked out.'}
         </p>
         <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">{BRAND.motto}</p>
 
@@ -111,7 +111,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         {view==='forgot'&&<div className="mt-6 space-y-4">
           <form onSubmit={forgot} className="space-y-3">
             <Field label="Work email" required><div className="relative"><Lucide.Mail size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.co.zw" required/></div></Field>
-            <Button type="submit" variant="primary" className="w-full" loading={busy}>Send reset link</Button>
+            <Button type="submit" variant="primary" className="w-full" loading={busy}>Request password reset</Button>
           </form>
           {error&&<div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"><Lucide.AlertCircle size={15} className="mt-0.5 shrink-0"/>{error}</div>}
         </div>}

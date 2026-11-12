@@ -170,7 +170,7 @@ export default function SettingsPage(){
           <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
     </div>}
 
-    {tab==='users'&&<div className="space-y-4">{caps.includes('users.manage')&&<Card><CardHead title="Invite a teammate" subtitle="We’ll email them a secure link to join your workspace"/>
+    {tab==='users'&&<div className="space-y-4">{caps.includes('users.manage')&&<Card><CardHead title="Invite a teammate" subtitle="Add someone to this workspace straight away — invitation emails aren’t being delivered yet."/>
       <div className="grid gap-4 p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <Field label="Full name"><input className="input" value={invite.name} onChange={e=>setInvite({...invite,name:e.target.value})} placeholder="Jane Moyo"/></Field>
         <Field label="Work email"><input className="input" type="email" value={invite.email} onChange={e=>setInvite({...invite,email:e.target.value})} placeholder="jane@company.co.zw"/></Field>
@@ -179,6 +179,7 @@ export default function SettingsPage(){
       </div>
       {invite.role.endsWith('_EXTERNAL')&&<div className="border-t divider px-4 py-3"><Field label="Link to client (portal scope)" hint="Portal users only see this client's records, projects and wallet."><select className="select" value={invite.entityId} onChange={e=>setInvite({...invite,entityId:e.target.value})}><option value="">Select a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></Field></div>}
       {!invite.role.endsWith('_EXTERNAL')&&!isFullAccess(invite.role)&&<div className="border-t divider px-4 py-3"><Field label="Link to staff member (job assignment)" hint="This account will see its department plus the jobs assigned to this staff member."><select className="select" value={invite.staffEmployeeId} onChange={e=>setInvite({...invite,staffEmployeeId:e.target.value})}><option value="">No job assignment yet…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select></Field></div>}
+      <div className="border-t divider px-4 py-3 text-[11px] leading-relaxed muted"><span className="font-semibold text-amber-700 dark:text-amber-300">Email invitations are off at the moment.</span> Your teammate is added immediately, but no automatic sign-in link will arrive. They’ll need sign-in help from an administrator.</div>
       </Card>}
       <Card className="overflow-hidden"><CardHead title="Team members" subtitle={caps.includes('users.manage')?`${meta.users.length} ${meta.users.length===1?'person':'people'} in this workspace`:'Your own account in this workspace'}/>
         <div className="divide-y divider">{meta.users.map((u:any)=>{

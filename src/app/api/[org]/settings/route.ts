@@ -233,7 +233,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       email, role, organization_id: a.orgId,
       token: Math.random().toString(36).slice(2) + Date.now().toString(36), accepted_at: new Date().toISOString(),
     });
-    return NextResponse.json({ ok: true, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. We’ve emailed them a secure link to join.` });
+    return NextResponse.json({ ok: true, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. Invitation emails aren’t being delivered yet — they’ll need sign-in help from an administrator.` });
   }
   if (b.action === 'seedDemo') {
     if (!hasServiceKey()) return NextResponse.json({ error: 'Sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });

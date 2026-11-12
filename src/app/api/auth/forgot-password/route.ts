@@ -4,7 +4,7 @@ import { findAccountByEmail, issueEmailToken, recentTokenCount } from '@/lib/aut
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const MESSAGE = 'If an account exists for that address, a password reset link is on its way.';
+const MESSAGE = 'If an account exists for that address, we’ve recorded your request. Password reset emails aren’t being delivered yet — ask your administrator if you need access now.';
 
 export async function POST(req: Request) {
   const b = await req.json().catch(() => ({}));
