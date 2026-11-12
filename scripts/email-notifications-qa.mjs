@@ -48,23 +48,37 @@ await check('remote-aligned migrations create the outbox, tokens, preferences an
   return '4 tables · owner policies · quiet v2 defaults';
 });
 
-await check('every new account is verified before entering a workspace', () => {
+await check('email verification is optional and never blocks workspace access', () => {
   const auth = read('src/lib/auth.ts');
   const register = read('src/app/api/auth/register/route.ts');
   const login = read('src/app/api/auth/login/route.ts');
   const screen = read('src/components/AuthScreen.tsx');
-  assert.match(auth, /if \(!u\.email_confirmed_at\) return null/);
-  assert.match(register, /email_confirm: false/);
-  assert.match(register, /verificationRequired: true/);
+  const meta = read('src/app/api/[org]/meta/route.ts');
+  const dashboard = read('src/app/[org]/dashboard/page.tsx');
+  const reminder = read('src/components/EmailVerificationReminder.tsx');
+  const verification = read('src/lib/email-verification.ts');
+  const resend = read('src/app/api/auth/resend-verification/route.ts');
+  const forgot = read('src/app/api/auth/forgot-password/route.ts');
+  assert.doesNotMatch(auth, /if \(!u\.email_confirmed_at\) return null/);
+  assert.match(auth, /const emailVerified = u\.app_metadata\?\.email_verified !== false/);
+  assert.match(register, /email_confirm: true/);
+  assert.match(register, /setEmailVerificationState\(createdUserId, false\)/);
+  assert.match(register, /signIn\(email, password\)/);
+  assert.match(register, /sendWelcomeEmail/);
   assert.match(register, /auth\.admin\.deleteUser\(createdUserId\)/);
-  assert.match(login, /EMAIL_NOT_VERIFIED/);
-  assert.match(login, /await signOut\(\)/);
-  assert.match(screen, /r\.verificationRequired/);
-  assert.match(screen, /Check your email/);
+  assert.doesNotMatch(register, /verificationRequired|email_confirm: false/);
+  assert.doesNotMatch(login, /EMAIL_NOT_VERIFIED|await signOut\(\)/);
+  assert.doesNotMatch(screen, /Check your email|Need to verify your email|r\.verificationRequired/);
+  assert.match(meta, /emailVerified: a\.emailVerified/);
+  assert.match(dashboard, /EmailVerificationReminder/);
+  assert.match(reminder, /Send verification link|Not now|localStorage/);
+  assert.match(verification, /app_metadata/);
+  assert.match(resend, /isSmtpConfigured/);
+  assert.doesNotMatch(forgot, /emailConfirmedAt/);
   const src = ['src/lib/auth.ts','src/app/api/auth/register/route.ts','src/app/api/auth/login/route.ts','src/components/AuthScreen.tsx','src/app/api/[org]/settings/route.ts'].map(read).join('\n');
   assert.doesNotMatch(src, /Welcome@123/, 'shared temporary password must be gone');
   assert.doesNotMatch(read('src/app/api/auth/register/route.ts'), /supabase db push|NEXT_PUBLIC_SUPABASE|service-role key/);
-  return 'unconfirmed signup → one-time link → confirmed workspace access';
+  return 'confirmed signup → optional app_metadata flag → quiet dashboard reminder';
 });
 
 await check('verification, reset, invitation, welcome and security email flows are wired', () => {
@@ -146,18 +160,18 @@ await check('daily sweep and SMTP gate keep live sending safely queued', () => {
   return '05:00 UTC sweep · Bearer secret · no live send without SMTP';
 });
 
-await check('QA scripts and docs were reconciled with secure verification', () => {
+await check('QA scripts and docs were reconciled with optional verification', () => {
   const auditPy = read('scripts/audit.py');
   const onboarding = read('scripts/onboarding-audit.mjs');
   const readme = read('README.md');
   assert.match(auditPy, /def confirm_qa_user/);
   assert.match(auditPy, /QA_INVITE_PASSWORD/);
-  assert.match(onboarding, /async function confirmAccount/);
-  assert.match(onboarding, /Check your email/);
+  assert.match(onboarding, /async function setInvitePassword/);
+  assert.doesNotMatch(onboarding, /Check your email|confirmAccount\(/);
   assert.doesNotMatch(auditPy + onboarding + readme, /Welcome@123/);
   assert.ok(!readme.includes('with a temporary password'), 'README must describe secure links, not a shared temporary password');
-  assert.match(readme, /New accounts must confirm their email address before entering a workspace/);
-  assert.doesNotMatch(readme, /Email confirmation should be disabled/);
+  assert.match(readme, /Email verification is optional and never blocks workspace access/);
+  assert.doesNotMatch(readme, /Email confirmation should be disabled|New accounts must confirm their email address before entering a workspace/);
   return 'role matrix · onboarding audit · README';
 });
 
@@ -234,8 +248,13 @@ await check('owner sees quiet defaults and an elegant Notifications tab with no 
       assert.doesNotMatch(body, banned, `technical copy visible: ${banned}`);
     assert.deepEqual(errors, [], `browser errors: ${errors.join(' | ')}`);
     await page.screenshot({ path: '/home/user/notifications-settings.png', fullPage: true });
+    await page.goto(`${BASE}/kestrel-ridge/dashboard`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('heading', { name: 'Your business today' }).waitFor({ timeout: 20000 });
+    const dashboardBody = await page.locator('body').innerText();
+    assert.doesNotMatch(dashboardBody, /Verify your email|Send verification link/, 'verified owner should not see the reminder');
+    assert.deepEqual(errors, [], `browser errors after dashboard: ${errors.join(' | ')}`);
     await ctx.close();
-    return 'quiet defaults · 9 controls · 0 browser errors';
+    return 'quiet defaults · 9 controls · 0 browser errors · verified dashboard clean';
   } finally { await browser.close(); }
 });
 

@@ -7,11 +7,13 @@ import {
   resetPasswordUrl, verificationUrl,
 } from './email';
 import { ensurePreferences } from './notification-preferences';
+import { readEmailVerified, setEmailVerificationState } from './email-verification';
 
 export type EmailTokenPurpose = 'verify_email' | 'reset_password' | 'invite';
 
 export type AccountUser = {
   id: string; email: string; name: string; emailConfirmedAt: string | null;
+  emailVerified: boolean;
 };
 
 export async function findAccountByEmail(email: string): Promise<AccountUser | null> {
@@ -25,6 +27,7 @@ export async function findAccountByEmail(email: string): Promise<AccountUser | n
     email: String(profile.data.email || auth.data.user.email || email).trim().toLowerCase(),
     name: String(profile.data.name || '').trim() || String(email).split('@')[0],
     emailConfirmedAt: auth.data.user.email_confirmed_at || null,
+    emailVerified: readEmailVerified(auth.data.user.app_metadata),
   };
 }
 
@@ -63,8 +66,8 @@ export async function issueEmailToken(
   const body = isReset
     ? 'We received a request to reset your MYLA password. The link below expires in one hour and can be used once.'
     : isInvite
-      ? 'Your workspace administrator added you to MYLA. Choose a password to confirm your email address and get started. The link expires in seven days and can be used once.'
-      : 'Confirm this address to finish setting up your MYLA workspace. The link expires in 24 hours.';
+      ? 'Your workspace administrator added you to MYLA. Choose a password to get started. The link expires in seven days and can be used once.'
+      : 'Confirm this address to help keep your MYLA account secure. The link expires in 24 hours.';
   await queueTemplateEmail({
     to: user.email,
     userId: user.id,
@@ -101,8 +104,7 @@ export async function consumeEmailToken(token: string, purpose: EmailTokenPurpos
 }
 
 export async function confirmAccountEmail(userId: string): Promise<void> {
-  const admin = supabaseAdmin();
-  await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+  await setEmailVerificationState(userId, true);
 }
 
 export async function setAccountPassword(userId: string, password: string): Promise<void> {
@@ -120,7 +122,7 @@ export async function sendWelcomeEmail(user: Pick<AccountUser, 'id' | 'email' | 
       name: user.name,
       subject: 'Welcome to MYLA',
       headline: `Welcome to ${orgName}`,
-      body: 'Your email is verified and your workspace is ready. Start with the essentials, then add your team when you are ready.',
+      body: 'Your workspace is ready. Start with the essentials, then add your team when you are ready.',
       details: ['Set up your company details and branding', 'Add your first project, quote or client', 'Invite teammates from Settings'],
       ctaLabel: 'Open MYLA',
       ctaUrl: orgSlug ? `${appBaseUrl()}/${orgSlug}/dashboard` : appBaseUrl(),
@@ -161,9 +163,9 @@ export async function sendPasswordChangedEmail(user: Pick<AccountUser, 'id' | 'e
   });
 }
 
-/** Invite a verified person, or send a secure set-password / verification link to a new account. */
+/** Invite a verified person, or send a secure set-password link to a new account. */
 export async function sendTeamInviteEmail(user: AccountUser, orgName: string, orgSlug: string): Promise<void> {
-  if (!user.emailConfirmedAt) {
+  if (!user.emailVerified) {
     await issueEmailToken(user, 'invite', orgSlug, orgName);
     return;
   }

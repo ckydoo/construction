@@ -20,7 +20,7 @@ export default function VerifyEmailPage() {
     setToken(params.get('token') || '');
     if (params.get('verified') === '1') {
       setState('success');
-      setMessage('Your email is verified. You can sign in now.');
+      setMessage('Your email is verified.');
     }
   }, []);
 
@@ -28,7 +28,7 @@ export default function VerifyEmailPage() {
     setBusy(true); setMessage('');
     try {
       const r = await apiSend('/api/auth/verify-email', 'POST', { token });
-      setState('success'); setMessage(r.message || 'Your email is verified. You can sign in now.');
+      setState('success'); setMessage(r.message || 'Your email is verified.');
     } catch (err: any) {
       setState('error'); setMessage(userMessage(err, 'This link has expired or has already been used. Request a new one.'));
     } finally { setBusy(false); }
@@ -48,7 +48,7 @@ export default function VerifyEmailPage() {
     <div className="w-full max-w-[440px] space-y-6">
       <div className="flex items-center gap-3"><Logo variant="lockup" autoDark className="h-7 w-auto" title={BRAND.name}/></div>
       <Card>
-        <CardHead title="Confirm your email address" subtitle="One quick step before your workspace is ready"/>
+        <CardHead title="Confirm your email address" subtitle="Optional · helps keep your account secure"/>
         <div className="space-y-4 p-5">
           {state === 'success' && <div className="flex gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-3.5 text-sm text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
             <Lucide.CheckCircle2 size={18} className="mt-0.5 shrink-0"/><div><p className="font-semibold">Email confirmed</p><p className="mt-1 text-xs leading-relaxed">{message}</p></div>

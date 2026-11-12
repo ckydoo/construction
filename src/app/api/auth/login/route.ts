@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { signIn, signOut } from '@/lib/auth';
+import { signIn } from '@/lib/auth';
 import { supabase, hasSupabaseConfig } from '@/lib/supabase';
-import { findAccountByEmail, issueEmailToken, recentTokenCount } from '@/lib/auth-email';
 
 export async function POST(req: Request) {
   const b = await req.json();
@@ -11,17 +10,6 @@ export async function POST(req: Request) {
 
   const signed = await signIn(email, password);
   if (!signed) return NextResponse.json({ error: 'Incorrect email or password.' }, { status: 401 });
-  if (!signed.emailConfirmedAt) {
-    await signOut();
-    const account = await findAccountByEmail(email);
-    if (account && !account.emailConfirmedAt && await recentTokenCount(account.id, 'verify_email', 1) === 0)
-      await issueEmailToken(account, 'verify_email');
-    return NextResponse.json({
-      error: 'Please verify your email address before signing in.',
-      code: 'EMAIL_NOT_VERIFIED',
-      email,
-    }, { status: 403 });
-  }
 
   const sb = await supabase();
   const { data: rows } = await sb.from('memberships')

@@ -92,7 +92,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
-    user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor },
+    user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor, emailVerified: a.emailVerified },
     memberships: a.memberships,
     users,
     clients: (clientRecs.data || []).map((c: any) => ({ id: c.id, label: c.title || c.number || c.id })),

@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ ok: true, message: MESSAGE });
   try {
     const account = await findAccountByEmail(email);
-    if (!account || !account.emailConfirmedAt) return NextResponse.json({ ok: true, message: MESSAGE });
+    if (!account) return NextResponse.json({ ok: true, message: MESSAGE });
     if (await recentTokenCount(account.id, 'reset_password', 1) > 0) return NextResponse.json({ ok: true, message: MESSAGE });
     if (await recentTokenCount(account.id, 'reset_password', 60) >= 5) return NextResponse.json({ ok: true, message: MESSAGE });
     await issueEmailToken(account, 'reset_password');

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   await setAccountPassword(row.user_id, password);
   await confirmAccountEmail(row.user_id);
   const account = await findAccountByEmail(row.email)
-    || { id: row.user_id, email: row.email, name: row.email.split('@')[0], emailConfirmedAt: new Date().toISOString() };
+    || { id: row.user_id, email: row.email, name: row.email.split('@')[0], emailConfirmedAt: new Date().toISOString(), emailVerified: true };
   if (isInvite) await sendWelcomeForAccount(account);
   else await sendPasswordChangedEmail(account);
   return NextResponse.json({ ok: true, message: 'Your password has been updated. You can sign in now.' });

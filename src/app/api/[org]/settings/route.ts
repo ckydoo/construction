@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { findAccountByEmail, sendTeamInviteEmail } from '@/lib/auth-email';
+import { setEmailVerificationState } from '@/lib/email-verification';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
 import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
 import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
@@ -191,11 +192,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     let userId = existingAccount?.id;
     if (!userId) {
       const { data: created, error } = await admin.auth.admin.createUser({
-        email, password: `${randomBytes(24).toString('base64url')}Aa1!`, email_confirm: false,
+        email, password: `${randomBytes(24).toString('base64url')}Aa1!`, email_confirm: true,
         user_metadata: { name, avatar_color: '#64748b' },
       });
       if (error) return NextResponse.json({ error: 'We couldn’t add that person. Please check their details and try again.' }, { status: 400 });
       userId = created.user.id;
+      try { await setEmailVerificationState(userId, false); }
+      catch {
+        try { await admin.auth.admin.deleteUser(userId); } catch { /* best-effort cleanup */ }
+        return NextResponse.json({ error: 'We couldn’t add that person. Please try again.' }, { status: 500 });
+      }
     }
     const { data: exists } = await admin.from('memberships').select('id')
       .eq('user_id', userId).eq('organization_id', a.orgId).maybeSingle();
@@ -220,6 +226,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     if (mErr) return NextResponse.json({ error: 'We couldn’t add that person to this workspace. Please try again.' }, { status: 400 });
     const account = await findAccountByEmail(email) || {
       id: userId, email, name, emailConfirmedAt: existingAccount?.emailConfirmedAt || null,
+      emailVerified: existingAccount?.emailVerified ?? false,
     };
     await sendTeamInviteEmail(account, a.orgName, a.orgSlug);
     await admin.from('invitations').insert({

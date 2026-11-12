@@ -106,7 +106,7 @@ def env_value(name):
 
 
 def confirm_qa_user(email, password=QA_INVITE_PASSWORD):
-    """Confirm a freshly invited QA account and give it a known QA password."""
+    """Give a freshly invited QA account a known QA password."""
     supabase_url = env_value('NEXT_PUBLIC_SUPABASE_URL') or env_value('SUPABASE_URL')
     service_key = env_value('SUPABASE_SERVICE_ROLE_KEY') or env_value('SUPABASE_SECRET_KEY')
     if not supabase_url or not service_key:
@@ -120,7 +120,7 @@ def confirm_qa_user(email, password=QA_INVITE_PASSWORD):
         if not isinstance(rows, list) or not rows or not rows[0].get('id'):
             return False
         updated = requests.put(f'{supabase_url}/auth/v1/admin/users/{rows[0]["id"]}',
-                               headers=headers, json={'email_confirm': True, 'password': password},
+                               headers=headers, json={'password': password},
                                timeout=(5, 20))
         return updated.ok
     except Exception:

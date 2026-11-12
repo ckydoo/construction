@@ -8,6 +8,7 @@ import { num, ago, pct, money } from '@/lib/format';
 import { resourceFullyEnabled, moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
+import EmailVerificationReminder from '@/components/EmailVerificationReminder';
 import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 
 type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string };
@@ -46,9 +47,13 @@ export default function DashboardPage(){
   const attention=(data?.attention||[]).filter((a:any)=>hrefVisible(a.href,config));
   const audit=(data?.audit||[]).filter((a:any)=>auditResourceVisible(a.resource,config));
   const projects=(data?.projects||[]).filter(()=>on('projects'));
+  // Pin the greeting date to the workspace's home time zone so the server and
+  // browser render the same text even when their clocks straddle midnight.
+  const today = new Intl.DateTimeFormat('en-GB',{ weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'Africa/Harare' }).format(new Date());
   return <div className="space-y-4">
+    <EmailVerificationReminder userId={meta?.user?.id} email={meta?.user?.email} emailVerified={meta?.user?.emailVerified}/>
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="heading">Your business today</h1><p className="caption mt-1">Jobs, money and things needing attention · {new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}{display.preference&&<> · viewing money in <span className="font-semibold text-brand-600 dark:text-brand-300">{display.currency}</span>; reports stay in {base}</>}</p></div>
+      <div><h1 className="heading">Your business today</h1><p className="caption mt-1">Jobs, money and things needing attention · {today}{display.preference&&<> · viewing money in <span className="font-semibold text-brand-600 dark:text-brand-300">{display.currency}</span>; reports stay in {base}</>}</p></div>
       <div className="flex items-center gap-2"><div className="flex rounded-md border divider bg-white p-0.5 dark:bg-ink-900">{(['3','6'] as const).map(p=><button key={p} onClick={()=>setPeriod(p)} className={`rounded px-2.5 py-1 text-xs font-medium ${period===p?'bg-slate-100 text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{p}M</button>)}</div>
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
         {on('projects')&&<Link href={`/${org}/m/projects?new=1`}><Button variant="primary" size="sm" icon="Plus">New job</Button></Link>}</div>

@@ -16,5 +16,5 @@ export async function POST(req: Request) {
   await confirmAccountEmail(row.user_id);
   const account = await findAccountByEmail(row.email);
   await sendWelcomeForAccount(account || { id: row.user_id, email: row.email, name: row.email.split('@')[0] });
-  return NextResponse.json({ ok: true, message: 'Your email is verified. You can sign in now.' });
+  return NextResponse.json({ ok: true, message: 'Your email is verified.' });
 }

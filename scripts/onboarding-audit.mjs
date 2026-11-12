@@ -98,14 +98,12 @@ async function waitForMeta(page, predicate, label) {
   }
   throw new Error(`timed out waiting for ${label}`);
 }
-async function confirmAccount(email, password) {
-  assert(service, 'service-role client is required to confirm QA accounts');
+async function setInvitePassword(email, password) {
+  assert(service, 'service-role client is required for invitation QA');
   const { data: profile, error } = await service.from('profiles').select('id').eq('email', email).maybeSingle();
   assert(!error && profile?.id, `could not find QA account ${email}`);
-  const update = { email_confirm: true };
-  if (password) update.password = password;
-  const { error: updateError } = await service.auth.admin.updateUserById(profile.id, update);
-  assert(!updateError, `could not confirm QA account ${email}`);
+  const { error: updateError } = await service.auth.admin.updateUserById(profile.id, { password });
+  assert(!updateError, `could not set QA invite password for ${email}`);
   return profile.id;
 }
 
@@ -117,7 +115,7 @@ try {
   const page = await ctx.newPage();
   watch(page);
 
-  await check('signup requires verification and opens the wizard after confirmation', async () => {
+  await check('signup opens the onboarding wizard without email verification', async () => {
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Create account', exact: true }).click();
     await page.locator('input[placeholder="Tendai Muchengeti"]').fill('QA Owner');
@@ -125,16 +123,10 @@ try {
     await page.locator('input[type=email]').fill(email);
     await page.locator('input[type=password]').fill(password);
     await page.locator('form').getByRole('button', { name: /Create account & continue/ }).click();
-    await page.getByRole('heading', { name: 'Check your email' }).waitFor({ timeout: 30000 });
-    await confirmAccount(email);
-    await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    await page.locator('input[type=email]').fill(email);
-    await page.locator('input[type=password]').fill(password);
-    await page.locator('form').getByRole('button', { name: /Sign in/i }).click();
     await page.waitForURL(/\/onboarding/, { timeout: 30000 });
     await page.getByRole('heading', { name: 'Your company' }).waitFor({ timeout: 15000 });
     await page.screenshot({ path: path.join(SHOTS, '17-onboarding-signup.png') });
-    return `verification → confirmed session → ${new URL(page.url()).pathname}`;
+    return `confirmed session → ${new URL(page.url()).pathname}`;
   });
 
   await check('company profile step accepts legal entity, country and currency', async () => {
@@ -270,7 +262,7 @@ try {
     assert(invited, 'invited member missing from meta');
     assert.equal(invited.role, 'VIEWER', 'initial invite role');
     inviteUserId = invited.id;
-    await confirmAccount(inviteEmail, invitePassword);
+    await setInvitePassword(inviteEmail, invitePassword);
 
     const row = page.locator('div.flex.flex-wrap.items-center.gap-3').filter({ hasText: inviteEmail }).first();
     await row.locator('select').first().selectOption('PROJECT_MANAGER');
@@ -302,7 +294,7 @@ try {
     await inviteCtx.close();
 
     await page.screenshot({ path: path.join(SHOTS, '21-team-roles.png') });
-    return 'VIEWER invite → PROJECT_MANAGER · last owner protected · verified invite sign-in';
+    return 'VIEWER invite → PROJECT_MANAGER · last owner protected · invited sign-in';
   });
 
   await check('no uncaught page errors or unexpected console errors', async () => {

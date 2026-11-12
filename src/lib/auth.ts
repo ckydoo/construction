@@ -15,6 +15,7 @@ import {
 export type Membership = { orgId: string; orgSlug: string; orgName: string; role: string; entityId: string | null };
 export type AuthCtx = {
   userId: string; name: string; email: string; role: string; avatarColor: string;
+  emailVerified: boolean;
   orgId: string; orgName: string; orgSlug: string; onboarded: boolean;
   org: any; config: WorkspaceConfig; entityId: string | null;
   memberships: Membership[];
@@ -85,10 +86,10 @@ export async function getAuth(): Promise<AuthCtx | null> {
   const { data: authData, error } = await sb.auth.getUser();
   if (error || !authData?.user) return null;
   const u = authData.user;
-  // Every account must have a confirmed email before it can enter a workspace.
-  // Existing confirmed accounts carry their verification forward; new ones are
-  // gated at sign-in until the one-time link is used.
-  if (!u.email_confirmed_at) return null;
+  // Email verification is optional. Supabase Auth confirmation only makes
+  // password sign-in work; an admin-only app_metadata flag drives the quiet
+  // dashboard reminder. Legacy accounts without the flag stay verified.
+  const emailVerified = u.app_metadata?.email_verified !== false;
 
   const { data: profile } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
   const { data: rows } = await sb
@@ -111,7 +112,7 @@ export async function getAuth(): Promise<AuthCtx | null> {
     name: profile?.name || String(u.user_metadata?.name || u.email || 'User').split('@')[0],
     email: profile?.email || u.email || '',
     role: primary.role,
-    avatarColor: profile?.avatar_color || '#d97706',
+    avatarColor: profile?.avatar_color || '#d97706', emailVerified,
     orgId: org.id, orgName: org.name, orgSlug: org.slug, onboarded: org.onboarded,
     org, config: parseOrgConfig(org), entityId: primary.entityId, memberships,
   };
