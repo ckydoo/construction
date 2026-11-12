@@ -58,6 +58,10 @@ npm run start:prod            # validates Supabase env then starts Next
 
 For Render, see [RENDER_DEPLOY.md](RENDER_DEPLOY.md) and `render.yaml`. For GitHub import instructions see `/home/user/PUSH_TO_GITHUB.md` (workspace-level, not part of this repo).
 
+### Vercel function region
+
+`vercel.json` pins `regions: ["dub1"]` — Vercel's Dublin region, which maps to AWS `eu-west-1`, the same region as the production Supabase project. Keep the function region co-located with Supabase: every signed-in request makes several Auth and PostgREST calls, and a cross-Atlantic hop on each one adds roughly 150–250 ms. Static assets remain on Vercel's global edge regardless of this setting, and a single function region is allowed on the Hobby plan. The two `crons` entries in the same file are unaffected.
+
 ## 5. Post-deploy verification
 
 - `GET /login` → 200, no setup notice.
