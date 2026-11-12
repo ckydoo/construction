@@ -105,6 +105,7 @@ await ok('billing page uses plain-language status and payment copy', () => {
     'Payment needed to keep editing',
     'Editing is paused while payment is overdue',
     'Your 7-day free trial is active',
+    'Plan changes open after your free trial',
     'Continue to workspace',
     'Pay now',
     'USD 6 / 14 / 26',

@@ -1,6 +1,7 @@
-/* Effective-dated plan changes: immediate prorated upgrades and end-of-period
- * downgrades. Every request is audited in billing_plan_changes, and pending
- * invoices are repriced or reissued without deleting billing history. */
+/* Effective-dated plan changes for active subscriptions only: immediate
+ * prorated upgrades and end-of-period downgrades. Trial workspaces are locked to
+ * their selected plan. Every request is audited in billing_plan_changes, and
+ * pending invoices are repriced or reissued without deleting billing history. */
 import {
   billingError, findOrCreateInvoice, getInvoices, getSubscription, invoiceGateway,
   iso, notifyBilling, recordBillingEvent, updateInvoice, upsertSubscription,
@@ -137,8 +138,8 @@ export async function requestPlanChange(
 ): Promise<{ planChange: PlanChangeRow; invoice: BillingInvoice | null; applied: boolean; message: string }> {
   if (!isPlanId(requestedPlan)) billingError('Choose Starter, Pro or Enterprise.', 400);
   const toPlan: PlanId = requestedPlan;
-  if (!['trialing', 'active', 'comped'].includes(sub.status)) {
-    billingError('Plan changes are available on an active or trial subscription.', 409);
+  if (sub.status !== 'active') {
+    billingError('Plan changes are available after the free trial, once your subscription is active.', 409);
   }
   const direction = planChangeDirection(sub.plan_id, toPlan);
   if (direction === 'same') billingError('That is already the current plan.', 409);

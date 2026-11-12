@@ -572,7 +572,7 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
     comped: status === 'comped',
     priceBookVersion: PRICE_BOOK_VERSION, planChangePolicy: PLAN_CHANGE_POLICY,
     paymentDueAt: iso(dueRow.data?.due_at) || null,
-    canChangePlan: ['trialing','active','comped'].includes(status),
+    canChangePlan: status === 'active',
     pendingPlanChange,
   };
 }

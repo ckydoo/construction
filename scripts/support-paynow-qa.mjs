@@ -84,12 +84,16 @@ await check('Paynow is primary in runtime code and UI', async () => {
   assert.match(page, /Your 7-day free trial is active/);
   assert.doesNotMatch(page, /Shadow mode|primary subscription rail|webhooks|tokenisation|environment keys|callback secrets|Stripe was removed|grandfathered comped|BILLING_ENABLED|DPO fallback configured|Saved DPO payment token/);
   assert.doesNotMatch(page, /DPO Pay primary/);
+  const planChange = read('src/lib/billing-plan-change.ts');
+  assert.match(planChange, /sub\.status !== 'active'/);
+  assert.match(billing, /canChangePlan: status === 'active'/);
+  assert.match(page, /Plan changes open after your free trial/);
   const paynow = read('src/lib/paynow-billing.ts');
   assert.match(paynow, /validateInvoiceAmount\(input\.invoice, input\.planId\)/);
   const cron = read('src/lib/billing-cron.ts');
   assert.match(cron, /invoice is already available in Billing/);
   assert.match(cron, /Pay USD .* by Paynow/);
-  return 'primaryGateway paynow · plain-language billing UI';
+  return 'primaryGateway paynow · plain-language billing UI · trial plan changes locked';
 });
 
 await check('DPO code, webhooks, env keys and fallback QA remain configured', async () => {

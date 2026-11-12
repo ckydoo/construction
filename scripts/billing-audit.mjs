@@ -1,6 +1,7 @@
 /* Local subscription QA for the USD 6/14/26 price book, 7-day no-card trial,
- * early trial payment, immediate prorated upgrades, scheduled downgrades and the
- * retained DPO Pay v6 fallback mock. Paynow remains the runtime primary; this
+ * early trial payment, trial-locked plan changes, immediate prorated upgrades,
+ * scheduled downgrades for active subscriptions and the retained DPO Pay v6
+ * fallback mock. Paynow remains the runtime primary; this
  * suite explicitly selects the local DPO mock so the fallback rail stays
  * covered. No live keys, no network charge, no Stripe. Run against a server
  * started with BILLING_QA_MODE=true DPO_MOCK=true DPO_RECURRING_ENABLED=true
@@ -101,6 +102,14 @@ try {
     return slug;
   });
 
+  await check('a plan can be chosen before the free trial begins', async () => {
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'selectPlan', planId: 'PRO' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.plan_id, 'PRO');
+    assert.equal(r.body.subscription.status, 'trial_required');
+    return 'Pro selected while trial_required · no invoice yet';
+  });
+
   await check('onboarding starts an empty 7-day trial and returns Billing', async () => {
     const r = await app('/api/onboarding', { method: 'POST', body: JSON.stringify({
       companyType: 'GENERAL_CONTRACTOR', size: 'MID', headcount: 50,
@@ -123,6 +132,8 @@ try {
     assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [6, 14, 26]);
     assert.equal(r.body.billing.trialDays, 7);
     assert.equal(r.body.billing.trialRequiresCard, false);
+    assert.equal(r.body.billing.plan, 'PRO');
+    assert.equal(r.body.billing.canChangePlan, false, 'trial plan changes are locked');
     assert.equal(r.body.config.primaryGateway, 'paynow');
     assert.equal(r.body.config.paynowPrimary, true);
     assert.equal(r.body.config.dpoCheckoutAvailable, true);
@@ -131,12 +142,13 @@ try {
     const state = await qaState();
     assert.equal(state.subscription.metadata.trialType, 'no_card_7');
     assert.equal(state.subscription.metadata.cardRequired, false);
+    assert.equal(state.subscription.plan_id, 'PRO');
     assert.equal(state.invoices.filter(i => i.status === 'pending').length, 1,
       'one prepay invoice exists during the trial');
-    assert.equal(Number(state.invoices[0].amount_usd).toFixed(2), '6.00');
+    assert.equal(Number(state.invoices[0].amount_usd).toFixed(2), '14.00');
     assert.equal(state.invoices[0].metadata.prepayAfterTrial, true);
     assert.equal(state.invoices[0].metadata.invoiceKind, 'subscription_prepay');
-    return '6 / 14 / 26 USD · 7-day trial · one USD 6.00 prepay invoice';
+    return '6 / 14 / 26 USD · 7-day Pro trial · one USD 14.00 prepay invoice · changes locked';
   });
 
   await check('trial workspace has full write access', async () => {
@@ -160,40 +172,42 @@ try {
     return 'Paynow default retained · one mock invoice · fallback selected';
   });
 
-  await check('upgrade during trial is immediate and reprices the prepay month', async () => {
-    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'PRO' }) });
-    assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.subscription.plan_id, 'PRO');
+  await check('trial upgrades are blocked without changing plan or invoice', async () => {
+    const before = await qaState();
+    const billingBefore = await app(`/api/${slug}/billing`);
+    assert.equal(billingBefore.body.billing.canChangePlan, false);
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'ENTERPRISE' }) });
+    assert.equal(r.res.status, 409, JSON.stringify(r.body));
+    assert.match(String(r.body.error || ''), /after the free trial/i);
     const state = await qaState();
+    assert.equal(state.subscription.plan_id, 'PRO');
+    assert.equal(state.subscription.pending_plan_id, null);
+    assert.equal(state.invoices.length, before.invoices.length, 'no invoice created');
     const pending = state.invoices.filter(i => i.status === 'pending');
-    assert.equal(pending.length, 1, 'no duplicate or adjustment invoice during trial upgrade');
+    assert.equal(pending.length, 1, 'one prepay invoice unchanged');
     assert.equal(pending[0].plan_id, 'PRO');
     assert.equal(Number(pending[0].amount_usd).toFixed(2), '14.00');
     const billing = await app(`/api/${slug}/billing`);
     assert.equal(billing.body.billing.plan, 'PRO');
     assert.equal(billing.body.billing.pendingPlanChange, null);
-    return 'Starter → Pro immediately · USD 14.00 · no duplicate invoice';
+    return '409 · Pro / USD 14.00 unchanged · no plan-change row';
   });
 
-  await check('downgrade is scheduled at period end and can be cancelled', async () => {
+  await check('trial downgrades are blocked without scheduling a change', async () => {
     const before = await qaState();
-    const trialEnd = before.subscription.trial_ends_at;
     const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'STARTER' }) });
-    assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.subscription.plan_id, 'PRO', 'current plan unchanged');
-    assert.equal(r.body.subscription.pending_plan_id, 'STARTER');
-    const scheduled = await app(`/api/${slug}/billing`);
-    assert.equal(scheduled.body.billing.pendingPlanChange.direction, 'downgrade');
-    assert.equal(scheduled.body.billing.pendingPlanChange.toPlan, 'STARTER');
-    assert.ok(new Date(scheduled.body.billing.pendingPlanChange.effectiveAt) > new Date());
-    const cancel = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'cancelPlanChange' }) });
-    assert.equal(cancel.res.status, 200, JSON.stringify(cancel.body));
+    assert.equal(r.res.status, 409, JSON.stringify(r.body));
+    assert.match(String(r.body.error || ''), /after the free trial/i);
     const state = await qaState();
     assert.equal(state.subscription.plan_id, 'PRO');
     assert.equal(state.subscription.pending_plan_id, null);
-    assert.equal(state.subscription.trial_ends_at, trialEnd);
+    assert.equal(state.invoices.length, before.invoices.length, 'no invoice created');
     assert.equal(state.invoices.filter(i => i.status === 'pending').length, 1);
-    return 'Pro retained until period end · cancellation restores one pending invoice';
+    const billing = await app(`/api/${slug}/billing`);
+    assert.equal(billing.body.billing.pendingPlanChange, null);
+    const cancel = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'cancelPlanChange' }) });
+    assert.equal(cancel.res.status, 404, JSON.stringify(cancel.body));
+    return '409 · no scheduled downgrade · cancellation correctly reports none';
   });
 
   await check('payment during the trial preserves the full 7-day trial', async () => {
@@ -299,6 +313,30 @@ try {
     return `Pro → Enterprise immediately · USD ${amount.toFixed(2)} proration · exact-amount payment verified`;
   });
 
+  await check('active downgrade is scheduled at period end and can be cancelled', async () => {
+    const before = await qaState();
+    const periodEnd = before.subscription.current_period_end;
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'PRO' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.plan_id, 'ENTERPRISE', 'current plan unchanged');
+    assert.equal(r.body.subscription.pending_plan_id, 'PRO');
+    const scheduled = await app(`/api/${slug}/billing`);
+    assert.equal(scheduled.body.billing.canChangePlan, true);
+    assert.equal(scheduled.body.billing.pendingPlanChange.direction, 'downgrade');
+    assert.equal(scheduled.body.billing.pendingPlanChange.toPlan, 'PRO');
+    assert.equal(new Date(scheduled.body.billing.pendingPlanChange.effectiveAt).toISOString(), new Date(periodEnd).toISOString());
+    assert.ok(new Date(scheduled.body.billing.pendingPlanChange.effectiveAt) > new Date());
+    const cancel = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'cancelPlanChange' }) });
+    assert.equal(cancel.res.status, 200, JSON.stringify(cancel.body));
+    const state = await qaState();
+    assert.equal(state.subscription.plan_id, 'ENTERPRISE');
+    assert.equal(state.subscription.pending_plan_id, null);
+    assert.equal(state.invoices.length, before.invoices.length, 'no invoice created or cancelled');
+    const after = await app(`/api/${slug}/billing`);
+    assert.equal(after.body.billing.pendingPlanChange, null);
+    return 'Enterprise retained until period end · cancellation restores current plan';
+  });
+
   await check('grace expiry hard locks without deleting data', async () => {
     await qa('/api/qa/billing/expire', { orgSlug: slug, mode: 'grace' });
     await cron();
@@ -317,7 +355,7 @@ try {
   fs.writeFileSync(CLEANUP, cleanupSql());
   const passed = results.filter((r) => r.ok).length;
   const rows = results.map((r) => `| ${r.ok ? 'PASS' : 'FAIL'} | ${r.name} | ${String(r.detail).replace(/\|/g, '\\|')} |`).join('\n');
-  fs.writeFileSync(REPORT, `# MYLA USD 6/14/26 billing QA\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 fallback mock against \`${BASE}\`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
+  fs.writeFileSync(REPORT, `# MYLA USD 6/14/26 billing QA — trial plan changes locked\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 fallback mock against \`${BASE}\`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   console.log(`Cleanup SQL: ${CLEANUP}`);
   if (failed) process.exit(1);

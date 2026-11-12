@@ -26,6 +26,9 @@ configuration surface.
 
 - Onboarding starts empty: **“Try it with sample data” is off by default**.
   Explicitly opting in still seeds the demo dataset.
+- Before the trial begins, the Owner can choose Starter, Pro or Enterprise.
+  Once the trial is active, that plan is locked until the subscription becomes
+  active.
 - Immediately after onboarding, a **7-day no-card trial** starts automatically
   and the Owner lands on **Billing**, with a clear choice to pay now or continue
   to the workspace.
@@ -41,9 +44,13 @@ configuration surface.
 
 ## Plan changes
 
-- **Upgrade:** effective immediately. During a trial, the prepay invoice is
-  repriced to the new plan. During a paid period, a prorated adjustment invoice
-  is created for the unused portion; the audited change remains
+- Plan changes are **locked during the 7-day free trial**. Billing hides
+  upgrade/downgrade controls while `status='trialing'`, and the API rejects
+  `changePlan` with `409`; no plan-change row, invoice repricing, proration or
+  notification is created. The plan chosen before the trial stays in place.
+- Once the subscription is `active`, Owner/Admin can change plans.
+- **Upgrade:** effective immediately during a paid period. A prorated adjustment
+  invoice is created for the unused portion; the audited change remains
   `payment_pending` until that exact amount is verified paid. Entitlements and
   limits follow the new plan immediately.
 - **Downgrade:** effective at the current period end. The current plan and

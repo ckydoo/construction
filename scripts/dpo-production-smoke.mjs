@@ -112,6 +112,7 @@ try {
     assert.equal(r.body.billing.trialRequiresCard, false);
     assert.equal(r.body.billing.priceBookVersion, 'USD_6_14_26_V1');
     assert.equal(r.body.billing.planChangePolicy, 'upgrade_immediate_prorated_downgrade_period_end');
+    assert.equal(r.body.billing.canChangePlan, true);
     assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [6, 14, 26]);
     assert.ok(r.body.billing.paymentDueAt, 'one payable invoice is present');
     assert.equal(r.body.config.dpoCheckoutAvailable, false);
