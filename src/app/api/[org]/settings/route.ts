@@ -58,6 +58,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     }
     return NextResponse.json({ ok: true, org: { name: data.name }, ...(currency ? { currency } : {}) });
   }
+  if (b.action === 'updateTax') {
+    if (typeof b.enabled !== 'boolean' || typeof b.rate !== 'number' || !Number.isFinite(b.rate) || b.rate < 0 || b.rate > 100 || (b.enabled && b.rate <= 0)) {
+      return NextResponse.json({ error: 'Choose a tax rate greater than zero and at most 100% when enabling tax.' }, { status: 400 });
+    }
+    const tax = { enabled: b.enabled, rate: b.rate };
+    const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}), tax };
+    const { error } = await sb.from('organizations').update({ config: cfg }).eq('id', a.orgId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 403 });
+    await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings', `Updated tax defaults: ${tax.enabled ? `${tax.rate}%` : 'off'}`);
+    return NextResponse.json({ ok: true, tax, message: 'Tax defaults saved for new records. Existing records are unchanged.' });
+  }
   if (b.action === 'updateCompany') {
     const company = normaliseCompanyProfile(b.company, a.org);
     company.updatedAt = new Date().toISOString();
@@ -260,7 +271,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     for (const raw of rows.slice(0, 200)) {
       // CSV import must not be able to forge Convert to… provenance links.
       const row: Record<string, any> = Object.fromEntries(Object.entries(raw).filter(([k]) => !hidden.has(k)));
-      const r = await createRecord(a.orgId, a.userId, a.name, def, row, a.config.limits);
+      const r = await createRecord(a.orgId, a.userId, a.name, def, row, a.config.limits, a.config.tax);
       if (r.ok) ok++; else failed++;
     }
     return NextResponse.json({ ok: true, message: `Imported ${ok} records${failed ? `, ${failed} skipped (validation)` : ''}` });

@@ -247,7 +247,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     page.drawLine({ start: { x: M, y }, end: { x: A4W - M, y }, thickness: 0.8, color: LINE }); y -= 18;
   }
   function drawIntro() {
-    y = drawWrapped(`Dear ${partyName},\n\n${company.quoteIntro}`, M, TABLE_W, 9.5, font, INK, 14);
+    y = drawWrapped(`Dear ${partyName},\n\n${resource === 'arInvoices' ? 'Please find your tax invoice below.' : company.quoteIntro}`, M, TABLE_W, 9.5, font, INK, 14);
     y -= 8;
   }
   function drawPaymentNotice() {

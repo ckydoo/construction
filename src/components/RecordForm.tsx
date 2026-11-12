@@ -9,15 +9,17 @@ import { visibleFields, type ConfigLike } from '@/lib/module-visibility';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
 import { validateFields } from '@/lib/field-validation';
+import { taxDefault } from '@/lib/tax-settings';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
 
-export function initialValues(def:ResourceDef, row?:any, defaultProjectId?:string){
+export function initialValues(def:ResourceDef, row?:any, defaultProjectId?:string, tax?:unknown){
   const v:Record<string,any>={};
   for(const f of def.fields){
     const cur = row?.[f.key];
     v[f.key] = cur!==undefined&&cur!==null ? cur : (f.defaultValue ?? (f.type==='tags'?[]:''));
   }
+  if(!row && def.fields.some(f=>f.key==='vatPct')) v.vatPct=taxDefault(tax);
   if(def.fields.some(f=>f.key==='projectId') && !v.projectId && defaultProjectId) v.projectId=defaultProjectId;
   if(def.statusOptions&&!v.status) v.status=def.statusOptions[0];
   return v;
@@ -34,7 +36,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   // Until workspace settings arrive, keep every non-hidden field visible. A
   // blank fallback config would hide required ref fields such as Job / project.
   const fields=useMemo(()=>config?visibleFields(def,config):def.fields.filter(f=>!f.hidden),[def,config]);
-  useEffect(()=>{ if(open){ setValues(initialValues(def,initial,defaultProjectId)); setErrors({}); } },[open,initial,def,defaultProjectId]);
+  useEffect(()=>{ if(open){ setValues(initialValues(def,initial,defaultProjectId,meta?.config?.tax)); setErrors({}); } },[open,initial,def,defaultProjectId,meta?.config?.tax]);
   useEffect(()=>{ if(serverErrors) setErrors(serverErrors); },[serverErrors]);
   const set=(k:string,v:any)=>{ setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
   const submit=(e:React.FormEvent)=>{

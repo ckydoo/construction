@@ -11,6 +11,7 @@ import { rowAllowed, type Scope } from './access';
 import { normaliseLines, financialTotalsPatch } from './financial';
 import { projectLimitMessage } from './billing-limits';
 import { recordInvariantErrors } from './record-invariants';
+import { taxDefault } from './tax-settings';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
 
@@ -177,7 +178,12 @@ async function deriveInvoiceClient(orgId: string, def: ResourceDef, input: Recor
   return clientId ? { ...input, clientId } : input;
 }
 
-export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}) {
+export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}, tax?:unknown) {
+  // Apply workspace defaults on the server too, including API and CSV imports.
+  // Explicit transaction rates remain attached to that transaction.
+  if (['arInvoices','purchaseOrders'].includes(def.id) && (input.vatPct === undefined || input.vatPct === null || input.vatPct === '')) {
+    input = { ...input, vatPct: taxDefault(tax) };
+  }
   if (def.id === 'arInvoices' && input.amountPaid != null && input.amountPaid !== '' && (!Number.isFinite(Number(input.amountPaid)) || Number(input.amountPaid) !== 0)) return { ok:false as const, errors:{ amountPaid:'Paid amount cannot be set without payment reconciliation.' } };
   const limitMessage = await projectLimitMessage(orgId, def.id, limits);
   if (limitMessage) return { ok:false as const, errors:{ _: limitMessage }, status:402 as const };

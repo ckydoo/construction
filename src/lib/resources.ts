@@ -158,7 +158,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('purchaseOrders','Orders to suppliers','Order','procurement','Materials & suppliers','ShoppingCart','PO','name',
     'Purchase orders with approvals, commitments and receipt status.',
-    [T('name','Order description',{required:true}),PRJ(true),R('vendorId','Supplier','vendors'),R('requisitionId','Material request','requisitions'),D('orderDate','Order date'),D('deliveryDate','Required delivery'),C('amount','Order value'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),N('vatPct','VAT (%)',{defaultValue:15}),IT('items','Itemised lines'),R('approvedBy','Approved by','employees'),STS(PO_STATUSES,'DRAFT')],
+    [T('name','Order description',{required:true}),PRJ(true),R('vendorId','Supplier','vendors'),R('requisitionId','Material request','requisitions'),D('orderDate','Order date'),D('deliveryDate','Required delivery'),C('amount','Order value'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),N('vatPct','VAT (%)',{defaultValue:0}),IT('items','Itemised lines'),R('approvedBy','Approved by','employees'),STS(PO_STATUSES,'DRAFT')],
     ['number','name','projectId','vendorId','amount','deliveryDate','status'],{projectScoped:true,statusOptions:PO_STATUSES,amountKey:'amount',dateKey:'orderDate'}),
 
   d('goodsReceipts','Delivery notes','Delivery note','procurement','Materials & suppliers','PackageCheck','GRN','name',
@@ -276,7 +276,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('arInvoices','Client invoices','Tax invoice','finance','Money & invoices','FileText','INV','name',
     'Accounts receivable invoices, VAT and ageing.',
-    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date',{readOnly:true,hint:'Recorded from reconciled payments when available'}),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
+    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:0}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date',{readOnly:true,hint:'Recorded from reconciled payments when available'}),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
     ['number','name','clientId','projectId','invoiceDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'invoiceDate'}),
 
   d('paymentApps','Payment certificates','Payment certificate','billing','Money & invoices','Receipt','PC','name',

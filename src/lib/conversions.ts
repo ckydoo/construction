@@ -13,8 +13,9 @@
 import { RESOURCE_MAP } from './resources';
 import { normaliseLines } from './financial';
 import { SOURCE_KEYS } from './conversion-chain';
+import { taxDefault } from './tax-settings';
 
-export type BuildCtx = { today: string; addDays: (days: number) => string };
+export type BuildCtx = { today: string; addDays: (days: number) => string; taxRate: number };
 export type ConversionAlso = {
   resource: string;
   label: string;
@@ -228,7 +229,7 @@ export const CONVERSION_RULES: ConversionRule[] = [
       clientId: ref(s.clientId),
       invoiceDate: c.today,
       dueDate: c.addDays(30),
-      vatPct: 15,
+      vatPct: c.taxRate,
       taxInvoiceNo: '',
       amountPaid: 0,
       currency: text(s.currency) || 'USD',
@@ -243,7 +244,7 @@ export const CONVERSION_RULES: ConversionRule[] = [
     build: (s, c) => {
       const net = Number(s.netCertified ?? s.grossCertified) || 0;
       const vat = Number(s.vatAmount) || 0;
-      const vatPct = net && vat ? round2((vat / net) * 100) : 15;
+      const vatPct = c.taxRate ? (net && vat ? round2((vat / net) * 100) : c.taxRate) : 0;
       return {
         name: `Tax invoice – ${titleOf(s)}`,
         projectId: ref(s.projectId),
@@ -286,10 +287,11 @@ export const CONVERSION_RULES: ConversionRule[] = [
   },
 ];
 
-export function buildContext(): BuildCtx {
+export function buildContext(tax?: unknown): BuildCtx {
   const today = new Date().toISOString().slice(0, 10);
   return {
     today,
+    taxRate: taxDefault(tax),
     addDays: (days: number) => {
       const d = new Date(`${today}T00:00:00Z`);
       d.setUTCDate(d.getUTCDate() + days);

@@ -255,7 +255,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
         </div>)}
       </div>
 
-      <p className="fp-intro">Dear {partyName}, {company.quoteIntro}</p>
+      <p className="fp-intro">Dear {partyName}, {resource === 'arInvoices' ? 'Please find your tax invoice below.' : company.quoteIntro}</p>
 
       {isFinancial && <div className="fp-notice">
         <div className="fp-notice-label">Payment notice</div>

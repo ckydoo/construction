@@ -38,6 +38,7 @@ export default function SettingsPage(){
   const config=meta?.config||{modules:[],resources:[]};
   const csvDefs=(meta?.resources||[]).filter((r:any)=>resourceFullyEnabled(config,r.id));
   const [currencyForm,setCurrencyForm]=useState<any>(null);
+  const [taxForm,setTaxForm]=useState<{enabled:boolean;rate:string}>({enabled:false,rate:''});
   const [fxExample,setFxExample]=useState('1000');
   useEffect(()=>{
     const requested = new URLSearchParams(window.location.search).get('tab');
@@ -50,6 +51,7 @@ export default function SettingsPage(){
     setType(meta.org.companyType||'GENERAL_CONTRACTOR');setSize(meta.org.size||'SMALL');
     setCurrencyForm(normaliseCurrencyConfig(meta.org.currency, meta.org.baseCurrency));
     setCompanyForm(meta.org.company||{});
+    setTaxForm({enabled:meta.config?.tax?.enabled===true,rate:meta.config?.tax?.rate ? String(meta.config.tax.rate) : ''});
   } },[meta]);
   const grouped=useMemo(()=>{const g:Record<string,any[]>={};for(const m of meta?.modules||[])(g[m.group]||=[]).push(m);
     const ordered:Record<string,any[]>={};for(const name of SECTION_GROUP_ORDER)if(g[name])ordered[name]=g[name];
@@ -89,7 +91,12 @@ export default function SettingsPage(){
     <div><h1 className="heading">Settings</h1><p className="caption mt-1">Company details, which sections are on, who can use them, and your data.</p></div>
     <Tabs tabs={TABS} active={tab} onChange={setTab}/>
 
-    {tab==='general'&&<Card><CardHead title="Company details" subtitle="Used on invoices, reports and documents"/>
+    {tab==='general'&&<div className="space-y-4"><Card><CardHead title="Tax defaults" subtitle="Off by default. Applies to new invoices and purchase orders; existing records are not changed. Choose the rate applicable to your business."/>
+      <form className="space-y-4 p-4" onSubmit={e=>{e.preventDefault(); const rate=Number(taxForm.rate); if(taxForm.enabled&&(!Number.isFinite(rate)||rate<=0||rate>100)){toast.push({tone:'error',title:'Enter a tax rate between 0 and 100%'});return;} send('updateTax',{enabled:taxForm.enabled,rate:taxForm.rate===''?0:rate});}}>
+        <Toggle checked={taxForm.enabled} onChange={enabled=>setTaxForm(v=>({...v,enabled}))} label="Enable tax for new records"/>
+        <Field label="Default tax rate (%)"><input className="input" type="number" min="0" max="100" step="any" value={taxForm.rate} onChange={e=>setTaxForm(v=>({...v,rate:e.target.value}))}/></Field>
+        <Button type="submit" variant="primary" loading={busy}>Save tax defaults</Button>
+      </form></Card><Card><CardHead title="Company details" subtitle="Used on invoices, reports and documents"/>
       <form onSubmit={saveGeneral} className="grid gap-4 p-4 sm:grid-cols-2">
         <Field label="Trading name" required><input className="input" value={form.name||''} onChange={e=>setForm({...form,name:e.target.value})}/></Field>
         <Field label="Legal name"><input className="input" value={form.legalName||''} onChange={e=>setForm({...form,legalName:e.target.value})}/></Field>
@@ -98,7 +105,7 @@ export default function SettingsPage(){
         <Field label="Base currency"><select className="select" value={form.baseCurrency||'USD'} onChange={e=>setForm({...form,baseCurrency:e.target.value})}>{CURRENCY_CODES.map(c=><option key={c} value={c}>{c} · {CURRENCY_LABELS[c]}</option>)}</select></Field>
         <Field label="Headcount"><input className="input" type="number" value={form.headcount||''} onChange={e=>setForm({...form,headcount:e.target.value})}/></Field>
         <div className="sm:col-span-2"><Button type="submit" variant="primary" loading={saving} icon="Save">Save changes</Button></div>
-      </form></Card>}
+      </form></Card></div>}
 
     {tab==='branding'&&<div className="space-y-4">
       <Card><CardHead title="Your company on financial documents" subtitle="Quotations, invoices, bills, certificates, receipts and orders use these details and your own logo"/>

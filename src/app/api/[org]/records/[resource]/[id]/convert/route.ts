@@ -120,10 +120,13 @@ export async function GET(_req: Request, { params }: Ctx) {
     sourceNumber: src.sourceNumber, sourceLabel: src.sourceLabel,
   };
   const children = all.filter(r => r.sourceId === id && r.sourceResource === resource);
-  const ctx = buildContext();
+  const ctx = buildContext(a.config.tax);
   const sourceRow = { ...src, id, resource, title: src.title || src.name || src.subject };
 
   const options = CONVERSION_RULES
+    // Receipt creation and invoice settlement are not yet atomic. Do not
+    // advertise this conversion until allocation and reconciliation exist.
+    .filter(r => r.id !== 'invoice-to-receipt')
     .filter(r => r.from === resource && ruleAvailable(a, r))
     .map(r => {
       const existing = children.find(c => c.resource === r.to);
@@ -145,8 +148,19 @@ export async function GET(_req: Request, { params }: Ctx) {
       };
     });
 
+  const chain = buildChain(current, all);
+  // A client may be linked as a master record without being the provenance
+  // parent. Resolve it with the same read and row-scope checks as other views.
+  const clientStage = chain.find(stage => stage.id === 'clients');
+  if (clientStage && !clientStage.record && src.clientId && !readGuard(a.config, a.role, 'clients')) {
+    const linked = await getRecord(a.orgId, 'clients', String(src.clientId), scope);
+    if (linked) {
+      clientStage.state = 'done';
+      clientStage.record = { id: linked.id, number: linked.number, title: linked.title || linked.name, status: linked.status };
+    }
+  }
   return NextResponse.json({
-    chain: buildChain(current, all),
+    chain,
     options,
     convertedFrom: current.sourceId ? {
       resource: current.sourceResource, id: current.sourceId,
@@ -164,6 +178,11 @@ export async function POST(req: Request, { params }: Ctx) {
   const body = await req.json().catch(() => ({}));
   const rule = CONVERSION_RULES.find(r => r.id === String(body.to || '') && r.from === resource);
   if (!rule) return NextResponse.json({ error: 'Unknown conversion' }, { status: 400 });
+  // Reject stale clients and direct requests as well as hiding the UI option.
+  // A receipt must not be created until it can be allocated and settled atomically.
+  if (rule.id === 'invoice-to-receipt') {
+    return NextResponse.json({ error: 'Invoice receipt conversion is temporarily unavailable pending payment reconciliation.' }, { status: 409 });
+  }
 
   const g = billingGuard(a, { write: true })
     || readGuard(a.config, a.role, resource)
@@ -190,11 +209,11 @@ export async function POST(req: Request, { params }: Ctx) {
     existing: { id: duplicate.id, number: duplicate.number, title: duplicate.title, href: hrefFor(org, { id: duplicate.id, resource: rule.to }) },
   }, { status: 409 });
 
-  const ctx = buildContext();
+  const ctx = buildContext(a.config.tax);
   const sourceRow = { ...src, id, resource, title: src.title || src.name || src.subject };
   const targetDef = getResource(rule.to)!;
   const payload = { ...rule.build(sourceRow, ctx), ...provenance(resource, sourceRow) };
-  const created = await createRecord(a.orgId, a.userId, a.name, targetDef, payload, a.config.limits);
+  const created = await createRecord(a.orgId, a.userId, a.name, targetDef, payload, a.config.limits, a.config.tax);
   if (!created.ok) return NextResponse.json({ error: 'Could not create the next record', errors: created.errors }, { status: created.status || 400 });
 
   const rows: any[] = [created.row];
@@ -204,7 +223,7 @@ export async function POST(req: Request, { params }: Ctx) {
       ...step.build(sourceRow, created.row, ctx),
       ...provenance(rule.to, { ...created.row, title: created.row.title || created.row.name }),
     };
-    const made = await createRecord(a.orgId, a.userId, a.name, stepDef, stepPayload, a.config.limits);
+    const made = await createRecord(a.orgId, a.userId, a.name, stepDef, stepPayload, a.config.limits, a.config.tax);
     if (!made.ok) {
       // Keep the flow atomic from the user's point of view: undo the primary.
       await deleteRecord(a.orgId, a.userId, a.name, targetDef, created.row.id);

@@ -75,7 +75,7 @@ export default function ProjectPage(){
   const kpis:[string,string][]=[
     ['Contract value',formatMoney(d?.contractValue ?? p.contractValue,cur)],
     ['Cost to date',formatMoney(d?.costToDate ?? p.costToDate,cur)],
-    ['Projected margin',formatMoney(margin,cur)],
+    ['Contract less cost to date (not profit)',formatMoney(margin,cur)],
   ];
   const billedOn=on('arInvoices'), certifiedOn=on('paymentApps');
   if(billedOn||certifiedOn){

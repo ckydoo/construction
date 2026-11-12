@@ -146,7 +146,16 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       return {prev};
     },
     onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); if(editing) setServerErrors(e.details); const details=e.details && typeof e.details==='object' ? Object.values(e.details).filter((v):v is string=>typeof v==='string').join(' ') : ''; toast.push({tone:'error',title:'Could not save changes',description:details || userMessage(e, 'We couldn’t save those changes. Please try again.')}); },
-    onSuccess:()=>{ if(!editing)toast.push({tone:'success',title:`${def.singular} updated`}); else {setFormOpen(false);setEditing(null);toast.push({tone:'success',title:'Changes saved'});} setServerErrors(undefined); },
+    onSuccess:async(r:any)=>{
+      // Server-side calculations can change totals beyond the submitted fields.
+      // Replace optimistic values with the authoritative row before confirming.
+      if(r?.row){
+        qc.setQueriesData({queryKey:['records',org,resource]},(old:any)=>old?.rows?{...old,rows:old.rows.map((item:any)=>item.id===r.row.id?r.row:item)}:old);
+        setDetailRow((d:any)=>d?.id===r.row.id?r.row:d);
+      }
+      await qc.invalidateQueries({queryKey:['records',org,resource]});
+      if(!editing)toast.push({tone:'success',title:`${def.singular} updated`}); else {setFormOpen(false);setEditing(null);toast.push({tone:'success',title:'Changes saved'});} setServerErrors(undefined);
+    },
     onSettled:invalidate });
   const deleteMut=useMutation({ mutationFn:(id:string)=>apiSend(orgApi(org,`records/${resource}/${id}`),'DELETE'),
     onMutate:async(id:string)=>{ await qc.cancelQueries({queryKey:['records',org,resource]}); const prev=qc.getQueryData(listKey);

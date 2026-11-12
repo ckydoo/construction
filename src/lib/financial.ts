@@ -199,7 +199,7 @@ export function financialTotalsPatch(resourceId: string, current: Record<string,
     const markup = n(current.markup);
     patch.total = round2(subtotal * (1 + markup / 100));
   } else if (resourceId === 'arInvoices' || resourceId === 'apBills' || resourceId === 'purchaseOrders') {
-    const vatPct = n(current.vatPct ?? (resourceId === 'purchaseOrders' ? 15 : 0));
+    const vatPct = n(current.vatPct ?? 0);
     const vat = round2(subtotal * vatPct / 100);
     if (cfg.vatKey) patch[cfg.vatKey] = vat;
     patch.total = round2(subtotal + vat);

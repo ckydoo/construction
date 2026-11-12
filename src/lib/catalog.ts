@@ -123,6 +123,7 @@ export type WorkspaceConfig = {
     updatedBy?: string | null;
   };
   company?: CompanyProfile;
+  tax?: { enabled: boolean; rate: number };
 };
 
 export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
