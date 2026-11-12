@@ -38,6 +38,7 @@
     "audit:features": "node scripts/feature-audit.mjs",
     "audit:finance": "node scripts/finance-module-audit.mjs",
     "audit:billing": "node scripts/billing-audit.mjs",
+    "audit:sample-data": "node scripts/sample-data-default-qa.mjs",
     "audit:dpo-prod": "node scripts/dpo-production-smoke.mjs",
     "audit:platform-config": "node scripts/platform-config-qa.mjs",
     "audit:convert": "node scripts/conversion-qa.mjs",

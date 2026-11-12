@@ -1,7 +1,17 @@
 # Platform-owner billing configuration (stage-only backend v1)
 
 **Status: implemented in the database and HTTP API, deliberately NOT wired into
-the billing runtime.** This is the layer the platform owner superadmin uses to
+the billing runtime.**
+
+> **Current v3 policy (supersedes the original seed values below):** the live
+> `billing_pricing_plan_changes_v3` migration set staged settings to
+> `billing_enabled=true`, `trial_days=7`, `active_gateway='paynow'`; enabled the
+> Paynow gateway in live mode; created effective-dated active price versions of
+> **USD 6 / 14 / 26**; and cleared all comped overrides. The billing runtime
+> still reads `src/lib/billing-plans.ts` and encrypted environment variables,
+> not these staged tables. See `BILLING_SETUP.md`.
+
+This is the layer the platform owner superadmin uses to
 configure subscription pricing, DPO/Paynow requirements and billing enablement.
 Company/tenant members cannot read or change it. No superadmin UI, no runtime
 behaviour change, no env/Vercel change, no deployment, no live charges or locks
@@ -35,11 +45,11 @@ superadmin role; this layer is intentionally separate from tenancy.
 | Table | Purpose |
 |---|---|
 | `platform_admins` | Active/revoked superadmin identities; `user_id` FK to `auth.users ON DELETE CASCADE`. |
-| `platform_settings` | Single row (`id=1`): staged `billing_enabled`, `trial_days=14`, `grace_days=3`, `currency='USD'`, `tax_included=false`, `active_gateway='dpo'`, `pricing_model='tiered'`, `maintenance_mode=false`. |
-| `gateway_config` | One row per `dpo`/`paynow`/`mock`: non-secret `enabled`, `mode` (`shadow`/`sandbox`/`live`), URLs/paths, service type, approval/readiness booleans, `requirements` JSON. All seeded disabled/`shadow`. |
-| `pricing_plans` | Effective-dated price versions. Seeded `STARTER 9.00`, `PRO 29.00`, `ENTERPRISE 99.00` USD/month, all active. Unique active version per `plan_id`; `active_pricing_plans` view (service-role only). |
+| `platform_settings` | Single row (`id=1`): current staged values are `billing_enabled=true`, `trial_days=7`, `grace_days=3`, `currency='USD'`, `tax_included=false`, `active_gateway='paynow'`, `pricing_model='tiered'`. Original v1 seed was `trial_days=14`, `billing_enabled=false`, `active_gateway='dpo'`. |
+| `gateway_config` | One row per `dpo`/`paynow`/`mock`: non-secret `enabled`, `mode` (`shadow`/`sandbox`/`live`), URLs/paths, service type, approval/readiness booleans, `requirements` JSON. Paynow is currently enabled/`live`; DPO and mock remain disabled/`shadow`. |
+| `pricing_plans` | Effective-dated price versions. Current active versions are `STARTER 6.00`, `PRO 14.00`, `ENTERPRISE 26.00` USD/month; original 9/29/99 versions remain inactive audit history. Unique active version per `plan_id`; `active_pricing_plans` view (service-role only). |
 | `platform_config_audit` | Immutable `INSERT/UPDATE/DELETE` log with old/new values, actor, timestamp, optional note. |
-| `organization_billing_overrides` | Per-org comped/custom overrides. Seeded `comped=true` for `kestrel-ridge` and `codzlabzim-construct` (`grandfather_all`). |
+| `organization_billing_overrides` | Per-org comped/custom overrides. Original v1 seed had two comped rows; v3 cleared them. Rows remain with `comped=false` and a conversion note. |
 
 Helper functions (service-role only): `is_platform_admin(uuid)`,
 `create_pricing_plan_version(jsonb, uuid)`, `activate_due_pricing_plans(timestamptz)`,
@@ -95,10 +105,10 @@ Live SQL after `platform_billing_config_v1`:
 - 6 config tables, 6 with RLS enabled, **0** policies, **0** `anon`/`authenticated`
   privileges.
 - 1 active admin = `codzlabzim53@gmail.com` with the exact requested UUID.
-- `platform_settings.billing_enabled = false`; 0 gateways enabled.
-- 3 active plans = `STARTER:9.00,PRO:29.00,ENTERPRISE:99.00`.
-- 2 comped org overrides; 10 initial audit rows; 6 helper functions; 5 audit
-  triggers.
+- Original v1 state: `platform_settings.billing_enabled = false`; 0 gateways enabled.
+- Original v1 seed: 3 active plans = `STARTER:9.00,PRO:29.00,ENTERPRISE:99.00`.
+- Original v1 seed: 2 comped org overrides; 10 initial audit rows; 6 helper functions; 5 audit
+  triggers. Current state is described in the v3 note above.
 - Secret-like column scan: only the boolean `tokenisation_approved` matched a
   broad `%token%` pattern; no credential column exists.
 

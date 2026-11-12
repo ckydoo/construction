@@ -104,7 +104,12 @@ await ok('billing page uses plain-language status and payment copy', () => {
     'You can keep using this workspace. No payment is needed right now.',
     'Payment needed to keep editing',
     'Editing is paused while payment is overdue',
-    'Your 14-day free trial is active',
+    'Your 7-day free trial is active',
+    'Continue to workspace',
+    'Pay now',
+    'USD 6 / 14 / 26',
+    'Upgrade to ',
+    'Cancel change',
     'No payment required',
     'Payment options',
     'Your billing history',
@@ -153,15 +158,19 @@ await ok('deployed billing screen shows only plain-language copy', async () => {
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${BASE}/kestrel-ridge/billing`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('heading', { name: 'Billing & subscription' }).waitFor({ timeout: 20000 });
-    await page.getByText('Billing is not active yet').waitFor({ timeout: 20000 });
+    await page.getByText('Payment options').waitFor({ timeout: 20000 });
     const text = await page.locator('body').innerText();
     for (const pattern of BANNED_UI) assert.doesNotMatch(text, pattern, `technical copy visible: ${pattern}`);
     for (const needle of [
-      'You can keep using this workspace. No payment is needed right now.',
+      'USD 6 / 14 / 26',
       'Payment options',
       'Your billing history',
       'Prices exclude VAT/tax. Your data stays safe if a payment is missed.',
     ]) assert.ok(text.includes(needle), `plain-language copy missing: ${needle}`);
+    assert.ok(
+      text.includes('Billing is not active yet') || text.includes('Your 7-day free trial is active') || text.includes('Current period ends'),
+      'billing status copy missing',
+    );
     assert.deepEqual(errors, [], `browser errors: ${errors.join(' | ')}`);
     await ctx.close();
     return `${BASE} · plain-language billing page · 0 browser errors`;

@@ -3,7 +3,8 @@
  *
  * This is a real Chromium flow against a running app backed by the live
  * Supabase project. It creates two throwaway Auth users and one workspace with
- * demo data turned OFF. Cleanup is intentionally left to a short SQL script in
+ * sample data OFF BY DEFAULT, then verifies onboarding lands on Billing. Cleanup
+ * is intentionally left to a short SQL script in
  * the workspace root (QA_ONBOARDING_CLEANUP.sql): the last-owner trigger must
  * be disabled around the org delete, which needs a privileged SQL connection.
  * Nothing in this file prints or stores Supabase keys.
@@ -176,21 +177,28 @@ try {
     await page.getByRole('button', { name: /Leases & rentals/ }).click();
     assert.equal(await metric(page, 'Sections'), String(expected.modules.length), 'module count after add-on');
     const toggle = page.locator('main .card button[aria-pressed]').last();
-    assert.equal(await toggle.getAttribute('aria-pressed'), 'true', 'demo-data toggle starts on');
+    assert.equal(await toggle.getAttribute('aria-pressed'), 'false', 'sample-data toggle starts off');
     await toggle.click();
-    assert.equal(await toggle.getAttribute('aria-pressed'), 'false', 'demo-data toggle off');
+    assert.equal(await toggle.getAttribute('aria-pressed'), 'true', 'sample-data toggle can opt in');
+    await toggle.click();
+    assert.equal(await toggle.getAttribute('aria-pressed'), 'false', 'sample-data toggle returns off');
     await page.screenshot({ path: path.join(SHOTS, '19-onboarding-modules.png') });
     return `${expectedNoAddon.modules.length} → ${expected.modules.length} modules · 13 basic · demo data off`;
   });
 
-  await check('creating the workspace persists derivation and lands on an empty dashboard', async () => {
+  await check('creating the workspace persists derivation, starts a trial and lands on Billing', async () => {
     const pre = await json(page, `${BASE}/api/onboarding`);
     assert.equal(pre.status, 200, 'onboarding GET');
     assert.equal(pre.body.org.onboarded, false, 'starts un-onboarded');
     qaSlug = pre.body.org.slug;
     assert(qaSlug, 'missing slug');
     await page.getByRole('button', { name: /Open my company/ }).click();
-    await page.waitForURL(new RegExp(`/${qaSlug}/dashboard`), { timeout: 30000 });
+    await page.waitForURL(new RegExp(`/${qaSlug}/billing`), { timeout: 30000 });
+    await page.getByRole('heading', { name: 'Billing & subscription' }).waitFor({ timeout: 20000 });
+    await page.getByText('Payment options').waitFor({ timeout: 30000 });
+    const billingText = await page.locator('body').innerText();
+    assert.match(billingText, /USD 6 \/ 14 \/ 26/);
+    assert.match(billingText, /Payment options/);
     const { status, body: meta } = await json(page, `${BASE}/api/${qaSlug}/meta`);
     assert.equal(status, 200, 'meta');
     assert.equal(meta.user.email, email, 'auth user');
@@ -213,6 +221,7 @@ try {
     orgId = meta.org.id; ownerId = meta.user.id;
     await page.goto(`${BASE}/${qaSlug}/m/clients`, { waitUntil: 'domcontentloaded' });
     await page.getByText('No clients yet').waitFor({ timeout: 20000 });
+    await page.waitForFunction(() => (document.querySelector('aside')?.textContent || '').includes('Leases & rentals'), null, { timeout: 20000 });
     await page.screenshot({ path: path.join(SHOTS, '20-onboarding-empty.png') });
     // The grouped sidebar is resource-driven: no-resource capability modules
     // (portal, integrations) live in config/flags, while modules with registers
@@ -229,7 +238,7 @@ try {
     const { status } = await json(page, `${BASE}/api/kestrel-ridge/meta`);
     assert.equal(status, 401, `expected 401, got ${status}`);
     await page.goto(`${BASE}/kestrel-ridge/dashboard`, { waitUntil: 'domcontentloaded' });
-    await page.waitForURL(new RegExp(`/${qaSlug}/dashboard`), { timeout: 20000 });
+    await page.waitForURL(new RegExp(`/${qaSlug}/(dashboard|billing)`), { timeout: 20000 });
     const text = await page.locator('body').innerText();
     assert(!text.includes('Kestrel Ridge'), 'cross-tenant org name leaked');
     return 'API 401 · page redirects to own workspace';

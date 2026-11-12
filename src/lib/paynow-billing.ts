@@ -9,10 +9,10 @@ import {
   baseUrl, billingActive, billingConfig, billingError, getInvoiceByReference,
   markWebhookProcessed, paynowMockEnabled, recordBillingEvent,
   recordWebhookEvent, safeHashEqual, shortHash, updateInvoice,
-  type BillingInvoice, type BillingSubscription,
+  validateInvoiceAmount, type BillingInvoice, type BillingSubscription,
 } from './billing';
 import { activatePaidInvoice, markInvoiceFailed } from './billing-lifecycle';
-import { PLAN_MAP, planAmountFixed, type PlanId } from './billing-plans';
+import { PLAN_MAP, type PlanId } from './billing-plans';
 
 type FormPair = [string, string];
 type ParsedForm = { pairs: FormPair[]; map: Record<string, string> };
@@ -57,18 +57,18 @@ export async function startPaynowCheckout(input: {
   if (!billingActive()) billingError('Billing is in shadow mode.', 503);
   if (!cfg.paynowReady) billingError('Paynow integration ID and key are not configured.', 503);
   if (input.invoice.status !== 'pending') billingError('This invoice is no longer awaiting payment.', 409);
-  const expected = planAmountFixed(input.planId);
-  if (Number(input.invoice.amount_usd).toFixed(2) !== expected) billingError('Invoice amount does not match the selected plan.', 409);
+  const amount = validateInvoiceAmount(input.invoice, input.planId);
   const origin = baseUrl(input.req);
   const reference = input.invoice.reference;
-  const amount = Number(input.invoice.amount_usd).toFixed(2);
   const returnUrl = cfg.paynowReturnUrl || `${origin}/${encodeURIComponent(input.slug)}/billing?paynow=return&reference=${encodeURIComponent(reference)}`;
   const resultUrl = cfg.paynowResultUrl || `${origin}/api/webhooks/paynow`;
   const fields: Record<string, string> = {
     id: cfg.paynowId,
     reference,
     amount,
-    additionalinfo: `MYLA ${PLAN_MAP[input.planId].name} monthly subscription`,
+    additionalinfo: input.invoice.metadata?.invoiceKind === 'plan_adjustment'
+      ? `MYLA ${PLAN_MAP[input.planId].name} plan adjustment`
+      : `MYLA ${PLAN_MAP[input.planId].name} monthly subscription`,
     returnurl: returnUrl,
     resulturl: resultUrl,
     status: 'Message',

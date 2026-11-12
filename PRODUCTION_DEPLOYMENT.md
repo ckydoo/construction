@@ -1,4 +1,14 @@
-# MYLA ERP — production deployment
+# Historical production deployment record
+
+> Original document: MYLA ERP — production deployment
+>
+> **Superseded by current billing v3 policy.** This file records an earlier
+> shadow release. Production currently uses Paynow live billing, a 7-day
+> no-card auto-started trial, **USD 6 / 14 / 26** monthly plans, early trial
+> payment, immediate prorated upgrades and period-end downgrades. Existing
+> comped workspaces were converted to payable standard subscriptions. See
+> `BILLING_SETUP.md` and `PAYNOW_LIVE_SETUP.md`. Do not use the older values
+> below as current configuration.
 
 **Status:** LIVE · **Date:** 2026-11-07 (Africa/Harare)
 

@@ -1,149 +1,85 @@
-# MYLA subscription setup & go-live checklist — Paynow primary, DPO fallback
+# MYLA billing — current production policy
 
-**Current state: SHADOW MODE.** Paynow Zimbabwe is the primary subscription rail
-in code and UI. DPO Pay by Network remains fully configured as the tokenised
-recurring fallback: its adapter, webhooks, QA scripts, environment keys and
-checkout/tokenisation paths are retained. `BILLING_ENABLED=false` on Vercel
-production, preview and development. `BILLING_QA_MODE=false`, `DPO_MOCK=false`,
-`DPO_LIVE_MODE=false` and `PAYNOW_MOCK=false` are also off or absent. Nobody is
-charged, no card is collected at trial start, no workspace is locked, and no live
-Paynow/DPO request is made. See `SUBSCRIPTION_DPO_RELEASE.md` for the original
-DPO verification record and `PRODUCTION_DEPLOYMENT.md` for the historical
-deployment details.
+**Status: live Paynow billing.** Paynow is the primary payment rail in Production;
+its Integration ID and Key are stored only in encrypted Vercel environment
+variables. `BILLING_ENABLED=true` is set for Production. DPO Pay remains
+code-complete as a configured fallback and local QA rail, but no live DPO
+credentials are configured. No test payment or charge was made while enabling
+billing. See `PAYNOW_LIVE_SETUP.md` for the completed Paynow configuration.
 
 ## Product contract
 
 | Tier | Price | Users | Active projects | Entitlements |
 |---|---:|---:|---:|---|
-| Starter | **USD 9 / organisation / month** | 5 | 10 | Essential sections, standard support |
-| Pro | **USD 29 / organisation / month** | 25 | Unlimited | All 34 sections / 49 resources, tenant-branded financial PDFs, advanced RBAC/reporting, document library |
-| Enterprise | **USD 99 / organisation / month** | Unlimited | Unlimited | Everything in Pro, onboarding, priority support, custom branding, contact sales |
+| Starter | **USD 6 / organisation / month** | 5 | 10 | Essential sections, standard support |
+| Pro | **USD 14 / organisation / month** | 25 | Unlimited | All modules and resources, branded financial PDFs, advanced roles/reporting, document library |
+| Enterprise | **USD 26 / organisation / month** | Unlimited | Unlimited | Everything in Pro, guided onboarding, priority support, custom branding, contact sales |
 
-The same three prices apply everywhere; there is no Africa/regional price book or gating.
-Settlement is USD. ZWG/ZAR are **display only** through the existing FX settings. Prices
-are exclusive of VAT/tax. Monthly billing only in v1.
+One global price book applies to every organisation: **USD 6 / 14 / 26**.
+Settlement is USD; ZWG/ZAR amounts are display-only through FX settings. Prices
+exclude VAT/tax. Billing is monthly. The runtime price book is
+`src/lib/billing-plans.ts`; `pricing_plans` keeps effective-dated versions for
+platform-owner audit, and `platform/config` remains a staged, non-runtime
+configuration surface.
 
-All new organisations get a **14-day NO-CARD trial**: no payment method is collected and
-no invoice is created until the trial ends. At trial end the daily sweep creates one
-Paynow invoice for the next paid period and starts a **3-day read-only grace**. The
-customer pays that invoice through customer-present Paynow; webhooks are hash-verified,
-poll-confirmed and idempotent, with exact reference/amount matching. No silent autodebit
-is assumed for Paynow. DPO Pay remains a configured fallback: its hosted page can use
-`AllowRecurrent=1`, `verifyToken` plus exact amount/currency/reference matching remains
-the source of truth, and merchant-approved Super Wallet tokenisation can save a
-subscription token for `createToken` + `chargeTokenRecurrent` on later renewals.
-Failed renewals are read-only for three days and then hard-locked. No data is ever
-deleted. Existing organisations are grandfathered active/comped with no expiry.
+## New-workspace lifecycle
 
-## What is implemented
+- Onboarding starts empty: **“Try it with sample data” is off by default**.
+  Explicitly opting in still seeds the demo dataset.
+- Immediately after onboarding, a **7-day no-card trial** starts automatically
+  and the Owner lands on **Billing**, with a clear choice to pay now or continue
+  to the workspace.
+- The prepay invoice for the first paid month exists during the trial. Paying it
+  early does **not** shorten the full 7-day trial: the paid month begins at
+  `trial_ends_at` and ends one calendar month later.
+- If the trial ends unpaid, the same invoice becomes due and a **3-day read-only
+  grace** begins. After that the workspace is locked, never deleted; paying an
+  open invoice restores access.
+- Owner/Admin can pay open invoices with Paynow, or with the configured DPO
+  fallback when available. Paynow checkout is hash-verified, exact-amount
+  validated and poll-confirmed. Webhook retries are idempotent.
 
-- Tables: `billing_subscriptions`, `billing_invoices`, `billing_webhook_events`,
-  `billing_events`. Additive live migration `dpo_pay_subscriptions_v1` adds DPO/mock
-  gateways, six `dpo_*` columns, an index and no-card-trial seed metadata; local file
-  `supabase/migrations/20261112100000_dpo_pay_subscriptions.sql`.
-- RLS: Owner/Admin read only; all writes use the service-role server client. A trigger
-  seeds every new organisation as `trial_required`; all pre-existing organisations are
-  `comped`.
-- Enforcement: `src/middleware.ts` hard-locks org pages/APIs, leaving `/billing` and
-  `/api/[org]/meta` reachable. API write guards, user/project limits and the AppShell
-  banner provide defence in depth.
-- Owner/Admin UI: `src/app/[org]/billing/page.tsx`, plan cards, invoice table,
-  no-card trial start, Paynow primary with optional DPO fallback selection,
-  cancellation and contact sales.
-- DPO Pay: `src/lib/dpo-billing.ts` builds v6 XML for `createToken`, `verifyToken`,
-  `getSubscriptionToken`, `chargeTokenRecurrent` and `deleteCard`; callback HMAC and
-  push-secret checks; hosted checkout URL template; exact USD amount/reference checks;
-  idempotent webhook claims; one persisted charge attempt per invoice.
-- Paynow: SHA-512 hash verification, exact reference/amount checks, poll confirmation,
-  idempotent webhook claims, monthly invoices and reminders. `tokenize` is never sent.
-- Cron: `vercel.json` calls `/api/cron/billing` daily at 02:00 UTC with Vercel's
-  `CRON_SECRET` bearer token. The sweep is idempotent: one invoice per
-  `(organisation, gateway, period_start)`, one recurring charge attempt per invoice,
-  and replay-safe state transitions.
-- Stripe: removed from the production path. The `stripe` npm dependency is gone;
-  checkout/portal/switch/webhook routes are explicit `410` stubs. Historic Stripe
-  columns are retained but never written. A Zimbabwe-registered entity cannot receive
-  native Stripe payouts, so Stripe is not a go-live prerequisite.
-- QA: `scripts/billing-audit.mjs` uses a local DPO v6 mock and a production smoke
-  script; `scripts/check-env.mjs` and `.env.example` document the DPO slots.
-  `SUBSCRIPTION_QA_REPORT.md` records the local **10/10** DPO checks.
-- Platform-owner config (stage-only): `PLATFORM_BILLING_CONFIG.md` documents the
-  new `platform_admins`, `platform_settings`, `gateway_config`,
-  versioned `pricing_plans`, `platform_config_audit` and
-  `organization_billing_overrides` tables plus `GET/POST /api/platform/config`.
-  Company users have no direct access; secrets remain env-only; the billing
-  runtime is **not** wired to these tables yet.
+## Plan changes
 
-## Go-live prerequisites — NOT yet supplied
+- **Upgrade:** effective immediately. During a trial, the prepay invoice is
+  repriced to the new plan. During a paid period, a prorated adjustment invoice
+  is created for the unused portion; the audited change remains
+  `payment_pending` until that exact amount is verified paid. Entitlements and
+  limits follow the new plan immediately.
+- **Downgrade:** effective at the current period end. The current plan and
+  access remain unchanged until then; future invoices are repriced. One pending
+  change per organisation is allowed and it can be cancelled from Billing.
+- Every request, effective date, proration, actor and status is recorded in
+  `billing_plan_changes` and `billing_events`. Invoices are reissued rather
+  than deleted when a rail or plan changes. No business data is deleted.
 
-1. **Confirm the DPO merchant account and Zimbabwe payout route.** Obtain written
-   confirmation of the contracting entity, supported settlement currencies (USD, and
-   whether ZWG/ZAR are needed), NOSTRO/bank payout route, fees, refunds and chargebacks.
-2. **Confirm VAT/tax treatment.** Prices are exclusive; no automatic tax engine is
-   enabled. Decide whether MYLA, DPO or an external accountant issues tax invoices.
-3. **Confirm Super Wallet / recurring tokenisation approval.** Do not set
-   `DPO_RECURRING_ENABLED=true` until DPO approves the merchant for tokenised recurrent
-   charges. Without it, renewals remain customer-present.
-4. **Confirm the hosted payment page URL.** DPO docs currently show `payv2.php`,
-   `payv3.php` and `pay.asp` in different places. Ask DPO for the exact production URL
-   and set `DPO_PAYMENT_URL_TEMPLATE` accordingly.
-5. **Add live DPO credentials to Vercel** (production, preview and development as
-   appropriate):
-   `DPO_COMPANY_TOKEN`, `DPO_SERVICE_TYPE` or `DPO_SERVICE_TYPE_NAME`,
-   `DPO_API_URL`, `DPO_PAYMENT_URL_TEMPLATE`, `DPO_CALLBACK_SECRET`,
-   `DPO_PUSH_SECRET`. Never paste a sandbox CompanyToken into a live slot: sandbox and
-   production share one API endpoint, and the token selects the environment.
-6. **Register the DPO push URL** with DPO as
-   `https://myla-construction-erp.vercel.app/api/webhooks/dpo?push_secret=<DPO_PUSH_SECRET>`,
-   and ensure the browser return URL can reach `/api/webhooks/dpo?source=return&...`.
-   The push body is unsigned; MYLA verifies the secret and then calls `verifyToken`.
-7. **Run a fresh staging QA** with real DPO sandbox credentials, a sandbox hosted
-   checkout, `verifyToken`, `getSubscriptionToken`, `chargeTokenRecurrent`, a declined
-   payment, a cancelled payment and a replayed push callback.
-8. **Add live Paynow credentials first** (the new primary rail):
-   `PAYNOW_INTEGRATION_ID`, `PAYNOW_INTEGRATION_KEY`, `PAYNOW_RETURN_URL` and
-   `PAYNOW_RESULT_URL`. Do **not** enable Paynow tokenisation or Express Checkout
-   recurring autodebit without separate Paynow approval.
-9. **Only after explicit approval**, set `BILLING_ENABLED=true`. A complete DPO live
-   fallback (`DPO_LIVE_MODE=true` plus all live DPO secrets) also unlocks billing if
-   Paynow is unavailable. Keep `BILLING_QA_MODE=false`, `DPO_MOCK=false` and
-   `PAYNOW_MOCK=false` in production. A production switch without either live rail is
-   treated as `misconfigured` and fails closed; it never silently charges.
-10. **Redeploy the exact commit SHA** via Vercel `git_source` after any environment
-    change, then run `npm run audit:dpo-prod`, `npm run audit:support-paynow` in verify
-    mode and a manual sandbox/test payment smoke.
+## Existing organisations
 
-## Local QA
+The v3 migration applied the new price book and 7-day policy to all existing
+organisations. Previously comped demo/tester workspaces were converted to
+standard `active` subscriptions at their plan's new USD price, with no trial,
+no live charge and an immediately payable invoice. Existing trials were shortened
+to seven days from their own start. Comped overrides were cleared.
 
-```bash
-npm run env:check
-npx tsc --noEmit
-NODE_ENV=production npm run build
-NODE_ENV=production BILLING_ENABLED=false BILLING_QA_MODE=true \
-  DPO_MOCK=true DPO_RECURRING_ENABLED=true PAYNOW_MOCK=false \
-  DPO_LIVE_MODE=false npx next start -H 0.0.0.0 -p 3001
-AUDIT_BASE=http://127.0.0.1:3001 npm run audit:billing
-```
+## Controls
 
-The local `.env` must contain Supabase URL/anon/service keys and `BILLING_QA_SECRET`.
-QA mode is ignored on Vercel (`VERCEL=1` or a `vercel.app` app URL); QA routes return
-`404` in production. The generated `/tmp/billing-qa-cleanup.sql` removes the throwaway
-organisation/user. After the final run, live billing tables were verified as
-`qa_orgs 0`, `qa_users 0`, `mock_events 0`, `comped 2`, `subscriptions 2`,
-`invoices 0`, `billing_events 0`.
+- Only `OWNER` and `ADMIN` may view or mutate Billing; middleware keeps
+  `/billing` and `/api/[org]/meta` reachable during a hard lock.
+- `billingAllowsAccess`, `billingAllowsWrite`, `entitledModules`,
+  `entitledResources` and `entitledLimits` provide defence in depth for pages,
+  APIs, modules, user limits and active-project limits.
+- `/api/cron/billing` runs daily with a Bearer secret. It is idempotent: one
+  non-cancelled invoice per accounting period, one renewal charge, scheduled
+  downgrades applied once, and no duplicate early-payment activation.
+- `billing_invoices` has a partial unique index on
+  `(organization_id, gateway, period_start)` for non-cancelled invoices;
+  cancelled invoices remain as audit history.
 
-## Webhook/cron endpoints
+## Verification docs
 
-| Path | Purpose |
-|---|---|
-| `/api/webhooks/dpo` | GET browser return (HMAC) and POST push payment (secret); both call `verifyToken` |
-| `/api/webhooks/paynow` | Hash-verified Paynow status updates and poll confirmation |
-| `/api/cron/billing` | Daily reminders, first/renewal invoices, tokenised charges, grace expiry and hard lock |
-| `/api/[org]/billing` | Owner/Admin state + `selectPlan`, `startTrial`, `setPaynowPreference`, `cancel`, `contactSales` |
-| `/api/[org]/billing/pay` | Start DPO hosted checkout or optional Paynow invoice checkout |
-| `/api/[org]/billing/checkout` | `410` — Stripe Checkout removed |
-| `/api/[org]/billing/portal` | `410` — Stripe portal removed |
-| `/api/[org]/billing/switch` | `410` — Stripe→Paynow switch removed |
-| `/api/webhooks/stripe` | `410` — Stripe webhooks disabled |
-| `/api/qa/billing/dpo` | Local QA only; `404` in production |
-| `/api/qa/billing/dpo-checkout` | Local QA only; `404` in production |
+- Current local billing QA: `SUBSCRIPTION_QA_REPORT.md`.
+- Current production smoke: `DPO_PRODUCTION_SMOKE.md`.
+- Paynow setup: `PAYNOW_LIVE_SETUP.md`.
+- Earlier shadow/DPO release records (`SUBSCRIPTION_SHADOW_RELEASE.md`,
+  `SUBSCRIPTION_DPO_RELEASE.md`, `PRODUCTION_DEPLOYMENT.md`) are historical and
+  explicitly superseded by this policy.

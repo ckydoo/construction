@@ -1,4 +1,11 @@
 # MYLA DPO Pay production smoke
+> **CURRENT BILLING V3 — HISTORICAL DOCUMENT.** This record describes an earlier
+> shadow/DPO release and is superseded by `BILLING_SETUP.md`. Production now uses
+> Paynow live billing, a 7-day no-card trial that starts after onboarding, USD
+> 6 / 14 / 26 monthly plans, early payment during the trial, immediate prorated
+> upgrades, period-end downgrades and no comped workspaces. Do not use the older
+> prices, trial length, gateway switch or status described below as current
+> configuration.
 
 Deployment: `bd38a90721be86016e9c8dbf937d1b6a4fc365d6` / `dpl_GKfLfcx2C9UdXJcFvPNHwxZJiSXc` (READY/PROMOTED).
 

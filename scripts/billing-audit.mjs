@@ -1,9 +1,10 @@
-/* Local subscription QA for the retained DPO Pay v6 fallback (createToken,
- * verifyToken, getSubscriptionToken, chargeTokenRecurrent), no-card 14-day trial,
- * 3-day read-only grace and hard lock. Paynow is the runtime primary; this suite
- * explicitly selects DPO fallback so the configured rail stays covered. No live
- * keys, no network charge, no Stripe. Run against a server started with
- * BILLING_QA_MODE=true DPO_MOCK=true DPO_RECURRING_ENABLED=true PAYNOW_MOCK=false. */
+/* Local subscription QA for the USD 6/14/26 price book, 7-day no-card trial,
+ * early trial payment, immediate prorated upgrades, scheduled downgrades and the
+ * retained DPO Pay v6 fallback mock. Paynow remains the runtime primary; this
+ * suite explicitly selects the local DPO mock so the fallback rail stays
+ * covered. No live keys, no network charge, no Stripe. Run against a server
+ * started with BILLING_QA_MODE=true DPO_MOCK=true DPO_RECURRING_ENABLED=true
+ * PAYNOW_MOCK=false. */
 import 'dotenv/config';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -92,95 +93,114 @@ try {
       name: 'DPO QA Owner', email, password: 'BillingQA@2026', company,
     }) });
     assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    slug = r.body.slug;
-    assert.ok(slug, 'registration returned a workspace slug');
+    assert.equal(r.body.ok, true);
+    const org = await app('/api/onboarding');
+    assert.equal(org.res.status, 200, JSON.stringify(org.body));
+    slug = org.body.org?.slug || '';
+    assert.ok(slug, 'registration established an onboarding workspace slug');
     return slug;
   });
-  await check('onboarding remains reachable before payment', async () => {
+
+  await check('onboarding starts an empty 7-day trial and returns Billing', async () => {
     const r = await app('/api/onboarding', { method: 'POST', body: JSON.stringify({
       companyType: 'GENERAL_CONTRACTOR', size: 'MID', headcount: 50,
       name: company, legalName: company, regNumber: `QA/${stamp}`, country: 'ZW',
       baseCurrency: 'USD', qualifiers: [], addons: [], loadDemo: false,
     }) });
     assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    return 'onboarded=true';
+    assert.equal(r.body.billingStarted, true);
+    assert.equal(r.body.next, `/${slug}/billing`);
+    return 'sample data off · trial started · Billing next';
   });
-  await check('billing starts in trial_required with three USD plans and no card', async () => {
+
+  await check('billing exposes USD 6/14/26 and a payable prepay invoice', async () => {
     const r = await app(`/api/${slug}/billing`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.billing.status, 'trial_required');
+    assert.equal(r.body.billing.status, 'trialing');
     assert.equal(r.body.billing.mode, 'qa');
     assert.equal(r.body.billing.canManage, true);
     assert.equal(r.body.billing.plans.length, 3);
-    assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [9, 29, 99]);
+    assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [6, 14, 26]);
+    assert.equal(r.body.billing.trialDays, 7);
     assert.equal(r.body.billing.trialRequiresCard, false);
     assert.equal(r.body.config.primaryGateway, 'paynow');
     assert.equal(r.body.config.paynowPrimary, true);
     assert.equal(r.body.config.dpoCheckoutAvailable, true);
     assert.equal(r.body.config.dpoFallbackAvailable, true);
     assert.equal(r.body.config.stripeCheckoutAvailable, false);
-    return '9 / 29 / 99 USD everywhere · Paynow primary · DPO fallback mock · no Stripe';
-  });
-  await check('hard lock blocks workspace APIs before trial', async () => {
-    const r = await app(`/api/${slug}/records/clients`);
-    assert.equal(r.res.status, 402);
-    assert.equal(r.body.code, 'BILLING_REQUIRED');
-    const dashboard = await app(`/${slug}/dashboard`);
-    assert.equal(dashboard.res.status, 307);
-    assert.match(dashboard.res.headers.get('location') || '', /\/billing$/);
-    const billing = await app(`/${slug}/billing`);
-    assert.equal(billing.res.status, 200);
-    return 'API 402 · dashboard redirects · billing page reachable';
-  });
-  await check('configured DPO fallback can be selected without removing Paynow primary', async () => {
-    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'setGatewayPreference', gateway: 'dpo' }) });
-    assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.subscription.metadata.gatewayPreference, 'dpo');
-    const billingState = await app(`/api/${slug}/billing`);
-    assert.equal(billingState.res.status, 200, JSON.stringify(billingState.body));
-    assert.equal(billingState.body.billing.primaryGateway, 'paynow');
-    assert.equal(billingState.body.billing.dpoFallbackSelected, true);
-    return 'Paynow default retained · DPO fallback selected for QA';
-  });
-  await check('select Pro and start the 14-day NO-CARD trial', async () => {
-    const plan = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'selectPlan', planId: 'PRO' }) });
-    assert.equal(plan.res.status, 200, JSON.stringify(plan.body));
-    const start = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'startTrial', planId: 'PRO' }) });
-    assert.equal(start.res.status, 200, JSON.stringify(start.body));
     const state = await qaState();
-    assert.equal(state.subscription.status, 'trialing');
-    assert.equal(state.subscription.plan_id, 'PRO');
-    assert.equal(state.subscription.gateway, 'mock');
+    assert.equal(state.subscription.metadata.trialType, 'no_card_7');
     assert.equal(state.subscription.metadata.cardRequired, false);
-    assert.equal(state.subscription.metadata.trialType, 'no_card_14');
-    assert.ok(state.subscription.trial_ends_at);
-    assert.equal(state.subscription.dpo_subscription_token, null);
-    return 'trialing · no card saved · no invoice yet';
+    assert.equal(state.invoices.filter(i => i.status === 'pending').length, 1,
+      'one prepay invoice exists during the trial');
+    assert.equal(Number(state.invoices[0].amount_usd).toFixed(2), '6.00');
+    assert.equal(state.invoices[0].metadata.prepayAfterTrial, true);
+    assert.equal(state.invoices[0].metadata.invoiceKind, 'subscription_prepay');
+    return '6 / 14 / 26 USD · 7-day trial · one USD 6.00 prepay invoice';
   });
-  await check('Pro trial grants full write access', async () => {
+
+  await check('trial workspace has full write access', async () => {
     const r = await app(`/api/${slug}/records/clients`, { method: 'POST', body: JSON.stringify({ name: 'QA DPO Client' }) });
     assert.equal(r.res.status, 201, JSON.stringify(r.body));
     return 'client record created';
   });
-  await check('trial expiry creates one DPO invoice and 3-day read-only grace', async () => {
-    await qa('/api/qa/billing/expire', { orgSlug: slug, mode: 'trial' });
-    const sweep = await cron();
-    assert.equal(sweep.ok, true);
-    assert.equal(sweep.firstInvoices, 1, JSON.stringify(sweep));
+
+  await check('configured DPO fallback reissues the prepay invoice without a second period', async () => {
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'setGatewayPreference', gateway: 'dpo' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.metadata.gatewayPreference, 'dpo');
     const state = await qaState();
-    assert.equal(state.subscription.status, 'grace');
-    assert.ok(state.subscription.grace_until);
-    const pending = state.invoices.filter((i) => i.status === 'pending' && i.metadata?.dpo);
-    assert.equal(pending.length, 1, 'one DPO/mock invoice for the first paid period');
-    assert.equal(Number(pending[0].amount_usd).toFixed(2), '29.00');
-    assert.equal(new Date(pending[0].period_end).getUTCMonth(), (new Date(pending[0].period_start).getUTCMonth() + 1) % 12);
-    assert.equal(state.invoices.some((i) => i.status === 'paid'), false);
-    return 'grace · one USD 29.00 DPO invoice · no charge';
+    const pending = state.invoices.filter(i => i.status === 'pending');
+    assert.equal(pending.length, 1, 'exactly one prepay invoice');
+    assert.equal(pending[0].gateway, 'mock');
+    assert.ok(pending[0].metadata?.dpo, 'DPO fallback metadata preserved');
+    const billingState = await app(`/api/${slug}/billing`);
+    assert.equal(billingState.body.billing.primaryGateway, 'paynow');
+    assert.equal(billingState.body.billing.dpoFallbackSelected, true);
+    return 'Paynow default retained · one mock invoice · fallback selected';
   });
-  await check('DPO hosted mock verifies payment and saves a recurring token', async () => {
+
+  await check('upgrade during trial is immediate and reprices the prepay month', async () => {
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'PRO' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.plan_id, 'PRO');
+    const state = await qaState();
+    const pending = state.invoices.filter(i => i.status === 'pending');
+    assert.equal(pending.length, 1, 'no duplicate or adjustment invoice during trial upgrade');
+    assert.equal(pending[0].plan_id, 'PRO');
+    assert.equal(Number(pending[0].amount_usd).toFixed(2), '14.00');
+    const billing = await app(`/api/${slug}/billing`);
+    assert.equal(billing.body.billing.plan, 'PRO');
+    assert.equal(billing.body.billing.pendingPlanChange, null);
+    return 'Starter → Pro immediately · USD 14.00 · no duplicate invoice';
+  });
+
+  await check('downgrade is scheduled at period end and can be cancelled', async () => {
     const before = await qaState();
-    const pending = before.invoices.find((i) => i.status === 'pending' && i.metadata?.dpo);
-    assert.ok(pending, 'pending DPO invoice');
+    const trialEnd = before.subscription.trial_ends_at;
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'STARTER' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.plan_id, 'PRO', 'current plan unchanged');
+    assert.equal(r.body.subscription.pending_plan_id, 'STARTER');
+    const scheduled = await app(`/api/${slug}/billing`);
+    assert.equal(scheduled.body.billing.pendingPlanChange.direction, 'downgrade');
+    assert.equal(scheduled.body.billing.pendingPlanChange.toPlan, 'STARTER');
+    assert.ok(new Date(scheduled.body.billing.pendingPlanChange.effectiveAt) > new Date());
+    const cancel = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'cancelPlanChange' }) });
+    assert.equal(cancel.res.status, 200, JSON.stringify(cancel.body));
+    const state = await qaState();
+    assert.equal(state.subscription.plan_id, 'PRO');
+    assert.equal(state.subscription.pending_plan_id, null);
+    assert.equal(state.subscription.trial_ends_at, trialEnd);
+    assert.equal(state.invoices.filter(i => i.status === 'pending').length, 1);
+    return 'Pro retained until period end · cancellation restores one pending invoice';
+  });
+
+  await check('payment during the trial preserves the full 7-day trial', async () => {
+    const before = await qaState();
+    const trialEnd = before.subscription.trial_ends_at;
+    const pending = before.invoices.find((i) => i.status === 'pending' && i.metadata?.prepayAfterTrial);
+    assert.ok(pending, 'pending prepay invoice');
     const pay = await app(`/api/${slug}/billing/pay`, { method: 'POST', body: JSON.stringify({ invoiceId: pending.id }) });
     assert.equal(pay.res.status, 200, JSON.stringify(pay.body));
     assert.match(pay.body.url, /\/api\/qa\/billing\/dpo-checkout/);
@@ -194,23 +214,38 @@ try {
     assert.equal(event.callbackStatus, 307, JSON.stringify(event));
     assert.match(event.callbackLocation || '', /dpo=paid/);
     const state = await qaState();
-    const paid = state.invoices.find((i) => i.status === 'paid' && i.metadata?.dpo);
-    assert.ok(paid, 'one paid DPO invoice');
-    assert.equal(state.subscription.status, 'active');
-    assert.equal(state.subscription.gateway, 'mock');
-    assert.equal(new Date(state.subscription.current_period_start).toISOString(), new Date(paid.period_start).toISOString());
+    const paid = state.invoices.find((i) => i.status === 'paid' && i.metadata?.prepayAfterTrial);
+    assert.ok(paid, 'one paid prepay invoice');
+    assert.equal(state.subscription.status, 'trialing', 'trial status preserved');
+    assert.equal(state.subscription.trial_ends_at, trialEnd, 'trial end unchanged');
     assert.ok(state.subscription.dpo_subscription_token, 'DPO subscription token saved');
-    assert.ok(state.subscription.dpo_customer_token, 'DPO customer token saved');
-    assert.equal(state.subscription.metadata.dpoTokenised, true);
-    assert.ok(state.subscription.last_payment_at);
-    return `invoice ${paid.invoice_number} · active until ${paid.period_end.slice(0, 10)}`;
+    assert.equal(state.invoices.length, before.invoices.length, 'no duplicate invoice');
+    assert.equal(new Date(paid.period_start).toISOString(), new Date(trialEnd).toISOString());
+    return `USD ${Number(paid.amount_usd).toFixed(2)} prepaid · trial still ends ${trialEnd.slice(0, 10)}`;
   });
+
+  await check('trial expiry activates the prepaid month without a second invoice', async () => {
+    const before = await qaState();
+    const paid = before.invoices.find((i) => i.status === 'paid' && i.metadata?.prepayAfterTrial);
+    assert.ok(paid);
+    await qa('/api/qa/billing/expire', { orgSlug: slug, mode: 'trial' });
+    const sweep = await cron();
+    assert.equal(sweep.ok, true, JSON.stringify(sweep));
+    assert.equal(sweep.firstInvoices, 0, 'no duplicate first invoice');
+    const state = await qaState();
+    assert.equal(state.subscription.status, 'active');
+    assert.equal(state.subscription.plan_id, 'PRO');
+    assert.equal(new Date(state.subscription.current_period_start).toISOString(), new Date(paid.period_start).toISOString());
+    assert.equal(state.invoices.length, before.invoices.length);
+    return 'active · prepaid period starts at former trial end · zero duplicate invoices';
+  });
+
   await check('daily sweep is idempotent; tokenised renewal charges once', async () => {
-    const before = (await qaState()).invoices.length;
+    const before = await qaState();
     const idle = await cron();
     assert.equal(idle.ok, true);
     assert.equal(idle.renewalInvoices, 0, JSON.stringify(idle));
-    assert.equal((await qaState()).invoices.length, before, 'no duplicate invoice before period end');
+    assert.equal((await qaState()).invoices.length, before.invoices.length, 'no duplicate invoice before period end');
 
     await qa('/api/qa/billing/expire', { orgSlug: slug, mode: 'period' });
     const renewal = await cron();
@@ -218,15 +253,52 @@ try {
     assert.equal(renewal.renewalInvoices, 1, JSON.stringify(renewal));
     assert.equal(renewal.recurringCharges, 1, JSON.stringify(renewal));
     let state = await qaState();
-    assert.equal(state.invoices.filter((i) => i.status === 'paid').length, 2, 'first invoice + one renewal');
+    assert.equal(state.invoices.filter((i) => i.status === 'paid').length, 2, 'prepay invoice + one renewal');
     const countAfterCharge = state.invoices.length;
     const replay = await cron();
     assert.equal(replay.renewalInvoices, 0, JSON.stringify(replay));
     assert.equal(replay.recurringCharges, 0, JSON.stringify(replay));
     state = await qaState();
     assert.equal(state.invoices.length, countAfterCharge, 'no duplicate invoice or charge');
-    return '2 paid invoices · chargeTokenRecurrent once · cron replay clean';
+    return '2 paid invoices · one mock renewal charge · cron replay clean';
   });
+
+  await check('active upgrade is immediate with one prorated adjustment invoice', async () => {
+    const before = await qaState();
+    const periodStart = before.subscription.current_period_start;
+    const periodEnd = before.subscription.current_period_end;
+    const r = await app(`/api/${slug}/billing`, { method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'ENTERPRISE' }) });
+    assert.equal(r.res.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.subscription.plan_id, 'ENTERPRISE', 'upgrade is immediate');
+    let state = await qaState();
+    const adjustment = state.invoices.find((i) => i.status === 'pending' && i.metadata?.invoiceKind === 'plan_adjustment');
+    assert.ok(adjustment, 'prorated adjustment invoice');
+    const amount = Number(adjustment.amount_usd);
+    assert.ok(amount > 0 && amount <= 12, `proration must be between 0 and USD 12, got ${amount}`);
+    assert.equal(state.invoices.length, before.invoices.length + 1, 'exactly one adjustment invoice');
+    assert.equal(state.subscription.current_period_start, periodStart, 'current period start unchanged');
+    assert.equal(state.subscription.current_period_end, periodEnd, 'current period end unchanged');
+    const billing = await app(`/api/${slug}/billing`);
+    assert.equal(billing.body.billing.pendingPlanChange.status, 'payment_pending');
+    assert.equal(Number(billing.body.billing.pendingPlanChange.prorationUsd), amount);
+
+    const pay = await app(`/api/${slug}/billing/pay`, { method: 'POST', body: JSON.stringify({ invoiceId: adjustment.id }) });
+    assert.equal(pay.res.status, 200, JSON.stringify(pay.body));
+    const event = await qa('/api/qa/billing/dpo', {
+      orgSlug: slug, step: 'pay', reference: adjustment.reference, token: pay.body.token,
+    });
+    assert.equal(event.callbackStatus, 307, JSON.stringify(event));
+    state = await qaState();
+    assert.equal(state.subscription.plan_id, 'ENTERPRISE');
+    assert.equal(state.subscription.status, 'active');
+    assert.equal(state.subscription.current_period_start, periodStart);
+    assert.equal(state.subscription.current_period_end, periodEnd);
+    assert.equal(state.invoices.filter((i) => i.status === 'paid').length, 3);
+    const after = await app(`/api/${slug}/billing`);
+    assert.equal(after.body.billing.pendingPlanChange, null, 'adjustment payment settles the change');
+    return `Pro → Enterprise immediately · USD ${amount.toFixed(2)} proration · exact-amount payment verified`;
+  });
+
   await check('grace expiry hard locks without deleting data', async () => {
     await qa('/api/qa/billing/expire', { orgSlug: slug, mode: 'grace' });
     await cron();
@@ -245,7 +317,7 @@ try {
   fs.writeFileSync(CLEANUP, cleanupSql());
   const passed = results.filter((r) => r.ok).length;
   const rows = results.map((r) => `| ${r.ok ? 'PASS' : 'FAIL'} | ${r.name} | ${String(r.detail).replace(/\|/g, '\\|')} |`).join('\n');
-  fs.writeFileSync(REPORT, `# MYLA Paynow-primary / DPO fallback shadow QA\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 fallback mock against \`${BASE}\`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
+  fs.writeFileSync(REPORT, `# MYLA USD 6/14/26 billing QA\n\n**${passed}/${results.length} checks passed** — local DPO Pay v6 fallback mock against \`${BASE}\`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n\nWorkspace: \`${slug || 'n/a'}\` · \`${email}\`. Cleanup SQL: \`${CLEANUP}\`.\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   console.log(`Cleanup SQL: ${CLEANUP}`);
   if (failed) process.exit(1);

@@ -1,10 +1,16 @@
 # MYLA subscription system — shadow release
+> **CURRENT BILLING V3 — HISTORICAL DOCUMENT.** This record describes an earlier
+> shadow/DPO release and is superseded by `BILLING_SETUP.md`. Production now uses
+> Paynow live billing, a 7-day no-card trial that starts after onboarding, USD
+> 6 / 14 / 26 monthly plans, early payment during the trial, immediate prorated
+> upgrades, period-end downgrades and no comped workspaces. Do not use the older
+> prices, trial length, gateway switch or status described below as current
+> configuration.
 
 > **SUPERSEDED (2026-11-07):** This Stripe + Paynow **card-required trial** release is
-> historical only. The active implementation is `SUBSCRIPTION_DPO_RELEASE.md` and
-> `BILLING_SETUP.md`: DPO Pay by Network is primary, the trial is 14 days with **no
-> card**, Paynow is an optional manual fallback, and Stripe is removed from the
-> production path. Do not use the Stripe go-live steps below.
+> historical only. The active implementation is in `BILLING_SETUP.md`: Paynow is
+> live primary, the trial is 7 days with **no card**, and Stripe is removed from
+> the production path. Do not use the Stripe go-live steps below.
 
 **Date:** 2026-11-07 (Africa/Harare) · **Mode:** `BILLING_ENABLED=false` in production
 

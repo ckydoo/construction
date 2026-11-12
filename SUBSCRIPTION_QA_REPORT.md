@@ -1,20 +1,20 @@
-# MYLA DPO Pay subscription shadow QA
+# MYLA USD 6/14/26 billing QA
 
-**10/10 checks passed** — local DPO Pay v6 mock against `http://127.0.0.1:3001`. No Stripe, live keys, live charges or production writes were used.
+**12/12 checks passed** — local DPO Pay v6 fallback mock against `http://127.0.0.1:3000`. Paynow remains the runtime primary. No Stripe, live keys, live charges or production writes were used.
 
 | Result | Check | Detail |
 |---|---|---|
-| PASS | register a new organisation | myla-dpo-qa-mwb5ehba |
-| PASS | onboarding remains reachable before payment | onboarded=true |
-| PASS | billing starts in trial_required with three USD plans and no card | 9 / 29 / 99 USD everywhere · DPO mock · no Stripe |
-| PASS | hard lock blocks workspace APIs before trial | API 402 · dashboard redirects · billing page reachable |
-| PASS | select Pro and start the 14-day NO-CARD trial | trialing · no card saved · no invoice yet |
-| PASS | Pro trial grants full write access | client record created |
-| PASS | trial expiry creates one DPO invoice and 3-day read-only grace | grace · one USD 29.00 DPO invoice · no charge |
-| PASS | DPO hosted mock verifies payment and saves a recurring token | invoice MYLA-202611-A2F9E5FE71D1 · active until 2026-12-09 |
-| PASS | daily sweep is idempotent; tokenised renewal charges once | 2 paid invoices · chargeTokenRecurrent once · cron replay clean |
+| PASS | register a new organisation | myla-dpo-qa-mwd3bjo9 |
+| PASS | onboarding starts an empty 7-day trial and returns Billing | sample data off · trial started · Billing next |
+| PASS | billing exposes USD 6/14/26 and a payable prepay invoice | 6 / 14 / 26 USD · 7-day trial · one USD 6.00 prepay invoice |
+| PASS | trial workspace has full write access | client record created |
+| PASS | configured DPO fallback reissues the prepay invoice without a second period | Paynow default retained · one mock invoice · fallback selected |
+| PASS | upgrade during trial is immediate and reprices the prepay month | Starter → Pro immediately · USD 14.00 · no duplicate invoice |
+| PASS | downgrade is scheduled at period end and can be cancelled | Pro retained until period end · cancellation restores one pending invoice |
+| PASS | payment during the trial preserves the full 7-day trial | USD 14.00 prepaid · trial still ends 2026-11-19 |
+| PASS | trial expiry activates the prepaid month without a second invoice | active · prepaid period starts at former trial end · zero duplicate invoices |
+| PASS | daily sweep is idempotent; tokenised renewal charges once | 2 paid invoices · one mock renewal charge · cron replay clean |
+| PASS | active upgrade is immediate with one prorated adjustment invoice | Pro → Enterprise immediately · USD 11.60 proration · exact-amount payment verified |
 | PASS | grace expiry hard locks without deleting data | locked · 1 record(s) preserved · billing reachable |
 
-Workspace: `myla-dpo-qa-mwb5ehba` · `qa-dpo-mwb5ehba@kestrelridge.co.zw`. Cleanup SQL: `/tmp/billing-qa-cleanup.sql`.
-
-Cleanup verified after the final run: `qa_orgs 0`, `qa_users 0`, `mock_events 0`, `billing_events 0`, `comped 2`, `subscriptions 2`, `invoices 0`. The two pre-existing organisations remain comped and no live DPO/Paynow charge was made.
+Workspace: `myla-dpo-qa-mwd3bjo9` · `qa-dpo-mwd3bjo9@kestrelridge.co.zw`. Cleanup SQL: `/tmp/billing-qa-cleanup.sql`.

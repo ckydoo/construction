@@ -1,8 +1,15 @@
 # MYLA subscriptions — DPO Pay by Network shadow release
+> **CURRENT BILLING V3 — HISTORICAL DOCUMENT.** This record describes an earlier
+> shadow/DPO release and is superseded by `BILLING_SETUP.md`. Production now uses
+> Paynow live billing, a 7-day no-card trial that starts after onboarding, USD
+> 6 / 14 / 26 monthly plans, early payment during the trial, immediate prorated
+> upgrades, period-end downgrades and no comped workspaces. Do not use the older
+> prices, trial length, gateway switch or status described below as current
+> configuration.
 
-**Date:** 2026-11-07 (Africa/Harare) · **Mode:** `BILLING_ENABLED=false` in production ·
+**Date:** 2026-11-07 (Africa/Harare) · **Mode at that release:** `BILLING_ENABLED=false` in production (now true) ·
 **Gateway:** DPO Pay by Network primary, Paynow Zimbabwe optional manual fallback ·
-**Trial:** 14 days, no card required
+**Trial at that release:** 14 days, no card required (now 7 days)
 
 > **Deployment record:** commit `bd38a90` / `bd38a90721be86016e9c8dbf937d1b6a4fc365d6`
 > → Vercel `dpl_GKfLfcx2C9UdXJcFvPNHwxZJiSXc` (`READY` / `PROMOTED`,

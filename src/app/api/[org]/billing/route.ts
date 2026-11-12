@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { billingAdmin, billingConfigPublic, billingFailure, billingMutationError } from '@/lib/billing-api';
 import {
-  billingConfig, getInvoices, getSubscription, iso, notifyBilling, publicBilling,
-  recordBillingEvent, upsertSubscription,
+  billingConfig, getInvoices, getSubscription, iso, notifyBilling,
+  publicBilling, recordBillingEvent, upsertSubscription,
 } from '@/lib/billing';
-import { cancelSubscription, startNoCardTrial } from '@/lib/billing-lifecycle';
+import { cancelSubscription, createSubscriptionInvoice, startNoCardTrial } from '@/lib/billing-lifecycle';
+import { cancelOpenPlanChange, requestPlanChange } from '@/lib/billing-plan-change';
 import { revokeDpoCard } from '@/lib/dpo-billing';
 import { isPlanId } from '@/lib/billing-plans';
 
@@ -44,7 +45,7 @@ export async function POST(req: Request, { params }: Ctx) {
     if (action === 'startTrial') {
       const planId = b.planId && isPlanId(b.planId) ? b.planId : sub.plan_id;
       const next = await startNoCardTrial(sub, planId, a.email);
-      return NextResponse.json({ ok: true, subscription: next, message: '14-day no-card trial started.' });
+      return NextResponse.json({ ok: true, subscription: next, message: '7-day no-card trial started.' });
     }
 
     if (action === 'setGatewayPreference' || action === 'setPaynowPreference') {
@@ -62,9 +63,46 @@ export async function POST(req: Request, { params }: Ctx) {
         paynow_preferred: preference === 'paynow',
         metadata: { ...(sub.metadata || {}), gatewayPreference: preference },
       });
+      // Reissue any uninitiated prepay invoice on the newly selected rail.
+      // Billing history is retained; a cancelled invoice is never deleted.
+      const invoices = await getInvoices(a.orgId, 100);
+      const prepay = invoices.find(i => i.status === 'pending'
+        && i.metadata?.prepayAfterTrial === true && i.metadata?.invoiceKind !== 'plan_adjustment');
+      if (prepay) {
+        await createSubscriptionInvoice(next, prepay.period_start, {
+          renewal: false, email: a.email,
+          metadata: {
+            ...prepay.metadata, prepayAfterTrial: true,
+            invoiceKind: 'subscription_prepay',
+            trialEndsAt: prepay.metadata?.trialEndsAt || prepay.period_start,
+          },
+        });
+      }
       await recordBillingEvent(a.orgId, 'gateway_preference_changed', iso(new Date()),
         preference === 'dpo' ? 'DPO Pay fallback selected before first payment; Paynow remains the default.' : 'Paynow primary rail confirmed before first payment.');
       return NextResponse.json({ ok: true, subscription: next });
+    }
+
+    if (action === 'changePlan') {
+      const result = await requestPlanChange(sub, b.planId, {
+        userId: a.userId, email: a.email, name: a.name, orgSlug: a.orgSlug,
+      });
+      return NextResponse.json({
+        ok: true, ...result,
+        subscription: await getSubscription(a.orgId),
+        invoices: await getInvoices(a.orgId, 36),
+      });
+    }
+
+    if (action === 'cancelPlanChange') {
+      const result = await cancelOpenPlanChange(a.orgId, {
+        userId: a.userId, email: a.email, name: a.name, orgSlug: a.orgSlug,
+      });
+      return NextResponse.json({
+        ok: true, ...result,
+        subscription: await getSubscription(a.orgId),
+        invoices: await getInvoices(a.orgId, 36),
+      });
     }
 
     if (action === 'cancel') {

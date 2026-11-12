@@ -80,10 +80,14 @@ await check('Paynow is primary in runtime code and UI', async () => {
   assert.match(page, /Pay with Paynow/);
   assert.match(page, /Billing is not active yet/);
   assert.match(page, /Payment options/);
+  assert.match(page, /USD 6 \/ 14 \/ 26/);
+  assert.match(page, /Your 7-day free trial is active/);
   assert.doesNotMatch(page, /Shadow mode|primary subscription rail|webhooks|tokenisation|environment keys|callback secrets|Stripe was removed|grandfathered comped|BILLING_ENABLED|DPO fallback configured|Saved DPO payment token/);
   assert.doesNotMatch(page, /DPO Pay primary/);
+  const paynow = read('src/lib/paynow-billing.ts');
+  assert.match(paynow, /validateInvoiceAmount\(input\.invoice, input\.planId\)/);
   const cron = read('src/lib/billing-cron.ts');
-  assert.match(cron, /Paynow invoice will be ready/);
+  assert.match(cron, /invoice is already available in Billing/);
   assert.match(cron, /Pay USD .* by Paynow/);
   return 'primaryGateway paynow · plain-language billing UI';
 });
@@ -105,7 +109,7 @@ await check('DPO code, webhooks, env keys and fallback QA remain configured', as
   const local = read('.env');
   const enabled = local.match(/^BILLING_ENABLED\s*=\s*(.*)$/m)?.[1]?.replace(/["']/g, '').trim();
   assert.equal(enabled, 'false', 'local billing must stay disabled');
-  return 'DPO adapter/webhooks/QA/env retained · billing disabled';
+  return 'DPO adapter/webhooks/QA/env retained · local shadow mode';
 });
 
 const api = await request.newContext({ baseURL: BASE });
@@ -131,17 +135,17 @@ try {
     return '13 sections · 19 lists';
   });
 
-  await check('billing API reports Paynow primary while shadow mode stays off', async () => {
+  await check('billing API reports Paynow primary with no Stripe checkout', async () => {
     const r = await api.get(`/api/${encodeURIComponent(account.slug)}/billing`);
     assert.equal(r.status(), 200, await r.text());
     const body = await r.json();
-    assert.equal(body.billing.enabled, false);
-    assert.equal(body.billing.mode, 'off');
     assert.equal(body.billing.primaryGateway, 'paynow');
     assert.equal(body.billing.paynowPrimary, true);
     assert.equal(body.config.primaryGateway, 'paynow');
-    assert.equal(body.config.dpoCheckoutAvailable, false);
-    return 'off · Paynow primary · no live checkout';
+    assert.equal(body.config.stripeCheckoutAvailable, false);
+    assert.deepEqual(body.billing.plans.map(p => p.priceUsd), [6, 14, 26]);
+    assert.equal(body.billing.trialDays, 7);
+    return `${body.billing.mode} · Paynow primary · 6/14/26 · no Stripe`;
   });
 
   await check('support API enforces an admin-scoped workspace view', async () => {

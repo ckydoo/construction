@@ -1,6 +1,6 @@
 /* DPO Pay by Network v6 subscription adapter.
  *
- * Flow: 14-day NO-CARD trial -> first customer-present hosted payment with
+ * Flow: 7-day NO-CARD trial -> first customer-present hosted payment with
  * <AllowRecurrent>1</AllowRecurrent> -> verifyToken -> getSubscriptionToken ->
  * chargeTokenRecurrent on later renewals. DPO push/redirect callbacks are only
  * doorbells: verifyToken plus exact amount/currency/reference matching is the
@@ -15,13 +15,13 @@ import {
   dpoProvider, getInvoiceByReference, getOrgCountry, getSubscription, iso,
   markWebhookProcessed, notifyBilling, recordBillingEvent,
   recordWebhookEvent, safeHashEqual, shortHash, updateInvoice,
-  type BillingInvoice, type BillingSubscription,
+  validateInvoiceAmount, type BillingInvoice, type BillingSubscription,
 } from './billing';
 import {
   activatePaidInvoice, clearDpoTokens, markInvoiceFailed,
   type WalletTokens,
 } from './billing-lifecycle';
-import { PLAN_MAP, planAmountFixed, type PlanId } from './billing-plans';
+import { PLAN_MAP, type PlanId } from './billing-plans';
 
 export type DpoContext = {
   reference?: string;
@@ -310,8 +310,7 @@ async function createDpoTransaction(input: DpoTransactionInput): Promise<{ token
   const cfg = billingConfig();
   if (!cfg.dpoReady) billingError('DPO is not configured for checkout.', 503);
   if (input.invoice.status !== 'pending') billingError('This invoice is no longer awaiting payment.', 409);
-  const expected = planAmountFixed(input.planId);
-  if (Number(input.invoice.amount_usd).toFixed(2) !== expected) billingError('Invoice amount does not match the selected plan.', 409);
+  const expected = validateInvoiceAmount(input.invoice, input.planId);
   // customerCountry is optional. Use the onboarding country where available;
   // never hardcode ZW, because the same USD prices apply everywhere.
   const country = input.country ?? await getOrgCountry(input.invoice.organization_id);

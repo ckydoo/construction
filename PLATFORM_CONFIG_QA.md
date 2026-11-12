@@ -1,8 +1,17 @@
 # Platform billing configuration QA
+> **CURRENT BILLING V3 — HISTORICAL DOCUMENT.** This record describes an earlier
+> shadow/DPO release and is superseded by `BILLING_SETUP.md`. Production now uses
+> Paynow live billing, a 7-day no-card trial that starts after onboarding, USD
+> 6 / 14 / 26 monthly plans, early payment during the trial, immediate prorated
+> upgrades, period-end downgrades and no comped workspaces. Do not use the older
+> prices, trial length, gateway switch or status described below as current
+> configuration.
 
 Generated: 2026-11-11T06:08:47.728Z
 
 Result: **34 passed / 0 failed** (34 checks).
+
+Current live state (verified separately by read-only SQL): `billing_enabled=true`, `trial_days=7`, `active_gateway=paynow`, one enabled live Paynow gateway, active plans `STARTER:6,PRO:14,ENTERPRISE:26`, and zero comped overrides. The staged-config QA script was not rerun because it performs harmless but unnecessary writes.
 
 | Check | Result | Detail |
 |---|---|---|

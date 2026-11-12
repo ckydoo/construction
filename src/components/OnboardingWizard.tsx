@@ -51,7 +51,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [revenueBand,setRevenueBand]=useState('$1M – $10M');
   const [qualifiers,setQualifiers]=useState<string[]>([]);
   const [addons,setAddons]=useState<string[]>([]);
-  const [loadDemo,setLoadDemo]=useState(true);
+  const [loadDemo,setLoadDemo]=useState(false);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
 
@@ -73,7 +73,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     setLoading(true); setError('');
     try{
       const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,loadDemo});
-      router.push(`/${r.slug}/dashboard`); router.refresh();
+      router.push(r.next || `/${r.slug}/billing`); router.refresh();
     }catch(e:any){ setError(userMessage(e, 'We couldn’t create your workspace. Please try again.')); setLoading(false); }
   }
 
@@ -171,7 +171,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
               const on=addons.includes(m.id);
               return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition ${on?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div></div>}
             <div className="flex items-center justify-between gap-4 rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
-              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with sample data</p><p className="mt-0.5 text-xs muted">616 sample records: 5 jobs, 42 staff, orders, tax invoices, time sheets, site queries, safety events and more.</p></div>
+              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with sample data <span className="ml-1 text-[11px] font-normal muted">Off by default</span></p><p className="mt-0.5 text-xs muted">Optional: 616 sample records across jobs, staff, orders, invoices, time sheets, site queries and safety events. Your workspace starts empty unless you switch this on.</p></div>
               <Toggle checked={loadDemo} onChange={setLoadDemo}/>
             </div>
             {error&&<p className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{error}</p>}
@@ -183,7 +183,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
               :<Button variant="primary" loading={loading} onClick={finish} icon="Rocket">Open my company</Button>}
           </div>
         </div>
-        <p className="mt-4 text-center text-xs muted">You can switch sections on or off any time in <strong>Settings</strong>.</p>
+        <p className="mt-4 text-center text-xs muted">Your 7-day trial and payment options open in Billing next. You can switch sections on or off any time in <strong>Settings</strong>.</p>
       </main>
     </div>
   </div>;

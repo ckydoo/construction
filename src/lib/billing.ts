@@ -12,7 +12,8 @@ import { supabaseAdmin } from './supabase';
 import { appBaseUrl } from './email';
 import { adminUserIds, notifyUsersByCategory, orgSlug, queueCategoryEmails, type NotificationKind } from './notification-service';
 import {
-  BILLING_CURRENCY, GRACE_DAYS, PLAN_MAP, PLANS, TRIAL_DAYS,
+  BILLING_CURRENCY, GRACE_DAYS, PLAN_CHANGE_POLICY, PLAN_MAP, PLANS,
+  PRICE_BOOK_VERSION, TRIAL_DAYS,
   billingAllowsAccess, billingAllowsWrite, isPlanId, planAmountFixed,
   type BillingStatus, type PlanId,
 } from './billing-plans';
@@ -33,6 +34,8 @@ export type BillingSubscription = {
   current_period_end: string | null;
   grace_until: string | null;
   switch_deadline: string | null;
+  pending_plan_id: PlanId | null;
+  pending_plan_effective_at: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   stripe_checkout_session_id: string | null;
@@ -80,6 +83,43 @@ export type BillingInvoice = {
   created_at: string;
   updated_at: string;
 };
+
+export function expectedInvoiceAmount(
+  invoice: Pick<BillingInvoice, 'plan_id' | 'amount_usd' | 'metadata'>,
+): string {
+  if (invoice.metadata?.invoiceKind === 'plan_adjustment') {
+    const value = Number(invoice.metadata?.planChange?.prorationUsd ?? invoice.amount_usd);
+    return Number.isFinite(value) ? value.toFixed(2) : planAmountFixed(invoice.plan_id);
+  }
+  return planAmountFixed(invoice.plan_id);
+}
+
+/** Gateway-side exact-amount validation. A prorated adjustment may be less than
+ * the monthly plan price, but must be positive, self-consistent and no larger
+ * than the monthly price difference. All other invoices use the price book. */
+export function validateInvoiceAmount(
+  invoice: Pick<BillingInvoice, 'plan_id' | 'amount_usd' | 'metadata'>,
+  requestedPlan: PlanId,
+): string {
+  const amount = Number(invoice.amount_usd).toFixed(2);
+  if (invoice.plan_id !== requestedPlan) billingError('Invoice plan does not match the selected plan.', 409);
+  if (invoice.metadata?.invoiceKind === 'plan_adjustment') {
+    const change = invoice.metadata?.planChange || {};
+    const fromPlan = change.fromPlan as PlanId;
+    const proration = Number(change.prorationUsd);
+    const maximum = isPlanId(fromPlan)
+      ? PLAN_MAP[requestedPlan].priceUsd - PLAN_MAP[fromPlan].priceUsd : 0;
+    if (!Number.isFinite(proration) || proration <= 0 || maximum <= 0
+        || proration - maximum > 0.009 || amount !== proration.toFixed(2)) {
+      billingError('Prorated adjustment amount is invalid.', 409);
+    }
+    return amount;
+  }
+  if (amount !== planAmountFixed(requestedPlan)) {
+    billingError('Invoice amount does not match the selected plan.', 409);
+  }
+  return amount;
+}
 
 const truthy = (value: unknown) => String(value || '').trim().toLowerCase() === 'true';
 
@@ -249,7 +289,10 @@ export function normalizeSubscription(row: any): BillingSubscription {
     paynow_preferred: preference === 'paynow', comped_reason: row.comped_reason || null,
     trial_ends_at: iso(row.trial_ends_at), current_period_start: iso(row.current_period_start),
     current_period_end: iso(row.current_period_end), grace_until: iso(row.grace_until),
-    switch_deadline: iso(row.switch_deadline), stripe_customer_id: row.stripe_customer_id || null,
+    switch_deadline: iso(row.switch_deadline),
+    pending_plan_id: isPlanId(row.pending_plan_id) ? row.pending_plan_id : null,
+    pending_plan_effective_at: iso(row.pending_plan_effective_at),
+    stripe_customer_id: row.stripe_customer_id || null,
     stripe_subscription_id: row.stripe_subscription_id || null,
     stripe_checkout_session_id: row.stripe_checkout_session_id || null,
     stripe_cancelled_at: iso(row.stripe_cancelled_at),
@@ -328,23 +371,52 @@ export async function getInvoiceByReference(reference: string): Promise<BillingI
   return data as BillingInvoice | null;
 }
 
-/** One invoice per organisation, gateway and period. Safe under webhook retries. */
+/* One non-cancelled invoice per organisation and accounting period, regardless
+ * of which configured gateway is selected. Safe under webhook retries and plan
+ * changes; gateway reissue cancels the old invoice rather than deleting it. */
 export async function findOrCreateInvoice(input: {
   orgId: string; planId: PlanId; gateway: BillingProvider;
   periodStart: Date | string; periodEnd: Date | string; dueAt?: Date | string;
   reference?: string; gatewayReference?: string; hostedUrl?: string | null; pollUrl?: string | null;
-  metadata?: Record<string, any>;
+  amountUsd?: number; metadata?: Record<string, any>;
 }): Promise<{ invoice: BillingInvoice; created: boolean }> {
-  const plan = PLAN_MAP[input.planId];
   const start = new Date(input.periodStart).toISOString();
   const end = new Date(input.periodEnd).toISOString();
   const due = new Date(input.dueAt || start).toISOString();
+  const amount = input.amountUsd != null
+    ? Number(input.amountUsd).toFixed(2) : planAmountFixed(input.planId);
+  const adjustment = input.metadata?.invoiceKind === 'plan_adjustment';
   const admin = supabaseAdmin();
-  const existing = await admin.from('billing_invoices').select('*')
-    .eq('organization_id', input.orgId).eq('gateway', input.gateway)
-    .eq('period_start', start).maybeSingle();
-  if (existing.error) throw new Error(existing.error.message);
-  if (existing.data) return { invoice: existing.data as BillingInvoice, created: false };
+  const existingRows = await admin.from('billing_invoices').select('*')
+    .eq('organization_id', input.orgId).eq('period_start', start)
+    .neq('status', 'cancelled').limit(20);
+  if (existingRows.error) throw new Error(existingRows.error.message);
+  const candidates = (existingRows.data || []).filter((row: any) =>
+    (row.metadata?.invoiceKind === 'plan_adjustment') === adjustment);
+  const existing = (candidates.find((row: any) => row.status === 'pending')
+    || candidates.find((row: any) => row.status === 'paid')
+    || candidates[0]) as BillingInvoice | undefined;
+  if (existing) {
+    if (existing.gateway === input.gateway || existing.status !== 'pending') {
+      return { invoice: existing, created: false };
+    }
+    // Gateway switched before checkout. Preserve history; reissue only if the
+    // first invoice was already sent to a gateway, otherwise move it safely.
+    if (!existing.hosted_url && !existing.poll_url && !existing.gateway_reference) {
+      return {
+        invoice: await updateInvoice(existing.id, {
+          gateway: input.gateway, plan_id: input.planId, amount_usd: amount,
+          metadata: { ...(existing.metadata || {}), ...(input.metadata || {}), priceBookVersion: PRICE_BOOK_VERSION },
+        }),
+        created: false,
+      };
+    }
+    await updateInvoice(existing.id, {
+      status: 'cancelled', cancelled_at: iso(new Date()),
+      failure_reason: 'Reissued on the selected payment rail',
+      metadata: { ...(existing.metadata || {}), reissuedAt: new Date().toISOString() },
+    });
+  }
 
   const stamp = start.slice(0, 7).replace('-', '');
   const token = randomToken(6);
@@ -353,17 +425,23 @@ export async function findOrCreateInvoice(input: {
     invoice_number: `MYLA-${stamp}-${token}`,
     reference: input.reference || `MYLA-${stamp}-${token}`,
     plan_id: input.planId, gateway: input.gateway,
-    amount_usd: planAmountFixed(input.planId), currency: BILLING_CURRENCY,
+    amount_usd: amount, currency: BILLING_CURRENCY,
     status: 'pending', period_start: start, period_end: end, due_at: due,
     hosted_url: input.hostedUrl || null, poll_url: input.pollUrl || null,
     gateway_reference: input.gatewayReference || null,
-    metadata: { planName: plan.name, amountUsd: plan.priceUsd, taxIncluded: false, ...(input.metadata || {}) },
+    metadata: {
+      planName: PLAN_MAP[input.planId].name,
+      amountUsd: Number(amount), taxIncluded: false,
+      priceBookVersion: PRICE_BOOK_VERSION, ...(input.metadata || {}),
+    },
   };
   const { data, error } = await admin.from('billing_invoices').insert(row).select('*').single();
   if (!error) return { invoice: data as BillingInvoice, created: true };
   if (error.code === '23505') {
     const retry = await admin.from('billing_invoices').select('*')
-      .eq('organization_id', input.orgId).eq('gateway', input.gateway).eq('period_start', start).maybeSingle();
+      .eq('organization_id', input.orgId).eq('gateway', input.gateway)
+      .eq('period_start', start).neq('status', 'cancelled').maybeSingle();
+    if (retry.error) throw new Error(retry.error.message);
     if (retry.data) return { invoice: retry.data as BillingInvoice, created: false };
   }
   throw new Error(error.message);
@@ -439,7 +517,13 @@ export type PublicBilling = {
   access: boolean; writable: boolean; readOnly: boolean; needsPayment: boolean;
   canManage: boolean; paynowPreferred: boolean; trialEndsAt: string | null;
   currentPeriodEnd: string | null; graceUntil: string | null; switchDeadline: string | null;
-  comped: boolean;
+  comped: boolean; priceBookVersion: string; planChangePolicy: string;
+  paymentDueAt: string | null; canChangePlan: boolean;
+  pendingPlanChange: {
+    id: string; fromPlan: PlanId; toPlan: PlanId;
+    direction: 'upgrade' | 'downgrade'; effectiveAt: string | null;
+    status: string; prorationUsd: number; adjustmentInvoiceId: string | null;
+  } | null;
 };
 
 export async function publicBilling(orgId: string, role: string): Promise<PublicBilling> {
@@ -450,6 +534,25 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
   const access = cfg.active ? billingAllowsAccess(status) : true;
   const writable = cfg.active ? billingAllowsWrite(status) : true;
   const preference = gatewayPreference(sub);
+  const admin = supabaseAdmin();
+  const [dueRow, changeRow] = await Promise.all([
+    admin.from('billing_invoices').select('due_at').eq('organization_id', orgId)
+      .eq('status', 'pending').order('due_at', { ascending: true }).limit(1).maybeSingle(),
+    admin.from('billing_plan_changes').select('*').eq('organization_id', orgId)
+      .in('status', ['pending','payment_pending']).order('created_at', { ascending: false })
+      .limit(1).maybeSingle(),
+  ]);
+  const pc = changeRow.data;
+  const pendingPlanChange = pc ? {
+    id: String(pc.id),
+    fromPlan: pc.from_plan as PlanId,
+    toPlan: pc.to_plan as PlanId,
+    direction: pc.direction as 'upgrade' | 'downgrade',
+    effectiveAt: iso(pc.effective_at),
+    status: String(pc.status),
+    prorationUsd: Number(pc.proration_usd || 0),
+    adjustmentInvoiceId: pc.adjustment_invoice_id || null,
+  } : null;
   return {
     enabled: cfg.active, mode: cfg.mode, plans: PLANS, currency: BILLING_CURRENCY,
     trialDays: TRIAL_DAYS, graceDays: GRACE_DAYS, taxIncluded: false, stripeTaxEnabled: false,
@@ -467,6 +570,10 @@ export async function publicBilling(orgId: string, role: string): Promise<Public
     trialEndsAt: sub?.trial_ends_at || null, currentPeriodEnd: sub?.current_period_end || null,
     graceUntil: sub?.grace_until || null, switchDeadline: sub?.switch_deadline || null,
     comped: status === 'comped',
+    priceBookVersion: PRICE_BOOK_VERSION, planChangePolicy: PLAN_CHANGE_POLICY,
+    paymentDueAt: iso(dueRow.data?.due_at) || null,
+    canChangePlan: ['trialing','active','comped'].includes(status),
+    pendingPlanChange,
   };
 }
 

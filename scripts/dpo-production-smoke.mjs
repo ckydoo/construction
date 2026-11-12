@@ -1,7 +1,7 @@
-/* Focused production smoke for the Paynow-primary shadow release with the
- * retained DPO Pay fallback.
- * It uses only the public demo owner account, makes no payment calls, creates no
- * data, and does not print cookies or secret values. Run after promoting the
+/* Focused production smoke for the live Paynow-primary USD 6/14/26 billing
+ * release, with the retained DPO Pay fallback left unconfigured.
+ * It uses only the demo owner account, makes no payment calls, creates no
+ * charges, and does not print cookies or secret values. Run after promoting the
  * explicit-SHA Vercel deployment:
  *   DPO_PROD_BASE=https://myla-construction-erp.vercel.app npm run audit:dpo-prod
  * Optional report metadata: DPO_PROD_SHA, DPO_PROD_DEPLOYMENT_ID,
@@ -97,30 +97,36 @@ try {
       return '200';
     });
   }
-  await check('billing API stays shadowed with Paynow primary and DPO fallback retained', async () => {
+  await check('billing API is live with the USD 6/14/26 price book and an open invoice', async () => {
     const r = await request(`/api/${ORG}/billing`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.billing.mode, 'off');
-    assert.equal(r.body.billing.enabled, false);
-    assert.equal(r.body.billing.status, 'comped');
+    assert.equal(r.body.billing.mode, 'live');
+    assert.equal(r.body.billing.enabled, true);
+    assert.equal(r.body.billing.status, 'active');
+    assert.equal(r.body.billing.comped, false);
     assert.equal(r.body.billing.primaryGateway, 'paynow');
     assert.equal(r.body.billing.paynowPrimary, true);
+    assert.equal(r.body.billing.paynowAvailable, true);
     assert.equal(r.body.config.primaryGateway, 'paynow');
-    assert.equal(r.body.billing.comped, true);
+    assert.equal(r.body.billing.trialDays, 7);
     assert.equal(r.body.billing.trialRequiresCard, false);
-    assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [9, 29, 99]);
+    assert.equal(r.body.billing.priceBookVersion, 'USD_6_14_26_V1');
+    assert.equal(r.body.billing.planChangePolicy, 'upgrade_immediate_prorated_downgrade_period_end');
+    assert.deepEqual(r.body.billing.plans.map((p) => p.priceUsd), [6, 14, 26]);
+    assert.ok(r.body.billing.paymentDueAt, 'one payable invoice is present');
     assert.equal(r.body.config.dpoCheckoutAvailable, false);
     assert.equal(r.body.config.stripeCheckoutAvailable, false);
     assert.equal(r.body.config.dpoRecurringEnabled, false);
-    return 'off · comped · Paynow primary · DPO fallback · 9/29/99 · no card';
+    return 'live · active · Paynow primary · 6/14/26 · 7-day policy · no charge';
   });
   await check('meta still exposes 31 modules / 46 resources', async () => {
     const r = await request(`/api/${ORG}/meta`);
     assert.equal(r.res.status, 200, JSON.stringify(r.body).slice(0, 240));
     assert.equal(r.body.modules.length, 31);
     assert.equal(r.body.resources.length, 46);
-    assert.equal(r.body.billing.mode, 'off');
-    return '31 modules · 46 resources';
+    assert.equal(r.body.billing.mode, 'live');
+    assert.equal(r.body.billing.status, 'active');
+    return '31 modules · 46 resources · live billing';
   });
   for (const [label, url] of [
     ['overview API', `/api/${ORG}/overview`],
@@ -147,13 +153,13 @@ try {
     assert.equal(Array.isArray(r.body.brokenRefs) ? r.body.brokenRefs.length : 0, 0);
     return 'ok · 0 broken refs';
   });
-  await check('billing mutations are blocked in shadow mode', async () => {
+  await check('invalid plan change is rejected without a charge', async () => {
     const r = await request(`/api/${ORG}/billing`, {
-      method: 'POST', body: JSON.stringify({ action: 'startTrial', planId: 'PRO' }),
+      method: 'POST', body: JSON.stringify({ action: 'changePlan', planId: 'INVALID' }),
     });
-    assert.equal(r.res.status, 409, JSON.stringify(r.body));
-    assert.match(r.body.error || '', /shadow mode/i);
-    return '409 · no trial/charge created';
+    assert.equal(r.res.status, 400, JSON.stringify(r.body));
+    assert.match(r.body.error || '', /Choose Starter, Pro or Enterprise/i);
+    return '400 · no plan change, invoice or charge created';
   });
   await check('cron endpoint rejects an unauthorised caller', async () => {
     const r = await request('/api/cron/billing', { method: 'POST' });
@@ -192,13 +198,13 @@ try {
       return '410 · removed';
     });
   }
-  await check('DPO push callback fails closed without billing enabled', async () => {
+  await check('DPO push callback fails closed while the fallback is unconfigured', async () => {
     const r = await request('/api/webhooks/dpo', { method: 'POST', body: '' });
     assert.equal(r.res.status, 503);
     assert.match(r.text, /ERROR/);
     return '503 · ERROR XML · no charge';
   });
-  await check('DPO return callback redirects safely without billing enabled', async () => {
+  await check('DPO return callback redirects safely without a valid transaction', async () => {
     const r = await request('/api/webhooks/dpo?source=return&reference=probe&sig=invalid');
     assert.equal(r.res.status, 307);
     assert.match(r.res.headers.get('location') || '', /\/login/);
@@ -212,7 +218,7 @@ try {
   const deployment = (DEPLOY_SHA || DEPLOY_ID)
     ? `Deployment: \`${DEPLOY_SHA || 'not supplied'}\` / \`${DEPLOY_ID || 'not supplied'}\` (${DEPLOY_STATE}).\n\n`
     : '';
-  fs.writeFileSync(REPORT, `# MYLA Paynow-primary / DPO fallback production smoke\n\n${deployment}**${passed}/${results.length} checks passed** against \`${BASE}\` on ${RUN_DATE}. Paynow is primary, DPO remains configured. No live DPO/Paynow keys, charges, locks, QA rows or environment changes were used.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
+  fs.writeFileSync(REPORT, `# MYLA Paynow-primary / USD 6/14/26 production smoke\n\n${deployment}**${passed}/${results.length} checks passed** against \`${BASE}\` on ${RUN_DATE}. Paynow is primary; the DPO fallback remains code-complete but unconfigured. No payment, charge, lock, QA row or environment change was made.\n\n| Result | Check | Detail |\n|---|---|---|\n${rows}\n`);
   console.log(`\n${passed}/${results.length} checks passed. Report: ${REPORT}`);
   if (failed) process.exitCode = 1;
 }

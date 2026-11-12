@@ -81,7 +81,7 @@ if (billingOn && !dpoLiveReady)
 if (billingOn && get('DPO_RECURRING_ENABLED').toLowerCase() !== 'true')
   warnings.push('DPO_RECURRING_ENABLED is false; DPO fallback renewals will require customer-present payment.');
 if (!billingOn)
-  notes.push('Paynow is the primary billing rail; DPO code, webhooks and env keys stay configured as fallback. BILLING_ENABLED=false keeps shadow mode.');
+  notes.push('Paynow is the primary billing rail; DPO code, webhooks and env keys stay configured as fallback. BILLING_ENABLED=false keeps this local environment in shadow mode; Production is enabled in Vercel env.');
 
 if (get('NODE_ENV') === 'production') {
   if (!get('NEXT_PUBLIC_APP_URL').startsWith('https://')) warnings.push('NEXT_PUBLIC_APP_URL should be an HTTPS URL in production.');
@@ -111,7 +111,7 @@ console.log(`  Supabase URL     ${isSet(url) ? 'configured' : 'not set'}`);
 console.log(`  Anon key         ${isSet(anon) ? 'configured' : 'not set'}`);
 console.log(`  Service-role key ${isSet(service) ? 'configured' : 'not set'}`);
 console.log(`  Storage driver   ${get('STORAGE_DRIVER') || 'supabase'}`);
-console.log(`  Live billing     ${get('BILLING_ENABLED').toLowerCase() === 'true' ? 'ENABLED' : 'disabled (shadow mode)'}`);
+console.log(`  Billing          ${get('BILLING_ENABLED').toLowerCase() === 'true' ? 'ENABLED' : 'local shadow mode (Production is live via Vercel env)'}`);
 console.log(`  Optional integration slots configured: ${configured.length ? configured.join(', ') : 'none yet'}`);
 for (const n of notes) console.log(`  note    ${n}`);
 for (const w of warnings) console.log(`  WARN    ${w}`);

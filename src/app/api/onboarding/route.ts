@@ -5,6 +5,8 @@ import { resolveWorkspace } from '@/lib/catalog';
 import { capabilityGuard } from '@/lib/guard';
 import { seedDemo } from '@/lib/seed-service';
 import { notify } from '@/lib/records';
+import { getSubscription } from '@/lib/billing';
+import { startNoCardTrial } from '@/lib/billing-lifecycle';
 
 export async function GET() {
   const a = await apiAuth(); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -43,7 +45,24 @@ export async function POST(req: Request) {
         `${config.modules.length} modules enabled for your ${size.toLowerCase()} ${type.replace(/_/g, ' ').toLowerCase()} workspace.`,
         'SUCCESS', '/dashboard');
     }
-    return NextResponse.json({ ok: true, slug: a.orgSlug, config });
+    // A new workspace goes straight into its no-card trial and Billing. The
+    // trial invoice is payable now but the full trial is never shortened.
+    let billingStarted = false;
+    try {
+      const sub = await getSubscription(a.orgId);
+      if (sub && sub.status === 'trial_required') {
+        await startNoCardTrial(sub, sub.plan_id, a.email);
+        billingStarted = true;
+      }
+    } catch (billingError) {
+      // Onboarding must never fail because a billing seed is missing; Billing
+      // remains reachable and the normal plan picker can recover the state.
+      console.error('[onboarding] automatic trial start failed', billingError);
+    }
+    return NextResponse.json({
+      ok: true, slug: a.orgSlug, config,
+      billingStarted, next: `/${a.orgSlug}/billing`,
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Could not create workspace' }, { status: 500 });
   }

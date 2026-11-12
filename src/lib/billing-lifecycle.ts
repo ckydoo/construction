@@ -7,7 +7,8 @@ import {
   primaryGateway, recordBillingEvent, updateInvoice, upsertSubscription,
   type BillingInvoice, type BillingProvider, type BillingSubscription,
 } from './billing';
-import { PLAN_MAP, TRIAL_DAYS, planLabel, type PlanId } from './billing-plans';
+import { PLAN_MAP, PRICE_BOOK_VERSION, TRIAL_DAYS, planLabel, type PlanId } from './billing-plans';
+import { supabaseAdmin } from './supabase';
 
 export type WalletTokens = { subscriptionToken: string; customerToken: string };
 
@@ -19,12 +20,14 @@ export async function startNoCardTrial(
   if (sub.status !== 'trial_required') billingError('A trial has already been started for this organisation.', 409);
   const now = new Date();
   const preference = gatewayPreference(sub);
+  const trialEnd = addDays(now, TRIAL_DAYS);
+  const firstPeriodEnd = addMonths(trialEnd, 1);
   const next = await upsertSubscription(sub.organization_id, {
     plan_id: planId,
     status: 'trialing',
     gateway: preference === 'dpo' ? dpoProvider() : primaryGateway(),
     paynow_preferred: preference === 'paynow',
-    trial_ends_at: iso(addDays(now, TRIAL_DAYS)),
+    trial_ends_at: iso(trialEnd),
     current_period_start: null,
     current_period_end: null,
     grace_until: null,
@@ -34,15 +37,29 @@ export async function startNoCardTrial(
     metadata: {
       ...(sub.metadata || {}),
       gatewayPreference: preference,
-      trialType: 'no_card_14', cardRequired: false,
+      trialType: 'no_card_7', trialDays: TRIAL_DAYS,
+      cardRequired: false, trialRequiresCard: false,
       trialStartedAt: now.toISOString(), planAtTrialStart: planId,
+      prepayAfterTrial: true, priceBookVersion: PRICE_BOOK_VERSION,
+      priceUsd: PLAN_MAP[planId].priceUsd,
     },
   });
-  await notifyBilling(sub.organization_id, 'Your 14-day trial is active',
-    `Your ${planLabel(planId)} workspace is fully usable until ${new Date(next.trial_ends_at || now).toLocaleDateString('en-GB')}. No card was collected and no charge was made.`,
+  // The invoice exists while the trial is active so the user may pay early.
+  // Its paid month begins at trialEnd; paying it never shortens the 7-day trial.
+  await findOrCreateInvoice({
+    orgId: sub.organization_id, planId, gateway: invoiceGateway(next),
+    periodStart: trialEnd, periodEnd: firstPeriodEnd, dueAt: trialEnd,
+    metadata: {
+      invoiceKind: 'subscription_prepay', prepayAfterTrial: true,
+      trialEndsAt: iso(trialEnd), gatewayPreference: preference,
+      taxIncluded: false,
+    },
+  });
+  await notifyBilling(sub.organization_id, 'Your 7-day trial is active',
+    `Your ${planLabel(planId)} workspace is fully usable until ${new Date(next.trial_ends_at || now).toLocaleDateString('en-GB')}. No card was collected. You can pay now or continue the trial; a paid month starts when the trial ends.`,
     'SUCCESS', '/billing');
   await recordBillingEvent(sub.organization_id, 'no_card_trial_started', next.trial_ends_at,
-    `14-day no-card trial started on ${planLabel(planId)}.`);
+    `7-day no-card trial started on ${planLabel(planId)}; USD ${PLAN_MAP[planId].priceUsd.toFixed(2)}/month prepay invoice is available immediately.`);
   return next;
 }
 
@@ -68,8 +85,12 @@ export async function createSubscriptionInvoice(
     await upsertSubscription(sub.organization_id, { dpo_customer_email: email });
   }
   const autodebit = Boolean(dpoLike && cfg.dpoRecurringEnabled && sub.dpo_subscription_token);
+  const prepayAfterTrial = Boolean(sub.status === 'trialing' && opts.metadata?.prepayAfterTrial);
   const metadata: Record<string, any> = {
     renewal: Boolean(opts.renewal),
+    prepayAfterTrial,
+    invoiceKind: prepayAfterTrial ? 'subscription_prepay'
+      : sub.status === 'trialing' ? 'subscription_initial' : 'subscription_renewal',
     gatewayPreference: dpoLike ? 'dpo' : 'paynow',
     invoiceRail: dpoLike ? 'dpo' : 'paynow',
     selectedRail: preference,
@@ -117,7 +138,9 @@ export async function activatePaidInvoice(
 
   const all = await getInvoices(invoice.organization_id, 100);
   const duplicate = all.find(i => i.id !== invoice.id && i.status === 'paid'
-    && i.period_start.slice(0, 10) === invoice.period_start.slice(0, 10));
+    && i.period_start.slice(0, 10) === invoice.period_start.slice(0, 10)
+    && i.metadata?.invoiceKind !== 'plan_adjustment'
+    && invoice.metadata?.invoiceKind !== 'plan_adjustment');
   if (duplicate) {
     await notifyBilling(invoice.organization_id, 'Duplicate-payment review required',
       'Two gateways recorded a payment for one period. Contact support so one charge can be refunded; access remains active.',
@@ -146,8 +169,39 @@ export async function activatePaidInvoice(
     metadata,
   });
 
+  // A prorated adjustment is not a subscription period. Keep the existing
+  // period and access, settle the audited change, and avoid double billing.
+  if (invoice.metadata?.invoiceKind === 'plan_adjustment') {
+    const changeId = invoice.metadata?.planChange?.id || null;
+    if (changeId) {
+      const { data: change } = await supabaseAdmin().from('billing_plan_changes')
+        .update({ status: 'applied', applied_at: iso(new Date()) })
+        .eq('id', changeId).select('*').maybeSingle();
+      if (change) {
+        await recordBillingEvent(invoice.organization_id, 'plan_change_applied', changeId,
+          `Paid USD ${Number(invoice.amount_usd).toFixed(2)} prorated adjustment for ${PLAN_MAP[change.to_plan as PlanId].name}.`);
+      }
+    }
+    const settled = await upsertSubscription(invoice.organization_id, {
+      last_payment_at: iso(new Date()),
+      metadata: { ...(sub.metadata || {}), outstandingPlanAdjustmentId: null, lastPaidInvoiceId: invoice.id },
+    });
+    await notifyBilling(invoice.organization_id, 'Payment received',
+      'Your prorated plan adjustment is paid and the upgrade is confirmed. No data was changed.',
+      'SUCCESS', '/billing');
+    await recordBillingEvent(invoice.organization_id, 'payment_received', invoice.reference,
+      `Paid USD ${Number(invoice.amount_usd).toFixed(2)} plan adjustment through ${opts.gateway}.`);
+    return settled;
+  }
+
+  // Early trial payment: keep the full 7-day trial and schedule the paid month
+  // to begin at trialEnd, instead of activating the subscription immediately.
+  const prepayAfterTrial = Boolean(invoice.metadata?.prepayAfterTrial && sub.status === 'trialing');
   const patch: Partial<BillingSubscription> = {
-    status: 'active', gateway: invoice.gateway, plan_id: invoice.plan_id,
+    status: prepayAfterTrial ? 'trialing' : 'active',
+    // The subscription plan is authoritative after an immediate upgrade; the
+    // invoice may retain its historical plan for accounting. Never revert it.
+    gateway: invoice.gateway, plan_id: sub.plan_id,
     current_period_start: invoice.period_start, current_period_end: invoice.period_end,
     grace_until: null, switch_deadline: null, cancelled_at: null,
     last_payment_at: iso(new Date()),
@@ -155,6 +209,7 @@ export async function activatePaidInvoice(
       ...(sub.metadata || {}),
       lastPaidGateway: opts.gateway, lastPaidInvoiceId: invoice.id,
       lastPaidReference: invoice.reference,
+      ...(prepayAfterTrial ? { prepaidThrough: invoice.period_end, prepayPaidAt: iso(new Date()) } : {}),
       ...(opts.wallet ? { dpoTokenised: true } : {}),
     },
   };
@@ -173,10 +228,12 @@ export async function activatePaidInvoice(
   const next = await upsertSubscription(invoice.organization_id, patch);
 
   await notifyBilling(invoice.organization_id, 'Payment received',
-    `Your MYLA ${PLAN_MAP[invoice.plan_id].name} subscription is active until ${new Date(invoice.period_end).toLocaleDateString('en-GB')}. No data was changed.`,
+    prepayAfterTrial
+      ? `Your full ${TRIAL_DAYS}-day trial remains active. Your paid ${PLAN_MAP[invoice.plan_id].name} month starts ${new Date(invoice.period_start).toLocaleDateString('en-GB')}. No data was changed.`
+      : `Your MYLA ${PLAN_MAP[invoice.plan_id].name} subscription is active until ${new Date(invoice.period_end).toLocaleDateString('en-GB')}. No data was changed.`,
     'SUCCESS', '/billing');
   await recordBillingEvent(invoice.organization_id, 'payment_received', invoice.reference,
-    `Paid USD ${Number(invoice.amount_usd).toFixed(2)} through ${opts.gateway}.`);
+    `Paid USD ${Number(invoice.amount_usd).toFixed(2)} through ${opts.gateway}${prepayAfterTrial ? `; prepaid period starts ${invoice.period_start}.` : '.'}`);
   return next;
 }
 

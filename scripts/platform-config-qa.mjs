@@ -186,8 +186,8 @@ async function run() {
   const cfg = await api('/api/platform/config', { jar: a.jar, expect: 200 });
   record('superadmin GET config 200', cfg.json?.ok === true && cfg.json?.stageOnly === true && cfg.json?.runtimeWired === false);
   const priceLine = (cfg.json?.activePricingPlans || []).map((p) => `${p.plan_id}:${Number(p.monthly_usd)}`).join(',');
-  record('seed has USD 9/29/99 active', priceLine === 'STARTER:9,PRO:29,ENTERPRISE:99', priceLine);
-  record('seed billing disabled in DB', cfg.json?.settings?.billing_enabled === false);
+  record('seed has USD 6/14/26 active', priceLine === 'STARTER:6,PRO:14,ENTERPRISE:26', priceLine);
+  record('seed has 7-day trial and billing enabled in DB', cfg.json?.settings?.billing_enabled === true && cfg.json?.settings?.trial_days === 7);
   record('audit trail present', Array.isArray(cfg.json?.audit) && cfg.json.audit.length >= 10, `${cfg.json?.audit?.length} rows`);
 
   originalSettings = cfg.json.settings;
@@ -283,11 +283,11 @@ async function main() {
 
   softCheck('final: exactly one active platform admin', activeAdmins === 1, `${activeAdmins}`);
   softCheck('final: no QA admin rows', qaAdminRows === 0, `${qaAdminRows}`);
-  softCheck('final: DB billing still disabled', settingsRes.data?.billing_enabled === false);
-  softCheck('final: no gateway enabled', enabledGateways === 0, `${enabledGateways}`);
+  softCheck('final: DB billing remains enabled', settingsRes.data?.billing_enabled === true);
+  softCheck('final: exactly one live gateway enabled', enabledGateways === 1, `${enabledGateways}`);
   softCheck('final: 3 active seed plans', activePlans === 3, `${activePlans}`);
   softCheck('final: no QA pricing plan left', qaPlans === 0, `${qaPlans}`);
-  softCheck('final: 2 comped org overrides intact', comped === 2, `${comped}`);
+  softCheck('final: no comped org overrides remain', comped === 0, `${comped}`);
   softCheck('final: audit trail retained', auditRows >= 10, `${auditRows} rows`);
 
   for (const t of [tempA, tempB]) {

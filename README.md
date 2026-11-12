@@ -53,7 +53,7 @@ For a local Supabase stack instead of a hosted project: `npm run db:local` (need
 | `procurement@kestrelridge.co.zw` | Procurement | Vendors, POs, stores |
 | `client@westgate.co.zw` | Client (portal) | Westgate's own projects, invoices and wallet; can fund its own projects |
 
-The login screen has one-click demo account chips. **Create account** starts a brand-new Supabase Auth user + organisation and the onboarding wizard; ticking "Load realistic demo data" populates that new org too.
+The login screen has one-click demo account chips. **Create account** starts a brand-new Supabase Auth user + organisation and the onboarding wizard. **Try it with sample data** is off by default, so a new workspace starts empty; opting in still seeds the demo dataset.
 
 ---
 
@@ -62,7 +62,7 @@ The login screen has one-click demo account chips. **Create account** starts a b
 ### 1 · Authentication & multi-tenancy
 - Supabase Auth (`signInWithPassword`), JWT cookies managed by `@supabase/ssr` and refreshed in middleware. No custom session table, no bcrypt.
 - Registration creates a confirmed Auth user, signs them in, creates a draft `organizations` row and an `OWNER` membership, queues a welcome email and opens onboarding. Email verification is optional: a separate admin-only `app_metadata.email_verified` flag drives a quiet dashboard reminder, and existing confirmed accounts stay verified.
-- A confirmed email is required before an account can enter a workspace. Password reset, password-changed, team invitations and essential billing/security messages use the same quiet, deduplicated email boundary.
+- Email verification is optional and never blocks workspace access; unconfirmed users see a subtle, dismissible dashboard reminder. Password reset, password-changed, team invitations and essential billing/security messages use the same quiet, deduplicated email boundary.
 - Every tenant-owned row carries `organization_id`; RLS resolves the caller's orgs from `memberships` using `auth.uid()`. Cross-tenant reads/writes are impossible at the database level.
 - 14 roles governed by one `ROLE_RULES` matrix (per-resource read/write denylists, delete rights, 16 capabilities, row-level scoping for external users). The matrix is compiled into Postgres RLS by `scripts/gen-supabase-rbac.py`; `guard.ts` remains only as a friendly pre-flight check. See `WALLETS_AND_RBAC.md`.
 - Owners/admins can change roles, pin portal users to a client and remove members from Settings → Users & roles. A Postgres trigger prevents removing/demoting the last owner.
@@ -82,6 +82,8 @@ New workspaces start with **13 connected essentials** (clients → leads → est
 | Mixed group · Enterprise | 33 | 49 | Enterprise |
 
 `resolveWorkspace()` returns `{ modules, resources, flags, limits, localePack, plan }` and drives the sidebar, RLS module switches, command palette, Settings → Sections and the wizard review screen.
+
+After onboarding, a **7-day no-card trial** starts automatically and Billing opens with a choice to pay now or continue to the workspace. Plans are **USD 6 / 14 / 26** per organisation per month. Early payment preserves the full trial and prepays the month beginning at trial end; upgrades are immediate with a prorated adjustment, while downgrades take effect at period end. Owner/Admin plan changes, invoices, entitlements, limits and gateway events are audited. See `BILLING_SETUP.md`.
 
 ### 3 · Client wallets
 One prepaid `wallets` row per client with an append-only `wallet_transactions` ledger (integer cents, no float drift). Owners/admins/finance managers top up; those roles and client-portal users allocate funds to a project belonging to **that same client**. Corrections are `REVERSAL` entries — the ledger has no direct client write policy at all; money moves only through `app_wallet_topup` / `app_wallet_allocate` / `app_wallet_reverse`. Balances are mirrored into the Clients register (`walletBalance`), the Projects register (`fundedAmount`, `remainingToFund`), dashboard KPIs, project 360 and the client detail drawer. Idempotency keys stop double submissions; `/api/[org]/integrity` reconciles ledger, balances and derived figures.

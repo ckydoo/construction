@@ -8,12 +8,13 @@ import {
   type BillingInvoice,
 } from './billing';
 import { createSubscriptionInvoice } from './billing-lifecycle';
+import { applyDuePlanChanges } from './billing-plan-change';
 import { attemptDpoRenewal, revokeDpoCard } from './dpo-billing';
 
 type SweepCounts = {
   scanned: number; firstInvoices: number; renewalInvoices: number;
   recurringCharges: number; reminders: number; graceStarted: number;
-  locked: number; errors: number;
+  locked: number; planChangesApplied: number; errors: number;
 };
 
 function pendingInvoices(all: BillingInvoice[]): BillingInvoice[] {
@@ -23,7 +24,7 @@ function pendingInvoices(all: BillingInvoice[]): BillingInvoice[] {
 export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
   const counts: SweepCounts = {
     scanned: 0, firstInvoices: 0, renewalInvoices: 0, recurringCharges: 0,
-    reminders: 0, graceStarted: 0, locked: 0, errors: 0,
+    reminders: 0, graceStarted: 0, locked: 0, planChangesApplied: 0, errors: 0,
   };
   if (!billingActive()) return counts;
   const cfg = billingConfig();
@@ -36,6 +37,7 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
     counts.scanned++;
     try {
       const orgId = String(raw.organization_id);
+      counts.planChangesApplied += await applyDuePlanChanges(orgId, now);
       let sub = await getSubscription(orgId);
       if (!sub) continue;
       const cancelled = !!sub.cancelled_at;
@@ -49,39 +51,60 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
           metadata: { ...(sub.metadata || {}), trialReminderAt: new Date().toISOString() },
         });
         await notifyBilling(orgId, 'Your no-card trial ends soon',
-          `Your 14-day trial ends ${trialEnd.toLocaleDateString('en-GB')}. A Paynow invoice will be ready then; no card has been charged.`,
+          `Your 7-day trial ends ${trialEnd.toLocaleDateString('en-GB')}. Your invoice is already available in Billing if you want to pay early; no card has been charged.`,
           'WARNING', '/billing');
         counts.reminders++;
         sub = await getSubscription(orgId) || sub;
       }
 
-      // 2. Trial expiry: create ONE first invoice and start 3-day read-only grace.
-      if (sub.status === 'trialing' && trialEnd && trialEnd <= now && !sub.last_payment_at) {
-        const { invoice, created } = await createSubscriptionInvoice(sub, trialEnd, {
-          renewal: false, email: sub.dpo_customer_email,
-        });
-        if (created) {
-          await updateInvoice(invoice.id, {
-            reminder_upcoming_at: iso(now), reminder_due_at: iso(now), raw_status: 'Due',
+      // 2. Trial expiry: use the prepay invoice created at trial start. If it
+      // was paid early, activate the prepaid month without a second invoice.
+      if (sub.status === 'trialing' && trialEnd && trialEnd <= now) {
+        const allInvoices = await getInvoices(orgId, 100);
+        const prepaid = allInvoices.find(i => i.status === 'paid' && i.metadata?.prepayAfterTrial === true);
+        const existingPrepay = allInvoices.find(i => i.status === 'pending' && i.metadata?.prepayAfterTrial === true);
+        if (prepaid) {
+          await upsertSubscription(orgId, {
+            status: 'active',
+            current_period_start: prepaid.period_start,
+            current_period_end: prepaid.period_end,
+            grace_until: null, switch_deadline: null,
+            metadata: { ...(sub.metadata || {}), trialEndedAt: trialEnd.toISOString(), prepaidActivatedAt: now.toISOString() },
           });
+          await recordBillingEvent(orgId, 'prepaid_period_started', prepaid.reference,
+            'The full 7-day trial completed; the prepaid month started without a duplicate invoice.');
+        } else {
+          let invoice: BillingInvoice;
+          if (existingPrepay) {
+            invoice = await updateInvoice(existingPrepay.id, {
+              due_at: now.toISOString(), reminder_upcoming_at: iso(now), reminder_due_at: iso(now),
+              raw_status: 'Due',
+            });
+          } else {
+            const fallback = await createSubscriptionInvoice(sub, trialEnd, {
+              renewal: false, email: sub.dpo_customer_email,
+              metadata: { prepayAfterTrial: true, trialEndsAt: iso(trialEnd), invoiceKind: 'subscription_prepay' },
+            });
+            invoice = fallback.invoice;
+            if (fallback.created) counts.firstInvoices++;
+          }
           await notifyBilling(orgId, 'Your first subscription invoice is ready',
             `Pay USD ${Number(invoice.amount_usd).toFixed(2)} by Paynow${invoice.metadata?.dpo ? ' or the selected DPO Pay fallback' : ''}. Your workspace is read-only for three days; nothing is deleted.`,
             'WARNING', '/billing');
           await recordBillingEvent(orgId, 'first_invoice_created', invoice.reference,
-            'No-card trial ended; first Paynow/DPO invoice created.');
-          counts.firstInvoices++;
+            'No-card trial ended; the prepay invoice is now due.');
+          await upsertSubscription(orgId, {
+            status: 'grace',
+            current_period_start: invoice.period_start,
+            current_period_end: invoice.period_end,
+            grace_until: iso(addDays(trialEnd, 3)),
+            switch_deadline: null,
+            metadata: { ...(sub.metadata || {}), trialEndedAt: trialEnd.toISOString(), firstInvoiceId: invoice.id },
+          });
+          counts.graceStarted++;
+          periodEnd = invoice.period_end ? new Date(invoice.period_end) : periodEnd;
         }
-        await upsertSubscription(orgId, {
-          status: 'grace',
-          current_period_start: invoice.period_start,
-          current_period_end: invoice.period_end,
-          grace_until: iso(addDays(trialEnd, 3)),
-          switch_deadline: null,
-          metadata: { ...(sub.metadata || {}), trialEndedAt: trialEnd.toISOString(), firstInvoiceId: invoice.id },
-        });
-        counts.graceStarted++;
         sub = await getSubscription(orgId) || sub;
-        periodEnd = sub.current_period_end ? new Date(sub.current_period_end) : periodEnd;
       }
 
       // 3. Next monthly renewal invoice, created at most seven days before period end.
@@ -99,6 +122,8 @@ export async function runBillingSweep(now = new Date()): Promise<SweepCounts> {
       const invoices = await getInvoices(orgId, 100);
       for (const invoice of pendingInvoices(invoices)) {
         const due = new Date(invoice.due_at);
+        if (invoice.metadata?.prepayAfterTrial && sub.status === 'trialing'
+            && trialEnd && trialEnd > now) continue;
         const dpoInvoice = Boolean(invoice.metadata?.dpo) && ['dpo','mock'].includes(invoice.gateway);
 
         // 4. Tokenised DPO renewal: charge once, then poll verifyToken on replay.
