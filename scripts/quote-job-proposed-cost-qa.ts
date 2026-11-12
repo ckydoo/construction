@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { CONVERSION_RULES, proposedEstimateCost } from '../src/lib/conversions';
+import { RESOURCE_MAP } from '../src/lib/resources';
+import { validateFields } from '../src/lib/field-validation';
+const source={id:'quote',number:'EST-1',name:'Quote',clientId:'client',currency:'USD',total:120000,markup:20,labourCost:20000,materialCost:80000};
+const rule=CONVERSION_RULES.find(r=>r.id==='quote-to-job')!;
+const job=rule.build(source,{today:'2026-11-07',addDays:()=>'',taxRate:0});
+assert.equal(job.proposedEstimateCost,100000);assert.equal(job.contractValue,120000);assert.equal(job.budget,undefined);
+const clean=validateFields(RESOURCE_MAP.projects,job);assert.equal(clean.clean.proposedEstimateCost,100000);assert.equal(clean.clean.budget,null);
+assert.equal(proposedEstimateCost({total:120000,markup:20}),null);
+assert.equal(proposedEstimateCost({labourCost:0}),0);
+assert.equal(proposedEstimateCost({items:[{description:'Work',qty:2,unitPrice:12.5,total:25}],labourCost:999}),25);
+assert.equal(proposedEstimateCost({labourCost:-1}),null);
+console.log('PASS quote-to-job proposed cost: pre-markup item costs or categories, no inferred cost and no approved budget.');

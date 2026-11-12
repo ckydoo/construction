@@ -60,6 +60,18 @@ function pricedLines(items: any, markupPct: any, fallback: any, label: string) {
   return v ? [{ description: label, detail: '', qty: 1, unitPrice: v, total: v }] : [];
 }
 
+/** Quote lines are pre-markup costs. If there are no itemised lines, use the
+ * explicitly entered cost categories; never infer cost by reversing markup or
+ * copying the selling price. Missing cost information remains empty. */
+export function proposedEstimateCost(source: any): number | null {
+  const lines = normaliseLines(source?.items);
+  if (lines.length) return round2(lines.reduce((sum, line) => sum + line.total, 0));
+  const values = ['labourCost','materialCost','plantCost','subcontractCost','overheads']
+    .map(k => source?.[k]).filter(v => v !== null && v !== undefined && v !== '');
+  if (!values.length || values.some(v => !Number.isFinite(Number(v)) || Number(v) < 0)) return null;
+  return round2(values.reduce((sum, v) => sum + Number(v), 0));
+}
+
 export function provenance(sourceResource: string, source: any): Record<string, any> {
   const number = String(source?.number || '');
   const title = String(source?.title || source?.name || '');
@@ -128,6 +140,7 @@ export const CONVERSION_RULES: ConversionRule[] = [
       clientId: ref(s.clientId),
       type: text(s.workType),
       contractValue: amount(s.total),
+      proposedEstimateCost: proposedEstimateCost(s),
       currency: text(s.currency) || 'USD',
       scope: text(s.scope),
       status: 'PLANNING',
