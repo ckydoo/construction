@@ -79,6 +79,14 @@ async function projectClientIds(orgId: string, projectIds: string[]): Promise<st
 export async function buildScope(a: AuthCtx): Promise<Scope> {
   if (isFullAccess(a.role)) return FULL_SCOPE;
 
+  // Fail closed: a portal account with no client/subcontractor link must never
+  // fall through to the internal-staff branch below, which exposes shared
+  // registers (clients, contacts, vendors, departments, crews, warehouses,
+  // accounts) to every staff caller. An unlinked portal account sees no rows.
+  if (isExternal(a.role) && !a.entityId) {
+    return { kind: 'client', entityId: null, projectIds: [], clientIds: [], departments: [] };
+  }
+
   if (isExternal(a.role) && a.entityId) {
     const kind: 'client' | 'subcontractor' = a.role === 'CLIENT_EXTERNAL' ? 'client' : 'subcontractor';
     const own = safe(String(a.entityId));

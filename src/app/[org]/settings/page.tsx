@@ -21,6 +21,7 @@ const CAP_LABELS:Record<string,string> = {
   'wallet.read':'See client money','wallet.topup':'Add client money','wallet.allocate':'Put money on a job','wallet.refund':'Refund client money',
 };
 const TABS=[{id:'general',label:'General'},{id:'branding',label:'Document branding'},{id:'currency',label:'Currencies'},{id:'modules',label:'Sections'},{id:'users',label:'Users & roles'},{id:'setup',label:'Company profile'},{id:'data',label:'Data tools'},{id:'notifications',label:'Notifications'},{id:'system',label:'Plan & audit'}];
+const roleLabel=(id:string)=>ROLES.find(r=>r.id===id)?.label||String(id||'').replace(/_/g,' ');
 const SECTION_GROUP_ORDER=['Overview','Clients & quotes','Jobs & sites','Materials & suppliers','Staff & wages','Safety & quality','Money & invoices','Reports & extras','Specialist modules','Company setup','Settings'];
 
 export default function SettingsPage(){
@@ -169,7 +170,7 @@ export default function SettingsPage(){
           <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
     </div>}
 
-    {tab==='users'&&<div className="space-y-4"><Card><CardHead title="Invite a teammate" subtitle="We’ll email them a secure link to join your workspace"/>
+    {tab==='users'&&<div className="space-y-4">{caps.includes('users.manage')&&<Card><CardHead title="Invite a teammate" subtitle="We’ll email them a secure link to join your workspace"/>
       <div className="grid gap-4 p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <Field label="Full name"><input className="input" value={invite.name} onChange={e=>setInvite({...invite,name:e.target.value})} placeholder="Jane Moyo"/></Field>
         <Field label="Work email"><input className="input" type="email" value={invite.email} onChange={e=>setInvite({...invite,email:e.target.value})} placeholder="jane@company.co.zw"/></Field>
@@ -178,20 +179,42 @@ export default function SettingsPage(){
       </div>
       {invite.role.endsWith('_EXTERNAL')&&<div className="border-t divider px-4 py-3"><Field label="Link to client (portal scope)" hint="Portal users only see this client's records, projects and wallet."><select className="select" value={invite.entityId} onChange={e=>setInvite({...invite,entityId:e.target.value})}><option value="">Select a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></Field></div>}
       {!invite.role.endsWith('_EXTERNAL')&&!isFullAccess(invite.role)&&<div className="border-t divider px-4 py-3"><Field label="Link to staff member (job assignment)" hint="This account will see its department plus the jobs assigned to this staff member."><select className="select" value={invite.staffEmployeeId} onChange={e=>setInvite({...invite,staffEmployeeId:e.target.value})}><option value="">No job assignment yet…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select></Field></div>}
-      </Card>
-      <Card className="overflow-hidden"><CardHead title="Team members" subtitle={`${meta.users.length} users in this workspace`}/>
-        <div className="divide-y divider">{meta.users.map((u:any)=><div key={u.id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+      </Card>}
+      <Card className="overflow-hidden"><CardHead title="Team members" subtitle={caps.includes('users.manage')?`${meta.users.length} ${meta.users.length===1?'person':'people'} in this workspace`:'Your own account in this workspace'}/>
+        <div className="divide-y divider">{meta.users.map((u:any)=>{
+          const clientName=(meta.clients||[]).find((c:any)=>c.id===u.entityId)?.label;
+          const staffName=(meta.employees||[]).find((e:any)=>e.id===u.staffEmployeeId)?.label;
+          const scopeText=!caps.includes('users.manage')
+            ?'Role set by an owner or administrator'
+            :u.role.endsWith('_EXTERNAL')
+              ?(clientName?`Client: ${clientName}`:'No client linked yet')
+              :isFullAccess(u.role)?'Whole company access'
+              :(staffName?`Jobs: ${staffName}`:'No job assignment yet');
+          return <div key={u.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
           <span className="flex h-9 w-9 items-center justify-center rounded-md text-xs font-semibold text-white" style={{background:u.avatarColor}}>{u.name.split(' ').map((w:string)=>w[0]).slice(0,2).join('')}</span>
-          <div className="min-w-0 flex-1"><p className="text-sm font-medium">{u.name}</p><p className="truncate text-[11px] muted">{u.email}</p></div>
-          <select className="select w-auto min-w-[190px]" value={u.role} disabled={!caps.includes('users.manage')||u.id===meta.user.id}
-            onChange={e=>send('setRole',{userId:u.id,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select>
-          {u.role.endsWith('_EXTERNAL')&&<select className="select w-auto min-w-[160px]" value={u.entityId||''} disabled={!caps.includes('users.manage')}
-            onChange={e=>send('setScope',{userId:u.id,entityId:e.target.value||null})}><option value="">Whole company</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select>}
-          {!u.role.endsWith('_EXTERNAL')&&!isFullAccess(u.role)&&<select className="select w-auto min-w-[180px]" value={u.staffEmployeeId||''} disabled={!caps.includes('users.manage')}
-            onChange={e=>send('setStaffEmployee',{userId:u.id,employeeId:e.target.value||null})}><option value="">Job assignment…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select>}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">{u.name}</p>
+            <p className="truncate text-[11px] muted">{u.email}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <Badge tone={isFullAccess(u.role)?'green':u.role.endsWith('_EXTERNAL')?'violet':'blue'}>{roleLabel(u.role)}</Badge>
+              <span className="text-[10px] font-semibold uppercase tracking-wide muted">Current role</span>
+              <span className="text-[11px] muted">· {scopeText}</span>
+            </div>
+          </div>
+          {caps.includes('users.manage')&&<div className="flex flex-wrap items-center gap-2">
+            <div><label className="label" htmlFor={`role-${u.id}`}>Change role</label>
+              <select id={`role-${u.id}`} className="select w-auto min-w-[190px]" value={u.role} disabled={!caps.includes('users.manage')||u.id===meta.user.id}
+                onChange={e=>send('setRole',{userId:u.id,role:e.target.value})}>{ROLES.map(r=><option key={r.id} value={r.id}>{r.label}</option>)}</select></div>
+            {u.role.endsWith('_EXTERNAL')&&<div><label className="label" htmlFor={`scope-${u.id}`}>Assigned client</label>
+              <select id={`scope-${u.id}`} className="select w-auto min-w-[160px]" value={u.entityId||''} disabled={!caps.includes('users.manage')}
+                onChange={e=>send('setScope',{userId:u.id,entityId:e.target.value||null})}><option value="" disabled>Choose a client…</option>{(meta.clients||[]).map((c:any)=><option key={c.id} value={c.id}>{c.label}</option>)}</select></div>}
+            {!u.role.endsWith('_EXTERNAL')&&!isFullAccess(u.role)&&<div><label className="label" htmlFor={`staff-${u.id}`}>Job assignment</label>
+              <select id={`staff-${u.id}`} className="select w-auto min-w-[180px]" value={u.staffEmployeeId||''} disabled={!caps.includes('users.manage')}
+                onChange={e=>send('setStaffEmployee',{userId:u.id,employeeId:e.target.value||null})}><option value="">No job assigned yet…</option>{(meta.employees||[]).map((e:any)=><option key={e.id} value={e.id}>{e.label}</option>)}</select></div>}
+          </div>}
           {caps.includes('users.manage')&&u.role!=='OWNER'&&u.id!==meta.user.id&&<Button variant="ghost" size="sm" className="text-red-600" icon="Trash2" onClick={()=>setConfirm({title:`Remove ${u.name}?`,desc:'Their workspace access and sessions will be revoked.',action:'removeUser',body:{userId:u.id},method:'PATCH'})}>Remove</Button>}
-          <span className="hidden text-[11px] muted sm:block">Joined {date(u.joined)}</span></div>)}</div></Card>
-      <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle="Checked every time someone saves — a change takes effect immediately"/>
+          <span className="hidden text-[11px] muted sm:block">Joined {date(u.joined)}</span></div>;})}</div></Card>
+      <Card className="overflow-hidden"><CardHead title="Role permissions" subtitle={`Reference guide to all ${ROLES.length} available roles — not the permissions of the people listed above. Every save is checked against this matrix immediately.`}/>
         <div className="overflow-x-auto"><table className="w-full text-left text-[13px]"><thead className="border-y divider bg-slate-50 muted dark:bg-ink-950/50"><tr><th className="table-th">Role</th><th className="table-th text-right">Read</th><th className="table-th text-right">Write</th><th className="table-th">Delete</th><th className="table-th">Wallets</th><th className="table-th">Scope</th></tr></thead>
           <tbody className="divide-y divider">{ROLES.map(r=>{const rule=ROLE_RULES[r.id]; const reads=(meta.config.resources||[]).filter((x:string)=>canRead(r.id,x)).length; const writes=(meta.config.resources||[]).filter((x:string)=>canWrite(r.id,x)).length;
             const w=(rule.capabilities as string[]).filter((c:string)=>c.startsWith('wallet.')).map((c:string)=>c.split('.')[1]).join(', ')||'none';
