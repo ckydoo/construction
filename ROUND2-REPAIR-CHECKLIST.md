@@ -49,3 +49,6 @@ Database draft integration review: the preliminary server route was moved out of
 ### Date/form reset investigation
 - Reproduced in a mocked Chromium form: refreshing workspace tax settings while a drawer was open reset the entered date and other edits. The form now initializes once per opening instead of on every metadata/prop change; a late-arriving tax default applies only when the tax field has not been edited. Closing and reopening starts a fresh form.
 - `node scripts/record-form-date-qa.mjs`, TypeScript and production build pass. This demonstrates one cause of lost dates, not proof that native keyboard/calendar entry and authenticated receipt/timesheet validation are fully resolved; those remain open.
+
+### CSV formula safety
+- CSV string cells beginning with spreadsheet formula characters (including after whitespace) or leading tab/newline are prefixed with an apostrophe; numeric negative values remain numeric, and CR/newline/quotes are escaped. `npx tsx scripts/csv-safety-qa.ts`, TypeScript and build pass. This changes spreadsheet display/import of risky text and does not replace the still-outstanding child CSV format or real permissions/E2E verification.

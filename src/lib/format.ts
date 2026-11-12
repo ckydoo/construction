@@ -33,6 +33,9 @@ export function initials(name?: string): string {
 }
 export function pct(v: unknown): string { return `${Number(v||0).toFixed(0)}%`; }
 export function csvCell(v: unknown): string {
-  const s = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  let s = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
+  // Spreadsheet programs can interpret text as a formula even inside a quoted
+  // CSV cell. Preserve actual numeric negatives, but neutralize risky text.
+  if (typeof v === 'string' && (/^[\t\r\n]/.test(s) || /^[\s\uFEFF]*[=+\-@]/.test(s))) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
 }

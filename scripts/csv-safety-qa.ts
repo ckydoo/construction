@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {csvCell} from '../src/lib/format';
+assert.equal(csvCell('=1+1'), "'=1+1");
+assert.equal(csvCell('  @SUM(A1)'), "'  @SUM(A1)");
+assert.equal(csvCell('\tformula'), "'\tformula");
+assert.equal(csvCell('-2'), "'-2");
+assert.equal(csvCell(-2), '-2');
+assert.equal(csvCell('plain,"word"\r\nnext'), '"plain,""word""\r\nnext"');
+assert.equal(csvCell([{description:'=unsafe',quantity:1}]), '"[{""description"":""=unsafe"",""quantity"":1}]"');
+console.log('PASS CSV formula neutralization, quoting, numeric values and structured JSON');
