@@ -41,14 +41,14 @@ const STARTER_RESOURCE_IDS = RESOURCES
 export const PLANS: readonly PlanDef[] = [
   {
     id: 'STARTER', name: 'Starter', priceUsd: 6,
-    maxUsers: 5, maxProjects: 10, modules: STARTER_MODULES,
-    features: ['Essential construction sections', 'Up to 5 users', 'Up to 10 active projects', 'Standard support'],
+    maxUsers: 6, maxProjects: 15, modules: STARTER_MODULES,
+    features: ['Essential construction sections', 'Up to 6 users', 'Up to 15 active projects', 'Standard support'],
     support: 'Standard support',
   },
   {
     id: 'PRO', name: 'Pro', priceUsd: 14,
-    maxUsers: 25, maxProjects: null, modules: '*',
-    features: ['All 34 sections and 49 resources', 'Up to 25 users', 'Unlimited active projects',
+    maxUsers: 25, maxProjects: 35, modules: '*',
+    features: ['All 34 sections and 49 resources', 'Up to 25 users', 'Up to 35 active projects',
       'Tenant-branded financial PDFs', 'Advanced roles and reporting', 'Document library', 'Standard support'],
     support: 'Standard support',
   },
@@ -111,10 +111,12 @@ export function entitledResources(plan: PlanId, configured: string[]): string[] 
 }
 export function entitledLimits(plan: PlanId, configured: { users?: number; projects?: number; storageMb?: number }) {
   const p = PLAN_MAP[plan];
-  const min = (a?: number | null, b?: number) => a == null ? b : b == null ? a : Math.min(a, b);
+  // Paid tier limits govern seats and projects. Onboarding size defaults are
+  // not purchased plan limits and must not reduce Starter/Pro entitlements.
+  // Preserve existing configured behaviour for uncapped Enterprise.
   return {
-    users: min(p.maxUsers, configured.users) ?? 9999,
-    projects: min(p.maxProjects, configured.projects) ?? 9999,
+    users: p.maxUsers ?? configured.users ?? 9999,
+    projects: p.maxProjects ?? configured.projects ?? 9999,
     storageMb: configured.storageMb ?? 1024,
   };
 }
