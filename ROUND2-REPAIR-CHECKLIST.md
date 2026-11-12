@@ -1,5 +1,11 @@
 # Round 2 repair checklist — work in progress
 
+## Current deployment status (supersedes historical work-in-progress notes below)
+- Production deployment `dpl_CYHaQWfCEtbpBXsFJsgnWBMq7p5s` at commit `0f9cf4414ffbb2ddd519762a95294d6161613305` is READY/PROMOTED with `myla.co.zw` and `app.myla.co.zw` aliases. Receipt SQL and approval SQL were applied manually; these manual applications are not normal recorded migrations.
+- Approval trigger is enabled; rollback-only owner-context live tests passed for calculated hours and approval stamps and variation decision date. These are not authenticated end-to-end or real role/RLS tests.
+- Receipt allocation, quote baseline and approval implementation are deployed for new transactions, but authenticated end-to-end, role/RLS, audit and billing verification remain open. Billing checks are not atomic with receipt RPCs. Existing records were not reconciled.
+- Other workstreams below remain open where explicitly noted; date reproduction, CSV child-row format, accounting review, independent security and backup verification still require work. Historical notes below describe earlier stages and are not current deployment status.
+
 No item is closed by a build or unit test alone. Do not deploy the combined release until the applicable tests pass and the limitations are disclosed. Do not alter or delete QA2 evidence without an approved reconciliation plan.
 
 1. **Receipt allocation and invoice settlement — OPEN.** Isolated reproduction confirmed receipt creation persists when the invoice update is rejected. A non-deployable database draft now passes isolated partial and multi-invoice allocation, invoice status synchronization, full receipt reversal, replay and source-mutation checks. Authorization, durable audit review, concurrent sessions, payment creation, UI, billing and full application integration remain incomplete. Current live invoice-to-receipt conversion is unsafe. Required: tenant and role enforcement; atomic durable audit; explicit unallocated credit; same-currency amounts; cleared/reconciled state and reversal behavior; prohibit generic changes or deletes that invalidate allocations; retry and concurrent transaction tests; safe repair proposal for existing records. Local conversion block is containment only, not a repair.
@@ -39,3 +45,7 @@ Database draft integration review: the preliminary server route was moved out of
 - Prepared a new database trigger to calculate normal plus overtime hours, require a valid period and employee/project before timesheet approval, stamp authenticated user ID/time, record variation decision date and transactional approval audit. New approvals lock substantive fields until authorized return to draft; legacy approvals are not backfilled or newly locked. Approval contact is labelled separately from authoritative user ID.
 - Isolated tests passed spoofed actor protection, invalid hours/dates, role denial, no direct posting, approval/reopening, and variation date. The test authorization functions are mocked. Local build and TypeScript passed.
 - Not deployed: needs real Supabase auth/RLS checks, explicit lifecycle/role review, migration application, and authenticated end-to-end tests. No existing records were modified.
+
+### Date/form reset investigation
+- Reproduced in a mocked Chromium form: refreshing workspace tax settings while a drawer was open reset the entered date and other edits. The form now initializes once per opening instead of on every metadata/prop change; a late-arriving tax default applies only when the tax field has not been edited. Closing and reopening starts a fresh form.
+- `node scripts/record-form-date-qa.mjs`, TypeScript and production build pass. This demonstrates one cause of lost dates, not proof that native keyboard/calendar entry and authenticated receipt/timesheet validation are fully resolved; those remain open.

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as Lucide from '@/components/lucide';
 import { RESOURCE_MAP, type ResourceDef, type Field } from '@/lib/resources';
 import { Button, Drawer, Field as FWrap, Icon, Toggle } from './ui';
@@ -36,9 +36,21 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   // Until workspace settings arrive, keep every non-hidden field visible. A
   // blank fallback config would hide required ref fields such as Job / project.
   const fields=useMemo(()=>config?visibleFields(def,config):def.fields.filter(f=>!f.hidden),[def,config]);
-  useEffect(()=>{ if(open){ setValues(initialValues(def,initial,defaultProjectId,meta?.config?.tax)); setErrors({}); } },[open,initial,def,defaultProjectId,meta?.config?.tax]);
+  const formSession=useRef({open:false,waitingForTax:false,taxEdited:false});
+  useEffect(()=>{
+    if(!open){ formSession.current.open=false; return; }
+    if(!formSession.current.open){
+      formSession.current={open:true,waitingForTax:!initial && meta?.config?.tax===undefined,taxEdited:false};
+      setValues(initialValues(def,initial,defaultProjectId,meta?.config?.tax));
+      setErrors({});
+    } else if(formSession.current.waitingForTax && meta?.config?.tax!==undefined){
+      formSession.current.waitingForTax=false;
+      if(!formSession.current.taxEdited && def.fields.some(f=>f.key==='vatPct'))
+        setValues(v=>({...v,vatPct:taxDefault(meta.config.tax)}));
+    }
+  },[open,initial,def,defaultProjectId,meta?.config?.tax]);
   useEffect(()=>{ if(serverErrors) setErrors(serverErrors); },[serverErrors]);
-  const set=(k:string,v:any)=>{ setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
+  const set=(k:string,v:any)=>{ if(k==='vatPct') formSession.current.taxEdited=true; setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
   const submit=(e:React.FormEvent)=>{
     e.preventDefault();
     const err=validateFields({fields}, values).errors;
