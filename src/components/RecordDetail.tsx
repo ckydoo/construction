@@ -13,6 +13,8 @@ import { num, date } from '@/lib/format';
 import { useDisplayMoney } from './DisplayCurrencyProvider';
 import { useToast } from './Providers';
 import ConvertFlow from './ConvertFlow';
+import ReceiptAllocations from './ReceiptAllocations';
+import ReceiptAllocationForm from './ReceiptAllocationForm';
 import FileDropZone, { isExternalFileDrag } from './FileDropZone';
 import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import type { RefOptions } from './RecordForm';
@@ -25,11 +27,13 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   const active=open||inline;
   const formatMoney=useDisplayMoney();
   const qc=useQueryClient(); const toast=useToast(); const [comment,setComment]=useState(''); const [sending,setSending]=useState(false); const [uploading,setUploading]=useState(false); const [expanded,setExpanded]=useState<Record<string,boolean>>({}); const [revNotes,setRevNotes]=useState<Record<string,string>>({}); const [convertOpen,setConvertOpen]=useState(false); const [dropRevisionId,setDropRevisionId]=useState<string|null>(null);
+  const [receiptOpen,setReceiptOpen]=useState(false);
   const canConvert=canEdit&&!!row?.id&&CONVERTIBLE_RESOURCE_IDS.has(def.id);
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const config=meta?.config||{modules:[],resources:[]};
   const fields=visibleFields(def,config);
   const {data,isLoading}=useQuery({ queryKey:['record',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}`)), enabled:active&&!!row?.id });
+  const displayRow=data?.row||row;
   const {data:related}:any=useQuery({ queryKey:['related',org,def.id,row?.id], queryFn:()=>apiGet(orgApi(org,`records/${def.id}/${row.id}/related`)), enabled:active&&!!row?.id });
   async function addComment(){ if(!comment.trim())return; setSending(true);
     try{ await apiSend(orgApi(org,`records/${def.id}/${row.id}/comments`),'POST',{body:comment}); setComment(''); qc.invalidateQueries({queryKey:['record',org,def.id,row.id]}); }
@@ -111,14 +115,16 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     <p className="mt-2 text-[11px] muted">This preview uses the same document data as the PDF download. Scroll inside it to review the full document before downloading.</p>
   </section>;
   const body = <>
-    <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={row?.status}/><Badge tone="slate">{row?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}
+    <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={displayRow?.status}/><Badge tone="slate">{displayRow?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}
       {row?.sourceResource&&row?.sourceId&&<Link href={row.sourceResource==='projects'?`/${org}/projects/${encodeURIComponent(row.sourceId)}`:`/${org}/m/${row.sourceResource}?open=${encodeURIComponent(row.sourceId)}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">Converted from {row.sourceLabel||row.sourceNumber||row.sourceResource} →</Link>}
     </div></div>
     <div id="record-fields" className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'||f.type==='items'?'sm:col-span-2':''}>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,row?.[f.key])}</div>
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide muted">{f.label}</p><div className="text-sm text-ink-800 dark:text-slate-200">{display(f,displayRow?.[f.key])}</div>
       </div>)}
     </div>
+    {def.id==='payments' && String((data?.row||row)?.direction||'').toUpperCase()==='RECEIPT' && <ReceiptAllocations org={org} row={data?.row||row} canEdit={canEdit}/>}
+    {def.id==='arInvoices' && canEdit && ['ISSUED','OVERDUE','PARTIALLY_PAID'].includes(String((data?.row||row)?.status||'')) && <div className="border-t divider px-4 py-4"><Button icon="Banknote" onClick={()=>setReceiptOpen(true)}>Record and allocate receipt</Button></div>}
     {previewSection}
     <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center gap-2"><Icon name="Link2" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Linked records</h3>
@@ -186,12 +192,13 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     {canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}
     {canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}
   </div>;
+  const receiptFlow = def.id==='arInvoices'&&<ReceiptAllocationForm org={org} open={receiptOpen} onClose={()=>setReceiptOpen(false)} initialInvoice={data?.row||row}/>;
   const flow = canConvert&&<ConvertFlow org={org} resource={def.id} row={row} open={convertOpen} onClose={()=>setConvertOpen(false)}/>;
   if(inline) return <Card className="overflow-hidden">
     <CardHead title={`${title} · record & files`} subtitle="Full project record, linked modules, comments and document revisions" action={inlineActions}/>
     {body}
-    {flow}
+    {flow}{receiptFlow}
   </Card>;
-  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer} width={canPreview?'max-w-4xl':'max-w-xl'}>{body}{flow}</Drawer>;
+  return <Drawer open={open} onClose={onClose} title={title} subtitle={subtitle} footer={footer} width={canPreview?'max-w-4xl':'max-w-xl'}>{body}{flow}{receiptFlow}</Drawer>;
 
 }

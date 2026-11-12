@@ -190,7 +190,7 @@ export default function ProfitabilityPage() {
           ['Forecast final cost', 'Actual cost plus forecast-to-complete from budget lines, or the remaining budget when no forecast is entered.'],
           ['Forecast margin', 'Revised contract minus forecast final cost. Margin % is that figure as a share of the revised contract.'],
           ['Billing position', 'Billed less earned value (revised contract × progress). A negative figure means the job is underbilled for work done.'],
-          ['Cash gap', 'Billed but not yet received. It uses invoice receipts, or cleared receipt records when invoices have no paid amount.'],
+          ['Cash gap', 'Gross invoiced amount less amounts allocated to invoices. Unallocated customer receipts do not reduce this balance.'],
         ].map(([title, body]) => <div key={title} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-xs font-semibold">{title}</p><p className="mt-1 text-[11px] leading-relaxed muted">{body}</p></div>)}
       </div>}
     </Card>

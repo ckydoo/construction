@@ -17,6 +17,7 @@ import RecordDetail from './RecordDetail';
 import ConvertFlow from './ConvertFlow';
 import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import SearchSelect from './SearchSelect';
+import ReceiptAllocationForm from './ReceiptAllocationForm';
 import { useRouter } from 'next/navigation';
 
 type ListData = { rows:any[]; total:number; page:number; pages:number; pageSize:number };
@@ -61,6 +62,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const [formOpen,setFormOpen]=useState(false), [editing,setEditing]=useState<any>(null), [detailRow,setDetailRow]=useState<any>(null);
   const [confirm,setConfirm]=useState<{ids:string[];label:string}|null>(null);
   const [convertRow,setConvertRow]=useState<any>(null);
+  const [receiptOpen,setReceiptOpen]=useState(false);
   const [serverErrors,setServerErrors]=useState<Record<string,string>|undefined>();
 
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
@@ -189,6 +191,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       <div className="flex flex-wrap items-center gap-2">
         <a href={csvHref} download><Button icon="Download" size="sm">Export CSV</Button></a>
         <Button variant="ghost" size="icon" onClick={()=>refetch()} title="Refresh"><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
+        {canEdit&&resource==='payments'&&<Button size="sm" icon="Receipt" onClick={()=>setReceiptOpen(true)}>Record allocated receipt</Button>}
         {canEdit&&<Button variant="primary" size="sm" icon="Plus" onClick={openNewRecord}>{newLabel}</Button>}
       </div>
     </div>}
@@ -258,6 +261,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       onSubmit={(values)=>editing?updateMut.mutate({id:editing.id,values}):createMut.mutate(values)}/>}
     {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={mergedRefs} canEdit={canEdit} canRemove={canRemove}
       onEdit={()=>{if(detailRow){ const target=detailRow; setDetailRow(null); openEditRecord(target); }}} onDelete={()=>setConfirm({ids:[detailRow.id],label:detailRow.title})}/>}
+    {resource==='payments'&&<ReceiptAllocationForm org={org} open={receiptOpen} onClose={()=>setReceiptOpen(false)}/>}
     {convertRow&&<ConvertFlow org={org} resource={resource} row={convertRow} open={!!convertRow} onClose={()=>setConvertRow(null)}/>}
     <ConfirmDialog open={!!confirm} onClose={()=>setConfirm(null)} loading={bulkMut.isPending||deleteMut.isPending}
       title={`Delete ${confirm?.label||'record'}?`} description="This record will be moved to the recycle bin (soft delete). You can restore it from the database."

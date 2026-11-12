@@ -88,7 +88,7 @@ check('a healthy job derives contract, cost, margin, billing and cash', () => {
   near(healthy.costVariance, 15000, 'cost variance');
   near(healthy.billed, 70000, 'billed');
   near(healthy.certified, 65000, 'certified');
-  near(healthy.received, 60000, 'received');
+  near(healthy.received, 1000, 'cash received from cleared receipts');
   near(healthy.cashGap, 10000, 'cash gap');
   near(healthy.earnedValue, 66000, 'earned value');
   near(healthy.billingVariance, 4000, 'billing variance');

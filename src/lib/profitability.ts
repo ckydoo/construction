@@ -213,8 +213,11 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
   const certified = sumRows(certifiedApps, 'netCertified');
   const receivedFromInvoices = sumRows(issuedInvoices, 'amountPaid');
   const receivedFromPayments = sumRows(clearedReceipts, 'amount');
-  const received = receivedFromInvoices || receivedFromPayments;
-  const cashGap = Math.max(0, billed - received);
+  // Cash receipts and invoice settlement are different measures. Unallocated
+  // customer deposits must not reduce receivables merely because they share a
+  // project. Invoice amounts are updated by the allocation transaction.
+  const received = receivedFromPayments;
+  const cashGap = Math.max(0, billed - receivedFromInvoices);
 
   const progress = clampPct(p.progress);
   const earnedValue = revisedContract * (progress / 100);
