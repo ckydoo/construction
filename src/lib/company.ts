@@ -30,15 +30,13 @@ const safeLogo = (v: unknown) => {
 
 export function normaliseCompanyProfile(raw: any, org: any = {}): CompanyProfile {
   const p = raw && typeof raw === 'object' ? raw : {};
-  const country = clean(org?.country);
-  const defaultAddress = country === 'ZW' ? 'Harare, Zimbabwe' : country;
   const deposit = Number(p.depositPct);
   return {
     displayName: clean(p.displayName, 120) || clean(org?.name, 120) || 'Your company',
     legalName: clean(p.legalName, 160) || clean(org?.legalName, 160),
     registrationNo: clean(p.registrationNo, 80) || clean(org?.regNumber, 80),
     taxNo: clean(p.taxNo, 80),
-    address: clean(p.address, 500) || defaultAddress,
+    address: clean(p.address, 500),
     email: clean(p.email, 160),
     phone: clean(p.phone, 80),
     website: clean(p.website, 160),

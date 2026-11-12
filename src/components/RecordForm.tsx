@@ -8,6 +8,7 @@ import LineItemsEditor from './LineItemsEditor';
 import { visibleFields, type ConfigLike } from '@/lib/module-visibility';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
+import { validateFields } from '@/lib/field-validation';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
 
@@ -38,8 +39,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   const set=(k:string,v:any)=>{ setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
   const submit=(e:React.FormEvent)=>{
     e.preventDefault();
-    const err:Record<string,string>={};
-    for(const f of fields) if(f.required && (values[f.key]===undefined||values[f.key]===null||values[f.key]===''||(Array.isArray(values[f.key])&&!values[f.key].length))) err[f.key]=`${f.label} is required`;
+    const err=validateFields({fields}, values).errors;
     setErrors(err); if(Object.keys(err).length) return;
     const payload=Object.fromEntries(Object.entries(values).filter(([k])=>fields.some(f=>f.key===k)));
     onSubmit(payload);
@@ -69,7 +69,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
         currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
       case 'date': return <input className={common} type="date" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'datetime': return <input className={common} type="datetime-local" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
-      case 'number': case 'currency': case 'percent': return <div className="relative"><input className={`${common} ${f.type!=='number'?'pl-8':''}`} type="number" step="any" value={v??''} onChange={e=>set(f.key,e.target.value===''?'':Number(e.target.value))} placeholder={f.placeholder||'0'}/>{f.type==='currency'&&<span className="absolute left-3 top-2 text-xs muted">$</span>}{f.type==='percent'&&<span className="absolute right-3 top-2 text-xs muted">%</span>}</div>;
+      case 'number': case 'currency': case 'percent': return <div className="relative"><input className={`${common} ${f.type!=='number'?'pl-8':''}`} type="number" step="any" min={(def.id === 'projects' || def.id === 'tasks') && f.key === 'progress' ? 0 : undefined} max={(def.id === 'projects' || def.id === 'tasks') && f.key === 'progress' ? 100 : undefined} value={v??''} onChange={e=>set(f.key,e.target.value===''?'':Number(e.target.value))} placeholder={f.placeholder||'0'}/>{f.type==='currency'&&<span className="absolute left-3 top-2 text-xs muted">$</span>}{f.type==='percent'&&<span className="absolute right-3 top-2 text-xs muted">%</span>}</div>;
       default: return <input className={common} type={f.type==='email'?'email':f.type==='phone'?'tel':'text'} value={v??''} onChange={e=>set(f.key,e.target.value)} placeholder={f.placeholder||`Enter ${f.label.toLowerCase()}`}/>;
     }
   }

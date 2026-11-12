@@ -276,7 +276,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('arInvoices','Client invoices','Tax invoice','finance','Money & invoices','FileText','INV','name',
     'Accounts receivable invoices, VAT and ageing.',
-    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
+    [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:15}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date',{readOnly:true,hint:'Recorded from reconciled payments when available'}),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
     ['number','name','clientId','projectId','invoiceDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'invoiceDate'}),
 
   d('paymentApps','Payment certificates','Payment certificate','billing','Money & invoices','Receipt','PC','name',

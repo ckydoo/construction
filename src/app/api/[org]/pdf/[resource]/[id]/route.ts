@@ -289,6 +289,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   }
   function drawTotals() {
     const rows: [string, string][] = [['Subtotal', money(totals.subtotal, docCurrency)]];
+    if (resource === 'estimates' && Math.abs(totals.total - totals.subtotal - totals.tax) >= 0.005) rows.push(['Markup / adjustment', money(totals.total - totals.subtotal - totals.tax, docCurrency)]);
     if (totals.tax) rows.push(['VAT', money(totals.tax, docCurrency)]);
     if (docCfg.showDeposit && totals.deposit > 0) {
       rows.push([`Deposit (${company.depositPct}%)`, money(totals.deposit, docCurrency)]);

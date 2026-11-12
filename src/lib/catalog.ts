@@ -147,6 +147,7 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   // Qualifiers are explicit choices in onboarding — they unlock their modules.
   if (qualifiers.includes('clientPortal')) enabled.add('portal');
   if (qualifiers.includes('ownedPlant')) enabled.add('equipment');
+  if (qualifiers.includes('regulatedHse')) enabled.add('safety');
   if (qualifiers.includes('materialsWarehouse')) enabled.add('inventory');
   if (qualifiers.includes('multiEntity') || type === 'MIXED_GROUP') enabled.add('integrations');
   for (const a of addons) if (MODULES.some(m => m.id === a)) enabled.add(a);

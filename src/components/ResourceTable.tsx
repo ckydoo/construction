@@ -50,8 +50,8 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
   return <span className="block max-w-[190px] truncate">{String(v).replace(/_/g,' ')}</span>;
 }
 
-export default function ResourceTable({org,resource,embedded=false,fixedProjectId,initialOpenId,initialNew=false}:{
-  org:string; resource:string; embedded?:boolean; fixedProjectId?:string; initialOpenId?:string|null; initialNew?:boolean;
+export default function ResourceTable({org,resource,embedded=false,fixedProjectId,initialOpenId,initialNew=false,initialProjectId}:{
+  org:string; resource:string; embedded?:boolean; fixedProjectId?:string; initialOpenId?:string|null; initialNew?:boolean; initialProjectId?:string;
 }){
   const def=RESOURCE_MAP[resource]; const qc=useQueryClient(); const toast=useToast(); const router=useRouter();
   const [page,setPage]=useState(1), [qInput,setQInput]=useState(''), [q,setQ]=useState('');
@@ -145,7 +145,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       setDetailRow((d:any)=>d?.id===id?{...d,...values}:d);
       return {prev};
     },
-    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Could not save changes',description:userMessage(e, 'We couldn’t save those changes. Please try again.')}); },
+    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); if(editing) setServerErrors(e.details); const details=e.details && typeof e.details==='object' ? Object.values(e.details).filter((v):v is string=>typeof v==='string').join(' ') : ''; toast.push({tone:'error',title:'Could not save changes',description:details || userMessage(e, 'We couldn’t save those changes. Please try again.')}); },
     onSuccess:()=>{ if(!editing)toast.push({tone:'success',title:`${def.singular} updated`}); else {setFormOpen(false);setEditing(null);toast.push({tone:'success',title:'Changes saved'});} setServerErrors(undefined); },
     onSettled:invalidate });
   const deleteMut=useMutation({ mutationFn:(id:string)=>apiSend(orgApi(org,`records/${resource}/${id}`),'DELETE'),
@@ -225,7 +225,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
             rows.map(r=><tr key={r.id} onClick={()=>openRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
-                {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{...r,status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
+                {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
                   {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={mergedRefs} org={org}/>}
               </td>)}
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
@@ -244,7 +244,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       </div>
     </Card>
 
-    {canEdit&&!quoteStudio&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={mergedRefs} defaultProjectId={fixedProjectId} org={org}
+    {canEdit&&!quoteStudio&&<RecordForm def={def} open={formOpen} onClose={()=>{setFormOpen(false);setEditing(null);}} initial={editing} refs={mergedRefs} defaultProjectId={fixedProjectId || initialProjectId} org={org}
       submitting={createMut.isPending||updateMut.isPending} serverErrors={serverErrors}
       onSubmit={(values)=>editing?updateMut.mutate({id:editing.id,values}):createMut.mutate(values)}/>}
     {detailRow&&<RecordDetail org={org} def={def} row={detailRow} open={!!detailRow} onClose={()=>setDetailRow(null)} refs={mergedRefs} canEdit={canEdit} canRemove={canRemove}

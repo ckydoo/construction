@@ -87,7 +87,7 @@ const normaliseLine = (raw: any): DocLine | null => {
   if (!raw || typeof raw !== 'object') return null;
   const description = s(raw.description ?? raw.name ?? raw.item ?? raw.title);
   const detail = s(raw.detail ?? raw.notes ?? raw.note ?? raw.specification);
-  const qty = n(raw.qty ?? raw.quantity ?? 1) || 1;
+  const qty = n(raw.qty ?? raw.quantity ?? 1);
   const unitPrice = n(raw.unitPrice ?? raw.rate ?? raw.price ?? 0);
   const total = n(raw.total ?? raw.amount ?? qty * unitPrice);
   if (!description && !detail && !unitPrice && !total) return null;
@@ -192,7 +192,7 @@ const round2 = (v: number) => Math.round(v * 100) / 100;
 export function financialTotalsPatch(resourceId: string, current: Record<string, any>, lines: DocLine[]): Record<string, any> {
   const cfg = financialDocConfig(resourceId);
   const subtotal = round2(lineSubtotal(lines));
-  if (!subtotal) return {};
+  if (!lines.length) return {};
   const patch: Record<string, any> = {};
   if (cfg.netKey) patch[cfg.netKey] = subtotal;
   if (resourceId === 'estimates') {

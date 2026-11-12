@@ -11,6 +11,7 @@ import { getResource } from '@/lib/resources';
 import { createRecord, logActivity } from '@/lib/records';
 import { writeGuard, capabilityGuard, billingGuard } from '@/lib/guard';
 import { userLimitMessage } from '@/lib/billing-limits';
+import { planModuleIds } from '@/lib/billing-plans';
 import { seedDemo, clearDemo } from '@/lib/seed-service';
 import { fetchAll } from '@/lib/fetch';
 
@@ -24,7 +25,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
 
   // Any signed-in user may clear their own notification badge.
   if (b.action === 'markRead') {
-    let q = sb.from('notifications').update({ read: true }).eq('organization_id', a.orgId);
+    let q = sb.from('notifications').update({ read: true }).eq('organization_id', a.orgId).eq('user_id', a.userId);
     if (b.id) q = q.eq('id', b.id);
     const { error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
@@ -42,7 +43,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     // General and Currencies tabs both expose the base currency. Re-express the
     // saved rates when it changes so 1 base = N currency stays true.
     const currency = wantsCurrency ? normaliseCurrencyConfig(a.config.currency, nextBase) : null;
-    const cfg: WorkspaceConfig | null = currency ? { ...a.config, currency } : null;
+    const cfg: WorkspaceConfig | null = currency ? { ...a.config, ...(a.org.config || {}), currency } : null;
     const { data, error } = await sb.from('organizations').update({
       name: String(b.name || a.orgName),
       ...(b.legalName !== undefined ? { legal_name: b.legalName } : {}),
@@ -61,7 +62,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     const company = normaliseCompanyProfile(b.company, a.org);
     company.updatedAt = new Date().toISOString();
     company.updatedBy = a.name;
-    const cfg: WorkspaceConfig = { ...a.config, company };
+    const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}), company };
     const { error } = await sb.from('organizations').update({ config: cfg }).eq('id', a.orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings', 'Updated the company branding and financial-document details');
@@ -71,7 +72,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     const currency = normaliseCurrencyConfig(b.currency, b.baseCurrency || a.org.baseCurrency);
     currency.updatedAt = new Date().toISOString();
     currency.updatedBy = a.name;
-    const cfg: WorkspaceConfig = { ...a.config, currency };
+    const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}), currency };
     const { error } = await sb.from('organizations').update({ base_currency: currency.base, config: cfg }).eq('id', a.orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     await logActivity(a.orgId, a.userId, a.name, 'UPDATE', 'settings',
@@ -79,8 +80,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     return NextResponse.json({ ok: true, currency, message: `Reporting currency saved. Totals convert to ${currency.base}.` });
   }
   if (b.action === 'toggleModule') {
-    const cfg: WorkspaceConfig = { ...a.config };
+    const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}) };
     const mod = MODULES.find(m => m.id === b.moduleId); if (!mod) return NextResponse.json({ error: 'Unknown module' }, { status: 404 });
+    if (b.enabled && a.billing && !planModuleIds(a.billing.planId).includes(b.moduleId)) return NextResponse.json({ error: 'This section is not included in your current plan. Choose a plan that includes it in Billing.' }, { status: 403 });
+    if (typeof b.enabled !== 'boolean') return NextResponse.json({ error: 'Choose whether to enable this section.' }, { status: 400 });
     const enabled = new Set(cfg.modules);
     if (b.enabled) enabled.add(b.moduleId); else enabled.delete(b.moduleId);
     cfg.modules = [...enabled];
@@ -90,13 +93,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     return NextResponse.json({ ok: true, config: cfg });
   }
   if (b.action === 'applyPack') {
-    const cfg: WorkspaceConfig = { ...a.config };
-    const ids = b.pack === 'essentials' ? STARTER_MODULE_IDS : MODULES.map(m => m.id);
-    cfg.modules = [...ids];
-    cfg.resources = [...new Set(MODULES.filter(m => ids.includes(m.id)).flatMap(m => m.resources))];
+    if (!['essentials', 'full'].includes(b.pack)) return NextResponse.json({ error: 'Choose a valid section pack.' }, { status: 400 });
+    const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}) };
+    const allowed = a.billing ? planModuleIds(a.billing.planId) : MODULES.map(m => m.id);
+    const ids = (b.pack === 'essentials' ? STARTER_MODULE_IDS : MODULES.map(m => m.id)).filter(id => allowed.includes(id));
+    const unavailable = (cfg.modules || []).filter(id => !allowed.includes(id));
+    cfg.modules = [...new Set([...ids, ...unavailable])];
+    cfg.resources = [...new Set(MODULES.filter(m => cfg.modules.includes(m.id)).flatMap(m => m.resources))];
     const { error } = await sb.from('organizations').update({ config: cfg }).eq('id', a.orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
-    return NextResponse.json({ ok: true, config: cfg, message: `Switched to ${b.pack === 'essentials' ? `the ${ids.length} essentials` : 'all ' + ids.length + ' modules'}.` });
+    return NextResponse.json({ ok: true, config: cfg, message: b.pack === 'full' && ids.length < MODULES.length ? `Enabled all ${ids.length} sections included in your plan. Visit Billing for more sections.` : `Enabled ${ids.length} sections.` });
   }
   if (b.action === 'setRole' || b.action === 'setScope' || b.action === 'setStaffEmployee' || b.action === 'removeUser') {
     const g = capabilityGuard(a.role, 'users.manage'); if (g) return g;

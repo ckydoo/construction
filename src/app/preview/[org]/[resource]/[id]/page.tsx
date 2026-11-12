@@ -193,6 +193,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
   }
 
   const totalRows: [string, string, boolean][] = [['Subtotal', money(totals.subtotal, docCurrency), false]];
+  if (resource === 'estimates' && Math.abs(totals.total - totals.subtotal - totals.tax) >= 0.005) totalRows.push(['Markup / adjustment', money(totals.total - totals.subtotal - totals.tax, docCurrency), false]);
   if (totals.tax) totalRows.push(['VAT', money(totals.tax, docCurrency), false]);
   if (docCfg.showDeposit && totals.deposit > 0) {
     totalRows.push([`Deposit (${company.depositPct}%)`, money(totals.deposit, docCurrency), false]);

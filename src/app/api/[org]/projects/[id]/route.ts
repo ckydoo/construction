@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const funded = -allocs.filter(t => !t.reversed_at).reduce((n, t) => n + toBase(t.amount_cents / 100, t.currency || cfg.base, cfg), 0);
   const target = toBase(project.contractValue || project.budget || 0, project.currency || cfg.base, cfg);
   const walletClientId = String(project.clientId || '');
-  const clientRec = walletClientId && resourceFullyEnabled(a.config, 'clients') ? await getRecord(a.orgId, 'clients', walletClientId, scope) : null;
+  const clientRec = walletClientId && resourceFullyEnabled(a.config, 'clients') && canRead(a.role, 'clients') ? await getRecord(a.orgId, 'clients', walletClientId, scope) : null;
   const sb = await supabase();
   const { data: walletRow } = walletsOn && walletClientId ? await sb.from('wallets').select('*')
     .eq('organization_id', a.orgId).eq('client_id', walletClientId).maybeSingle() : { data: null };
@@ -49,7 +49,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const contract = toBase(project.contractValue || project.budget || 0, originalCurrency, cfg);
   const cost = toBase(project.costToDate || 0, originalCurrency, cfg);
   return NextResponse.json({
-    project, grouped, totals, currency: cfg.base,
+    project: { ...project, clientName: clientRec?.name || clientRec?.title || null }, grouped, totals, currency: cfg.base,
     display: {
       currency: cfg.base, originalCurrency,
       contractValue: contract, costToDate: cost, margin: contract - cost,

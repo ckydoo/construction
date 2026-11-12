@@ -5,37 +5,16 @@
 import { randomUUID } from 'node:crypto';
 import { supabase, unwrap, dbError } from './supabase';
 import { fetchAll } from './fetch';
-import { type ResourceDef, type Field } from './resources';
+import { type ResourceDef } from './resources';
+import { validateFields } from './field-validation';
 import { rowAllowed, type Scope } from './access';
 import { normaliseLines, financialTotalsPatch } from './financial';
 import { projectLimitMessage } from './billing-limits';
+import { recordInvariantErrors } from './record-invariants';
 
 export type Row = Record<string, any> & { id:string; number?:string; title?:string; status?:string; projectId?:string; createdAt:string; updatedAt:string };
 
-function coerce(field: Field, value: any): any {
-  if (value === '' || value === undefined || value === null) return null;
-  if (['number','currency','percent'].includes(field.type)) { const n = Number(value); return isFinite(n) ? n : null; }
-  if (field.type === 'boolean') return Boolean(value) && value !== 'false';
-  if (field.type === 'tags') return Array.isArray(value) ? value : String(value).split(',').map(s=>s.trim()).filter(Boolean);
-  if (field.type === 'items') return normaliseLines(value);
-  return value;
-}
-
-export function validate(def: ResourceDef, input: Record<string, any>): { ok:boolean; errors:Record<string,string>; clean:Record<string,any> } {
-  const errors: Record<string,string> = {}; const clean: Record<string,any> = {};
-  for (const f of def.fields) {
-    // Derived fields are owned by their source module (wallet ledger, etc.).
-    if (f.readOnly) { clean[f.key] = input[f.key] ?? null; continue; }
-    const raw = input[f.key];
-    const val = coerce(f, raw);
-    clean[f.key] = val;
-    if (f.required && (val === null || val === '' || (Array.isArray(val) && !val.length))) errors[f.key] = `${f.label} is required`;
-    if (val !== null && ['number','currency','percent'].includes(f.type) && typeof val !== 'number') errors[f.key] = 'Enter a valid number';
-    if (f.type === 'email' && val && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(val))) errors[f.key] = 'Enter a valid email';
-    if (f.options && val && !f.options.includes(String(val))) errors[f.key] = 'Choose a valid option';
-  }
-  return { ok:Object.keys(errors).length===0, errors, clean };
-}
+export const validate = validateFields;
 
 export { fetchAll } from './fetch';
 
@@ -184,12 +163,29 @@ export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope
   return rows.map(r => ({ value:r.value, label:r.label }));
 }
 
+/** Resolve a missing invoice client from an accessible project, never from a
+ * different tenant. A missing or inaccessible relationship remains a validation
+ * error; it must not turn into an unchecked issued invoice. */
+async function deriveInvoiceClient(orgId: string, def: ResourceDef, input: Record<string, any>) {
+  if (def.id !== 'arInvoices' || input.clientId || !input.projectId ||
+      !['ISSUED','OVERDUE','PAID','PARTIALLY_PAID'].includes(String(input.status || '').toUpperCase())) return input;
+  const sb = await supabase();
+  const { data, error } = await sb.from('records').select('data').eq('organization_id', orgId)
+    .eq('resource', 'projects').eq('id', String(input.projectId)).is('deleted_at', null).maybeSingle();
+  if (error) dbError(error);
+  const clientId = data?.data?.clientId;
+  return clientId ? { ...input, clientId } : input;
+}
+
 export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}) {
+  if (def.id === 'arInvoices' && input.amountPaid != null && input.amountPaid !== '' && (!Number.isFinite(Number(input.amountPaid)) || Number(input.amountPaid) !== 0)) return { ok:false as const, errors:{ amountPaid:'Paid amount cannot be set without payment reconciliation.' } };
   const limitMessage = await projectLimitMessage(orgId, def.id, limits);
   if (limitMessage) return { ok:false as const, errors:{ _: limitMessage }, status:402 as const };
-  const v = validate(def, { ...input, ...financialTotalsPatch(def.id, input, normaliseLines(input.items)) });
-  const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
-  if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
+  const prepared = await deriveInvoiceClient(orgId, def, input);
+  const v = validate(def, { ...prepared, ...financialTotalsPatch(def.id, prepared, normaliseLines(prepared.items)) });
+  const invariantErrors = recordInvariantErrors(def.id, { ...v.clean, status: v.clean.status || def.statusOptions?.[0] || null });
+  const refErrors = v.ok && !Object.keys(invariantErrors).length ? await validateRefs(orgId, def, v.clean) : {};
+  if (!v.ok || Object.keys(refErrors).length || Object.keys(invariantErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors, ...invariantErrors } };
   const number = await nextNumber(orgId, def);
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
@@ -220,14 +216,17 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
     return { ok:false as const, errors:{ _:'This record has already been actioned. Refresh My work.' }, status:409 as const };
   }
   const prior: Record<string,any> = (existing.data && typeof existing.data === 'object') ? existing.data : {};
+  if (def.id === 'arInvoices' && Object.prototype.hasOwnProperty.call(input,'amountPaid') && input.amountPaid != null && input.amountPaid !== '' && (!Number.isFinite(Number(input.amountPaid)) || Number(input.amountPaid) !== Number(prior.amountPaid || 0))) return { ok:false as const, errors:{ amountPaid:'Paid amount cannot be changed without payment reconciliation.' } };
   // PATCH semantics: only supplied keys change; all other fields are preserved.
   // When the structured line editor is used, derive net/VAT/total from its rows;
   // older records with no structured lines keep their stored amounts.
   const suppliedLines = normaliseLines(input.items);
   const derived = suppliedLines.length ? financialTotalsPatch(def.id, { ...prior, ...input }, suppliedLines) : {};
-  const v = validate(def, { ...prior, ...input, ...derived });
-  const refErrors = v.ok ? await validateRefs(orgId, def, v.clean) : {};
-  if (!v.ok || Object.keys(refErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors } };
+  const prepared = await deriveInvoiceClient(orgId, def, { ...prior, ...input, ...derived });
+  const v = validate(def, prepared);
+  const invariantErrors = recordInvariantErrors(def.id, { ...v.clean, status: v.clean.status || def.statusOptions?.[0] || null }, existing.status);
+  const refErrors = v.ok && !Object.keys(invariantErrors).length ? await validateRefs(orgId, def, v.clean) : {};
+  if (!v.ok || Object.keys(refErrors).length || Object.keys(invariantErrors).length) return { ok:false as const, errors:{ ...v.errors, ...refErrors, ...invariantErrors } };
   const status = v.clean.status || def.statusOptions?.[0] || null;
   const projectId = v.clean.projectId || null;
   const title = String(v.clean[def.titleKey] || existing.title || existing.number);
@@ -236,11 +235,11 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
 
   let query = sb.from('records')
     .update({ title, status, project_id: projectId, data: clean })
-    .eq('id', id);
+    .eq('id', id).eq('organization_id', orgId).eq('resource', def.id).eq('updated_at', existing.updated_at);
   if (expected) query = query.eq('status', expected);
   const { data: rec, error } = await query.select('*').maybeSingle();
   if (error) dbError(error);
-  if (!rec) return { ok:false as const, errors:{ _:'This record has already been actioned. Refresh My work.' }, status:409 as const };
+  if (!rec) return { ok:false as const, errors:{ _:'This record changed while you were editing. Refresh and try again.' }, status:409 as const };
   await logActivity(orgId, userId, actor, 'UPDATE', def.id, `Updated ${def.singular.toLowerCase()} “${title}” (${existing.number})`);
   return { ok:true as const, row:toRow(rec) };
 }

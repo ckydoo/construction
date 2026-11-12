@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { resolveWorkspace } from '../src/lib/catalog';
+import { entitledModules, entitledResources, entitledLimits, planModuleIds, PLAN_MAP } from '../src/lib/billing-plans';
+import { normaliseCompanyProfile } from '../src/lib/company';
+
+const requested = resolveWorkspace({ companyType:'GENERAL_CONTRACTOR', size:'SMALL', qualifiers:['ownedPlant','materialsWarehouse','regulatedHse'] });
+for (const id of ['equipment','inventory','safety']) assert.ok(requested.modules.includes(id), `${id} requested`);
+const starter = entitledModules('STARTER', requested.modules);
+assert.ok(!starter.includes('equipment') && !starter.includes('inventory') && !starter.includes('safety'));
+assert.equal(entitledLimits('STARTER',requested.limits).users,6);
+assert.equal(entitledLimits('STARTER',requested.limits).projects,15);
+assert.equal(entitledLimits('PRO',requested.limits).users,25);
+assert.equal(entitledLimits('PRO',requested.limits).projects,35);
+for (const id of ['equipment','inventory','safety']) assert.ok(entitledModules('PRO',requested.modules).includes(id));
+assert.ok(planModuleIds('PRO').length > planModuleIds('STARTER').length);
+assert.ok(entitledResources('STARTER',requested.resources).length <= requested.resources.length);
+assert.equal(PLAN_MAP.STARTER.name, 'Starter');
+assert.equal(normaliseCompanyProfile({}, {country:'ZW'}).address, '');
+assert.equal(normaliseCompanyProfile({address:'Mutare'}, {country:'ZW'}).address, 'Mutare');
+console.log('Onboarding and entitlement checks passed');

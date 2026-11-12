@@ -9,7 +9,7 @@ import { resolveWorkspace, type WorkspaceConfig } from './catalog';
 import { billingActive, getSubscription } from './billing';
 import {
   billingAllowsAccess, billingAllowsWrite, entitledLimits, entitledModules,
-  entitledResources, isPlanId, type BillingStatus, type PlanId,
+  entitledResources, isPlanId, planLabel, type BillingStatus, type PlanId,
 } from './billing-plans';
 
 export type Membership = { orgId: string; orgSlug: string; orgName: string; role: string; entityId: string | null };
@@ -56,6 +56,7 @@ export function parseOrgConfig(org: any): WorkspaceConfig {
 function applyPlanEntitlements(config: WorkspaceConfig, planId: PlanId): WorkspaceConfig {
   return {
     ...config,
+    plan: planLabel(planId),
     modules: entitledModules(planId, Array.isArray(config.modules) ? config.modules : []),
     resources: entitledResources(planId, Array.isArray(config.resources) ? config.resources : []),
     limits: entitledLimits(planId, config.limits || {}),

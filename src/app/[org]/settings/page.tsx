@@ -8,6 +8,7 @@ import { userMessage } from '@/lib/user-message';
 import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
 import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
 import { resourceFullyEnabled } from '@/lib/module-visibility';
+import { planModuleIds, isPlanId } from '@/lib/billing-plans';
 import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, ConfirmDialog, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import NotificationSettings from '@/components/NotificationSettings';
@@ -56,12 +57,14 @@ export default function SettingsPage(){
   const caps:string[]=meta?.permissions?.capabilities||[];
   const {data:integrity,isFetching:integrityLoading}:any=useQuery({queryKey:['integrity',org],queryFn:()=>apiGet(orgApi(org,'integrity')),enabled:tab==='system'&&caps.includes('integrity')});
   const enabled=new Set(meta?.config?.modules||[]);
+  const planId=meta?.billing?.enabled ? meta.billing.plan : null;
+  const allowedSections=isPlanId(planId)?new Set(planModuleIds(planId)):null;
   const exampleCurrency = CURRENCY_CODES.find(c => c !== currencyForm?.base) || 'USD';
 
   async function send(action:string,body:any={},method:'PATCH'|'POST'='PATCH'){
     setBusy(true);setMsg('');
     try{const r=await apiSend(orgApi(org,'settings'),method,{action,...body});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]}),qc.invalidateQueries({queryKey:['overview',org]})]);
-      toast.push({tone:'success',title:'Settings updated',description:'Your changes have been saved.'});return r;
+      toast.push({tone:'success',title:'Settings updated',description:r.message || 'Your changes have been saved.'});return r;
     }catch(e:any){toast.push({tone:'error',title:'Could not save',description:userMessage(e, 'We couldn’t save those settings. Please try again.')});}finally{setBusy(false);setConfirm(null);} }
   async function saveGeneral(e:React.FormEvent){e.preventDefault();setSaving(true);
     try{await apiSend(orgApi(org,'settings'),'PATCH',{action:'updateOrg',...form});await Promise.all([qc.invalidateQueries({queryKey:['meta',org]}),qc.invalidateQueries({queryKey:['meta-settings',org]})]);toast.push({tone:'success',title:'Company details saved'});}
@@ -161,13 +164,13 @@ export default function SettingsPage(){
 
     {tab==='modules'&&<div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Sections on your sidebar</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} sections on · changes show on the sidebar straight away.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">A very small company can start with just clients, quotes, jobs and money. Switch the rest on whenever you need it. The switches below still work either way.</p></div>
-        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Everything on</Button></div></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">A very small company can start with just clients, quotes, jobs and money. Switch on sections included in your plan. Visit Billing to see plans with additional sections.</p></div>
+        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Enable included sections</Button></div></Card>
       {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} switched on`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>
           <div className="min-w-0 flex-1"><p className="text-xs font-semibold text-ink-900 dark:text-white">{m.label}</p><p className="mt-0.5 text-[11px] leading-relaxed muted">{m.description}</p><div className="mt-1.5 flex gap-1"><Badge tone={m.tier==='CORE'?'slate':m.tier==='ENTERPRISE'?'violet':'blue'}>{m.tier.toLowerCase()}</Badge>{m.resources?.length>0&&<Badge tone="slate">{m.resources.length} {m.resources.length===1?'list':'lists'}</Badge>}</div></div>
-          <Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/></div>)}</div></Card>)}
+          {allowedSections&&!allowedSections.has(m.id)?<span className="text-xs muted">Not included · <a className="text-brand-700 underline" href={`/${org}/billing`}>See plans</a></span>:<Toggle checked={enabled.has(m.id)} onChange={v=>send('toggleModule',{moduleId:m.id,enabled:v})}/>}</div>)}</div></Card>)}
     </div>}
 
     {tab==='users'&&<div className="space-y-4">{caps.includes('users.manage')&&<Card><CardHead title="Invite a teammate" subtitle="Add someone to this workspace straight away — invitation emails aren’t being delivered yet."/>

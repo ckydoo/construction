@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { resolveWorkspace } from '@/lib/catalog';
+import { resolveWorkspace, COMPANY_TYPES, COMPANY_SIZES } from '@/lib/catalog';
+import { isPlanId, PLAN_MAP } from '@/lib/billing-plans';
 import { capabilityGuard } from '@/lib/guard';
 import { seedDemo } from '@/lib/seed-service';
 import { notify } from '@/lib/records';
@@ -10,7 +11,9 @@ import { startNoCardTrial } from '@/lib/billing-lifecycle';
 
 export async function GET() {
   const a = await apiAuth(); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  return NextResponse.json({ org: {
+  const sub = await getSubscription(a.orgId);
+  const planId = isPlanId(sub?.plan_id) ? sub.plan_id : 'STARTER';
+  return NextResponse.json({ plan: PLAN_MAP[planId], enforcePlan: Boolean(a.billing), org: {
     id: a.orgId, name: a.orgName, slug: a.orgSlug, onboarded: a.onboarded,
     companyType: a.org.companyType, size: a.org.size, config: a.config,
   } });
@@ -21,8 +24,12 @@ export async function POST(req: Request) {
   const g = capabilityGuard(a.role, 'settings.manage'); if (g) return g;
   try {
     const b = await req.json();
-    const type = String(b.companyType || 'GENERAL_CONTRACTOR');
-    const size = String(b.size || 'SMALL');
+    const type = String(b.companyType || '');
+    const size = String(b.size || '');
+    if (!COMPANY_TYPES.some(t => t.id === type)) return NextResponse.json({ error: 'Choose your type of work before continuing.' }, { status: 400 });
+    if (!COMPANY_SIZES.some(s => s.id === size)) return NextResponse.json({ error: 'Choose your team size before continuing.' }, { status: 400 });
+    if (String(b.name || '').trim().length < 2) return NextResponse.json({ error: 'Enter your company name.' }, { status: 400 });
+    if (b.headcount !== '' && b.headcount != null && (!Number.isInteger(Number(b.headcount)) || Number(b.headcount) < 1)) return NextResponse.json({ error: 'Enter a valid number of people.' }, { status: 400 });
     const config = resolveWorkspace({
       companyType: type, size, headcount: Number(b.headcount) || undefined,
       revenueBand: b.revenueBand, qualifiers: b.qualifiers || [], addons: b.addons || [],

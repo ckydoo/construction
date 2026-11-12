@@ -395,8 +395,8 @@ export function buildDemo(orgId:string) {
     const amt=money(4000,280000);
     add('journals',`jnl-${i+1}`,{ name:pick(['Monthly cost allocation','Accrual – subcontract certificates','VAT control posting','Payroll allocation to projects','Plant hire recharge','Materials issued to a job']),
       date:off(-ri(5,180)), period:pick(['2026-08','2026-09','2026-10','2026-11']), accountId:`${orgId}_acc-${ri(1,accountsDefs.length)}`,
-      projectId:`${orgId}_prj-${(i%3)+1}`, debit:amt, credit:amt, currency:'USD', narration:'Posted by finance after supporting documents verified.',
-      preparedBy:`${orgId}_emp-3`, status:pick(['POSTED','POSTED','DRAFT']),
+      projectId:`${orgId}_prj-${(i%3)+1}`, debit:amt, credit:amt, currency:'USD', narration:'Sample journal only; posting requires a supported ledger.',
+      preparedBy:`${orgId}_emp-3`, status:'DRAFT',
     });
   }
   for(let i=0;i<15;i++){
@@ -411,8 +411,8 @@ export function buildDemo(orgId:string) {
     const net=money(45000,1450000), vat=Math.round(net*0.15);
     add('arInvoices',`inv-${i+1}`,{ name:`${pick(['Interim certificate','Materials invoice','Variation invoice','Final account installment'])} – ${projectDefs[i%4][0].slice(0,24)}`,
       projectId:`${orgId}_prj-${(i%4)+1}`, clientId:`${orgId}_cli-${(i%9)+1}`, invoiceDate:off(-ri(5,200)), dueDate:off(ri(-40,45)),
-      amount:net, vatPct:15, vatAmount:vat, total:net+vat, amountPaid:i%3===0?net+vat:i%4===0?Math.round(net/2):0,
-      currency:'USD', taxInvoiceNo:`TI-${2026}-${ri(1000,9999)}`, status:pick(['ISSUED','ISSUED','PARTIALLY_PAID','PAID','OVERDUE','DRAFT']),
+      amount:net, vatPct:15, vatAmount:vat, total:net+vat, amountPaid:0,
+      currency:'USD', taxInvoiceNo:`TI-${2026}-${ri(1000,9999)}`, status:'DRAFT',
     });
   }
   for(let i=0;i<8;i++){

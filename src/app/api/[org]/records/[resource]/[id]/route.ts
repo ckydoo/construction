@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { getResource } from '@/lib/resources';
-import { readGuard, writeGuard, deleteGuard, capabilityGuard } from '@/lib/guard';
+import { readGuard, writeGuard, deleteGuard, capabilityGuard, billingGuard } from '@/lib/guard';
 import { buildScope } from '@/lib/access';
 import { getRecord, updateRecord, deleteRecord } from '@/lib/records';
 import { commentView, attachmentView } from '@/lib/views';
@@ -34,7 +34,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const { org, resource, id } = await params;
   const a = await apiAuth(org); const def = getResource(resource);
   if (!a || !def) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const g = writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.update'); if (g) return g;
+  const g = billingGuard(a, {write:true}) || writeGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.update'); if (g) return g;
   const scope = await buildScope(a);
   const prior = await getRecord(a.orgId, resource, id, scope);
   if (!prior) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -53,7 +53,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   const { org, resource, id } = await params;
   const a = await apiAuth(org); const def = getResource(resource);
   if (!a || !def) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const g = deleteGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.delete'); if (g) return g;
+  const g = billingGuard(a, {write:true}) || deleteGuard(a.config, a.role, resource) || capabilityGuard(a.role, 'records.delete'); if (g) return g;
   const scope = await buildScope(a);
   if (!(await getRecord(a.orgId, resource, id, scope))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const result = await deleteRecord(a.orgId, a.userId, a.name, def, id);

@@ -87,7 +87,7 @@ export default function ProjectPage(){
       <div className="mt-2 flex flex-wrap items-start justify-between gap-3"><div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-400"><Icon name="HardHat" size={17}/></span>
         <div><div className="flex flex-wrap items-center gap-2"><h1 className="heading">{p.name}</h1><StatusPill status={p.status}/><Badge tone={p.health==='ON_TRACK'?'green':p.health==='AT_RISK'?'amber':'red'}>{String(p.health||'').replace(/_/g,' ')}</Badge></div>
         <p className="mt-1 text-xs muted">{p.type} · {p.location} · {p.code}</p></div></div>
-        <div className="flex gap-2">{on('tasks')&&<Link href={`/${org}/m/tasks?new=1`}><Button icon="Plus">Add task</Button></Link>}{on('rfis')&&<Link href={`/${org}/m/rfis?new=1`}><Button variant="primary" icon="Plus">New RFI</Button></Link>}</div></div>
+        <div className="flex gap-2">{on('tasks')&&<Link href={`/${org}/m/tasks?new=1&project=${encodeURIComponent(id)}`}><Button icon="Plus">Add task</Button></Link>}{on('rfis')&&<Link href={`/${org}/m/rfis?new=1`}><Button variant="primary" icon="Plus">New RFI</Button></Link>}</div></div>
     </div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {kpis.map(([l,v])=><Card key={l} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 text-[18px] font-semibold tabular-nums tracking-tight">{v}</p></Card>)}

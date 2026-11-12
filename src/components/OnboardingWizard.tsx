@@ -3,7 +3,9 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS } from '@/lib/catalog';
 import { BRAND } from '@/lib/brand';
-import { apiSend } from '@/lib/client';
+import { apiGet, apiSend } from '@/lib/client';
+import { useQuery } from '@tanstack/react-query';
+import { entitledModules, entitledResources, entitledLimits, isPlanId } from '@/lib/billing-plans';
 import { userMessage } from '@/lib/user-message';
 import { Button, Icon, Field, Badge, Toggle } from './ui';
 import Logo from './Logo';
@@ -16,7 +18,6 @@ const STEPS = [
   { id:4, title:'How you work', desc:'Anything special about how you work' },
   { id:5, title:'Ready to go', desc:'Start small, add what you need' },
 ];
-const HEADCOUNTS:Record<string,number>={MICRO:6,SMALL:28,MID:85,LARGE:520,ENTERPRISE:1400};
 const FLAG_LABELS:Record<string,string> = {
   subcontractorPrequal:'Check subcontractors before giving them work',
   bimIntegration:'Design-and-build drawings',
@@ -45,17 +46,20 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [regNumber,setRegNumber]=useState('');
   const [country,setCountry]=useState('ZW');
   const [baseCurrency,setBaseCurrency]=useState('USD');
-  const [companyType,setCompanyType]=useState('GENERAL_CONTRACTOR');
-  const [size,setSize]=useState('SMALL');
-  const [headcount,setHeadcount]=useState('28');
-  const [revenueBand,setRevenueBand]=useState('$1M – $10M');
+  const [companyType,setCompanyType]=useState('');
+  const [size,setSize]=useState('');
+  const [headcount,setHeadcount]=useState('');
+  const [revenueBand,setRevenueBand]=useState('');
   const [qualifiers,setQualifiers]=useState<string[]>([]);
   const [addons,setAddons]=useState<string[]>([]);
   const [loadDemo,setLoadDemo]=useState(false);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
 
-  const config=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons}),[companyType,size,headcount,revenueBand,qualifiers,addons]);
+  const {data: provisioning, isLoading: planLoading, isError: planError} = useQuery({queryKey:['onboarding-plan'],queryFn:()=>apiGet('/api/onboarding')});
+  const requested=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons}),[companyType,size,headcount,revenueBand,qualifiers,addons]);
+  const planId = provisioning?.plan?.id;
+  const config=useMemo(()=> provisioning?.enforcePlan && isPlanId(planId) ? {...requested, modules:entitledModules(planId,requested.modules), resources:entitledResources(planId,requested.resources), limits:entitledLimits(planId,requested.limits), plan:provisioning.plan.name} : {...requested, plan:provisioning?.plan?.name || 'Loading…'}, [requested, provisioning, planId]);
   const enabled=useMemo(()=>new Set(config.modules),[config]);
   const byGroup=useMemo(()=>{
     const g:Record<string,typeof MODULES>={};
@@ -67,12 +71,12 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
 
   function toggleQ(id:string){ setQualifiers(q=>q.includes(id)?q.filter(x=>x!==id):[...q,id]); }
   function toggleAddon(id:string){ setAddons(a=>a.includes(id)?a.filter(x=>x!==id):[...a,id]); }
-  const canNext = step===1 ? name.trim().length>1 : true;
+  const canNext = step===1 ? name.trim().length>1 : step===2 ? !!companyType : step===3 ? !!size && (!headcount || (Number.isInteger(Number(headcount)) && Number(headcount)>0)) : true;
 
   async function finish(){
     setLoading(true); setError('');
     try{
-      const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,loadDemo});
+      const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:headcount ? Number(headcount) : null,revenueBand,qualifiers,addons,loadDemo});
       router.push(r.next || `/${r.slug}/billing`); router.refresh();
     }catch(e:any){ setError(userMessage(e, 'We couldn’t create your workspace. Please try again.')); setLoading(false); }
   }
@@ -125,14 +129,14 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           {step===3&&<div className="mt-6">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{COMPANY_SIZES.map(s=>{
               const on=size===s.id;
-              return <button key={s.id} onClick={()=>{setSize(s.id);setHeadcount(String(HEADCOUNTS[s.id]||85));}} className={`rounded-md border p-4 text-left transition ${on?'border-brand-500 bg-brand-50/40 dark:bg-brand-500/10':'divider bg-white hover:border-slate-300 dark:bg-ink-900'}`}>
+              return <button key={s.id} onClick={()=>setSize(s.id)} className={`rounded-md border p-4 text-left transition ${on?'border-brand-500 bg-brand-50/40 dark:bg-brand-500/10':'divider bg-white hover:border-slate-300 dark:bg-ink-900'}`}>
                 <div className="flex items-center justify-between"><span className="text-sm font-semibold text-ink-900 dark:text-white">{s.label}</span>{on&&<Lucide.CheckCircle2 size={16} className="text-brand-600"/>}</div>
                 <p className="mt-1 text-xs font-medium text-brand-700 dark:text-brand-300">{s.range}</p><p className="mt-2 text-xs muted">{s.desc}</p>
-                <p className="mt-3 border-t divider pt-2 text-[11px] muted">Up to {s.users.toLocaleString()} users</p>
+                <p className="mt-3 border-t divider pt-2 text-[11px] muted">Team size is separate from your plan’s user limit.</p>
               </button>;})}</div>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <Field label="About how many people work here?"><input className="input" type="number" min={1} value={headcount} onChange={e=>setHeadcount(e.target.value)}/></Field>
-              <Field label="Yearly turnover (roughly)"><select className="select" value={revenueBand} onChange={e=>setRevenueBand(e.target.value)}>{[['< $1M','Under US$1 million'],['$1M – $10M','US$1–10 million'],['$10M – $50M','US$10–50 million'],['$50M – $100M','US$50–100 million'],['$100M+','Over US$100 million']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
+              <Field label="Yearly turnover (roughly)"><select className="select" value={revenueBand} onChange={e=>setRevenueBand(e.target.value)}><option value="">Not specified</option>{[['< $1M','Under US$1 million'],['$1M – $10M','US$1–10 million'],['$10M – $50M','US$10–50 million'],['$50M – $100M','US$50–100 million'],['$100M+','Over US$100 million']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></Field>
             </div>
           </div>}
 
@@ -154,6 +158,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
               {[['Sections',config.modules.length],['Lists',config.resources.length],['People',config.limits.users.toLocaleString()],['Plan',config.plan]].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3.5 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">{v}</p></div>)}
             </div>
             <div className="rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
+              {provisioning?.enforcePlan && requested.modules.some(m=>!enabled.has(m)) && <p className="mb-2 text-xs font-semibold text-amber-700">Some selected sections are not included in your current plan. Your choices will be saved, but these sections need a suitable plan before they appear. Visit Billing after setup.</p>}
               <p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
               <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → document library → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p>
             </div>
@@ -174,13 +179,14 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
               <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with sample data <span className="ml-1 text-[11px] font-normal muted">Off by default</span></p><p className="mt-0.5 text-xs muted">Optional: 616 sample records across jobs, staff, orders, invoices, time sheets, site queries and safety events. Your workspace starts empty unless you switch this on.</p></div>
               <Toggle checked={loadDemo} onChange={setLoadDemo}/>
             </div>
+            {planError&&<p className="text-xs text-red-700">We couldn’t load your plan. Refresh and try again.</p>}
             {error&&<p className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{error}</p>}
           </div>}
 
           <div className="mt-6 flex items-center justify-between border-t divider pt-5">
             <Button variant="ghost" onClick={()=>setStep(s=>Math.max(1,s-1))} disabled={step===1} icon="ArrowLeft">Back</Button>
             {step<5?<Button variant="primary" disabled={!canNext} onClick={()=>setStep(s=>s+1)}>Continue<Lucide.ArrowRight size={15}/></Button>
-              :<Button variant="primary" loading={loading} onClick={finish} icon="Rocket">Open my company</Button>}
+              :<Button variant="primary" loading={loading} disabled={planLoading||planError||!provisioning} onClick={finish} icon="Rocket">Open my company</Button>}
           </div>
         </div>
         <p className="mt-4 text-center text-xs muted">Your 7-day trial and payment options open in Billing next. You can switch sections on or off any time in <strong>Settings</strong>.</p>
