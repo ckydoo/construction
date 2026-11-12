@@ -34,3 +34,8 @@ Database draft integration review: the preliminary server route was moved out of
 
 ### Quote-to-job proposed baseline — implementation
 - Quote-to-job conversion now carries pre-markup itemised costs, or the sum of explicitly entered cost categories when no item lines exist, into a clearly labelled proposed estimate cost field. If no cost data exists it stays blank; it does not set the approved project budget or infer cost from the sale price. Pure conversion/validation tests and build pass. Authenticated end-to-end conversion test remains open.
+
+### Timesheet and variation approval — local work in progress
+- Prepared a new database trigger to calculate normal plus overtime hours, require a valid period and employee/project before timesheet approval, stamp authenticated user ID/time, record variation decision date and transactional approval audit. New approvals lock substantive fields until authorized return to draft; legacy approvals are not backfilled or newly locked. Approval contact is labelled separately from authoritative user ID.
+- Isolated tests passed spoofed actor protection, invalid hours/dates, role denial, no direct posting, approval/reopening, and variation date. The test authorization functions are mocked. Local build and TypeScript passed.
+- Not deployed: needs real Supabase auth/RLS checks, explicit lifecycle/role review, migration application, and authenticated end-to-end tests. No existing records were modified.

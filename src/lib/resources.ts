@@ -102,7 +102,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('changeOrders','Variations & extras','Variation','contracts','Jobs & sites','GitPullRequestArrow','CO','name',
     'Variations, extensions of time and their approval chain.',
-    [T('name','Variation description',{required:true}),PRJ(true),T('reference','Instruction / variation ref'),S('reason','Reason',['Client change','Design change','Site condition','Statutory requirement','Scope gap','Force majeure']),C('amount','Value'),N('timeExtension','Extra time (days)'),D('submittedDate','Submitted'),D('decisionDate','Decision date'),R('requestedBy','Requested by','contacts'),R('approvedBy','Approved by','employees'),A('justification','Justification'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],'DRAFT')],
+    [T('name','Variation description',{required:true}),PRJ(true),T('reference','Instruction / variation ref'),S('reason','Reason',['Client change','Design change','Site condition','Statutory requirement','Scope gap','Force majeure']),C('amount','Value'),N('timeExtension','Extra time (days)'),D('submittedDate','Submitted'),D('decisionDate','Decision date'),R('requestedBy','Requested by','contacts'),R('approvedBy','Approval contact (optional)','employees'),T('approvalActorId','Approved by user ID',{readOnly:true}),{key:'approvedAt',label:'Approved at',type:'datetime',readOnly:true},A('justification','Justification'),IT('items','Itemised lines'),STS(['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],'DRAFT')],
     ['number','name','projectId','reference','amount','submittedDate','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','INCLUDED_IN_CERT'],amountKey:'amount',dateKey:'submittedDate'}),
 
   d('rfis','Site queries','Site query','projectComms','Jobs & sites','MessageCircleQuestion','RFI','subject',
@@ -204,7 +204,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('timesheets','Time sheets','Time sheet','time','Staff & wages','Clock','TS','name',
     'Weekly timesheets feeding payroll and job costing.',
-    [T('name','Timesheet reference',{required:true}),R('employeeId','Employee','employees'),PRJ(true),D('weekStart','Week starting'),D('weekEnd','Week ending'),N('regularHours','Normal hours'),N('overtimeHours','Overtime hours'),N('totalHours','Total hours'),C('labourCost','Allocated labour cost'),R('approvedBy','Approved by','employees'),A('notes','Notes'),STS(['DRAFT','SUBMITTED','APPROVED','REJECTED','POSTED'],'DRAFT')],
+    [T('name','Timesheet reference',{required:true}),R('employeeId','Employee','employees'),PRJ(true),D('weekStart','Week starting'),D('weekEnd','Week ending'),N('regularHours','Normal hours'),N('overtimeHours','Overtime hours'),N('totalHours','Total hours',{readOnly:true,hint:'Calculated from normal and overtime hours.'}),C('labourCost','Allocated labour cost'),R('approvedBy','Approval contact (optional)','employees'),T('approvalActorId','Approved by user ID',{readOnly:true}),{key:'approvedAt',label:'Approved at',type:'datetime',readOnly:true},A('notes','Notes'),STS(['DRAFT','SUBMITTED','APPROVED','REJECTED','POSTED'],'DRAFT')],
     ['number','name','employeeId','projectId','weekStart','totalHours','status'],{projectScoped:true,statusOptions:['DRAFT','SUBMITTED','APPROVED','REJECTED','POSTED'],amountKey:'labourCost',dateKey:'weekStart'}),
 
   d('leaveRequests','Leave requests','Leave request','leave','Staff & wages','Palmtree','LV','name',
