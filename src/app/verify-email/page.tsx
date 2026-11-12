@@ -66,7 +66,7 @@ export default function VerifyEmailPage() {
             <Button type="submit" variant="outline" className="w-full" loading={busy}>Send a new link</Button>
           </form>}
           {state === 'success' && <Link href="/login" className="block"><Button variant="primary" className="w-full">Go to sign in<Lucide.ArrowRight size={15}/></Button></Link>}
-          <Link href="/login" className="block text-center text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Back to sign in</Link>
+          <Link href="/login" className="block py-2 text-center text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Back to sign in</Link>
         </div>
       </Card>
       <p className="text-center text-[11px] muted">MYLA · {BRAND.motto}</p>

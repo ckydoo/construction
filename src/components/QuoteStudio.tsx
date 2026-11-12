@@ -233,8 +233,10 @@ export default function QuoteStudio({
       </div>
     </div>
 
-    <div className="grid gap-4 lg:grid-cols-12">
-      <aside className="lg:col-span-3">{stepRail}</aside>
+    {/* minmax(0,1fr) + min-w-0 keep the single stacked column from being
+        widened by the nowrap step labels in the rail at phone/tablet widths. */}
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-12">
+      <aside className="min-w-0 lg:col-span-3">{stepRail}</aside>
       <main className="min-w-0 space-y-4 lg:col-span-6">
         {saveOpen&&<Card className="p-4"><CardHead title={templateMode==='update'?'Update this template':'Save as a reusable template'} subtitle="Templates store the title, work type, pricing lines, markup and scope — never a client or date."/>
           <div className="grid gap-3 p-4 sm:grid-cols-2">
@@ -322,7 +324,7 @@ export default function QuoteStudio({
             {step===QUOTE_STEPS.length-1?<Button type="button" variant="primary" icon="Check" loading={saving} onClick={saveQuote}>{mode==='edit'?'Save quotation':'Create quotation'}</Button>:<Button type="button" variant="primary" icon="ArrowRight" onClick={()=>goStep(step+1)}>Continue</Button>}</div>
         </div>
       </main>
-      <aside className="lg:col-span-3">{summary}</aside>
+      <aside className="min-w-0 lg:col-span-3">{summary}</aside>
     </div>
 
     <ConfirmDialog open={!!pendingTemplate} onClose={()=>setPendingTemplate(null)} title="Replace the current draft?"

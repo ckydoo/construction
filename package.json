@@ -53,6 +53,7 @@
     "audit:profitability": "tsx scripts/profitability-defs-qa.ts && node scripts/profitability-qa.mjs",
     "audit:three-way-match": "tsx scripts/three-way-match-defs-qa.ts && node scripts/three-way-match-qa.mjs",
     "audit:simplicity": "node scripts/simplicity-audit.mjs",
+    "audit:responsive": "node scripts/responsive-qa.mjs",
     "audit:test-fixes": "tsx scripts/test-fix-audit.ts"
   },
   "dependencies": {

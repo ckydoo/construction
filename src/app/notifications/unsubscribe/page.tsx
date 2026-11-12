@@ -44,7 +44,7 @@ export default function UnsubscribePage() {
             <Button variant="primary" className="w-full" loading={busy} onClick={turnOff}>Turn off optional emails</Button>
           </> : <p className="text-sm leading-relaxed muted">Sign in to manage what MYLA sends you.</p>}
           {message && !done && <div className="flex gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200"><Lucide.AlertCircle size={16} className="mt-0.5 shrink-0"/>{message}</div>}
-          <Link href="/login" className="block text-center text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Back to MYLA</Link>
+          <Link href="/login" className="block py-2 text-center text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Back to MYLA</Link>
         </div>
       </Card>
       <p className="text-center text-[11px] muted">MYLA · {BRAND.motto}</p>

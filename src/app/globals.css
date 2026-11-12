@@ -19,6 +19,13 @@ body {
 @layer base {
   a, button, input, select, textarea { transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease; }
   :focus-visible { outline: 2px solid #F58712; outline-offset: 2px; }
+
+  /* Comfortable touch targets everywhere (WCAG 2.5.8 minimum 24x24).
+     Icon-only buttons, table sort headers and native checkboxes were 14-20px.
+     Utility widths/heights still win when they are larger; this only raises the
+     floor. Inline links inside sentences are exempt and are left untouched. */
+  button { min-width: 24px; min-height: 24px; }
+  input[type="checkbox"], input[type="radio"] { min-width: 24px; min-height: 24px; }
 }
 
 @layer components {

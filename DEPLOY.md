@@ -71,6 +71,7 @@ For Render, see [RENDER_DEPLOY.md](RENDER_DEPLOY.md) and `render.yaml`. For GitH
 - Upload a PDF attachment, open it, add a revision, delete the latest.
 - Sign in as `client@westgate.co.zw` → only Westgate's own records and wallet.
 - `npm run audit` and `npm run audit:browser` against the deployed URL (the historical reports in this repo describe the pre-Supabase build).
+- `npm run audit:responsive` — real-browser responsive regression test. It signs in, visits all list sections, settings tabs, special workspaces, detail/quote-edit/print-preview screens and the auth screens, and checks ten viewport widths from 320 px to 1920 px for horizontal overflow, broken mobile/desktop navigation, clipped text, undersized touch targets and off-screen overlays. Point it at production with `QA_BASE=https://<alias> QA_QUICK=1 npm run audit:responsive`; the full run writes `/home/user/responsive-audit.json`. Keep it at zero issues before each release.
 
 ## 6. Secrets hygiene
 
