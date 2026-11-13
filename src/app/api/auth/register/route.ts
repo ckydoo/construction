@@ -17,6 +17,10 @@ export async function POST(req: Request) {
     if (!hasSupabaseConfig() || !hasServiceKey())
       return NextResponse.json({ error: 'Creating an account is temporarily unavailable. Please try again shortly.' }, { status: 503 });
 
+    const captchaToken = String(b.captchaToken || '').trim();
+    if (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken)
+      return NextResponse.json({ error: 'Please complete the security check and try again.' }, { status: 400 });
+
     const admin = supabaseAdmin();
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email, password, email_confirm: true,
@@ -32,7 +36,7 @@ export async function POST(req: Request) {
     // Supabase Auth confirmation is only for sign-in readiness. The optional
     // verification state lives in admin-only app_metadata for the dashboard nudge.
     await setEmailVerificationState(createdUserId, false);
-    const signed = await signIn(email, password);
+    const signed = await signIn(email, password, captchaToken || undefined);
     if (!signed) throw new Error('Could not establish a session');
 
     const slug = await uniqueSlug(company);

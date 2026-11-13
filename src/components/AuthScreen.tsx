@@ -6,6 +6,9 @@ import { userMessage } from '@/lib/user-message';
 import { Button, Icon, Field } from './ui';
 import Logo from './Logo';
 import { BRAND } from '@/lib/brand';
+import TurnstileChallenge from './TurnstileChallenge';
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 import * as Lucide from '@/components/lucide';
 
 const DEMO = [
@@ -43,6 +46,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
   const [email,setEmail]=useState(''), [password,setPassword]=useState('');
   const [showPw,setShowPw]=useState(false), [busy,setBusy]=useState(false);
   const [error,setError]=useState(''), [notice,setNotice]=useState('');
+  const [captchaToken,setCaptchaToken]=useState(''), [captchaAttempt,setCaptchaAttempt]=useState(0);
 
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -52,19 +56,22 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
     }
   },[]);
 
-  function switchView(next:View){ setView(next); setError(''); setNotice(''); }
+  function switchView(next:View){ setView(next); setError(''); setNotice(''); setCaptchaToken(''); setCaptchaAttempt(n=>n+1); }
 
   async function submit(e:React.FormEvent){
-    e.preventDefault(); setBusy(true); setError(''); setNotice('');
+    e.preventDefault(); setError(''); setNotice('');
+    if (TURNSTILE_SITE_KEY && !captchaToken) { setError('Please complete the security check before continuing.'); return; }
+    setBusy(true);
     try{
       if(view==='register'){
-        await apiSend('/api/auth/register','POST',{name,email,password,company});
+        await apiSend('/api/auth/register','POST',{name,email,password,company,captchaToken});
         router.push('/onboarding'); router.refresh();
         return;
       }
-      const r=await apiSend('/api/auth/login','POST',{email,password});
+      const r=await apiSend('/api/auth/login','POST',{email,password,captchaToken});
       router.push(r.onboarded?`/${r.slug}/dashboard`:'/onboarding'); router.refresh();
     }catch(err:any){
+      setCaptchaToken(''); setCaptchaAttempt(n=>n+1);
       setError(userMessage(err, view === 'login' ? 'We couldn’t sign you in. Please try again.' : 'We couldn’t create your account. Please try again.'));
     }finally{ setBusy(false); }
   }
@@ -95,7 +102,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         <p className="mt-1.5 text-[13px] muted">
           {view==='login'&&'Sign in to your construction workspace.'}
           {view==='register'&&'Create an account, then tell us about your company.'}
-          {view==='forgot'&&'Password reset emails aren’t being delivered yet — ask your administrator if you’re locked out.'}
+          {view==='forgot'&&'Enter your email and we’ll send reset instructions if your account is eligible.'}
         </p>
         <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-700 dark:text-brand-300">{BRAND.motto}</p>
 
@@ -104,6 +111,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
           <Field label="Company name" required><input className="input" value={company} onChange={e=>setCompany(e.target.value)} placeholder="e.g. Ridgeway Constructors" required/></Field></>}
           <Field label="Work email" required><div className="relative"><Lucide.Mail size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.co.zw" required/></div></Field>
           <Field label="Password" required><div className="relative"><Lucide.Lock size={16} className="absolute left-3 top-2.5 text-slate-400"/><input className="input pl-9 pr-10" type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} required minLength={view==='register'?8:1}/><button type="button" onClick={()=>setShowPw(!showPw)} aria-label={showPw?'Hide password':'Show password'} className="absolute right-3 top-2.5 text-slate-400 hover:text-ink-600"><Icon name={showPw?'EyeOff':'Eye'} size={16}/></button></div></Field>
+          {TURNSTILE_SITE_KEY&&<TurnstileChallenge key={`${view}-${captchaAttempt}`} siteKey={TURNSTILE_SITE_KEY} onToken={setCaptchaToken} onError={()=>setError('Security check could not load. Please refresh and try again.')} />}
           {error&&<div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"><Lucide.AlertCircle size={15} className="mt-0.5 shrink-0"/>{error}</div>}
           <Button type="submit" variant="primary" className="w-full" loading={busy}>{view==='login'?'Sign in':'Create account & continue'}<Lucide.ArrowRight size={15}/></Button>
         </form>}

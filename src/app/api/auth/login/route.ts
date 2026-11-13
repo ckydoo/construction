@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   if (!email || !password) return NextResponse.json({ error: 'Enter your email and password.' }, { status: 400 });
   if (!hasSupabaseConfig()) return NextResponse.json({ error: 'Sign-in is temporarily unavailable. Please try again shortly.' }, { status: 503 });
 
-  const signed = await signIn(email, password);
+  const signed = await signIn(email, password, String(b.captchaToken || '').trim() || undefined);
   if (!signed) return NextResponse.json({ error: 'Incorrect email or password.' }, { status: 401 });
 
   const sb = await supabase();

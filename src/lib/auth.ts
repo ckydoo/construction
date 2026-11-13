@@ -183,9 +183,9 @@ export async function uniqueSlug(name: string): Promise<string> {
 }
 
 /** Establish a Supabase Auth session and write its cookies to the response. */
-export async function signIn(email: string, password: string): Promise<{ userId: string; email: string | null; emailConfirmedAt: string | null } | null> {
+export async function signIn(email: string, password: string, captchaToken?: string): Promise<{ userId: string; email: string | null; emailConfirmedAt: string | null } | null> {
   const sb = await supabase();
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password, options: captchaToken ? { captchaToken } : undefined });
   if (error || !data.user) return null;
   return { userId: data.user.id, email: data.user.email || null, emailConfirmedAt: data.user.email_confirmed_at || null };
 }
