@@ -5,6 +5,7 @@ import { readGuard, writeGuard, capabilityGuard, billingGuard } from '@/lib/guar
 import { buildScope } from '@/lib/access';
 import { listRecords, createRecord, refOptions } from '@/lib/records';
 import { csvCell } from '@/lib/format';
+import { lineItemsCsv } from '@/lib/csv-line-items';
 
 type Ctx = { params: Promise<{ org: string; resource: string }> };
 async function ctx(p: Promise<{ org: string; resource: string }>) {
@@ -27,13 +28,19 @@ export async function GET(req: Request, { params }: Ctx) {
     const limit = Number(qp.limit) || 300;
     return NextResponse.json({ options: await refOptions(a.orgId, def, limit, scope, qp.q, ids) });
   }
+  const csvMode = qp.mode === 'csv' || qp.mode === 'csv-items';
+  if (csvMode) { const eg = capabilityGuard(a.role, 'exports'); if (eg) return eg; }
+  if (qp.mode === 'csv-items' && !def.fields.some(f => f.type === 'items' && !f.hidden))
+    return NextResponse.json({ error: 'This resource has no line items' }, { status: 400 });
   const result = await listRecords(a.orgId, def, {
     q: qp.q, status: qp.status, projectId: qp.projectId, page: Number(qp.page) || 1,
     pageSize: Number(qp.pageSize) || 25, sort: qp.sort, dir: (qp.dir as 'asc' | 'desc'),
-    all: qp.all === '1' || qp.mode === 'csv',
+    all: qp.all === '1' || csvMode,
   }, scope);
+  if (qp.mode === 'csv-items') {
+    return new NextResponse(lineItemsCsv(result.rows, def.fields), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${resource}-line-items.csv"` } });
+  }
   if (qp.mode === 'csv') {
-    const eg = capabilityGuard(a.role, 'exports'); if (eg) return eg;
     const cols = def.fields.filter(f => !f.hidden);
     // Resolve names only through the same module, role and row-scope checks as
     // the corresponding reference endpoint. Keep IDs as separate columns.
@@ -51,8 +58,8 @@ export async function GET(req: Request, { params }: Ctx) {
         }
       }
     }
-    const header = ['Record no.', ...cols.flatMap(c => c.type === 'ref' ? [c.label, `${c.label} ID`] : [c.label])].map(csvCell).join(',');
-    const body = result.rows.map(r => [csvCell(r.number || ''), ...cols.flatMap(c => {
+    const header = ['Record ID', 'Record no.', ...cols.flatMap(c => c.type === 'ref' ? [c.label, `${c.label} ID`] : [c.label])].map(csvCell).join(',');
+    const body = result.rows.map(r => [csvCell(r.id), csvCell(r.number || ''), ...cols.flatMap(c => {
       const value = r[c.key];
       if (c.type === 'ref') return [csvCell(labels[c.ref || '']?.get(String(value || '')) || ''), csvCell(value)];
       // Structured lines remain valid JSON instead of JavaScript's "[object Object]".

@@ -599,7 +599,7 @@ export default function DocumentationPage() {
         {[
           { icon: 'Search', t: 'Find anything', d: 'Press Ctrl+K (⌘K on a Mac), then type two or more letters.' },
           { icon: 'Filter', t: 'Narrow a list', d: 'Search, status and active filters combine; Clear resets them straight away.' },
-          { icon: 'Download', t: 'Take your data', d: 'Download any list as a CSV for Excel, or print a MYLA-branded PDF of a record.' },
+          { icon: 'Download', t: 'Take your data', d: 'Export CSV downloads the filtered records. Where available, Export line items CSV downloads one row per stored item; match it to the record export using Record ID. Line amounts are the saved values, not recalculated totals. The stored line JSON column preserves extra fields. Cells that could be spreadsheet formulas are prefixed with an apostrophe for safety. You can also print a MYLA-branded PDF of a record.' },
           { icon: 'Paperclip', t: 'Keep versions', d: 'Attach a drawing, then add Rev B, Rev C and so on — the latest is marked.' },
         ].map(x => <Card key={x.t} className="p-3.5">
           <Icon name={x.icon} size={17} className="text-brand-600 dark:text-brand-300" />

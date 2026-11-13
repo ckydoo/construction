@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {lineItemsCsv} from '../src/lib/csv-line-items';
+import type {Field} from '../src/lib/resources';
+const f=[{key:'items',label:'Items',type:'items'}] as Field[];
+const lines=Array.from({length:90},(_,i)=>({description:`Item ${i}`,qty:0,unitPrice:0,total:0}));
+let out=lineItemsCsv([{id:'1',items:lines}],f);assert.equal(out.trimEnd().split('\r\n').length,91);assert.match(out,/,0,0,0,/);
+out=lineItemsCsv([{id:'1',items:'first\nsecond'}],f);assert.equal(out.trimEnd().split('\r\n').length,3);assert.match(out,/first/);
+out=lineItemsCsv([{id:'1',items:'[{"description":"JSON line","quantity":0.125}]'}],f);assert.match(out,/JSON line,,0.125/);
+assert.equal(lineItemsCsv([{id:'1',items:[]}],f).trimEnd().split('\r\n').length,1);
+console.log('PASS: legacy text, serialized JSON, zero values, empty and >80 lines; no synthetic totals.');

@@ -179,6 +179,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const toggleAll=()=>setSelected(s=>{const n=new Set(s);if(allSelected)rows.forEach(r=>n.delete(r.id));else rows.forEach(r=>n.add(r.id));return n;});
   const toggleOne=(id:string)=>setSelected(s=>{const n=new Set(s);n.has(id)?n.delete(id):n.add(id);return n;});
   const csvHref=orgApi(org,`records/${resource}?mode=csv&${new URLSearchParams({q,status,projectId:projectFilter}).toString()}`);
+  const itemCsvHref=orgApi(org,`records/${resource}?mode=csv-items&${new URLSearchParams({q,status,projectId:projectFilter}).toString()}`);
   const projectOpts=mergedRefs.projects||[];
   const openRow=(r:any)=>{
     if(resource==='projects'){router.push(`/${org}/projects/${encodeURIComponent(r.id)}`);return;}
@@ -190,6 +191,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       <div><div className="flex items-center gap-2.5"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-400"><Icon name={def.icon} size={16}/></span><div><h1 className="heading">{def.label}</h1><p className="caption mt-0.5">{def.description}</p></div></div></div>
       <div className="flex flex-wrap items-center gap-2">
         <a href={csvHref} download><Button icon="Download" size="sm">Export CSV</Button></a>
+        {def.fields.some(f=>f.type==='items'&&!f.hidden)&&<a href={itemCsvHref} download><Button icon="Download" size="sm">Export line items CSV</Button></a>}
         <Button variant="ghost" size="icon" onClick={()=>refetch()} title="Refresh"><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
         {canEdit&&resource==='payments'&&<Button size="sm" icon="Receipt" onClick={()=>setReceiptOpen(true)}>Record allocated receipt</Button>}
         {canEdit&&<Button variant="primary" size="sm" icon="Plus" onClick={openNewRecord}>{newLabel}</Button>}

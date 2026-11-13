@@ -52,3 +52,7 @@ Database draft integration review: the preliminary server route was moved out of
 
 ### CSV formula safety
 - CSV string cells beginning with spreadsheet formula characters (including after whitespace) or leading tab/newline are prefixed with an apostrophe; numeric negative values remain numeric, and CR/newline/quotes are escaped. `npx tsx scripts/csv-safety-qa.ts`, TypeScript and build pass. This changes spreadsheet display/import of risky text and does not replace the still-outstanding child CSV format or real permissions/E2E verification.
+
+### Separate line-item CSV — implementation
+- Added `Export line items CSV` on resources with visible item fields; it uses the same search/status/project filters, scoped list query, read guard and export capability as the parent CSV. Parent CSV now contains Record ID so rows can be matched reliably. One output row per stored line, including fractional quantities, saved (not recalculated) amounts and raw line JSON for extra fields; no synthetic fallback lines. In-app documentation explains the export and formula-safe text treatment.
+- Mocked API tests passed unauthenticated/read/export denial, scope and filter forwarding, hidden field exclusion, formula safety and line export; data tests cover empty, legacy, serialized JSON and >80 lines. Build/TypeScript pass. Real authenticated browser, role/RLS and spreadsheet checks remain open.
