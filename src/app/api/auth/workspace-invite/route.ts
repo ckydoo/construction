@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { findValidWorkspaceInvite } from '@/lib/workspace-invites';
 import { hashToken } from '@/lib/email';
-import { billingActive } from '@/lib/billing';
+import { billingActive, billingMode } from '@/lib/billing';
 import { findAccountByEmail } from '@/lib/auth-email';
 import { setEmailVerificationState } from '@/lib/email-verification';
 
@@ -19,6 +19,7 @@ export async function POST(req:Request) {
     return NextResponse.json({ok:true,workspace:org.data?.name||'MYLA workspace',email:inv.email,newAccount:!existing,expiresAt:inv.expires_at});
   }
   if(body.action!=='accept') return NextResponse.json({error:'Unknown action.'},{status:400});
+  if (billingMode() === 'misconfigured') return NextResponse.json({error:'Workspace billing is temporarily unavailable. Please contact your administrator.'},{status:503});
   const password=String(body.password||''); const existing=await findAccountByEmail(inv.email);
   if(!password || (!existing && password.length<8)) return NextResponse.json({error:'Enter a valid password.'},{status:400});
   const sb=await supabase(); let userId:string;
