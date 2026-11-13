@@ -204,6 +204,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       if (b.action === 'cancelInvite') {
         const {data:changed,error:cancelError} = await admin.from('workspace_invites_v2').update({cancelled_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',inv.id).eq('token_hash',inv.token_hash).is('accepted_at',null).is('cancelled_at',null).select('id');
         if(cancelError || !changed?.length) return NextResponse.json({error:'Invitation changed; refresh and try again.'},{status:409});
+        if (inv.offline_user_id) {
+          const temporaryUserId=inv.offline_user_id;
+          const [membershipResult, otherInviteResult, userResult] = await Promise.all([
+            admin.from('memberships').select('id').eq('user_id',temporaryUserId).limit(1),
+            admin.from('workspace_invites_v2').select('id').eq('offline_user_id',temporaryUserId).is('accepted_at',null).is('cancelled_at',null).limit(1),
+            admin.auth.admin.getUserById(temporaryUserId),
+          ]);
+          const safeToDelete=!membershipResult.error && !membershipResult.data?.length && !otherInviteResult.error && !otherInviteResult.data?.length && !userResult.error && userResult.data?.user?.app_metadata?.temporary_password === true;
+          if (safeToDelete) {
+            const removed=await admin.auth.admin.deleteUser(temporaryUserId);
+            if (removed.error) return NextResponse.json({ok:true,message:'Invitation cancelled, but the unused temporary account could not be removed automatically. Contact support if you need it deleted.'});
+            return NextResponse.json({ok:true,message:'Invitation cancelled. The unused temporary account was removed.'});
+          }
+          return NextResponse.json({ok:true,message:'Invitation cancelled. The temporary account was kept because it has other pending invitations or workspace access.'});
+        }
         return NextResponse.json({ok:true,message:'Invitation cancelled. The link no longer works.'});
       }
       const next=newInviteToken();
