@@ -75,3 +75,10 @@ Database draft integration review: the preliminary server route was moved out of
 - Existing MYLA account passwords are never set or reset by this flow; offline option rejected for existing accounts.
 - Supabase migration `offline_workspace_invites` (workspace_invites_v2.offline_user_id) applied. Implementation commit `1ef3456`; Vercel `dpl_4UzCSbmz5qZoFdgrzFnDuBi1aJ7p` READY/PROMOTED to app.myla.co.zw.
 - Verified against production via scripted create/accept/reuse/password-change/renew flows with cleanup (all passed). Not yet verified: browser password sign-in redirect with live Turnstile; manual human run-through of the complete offline journey.
+
+## Atomic receipt billing authorization (2026-11-17)
+- Receipt create, allocation and reversal now set an internal billing-write context and re-check `billing_subscriptions` (`comped`, `trialing`, or `active`) inside the same database transaction as the receipt/allocation changes.
+- Base receipt RPCs are no longer executable by `service_role`; only the v2 wrappers are. Misconfigured billing is also rejected before RPC.
+- Supabase migration `receipt_write_billing_atomic` applied. Commit `d5f4913162604fe0a92ac97191a4e33ada472da4`; Vercel `dpl_FDSt5XJdV8njMQdeTgZQFZx5fXUc` READY/PROMOTED to app.myla.co.zw.
+- Verified with transactional rollback tests: locked billing rejected before receipt creation; trialing billing authorized; create/allocate/reverse path works and restores ISSUED/zero paid in rollback. Service-role wrapper denied over-invoice allocation and rolled back. Authenticated production API over-allocation returned 409 with zero persisted records.
+- Still not verified: real billing-status transitions while a request is in flight at the instant before commit, all billing gateways, exhaustive concurrent role/billing combinations, and accountant review of reporting definitions.
