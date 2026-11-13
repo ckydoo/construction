@@ -68,3 +68,10 @@ Database draft integration review: the preliminary server route was moved out of
 - With actual authenticated HR_MANAGER credentials, a submitted test timesheet was readable; timesheet approval, variation approval and receipt creation were denied by the application with HTTP 403. The test invoice was denied by the app and returned no rows via direct Supabase RLS. A direct PostgREST attempt to approve the submitted timesheet was rejected (HTTP 400) and left its status unchanged. A record in another workspace was invisible via direct RLS. Owner re-approved the two test records after the checks.
 - Production approval-lock message fix from commit `b3cdeeebebc33eed59ed147c722588c56fb46a17` was READY/PROMOTED; an authenticated live attempted edit returned HTTP 409 with the draft instruction and left saved hours unchanged.
 - These are selected HR_MANAGER and cross-workspace negative cases, not exhaustive coverage of all roles, billing transitions, concurrency or portal scope. Other round-two work and accountant review remain open.
+
+## Offline onboarding (2026-11-17)
+- Owner/admin can invite a brand-new user without email: sets a 12+ char temporary password, shares it privately, account has no membership until invitation acceptance.
+- User signs in with the temporary password, is routed to the accept page, accepts (existing token/expiry/revocation/seat checks), then is prompted once to change password; Skip allowed with dashboard reminder until changed.
+- Existing MYLA account passwords are never set or reset by this flow; offline option rejected for existing accounts.
+- Supabase migration `offline_workspace_invites` (workspace_invites_v2.offline_user_id) applied. Implementation commit `1ef3456`; Vercel `dpl_4UzCSbmz5qZoFdgrzFnDuBi1aJ7p` READY/PROMOTED to app.myla.co.zw.
+- Verified against production via scripted create/accept/reuse/password-change/renew flows with cleanup (all passed). Not yet verified: browser password sign-in redirect with live Turnstile; manual human run-through of the complete offline journey.
