@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { signIn, slugify, uniqueSlug } from '@/lib/auth';
 import { supabaseAdmin, hasSupabaseConfig, hasServiceKey } from '@/lib/supabase';
 import { setEmailVerificationState } from '@/lib/email-verification';
-import { sendWelcomeEmail } from '@/lib/auth-email';
+import { issueEmailToken, sendWelcomeEmail } from '@/lib/auth-email';
+import { isSmtpConfigured } from '@/lib/email';
 
 export async function POST(req: Request) {
   let createdUserId: string | null = null;
@@ -47,7 +48,11 @@ export async function POST(req: Request) {
     if (memberErr) throw memberErr;
 
     try { await sendWelcomeEmail({ id: createdUserId, email, name }, org.name || company, org.slug || slugify(company)); }
-    catch { /* a queued welcome email must never block account creation */ }
+    catch { /* email delivery must never block account creation */ }
+    // Send the optional verification link automatically when delivery is
+    // configured. The dashboard reminder offers a resend if delivery fails.
+    try { if (isSmtpConfigured()) await issueEmailToken({ id: createdUserId, email, name }, 'verify_email', org.slug); }
+    catch { /* verification delivery must never block account creation */ }
     return NextResponse.json({ ok: true, email });
   } catch {
     if (createdOrgId) {

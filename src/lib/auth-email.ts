@@ -54,8 +54,8 @@ export async function issueEmailToken(
     .eq('user_id', user.id).eq('purpose', purpose).is('used_at', null);
   const inserted = await admin.from('email_verification_tokens').insert({
     user_id: user.id, email: user.email, purpose, token_hash: hashToken(token), expires_at: expiresAt,
-  });
-  if (inserted.error) return null;
+  }).select('id').single();
+  if (inserted.error || !inserted.data?.id) return null;
   await ensurePreferences(user.id);
   const isReset = purpose === 'reset_password';
   const isInvite = purpose === 'invite';
@@ -86,7 +86,7 @@ export async function issueEmailToken(
     }),
     dedupeKey: `${purpose}:${user.id}:${hashToken(token)}`,
     unsubscribeUrl: null,
-    payload: { purpose, orgSlug: orgSlug || null },
+    payload: { purpose, orgSlug: orgSlug || null, emailTokenId: inserted.data.id },
   });
   return { token, expiresAt };
 }
@@ -109,7 +109,8 @@ export async function confirmAccountEmail(userId: string): Promise<void> {
 
 export async function setAccountPassword(userId: string, password: string): Promise<void> {
   const admin = supabaseAdmin();
-  await admin.auth.admin.updateUserById(userId, { password });
+  const { error } = await admin.auth.admin.updateUserById(userId, { password });
+  if (error) throw error;
 }
 
 export async function sendWelcomeEmail(user: Pick<AccountUser, 'id' | 'email' | 'name'>, orgName: string, orgSlug?: string | null): Promise<void> {

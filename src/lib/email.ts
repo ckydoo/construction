@@ -165,6 +165,22 @@ export async function deliverEmailById(id: string): Promise<boolean> {
     const admin = supabaseAdmin();
     const row = await admin.from('email_outbox').select('*').eq('id', id).maybeSingle();
     if (!row.data || row.data.status !== 'pending') return false;
+    // Never retry a one-time link after it has expired, been used or been
+    // superseded. Older queued token messages without a reference fail closed.
+    if (['verify_email','reset_password','invite'].includes(String(row.data.payload?.purpose || ''))) {
+      const tokenId = row.data.payload?.emailTokenId;
+      let valid = false;
+      if (typeof tokenId === 'string' && tokenId) {
+        const token = await admin.from('email_verification_tokens').select('id,expires_at,used_at')
+          .eq('id', tokenId).maybeSingle();
+        if (token.error) throw token.error;
+        valid = !!token.data && !token.data.used_at && Date.parse(token.data.expires_at) > Date.now();
+      }
+      if (!valid) {
+        await admin.from('email_outbox').update({ status:'cancelled', last_error:'One-time link expired, used, superseded or unavailable.' }).eq('id', id).eq('status', 'pending');
+        return false;
+      }
+    }
     await sendViaSmtp(row.data);
     await admin.from('email_outbox').update({ status: 'sent', sent_at: new Date().toISOString(), last_error: null })
       .eq('id', id);
