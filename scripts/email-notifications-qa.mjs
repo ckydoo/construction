@@ -63,7 +63,7 @@ await check('email verification is optional and never blocks workspace access', 
   assert.match(auth, /const emailVerified = u\.app_metadata\?\.email_verified !== false/);
   assert.match(register, /email_confirm: true/);
   assert.match(register, /setEmailVerificationState\(createdUserId, false\)/);
-  assert.match(register, /signIn\(email, password\)/);
+  assert.match(register, /signIn\(email, password, captchaToken \|\| undefined\)/);
   assert.match(register, /sendWelcomeEmail/);
   assert.match(register, /auth\.admin\.deleteUser\(createdUserId\)/);
   assert.doesNotMatch(register, /verificationRequired|email_confirm: false/);

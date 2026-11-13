@@ -245,12 +245,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       id: userId, email, name, emailConfirmedAt: existingAccount?.emailConfirmedAt || null,
       emailVerified: existingAccount?.emailVerified ?? false,
     };
-    await sendTeamInviteEmail(account, a.orgName, a.orgSlug);
+    let delivery = null;
+    try { delivery = await sendTeamInviteEmail(account, a.orgName, a.orgSlug); }
+    catch { /* membership already exists; report email failure without pretending the add failed */ }
     await admin.from('invitations').insert({
       email, role, organization_id: a.orgId,
       token: Math.random().toString(36).slice(2) + Date.now().toString(36), accepted_at: new Date().toISOString(),
     });
-    return NextResponse.json({ ok: true, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. Invitation emails aren’t being delivered yet — they’ll need sign-in help from an administrator.` });
+    const deliveryStatus = delivery?.delivered ? 'sent' : delivery?.queued ? 'queued' : 'unavailable';
+    const emailMessage = deliveryStatus === 'sent'
+      ? 'The invitation was accepted by the email provider; ask them to check their inbox.'
+      : deliveryStatus === 'queued'
+        ? 'The invitation is queued, but delivery is not confirmed. It may be retried later.'
+        : 'The invitation could not be queued. They may need sign-in help from an administrator.';
+    return NextResponse.json({ ok: true, deliveryStatus, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. ${emailMessage}` });
   }
   if (b.action === 'seedDemo') {
     if (!hasServiceKey()) return NextResponse.json({ error: 'Sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });

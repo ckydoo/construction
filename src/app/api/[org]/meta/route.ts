@@ -10,6 +10,7 @@ import { visibleResources, buildScope, rowAllowed } from '@/lib/access';
 import { fetchAll } from '@/lib/fetch';
 import { auditView, notificationView } from '@/lib/views';
 import { publicBilling } from '@/lib/billing';
+import { isSmtpConfigured } from '@/lib/email';
 
 export async function GET(req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
@@ -92,6 +93,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     roles: ROLES, companyTypes: COMPANY_TYPES, sizes: COMPANY_SIZES,
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
+    ...(settingsScope ? { invitationEmailConfigured: isSmtpConfigured() } : {}),
     user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor, emailVerified: a.emailVerified },
     memberships: a.memberships,
     users,

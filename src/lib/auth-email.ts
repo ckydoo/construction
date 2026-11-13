@@ -4,7 +4,7 @@
 import { supabaseAdmin } from './supabase';
 import {
   appBaseUrl, emailTemplateData, hashToken, inviteUrl, newToken, queueTemplateEmail,
-  resetPasswordUrl, verificationUrl,
+  resetPasswordUrl, verificationUrl, type EnqueueResult,
 } from './email';
 import { ensurePreferences } from './notification-preferences';
 import { readEmailVerified, setEmailVerificationState } from './email-verification';
@@ -44,7 +44,7 @@ export async function issueEmailToken(
   purpose: EmailTokenPurpose,
   orgSlug?: string | null,
   orgName?: string | null,
-): Promise<{ token: string; expiresAt: string } | null> {
+): Promise<{ token: string; expiresAt: string; delivery: EnqueueResult | null } | null> {
   const admin = supabaseAdmin();
   const token = newToken();
   const lifetimeMinutes = purpose === 'reset_password' ? 60 : purpose === 'invite' ? 7 * 24 * 60 : 24 * 60;
@@ -68,7 +68,7 @@ export async function issueEmailToken(
     : isInvite
       ? 'Your workspace administrator added you to MYLA. Choose a password to get started. The link expires in seven days and can be used once.'
       : 'Confirm this address to help keep your MYLA account secure. The link expires in 24 hours.';
-  await queueTemplateEmail({
+  const delivery = await queueTemplateEmail({
     to: user.email,
     userId: user.id,
     templateKey: isReset ? 'reset_password' : isInvite ? 'invite' : 'verification',
@@ -88,7 +88,7 @@ export async function issueEmailToken(
     unsubscribeUrl: null,
     payload: { purpose, orgSlug: orgSlug || null, emailTokenId: inserted.data.id },
   });
-  return { token, expiresAt };
+  return { token, expiresAt, delivery };
 }
 
 export async function consumeEmailToken(token: string, purpose: EmailTokenPurpose) {
@@ -165,13 +165,13 @@ export async function sendPasswordChangedEmail(user: Pick<AccountUser, 'id' | 'e
 }
 
 /** Invite a verified person, or send a secure set-password link to a new account. */
-export async function sendTeamInviteEmail(user: AccountUser, orgName: string, orgSlug: string): Promise<void> {
+export async function sendTeamInviteEmail(user: AccountUser, orgName: string, orgSlug: string): Promise<EnqueueResult | null> {
   if (!user.emailVerified) {
-    await issueEmailToken(user, 'invite', orgSlug, orgName);
-    return;
+    const issued = await issueEmailToken(user, 'invite', orgSlug, orgName);
+    return issued?.delivery || null;
   }
   await ensurePreferences(user.id);
-  await queueTemplateEmail({
+  return queueTemplateEmail({
     to: user.email,
     userId: user.id,
     templateKey: 'invite',
