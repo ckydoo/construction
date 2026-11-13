@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { billingGuard, capabilityGuard, readGuard, writeGuard } from '@/lib/guard';
+import { billingMode } from '@/lib/billing';
 import { buildScope } from '@/lib/access';
 import { getRecord } from '@/lib/records';
 import { hasServiceKey, supabaseAdmin } from '@/lib/supabase';
@@ -38,6 +39,8 @@ export async function POST(req:Request,{params}:Ctx) {
   const {org,id} = await params;
   const a = await apiAuth(org);
   if (!a) return fail('Unauthorized',401);
+  const mode = billingMode();
+  if (mode === 'misconfigured') return fail('Billing is misconfigured. Workspace changes are paused until it is fixed.',503);
   const guard = billingGuard(a,{write:true}) || writeGuard(a.config,a.role,'payments') || writeGuard(a.config,a.role,'arInvoices') || capabilityGuard(a.role,'records.update');
   if (guard) return guard;
   if (!hasServiceKey()) return fail('Receipt allocation is unavailable.',503);
@@ -60,7 +63,7 @@ export async function POST(req:Request,{params}:Ctx) {
         if (!await getRecord(a.orgId,'arInvoices',invoiceId,scope)) return fail('Invoice not found or not accessible.',403);
       }
     }
-    const {data,error} = await admin.rpc('draft_reverse_receipt',{p_org:a.orgId,p_receipt:id,p_request:body.requestId,p_actor:a.userId});
+    const {data,error} = await admin.rpc('draft_reverse_receipt_v2',{p_org:a.orgId,p_receipt:id,p_request:body.requestId,p_actor:a.userId,p_billing_enabled:mode==='qa'||mode==='live'});
     if (error) return fail('Reversal could not be confirmed. Retry the same request.',409);
     return NextResponse.json({ok:true,result:data});
   }
@@ -76,7 +79,7 @@ export async function POST(req:Request,{params}:Ctx) {
     if (!await getRecord(a.orgId,'arInvoices',line.invoiceId,scope)) return fail('Invoice not found or not accessible.',403);
     lines.push({invoiceId:line.invoiceId,amountMinor:Number(amount)});
   }
-  const {data,error} = await admin.rpc('draft_allocate_receipt',{p_org:a.orgId,p_receipt:id,p_request:body.requestId,p_actor:a.userId,p_lines:lines});
+  const {data,error} = await admin.rpc('draft_allocate_receipt_v2',{p_org:a.orgId,p_receipt:id,p_request:body.requestId,p_actor:a.userId,p_lines:lines,p_billing_enabled:mode==='qa'||mode==='live'});
   if (error) return fail('Allocation could not be confirmed. Retry the same request before changing details.',409);
   return NextResponse.json({ok:true,result:data});
 }

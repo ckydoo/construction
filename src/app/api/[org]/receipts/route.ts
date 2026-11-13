@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { billingGuard, capabilityGuard, writeGuard } from '@/lib/guard';
+import { billingMode } from '@/lib/billing';
 import { buildScope } from '@/lib/access';
 import { getRecord } from '@/lib/records';
 import { hasServiceKey, supabaseAdmin } from '@/lib/supabase';
@@ -12,6 +13,7 @@ const uuid=(s:unknown)=>typeof s==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9
 const fail=(error:string,status:number)=>NextResponse.json({error},{status});
 export async function POST(req:Request,{params}:Ctx){
  const {org}=await params; const a=await apiAuth(org); if(!a)return fail('Unauthorized',401);
+ const mode=billingMode(); if(mode==='misconfigured')return fail('Billing is misconfigured. Workspace changes are paused until it is fixed.',503);
  const g=billingGuard(a,{write:true})||writeGuard(a.config,a.role,'payments')||writeGuard(a.config,a.role,'arInvoices')||capabilityGuard(a.role,'records.create')||capabilityGuard(a.role,'records.update'); if(g)return g;
  if(!hasServiceKey())return fail('Receipt service is unavailable.',503);
  const body=await req.json().catch(()=>null); const r=body?.receipt;
@@ -33,7 +35,7 @@ export async function POST(req:Request,{params}:Ctx){
   lines.push({invoiceId:x.invoiceId,amountMinor:Number(n)});
  }
  const payload={name,clientId,currency,method,paymentDate,amount:r.amount,projectId,reference:typeof r.reference==='string'?r.reference.trim().slice(0,200):''};
- const {data,error}=await supabaseAdmin().rpc('draft_create_receipt',{p_org:a.orgId,p_actor:a.userId,p_request:body.requestId,p_receipt:payload,p_lines:lines});
+ const {data,error}=await supabaseAdmin().rpc('draft_create_receipt_v2',{p_org:a.orgId,p_actor:a.userId,p_request:body.requestId,p_receipt:payload,p_lines:lines,p_billing_enabled:billingMode()==='qa'||billingMode()==='live'});
  if(error)return fail('Receipt could not be confirmed. Retry the same request before changing any details.',409);
  return NextResponse.json({ok:true,result:data});
 }
