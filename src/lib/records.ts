@@ -244,7 +244,14 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
     .eq('id', id).eq('organization_id', orgId).eq('resource', def.id).eq('updated_at', existing.updated_at);
   if (expected) query = query.eq('status', expected);
   const { data: rec, error } = await query.select('*').maybeSingle();
-  if (error) dbError(error);
+  if (error) {
+    // The database is the authority for approval locks. Return its expected
+    // business conflict as a usable error rather than an internal server error.
+    if (error.code === 'P0001' && ['timesheets','changeOrders'].includes(def.id)
+        && ['Return the approved record to draft before changing it', 'Return the approved record to draft before changing its status'].includes(error.message))
+      return { ok:false as const, errors:{ _:'Return the approved record to draft before making changes.' }, status:409 as const };
+    dbError(error);
+  }
   if (!rec) return { ok:false as const, errors:{ _:'This record changed while you were editing. Refresh and try again.' }, status:409 as const };
   await logActivity(orgId, userId, actor, 'UPDATE', def.id, `Updated ${def.singular.toLowerCase()} “${title}” (${existing.number})`);
   return { ok:true as const, row:toRow(rec) };
