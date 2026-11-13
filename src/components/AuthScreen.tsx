@@ -69,6 +69,8 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         return;
       }
       const r=await apiSend('/api/auth/login','POST',{email,password,captchaToken});
+      if(r.pendingOfflineInvitation){router.push('/accept-invite/offline');router.refresh();return;}
+      if(r.temporaryPassword){router.push(`/accept-invite/password?next=${encodeURIComponent(`/${r.slug}/dashboard`)}`);router.refresh();return;}
       router.push(r.onboarded?`/${r.slug}/dashboard`:'/onboarding'); router.refresh();
     }catch(err:any){
       setCaptchaToken(''); setCaptchaAttempt(n=>n+1);

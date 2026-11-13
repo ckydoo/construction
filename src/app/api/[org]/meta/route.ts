@@ -86,7 +86,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
 
   let pendingInvites: any[] = [];
   if (settingsScope && ['OWNER','ADMIN'].includes(a.role)) {
-    const pending = await supabaseAdmin().from('workspace_invites_v2').select('id,name,email,role,expires_at,created_at').eq('organization_id',a.orgId).is('accepted_at',null).is('cancelled_at',null).order('created_at',{ascending:false});
+    const pending = await supabaseAdmin().from('workspace_invites_v2').select('id,name,email,role,expires_at,created_at,offline_user_id').eq('organization_id',a.orgId).is('accepted_at',null).is('cancelled_at',null).order('created_at',{ascending:false});
     pendingInvites = pending.data || [];
   }
   return NextResponse.json({
@@ -100,7 +100,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     role: a.role, permissions: permissionsFor(a.role, a.config.resources),
     walletEnabled: a.config.modules.includes('wallets'),
     ...(settingsScope ? { invitationEmailConfigured: isSmtpConfigured() } : {}),
-    user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor, emailVerified: a.emailVerified },
+    user: { id: a.userId, name: a.name, email: a.email, avatarColor: a.avatarColor, emailVerified: a.emailVerified, temporaryPassword: a.temporaryPassword },
     memberships: a.memberships,
     users,
     clients: (clientRecs.data || []).map((c: any) => ({ id: c.id, label: c.title || c.number || c.id })),

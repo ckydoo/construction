@@ -52,6 +52,7 @@ export default function DashboardPage(){
   const today = new Intl.DateTimeFormat('en-GB',{ weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'Africa/Harare' }).format(new Date());
   return <div className="space-y-4">
     <EmailVerificationReminder userId={meta?.user?.id} email={meta?.user?.email} emailVerified={meta?.user?.emailVerified}/>
+    {meta?.user?.temporaryPassword&&<Card className="p-4"><p className="text-sm font-semibold">Change your temporary password</p><p className="mt-1 text-xs muted">Choose a private password when you can.</p><Link className="mt-2 inline-block text-sm text-brand-700 underline" href={`/accept-invite/password?next=${encodeURIComponent(`/${org}/dashboard`)}`}>Change password</Link></Card>}
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div><h1 className="heading">Your business today</h1><p className="caption mt-1">Jobs, money and things needing attention · {today}{display.preference&&<> · viewing money in <span className="font-semibold text-brand-600 dark:text-brand-300">{display.currency}</span>; reports stay in {base}</>}</p></div>
       <div className="flex items-center gap-2"><div className="flex rounded-md border divider bg-white p-0.5 dark:bg-ink-900">{(['3','6'] as const).map(p=><button key={p} onClick={()=>setPeriod(p)} className={`rounded px-2.5 py-1 text-xs font-medium ${period===p?'bg-slate-100 text-ink-900 dark:bg-ink-800 dark:text-white':'muted'}`}>{p}M</button>)}</div>

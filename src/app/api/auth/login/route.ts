@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { signIn } from '@/lib/auth';
-import { supabase, hasSupabaseConfig } from '@/lib/supabase';
+import { supabase, supabaseAdmin, hasSupabaseConfig } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   const b = await req.json();
@@ -16,11 +16,15 @@ export async function POST(req: Request) {
     .select('role, entity_id, organizations(id,slug,name,onboarded)')
     .eq('user_id', signed.userId);
   const membership: any = rows?.[0];
+  const pending = await supabaseAdmin().from('workspace_invites_v2').select('id').eq('offline_user_id',signed.userId).is('accepted_at',null).is('cancelled_at',null).limit(1);
+  if (pending.error) return NextResponse.json({error:'Sign-in is temporarily unavailable. Please try again.'},{status:503});
+  if (pending.data?.length) return NextResponse.json({ok:true,pendingOfflineInvitation:true});
   if (!membership) return NextResponse.json({ error: 'No workspace is linked to this account.' }, { status: 403 });
   const { data: profile } = await sb.from('profiles').select('name').eq('id', signed.userId).maybeSingle();
   const org = membership.organizations || {};
+  const current=await sb.auth.getUser();
   return NextResponse.json({
     ok: true, slug: org.slug, onboarded: !!org.onboarded,
-    name: profile?.name || email.split('@')[0], role: membership.role,
+    name: profile?.name || email.split('@')[0], role: membership.role, temporaryPassword:current.data.user?.app_metadata?.temporary_password===true,
   });
 }

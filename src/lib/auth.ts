@@ -15,7 +15,7 @@ import {
 export type Membership = { orgId: string; orgSlug: string; orgName: string; role: string; entityId: string | null };
 export type AuthCtx = {
   userId: string; name: string; email: string; role: string; avatarColor: string;
-  emailVerified: boolean;
+  emailVerified: boolean; temporaryPassword: boolean;
   orgId: string; orgName: string; orgSlug: string; onboarded: boolean;
   org: any; config: WorkspaceConfig; entityId: string | null;
   memberships: Membership[];
@@ -113,7 +113,7 @@ export async function getAuth(): Promise<AuthCtx | null> {
     name: profile?.name || String(u.user_metadata?.name || u.email || 'User').split('@')[0],
     email: profile?.email || u.email || '',
     role: primary.role,
-    avatarColor: profile?.avatar_color || '#d97706', emailVerified,
+    avatarColor: profile?.avatar_color || '#d97706', emailVerified, temporaryPassword: u.app_metadata?.temporary_password === true,
     orgId: org.id, orgName: org.name, orgSlug: org.slug, onboarded: org.onboarded,
     org, config: parseOrgConfig(org), entityId: primary.entityId, memberships,
   };

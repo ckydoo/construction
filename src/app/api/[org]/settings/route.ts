@@ -209,6 +209,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       const next=newInviteToken();
       const {data:changed,error:updateError} = await admin.from('workspace_invites_v2').update({token_hash:next.hash,expires_at:next.expiresAt,updated_at:new Date().toISOString()}).eq('id',inv.id).eq('token_hash',inv.token_hash).is('accepted_at',null).is('cancelled_at',null).select('*').maybeSingle();
       if(updateError || !changed) return NextResponse.json({error:'Invitation changed; refresh and try again.'},{status:409});
+      if (changed.offline_user_id) return NextResponse.json({ok:true,message:'Invitation renewed for seven days. Ask the user to sign in with their temporary password and accept it.'});
       let delivery=null; try {delivery=await sendWorkspaceInvite(changed,a.orgName,a.orgSlug,next.token);} catch { /* report failure */ }
       const status=delivery?.delivered?'sent':delivery?.queued?'queued':'unavailable';
       return NextResponse.json({ok:true,deliveryStatus:status,message:status==='sent'?'New invitation accepted by the email provider. The old link no longer works.':status==='queued'?'New invitation queued; delivery is not yet confirmed. The old link no longer works.':'The new invitation could not be queued. Please try resending again.'});
@@ -231,9 +232,25 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
       const {data:member}=await admin.from('memberships').select('id').eq('organization_id',a.orgId).eq('user_id',existing.id).maybeSingle();
       if(member) return NextResponse.json({error:'That user is already a member.'},{status:409});
     }
+    const temporaryPassword=String(b.temporaryPassword||'');
+    if(temporaryPassword && temporaryPassword.length<12) return NextResponse.json({error:'Use a temporary password of at least 12 characters.'},{status:400});
+    if(temporaryPassword && existing) return NextResponse.json({error:'An account already exists for this address. Its password cannot be set here; send an email invitation instead.'},{status:409});
+    const {data:pending,error:pendingError}=await admin.from('workspace_invites_v2').select('id').eq('organization_id',a.orgId).eq('email',email).is('accepted_at',null).is('cancelled_at',null).maybeSingle();
+    if(pendingError) return NextResponse.json({error:'Could not check existing invitations.'},{status:503});
+    if(pending) return NextResponse.json({error:'A pending invitation already exists. Resend or cancel it first.'},{status:409});
+    let offlineUserId:string|null=null;
+    if(temporaryPassword) {
+      const created=await admin.auth.admin.createUser({email,password:temporaryPassword,email_confirm:true,user_metadata:{name,avatar_color:'#64748b'},app_metadata:{email_verified:false,temporary_password:true}});
+      if(created.error || !created.data.user) return NextResponse.json({error:'Could not create this account. It may already exist; use an email invitation instead.'},{status:409});
+      offlineUserId=created.data.user.id;
+    }
     const next=newInviteToken();
-    const {data:inv,error:insertError}=await admin.from('workspace_invites_v2').insert({organization_id:a.orgId,email,name,role,entity_id:entityId,staff_employee_id:staffEmployeeId,token_hash:next.hash,expires_at:next.expiresAt,created_by:a.userId}).select('*').single();
-    if(insertError || !inv) return NextResponse.json({error:'A pending invitation may already exist. Refresh the page or resend it.'},{status:409});
+    const {data:inv,error:insertError}=await admin.from('workspace_invites_v2').insert({organization_id:a.orgId,email,name,role,entity_id:entityId,staff_employee_id:staffEmployeeId,offline_user_id:offlineUserId,token_hash:next.hash,expires_at:next.expiresAt,created_by:a.userId}).select('*').single();
+    if(insertError || !inv) {
+      if(offlineUserId) await admin.auth.admin.deleteUser(offlineUserId);
+      return NextResponse.json({error:'Could not create the invitation. A pending invitation may already exist.'},{status:409});
+    }
+    if(offlineUserId) return NextResponse.json({ok:true,message:'Account prepared. Share the temporary password securely; the user must sign in and accept within seven days.'});
     let delivery=null;try {delivery=await sendWorkspaceInvite(inv,a.orgName,a.orgSlug,next.token);} catch { /* keep pending */ }
     const status=delivery?.delivered?'sent':delivery?.queued?'queued':'unavailable';
     return NextResponse.json({ok:true,deliveryStatus:status,message:status==='sent'?'Invitation sent to the email provider. Access begins only after acceptance.':status==='queued'?'Invitation queued, but delivery is not yet confirmed.':'Invitation created but email could not be queued; use Resend invitation.'});

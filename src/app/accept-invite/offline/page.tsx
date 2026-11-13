@@ -1,0 +1,9 @@
+'use client';
+import {useEffect,useState} from 'react';import {useRouter} from 'next/navigation';
+import {apiGet,apiSend} from '@/lib/client';import {userMessage} from '@/lib/user-message';import {Button,Card,CardHead} from '@/components/ui';
+export default function OfflineInvite(){
+ const router=useRouter();const [items,setItems]=useState<any[]|null>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
+ useEffect(()=>{apiGet('/api/auth/offline-invites').then(r=>setItems(r.invitations)).catch(e=>setError(userMessage(e,'Could not load invitations.')));},[]);
+ async function accept(id:string){setBusy(true);setError('');try{const r=await apiSend('/api/auth/offline-invites','POST',{id});router.push(r.temporaryPassword?`/accept-invite/password?next=${encodeURIComponent(`/${r.slug}/dashboard`)}`:`/${r.slug}/dashboard`);router.refresh();}catch(e:any){setError(userMessage(e,'Could not accept invitation.'));}finally{setBusy(false);}}
+ return <div className="flex min-h-screen items-center justify-center bg-slate-50 px-5"><div className="w-full max-w-md"><Card><CardHead title="Your workspace invitations" subtitle="Accept an invitation to join. Access starts only after you accept."/><div className="space-y-4 p-5">{items===null?<p>Loading…</p>:items.length===0?<p>No pending invitations. Contact your administrator.</p>:items.map(i=><div key={i.id} className="rounded border p-3"><p className="font-semibold">{i.workspace}</p><p className="text-sm muted">Role: {i.role.replace(/_/g,' ')} · {new Date(i.expiresAt).getTime()<=Date.now()?'Expired—ask your administrator to renew':`Expires ${new Date(i.expiresAt).toLocaleDateString()}`}</p><Button className="mt-3" variant="primary" disabled={new Date(i.expiresAt).getTime()<=Date.now()} loading={busy} onClick={()=>accept(i.id)}>Accept invitation</Button></div>)}{error&&<p role="alert" className="text-sm text-red-700">{error}</p>}</div></Card></div></div>;
+}
