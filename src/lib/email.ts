@@ -181,6 +181,15 @@ export async function deliverEmailById(id: string): Promise<boolean> {
         return false;
       }
     }
+    if (row.data.payload?.purpose === 'workspace_invite_v2') {
+      const invite = await admin.from('workspace_invites_v2').select('token_hash,expires_at,accepted_at,cancelled_at')
+        .eq('id', row.data.payload.inviteId).maybeSingle();
+      if (invite.error) throw invite.error;
+      if (!invite.data || invite.data.token_hash !== row.data.payload.tokenHash || invite.data.accepted_at || invite.data.cancelled_at || Date.parse(invite.data.expires_at) <= Date.now()) {
+        await admin.from('email_outbox').update({status:'cancelled',last_error:'Invitation expired, changed or cancelled.'}).eq('id',id).eq('status','pending');
+        return false;
+      }
+    }
     await sendViaSmtp(row.data);
     await admin.from('email_outbox').update({ status: 'sent', sent_at: new Date().toISOString(), last_error: null })
       .eq('id', id);

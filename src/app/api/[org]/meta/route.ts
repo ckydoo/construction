@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { MODULES, ROLES, COMPANY_TYPES, COMPANY_SIZES, permissionsFor, isExternal } from '@/lib/catalog';
 import { RESOURCES } from '@/lib/resources';
 import { normaliseCompanyProfile } from '@/lib/company';
@@ -84,7 +84,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     };
   });
 
+  let pendingInvites: any[] = [];
+  if (settingsScope && ['OWNER','ADMIN'].includes(a.role)) {
+    const pending = await supabaseAdmin().from('workspace_invites_v2').select('id,name,email,role,expires_at,created_at').eq('organization_id',a.orgId).is('accepted_at',null).is('cancelled_at',null).order('created_at',{ascending:false});
+    pendingInvites = pending.data || [];
+  }
   return NextResponse.json({
+    ...(settingsScope && ['OWNER','ADMIN'].includes(a.role) ? {pendingInvites} : {}),
     org: { id: a.orgId, name: a.orgName, slug: a.orgSlug, legalName: a.org.legalName, regNumber: a.org.regNumber,
       country: a.org.country, baseCurrency: a.org.baseCurrency, companyType: a.org.companyType, size: a.org.size,
       headcount: a.org.headcount, plan: a.config.plan, limits: a.config.limits,

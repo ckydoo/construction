@@ -1,8 +1,7 @@
-import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
-import { findAccountByEmail, sendTeamInviteEmail } from '@/lib/auth-email';
-import { setEmailVerificationState } from '@/lib/email-verification';
+import { findAccountByEmail } from '@/lib/auth-email';
+import { newInviteToken, sendWorkspaceInvite } from '@/lib/workspace-invites';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
 import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
 import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
@@ -195,70 +194,49 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
   const b = await req.json();
   const sb = await supabase();
 
-  if (b.action === 'invite') {
-    const email = String(b.email || '').trim().toLowerCase(), name = String(b.name || '').trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !name) return NextResponse.json({ error: 'Enter a name and valid email' }, { status: 400 });
-    const role = String(b.role || 'VIEWER');
-    if (!ROLES.some(r => r.id === role)) return NextResponse.json({ error: 'Unknown role' }, { status: 400 });
-    if (role === 'OWNER' && a.role !== 'OWNER') return NextResponse.json({ error: 'Only an owner can invite another owner' }, { status: 403 });
-    const limitError = await userLimitMessage(a.orgId, a.config.limits);
-    if (limitError) return NextResponse.json({ error: limitError }, { status: 402 });
-    if (!hasServiceKey()) return NextResponse.json({ error: 'Team invitations are temporarily unavailable. Please try again shortly.' }, { status: 503 });
+  if (b.action === 'invite' || b.action === 'resendInvite' || b.action === 'cancelInvite') {
+    if (!hasServiceKey()) return NextResponse.json({error:'Invitations are temporarily unavailable.'},{status:503});
     const admin = supabaseAdmin();
-    const existingAccount = await findAccountByEmail(email);
-    let userId = existingAccount?.id;
-    if (!userId) {
-      const { data: created, error } = await admin.auth.admin.createUser({
-        email, password: `${randomBytes(24).toString('base64url')}Aa1!`, email_confirm: true,
-        user_metadata: { name, avatar_color: '#64748b' },
-      });
-      if (error) return NextResponse.json({ error: 'We couldn’t add that person. Please check their details and try again.' }, { status: 400 });
-      userId = created.user.id;
-      try { await setEmailVerificationState(userId, false); }
-      catch {
-        try { await admin.auth.admin.deleteUser(userId); } catch { /* best-effort cleanup */ }
-        return NextResponse.json({ error: 'We couldn’t add that person. Please try again.' }, { status: 500 });
+    if (b.action !== 'invite') {
+      const {data:inv,error} = await admin.from('workspace_invites_v2').select('*').eq('id',String(b.inviteId || '')).eq('organization_id',a.orgId).is('accepted_at',null).is('cancelled_at',null).maybeSingle();
+      if (error || !inv) return NextResponse.json({error:'Pending invitation not found.'},{status:404});
+      if (inv.role === 'OWNER' && a.role !== 'OWNER') return NextResponse.json({error:'Only an owner can manage an owner invitation.'},{status:403});
+      if (b.action === 'cancelInvite') {
+        const {data:changed,error:cancelError} = await admin.from('workspace_invites_v2').update({cancelled_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',inv.id).eq('token_hash',inv.token_hash).is('accepted_at',null).is('cancelled_at',null).select('id');
+        if(cancelError || !changed?.length) return NextResponse.json({error:'Invitation changed; refresh and try again.'},{status:409});
+        return NextResponse.json({ok:true,message:'Invitation cancelled. The link no longer works.'});
       }
+      const next=newInviteToken();
+      const {data:changed,error:updateError} = await admin.from('workspace_invites_v2').update({token_hash:next.hash,expires_at:next.expiresAt,updated_at:new Date().toISOString()}).eq('id',inv.id).eq('token_hash',inv.token_hash).is('accepted_at',null).is('cancelled_at',null).select('*').maybeSingle();
+      if(updateError || !changed) return NextResponse.json({error:'Invitation changed; refresh and try again.'},{status:409});
+      let delivery=null; try {delivery=await sendWorkspaceInvite(changed,a.orgName,a.orgSlug,next.token);} catch { /* report failure */ }
+      const status=delivery?.delivered?'sent':delivery?.queued?'queued':'unavailable';
+      return NextResponse.json({ok:true,deliveryStatus:status,message:status==='sent'?'New invitation accepted by the email provider. The old link no longer works.':status==='queued'?'New invitation queued; delivery is not yet confirmed. The old link no longer works.':'The new invitation could not be queued. Please try resending again.'});
     }
-    const { data: exists } = await admin.from('memberships').select('id')
-      .eq('user_id', userId).eq('organization_id', a.orgId).maybeSingle();
-    if (exists) return NextResponse.json({ error: 'That user is already a member' }, { status: 409 });
-    const external = role.endsWith('_EXTERNAL');
-    const entityId = external ? (b.entityId ? String(b.entityId) : null) : null;
-    const staffEmployeeId = !external ? (b.staffEmployeeId ? String(b.staffEmployeeId) : null) : null;
-    if (entityId) {
-      const { data: rec } = await sb.from('records').select('id')
-        .eq('id', entityId).eq('organization_id', a.orgId).eq('resource', 'clients').is('deleted_at', null).maybeSingle();
-      if (!rec) return NextResponse.json({ error: 'Unknown client scope' }, { status: 400 });
+    const email=String(b.email||'').trim().toLowerCase(), name=String(b.name||'').trim(), role=String(b.role||'VIEWER');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !name) return NextResponse.json({error:'Enter a name and valid email.'},{status:400});
+    if (!ROLES.some(r=>r.id===role)) return NextResponse.json({error:'Unknown role.'},{status:400});
+    if(role==='OWNER' && a.role!=='OWNER') return NextResponse.json({error:'Only an owner can invite another owner.'},{status:403});
+    const limitError=await userLimitMessage(a.orgId,a.config.limits);
+    if(limitError) return NextResponse.json({error:limitError},{status:402});
+    const external=role.endsWith('_EXTERNAL');
+    const entityId=external && b.entityId ? String(b.entityId) : null;
+    const staffEmployeeId=!external && b.staffEmployeeId ? String(b.staffEmployeeId) : null;
+    if(entityId || staffEmployeeId) {
+      const {data:rec}=await sb.from('records').select('id').eq('id',entityId||staffEmployeeId).eq('organization_id',a.orgId).eq('resource',entityId?'clients':'employees').is('deleted_at',null).maybeSingle();
+      if(!rec) return NextResponse.json({error:'Invalid client or staff scope.'},{status:400});
     }
-    if (staffEmployeeId) {
-      const { data: rec } = await sb.from('records').select('id')
-        .eq('id', staffEmployeeId).eq('organization_id', a.orgId).eq('resource', 'employees').is('deleted_at', null).maybeSingle();
-      if (!rec) return NextResponse.json({ error: 'Unknown staff member' }, { status: 400 });
+    const existing=await findAccountByEmail(email);
+    if(existing) {
+      const {data:member}=await admin.from('memberships').select('id').eq('organization_id',a.orgId).eq('user_id',existing.id).maybeSingle();
+      if(member) return NextResponse.json({error:'That user is already a member.'},{status:409});
     }
-    const { error: mErr } = await admin.from('memberships').insert({
-      user_id: userId, organization_id: a.orgId, role, entity_id: entityId,
-      staff_employee_id: staffEmployeeId,
-    });
-    if (mErr) return NextResponse.json({ error: 'We couldn’t add that person to this workspace. Please try again.' }, { status: 400 });
-    const account = await findAccountByEmail(email) || {
-      id: userId, email, name, emailConfirmedAt: existingAccount?.emailConfirmedAt || null,
-      emailVerified: existingAccount?.emailVerified ?? false,
-    };
-    let delivery = null;
-    try { delivery = await sendTeamInviteEmail(account, a.orgName, a.orgSlug); }
-    catch { /* membership already exists; report email failure without pretending the add failed */ }
-    await admin.from('invitations').insert({
-      email, role, organization_id: a.orgId,
-      token: Math.random().toString(36).slice(2) + Date.now().toString(36), accepted_at: new Date().toISOString(),
-    });
-    const deliveryStatus = delivery?.delivered ? 'sent' : delivery?.queued ? 'queued' : 'unavailable';
-    const emailMessage = deliveryStatus === 'sent'
-      ? 'The invitation was accepted by the email provider; ask them to check their inbox.'
-      : deliveryStatus === 'queued'
-        ? 'The invitation is queued, but delivery is not confirmed. It may be retried later.'
-        : 'The invitation could not be queued. They may need sign-in help from an administrator.';
-    return NextResponse.json({ ok: true, deliveryStatus, message: `${name} was added as ${role.replace(/_/g, ' ').toLowerCase()}. ${emailMessage}` });
+    const next=newInviteToken();
+    const {data:inv,error:insertError}=await admin.from('workspace_invites_v2').insert({organization_id:a.orgId,email,name,role,entity_id:entityId,staff_employee_id:staffEmployeeId,token_hash:next.hash,expires_at:next.expiresAt,created_by:a.userId}).select('*').single();
+    if(insertError || !inv) return NextResponse.json({error:'A pending invitation may already exist. Refresh the page or resend it.'},{status:409});
+    let delivery=null;try {delivery=await sendWorkspaceInvite(inv,a.orgName,a.orgSlug,next.token);} catch { /* keep pending */ }
+    const status=delivery?.delivered?'sent':delivery?.queued?'queued':'unavailable';
+    return NextResponse.json({ok:true,deliveryStatus:status,message:status==='sent'?'Invitation sent to the email provider. Access begins only after acceptance.':status==='queued'?'Invitation queued, but delivery is not yet confirmed.':'Invitation created but email could not be queued; use Resend invitation.'});
   }
   if (b.action === 'seedDemo') {
     if (!hasServiceKey()) return NextResponse.json({ error: 'Sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });
