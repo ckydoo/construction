@@ -1,8 +1,8 @@
 # MYLA Construction ERP — launch readiness master checklist
 
 Status date: 2026-11-15. Production: `myla.co.zw` / `app.myla.co.zw`, latest deployment
-`dpl_8hrvUUHGdAo4M9dab1zDH49bypXN` (commit `ebdc929`), READY/PROMOTED.
-(Prior: `dpl_7crFWKbxzzhr1Qts2LopxnCaqGod` / `e7d8346` shipped env-gated healthchecks.io pings; `dpl_7hN3HmW5SjpAA5GCVDYi5NqgRxFs` / `9d53591` before that.)
+`dpl_3w42NyyfrkeCfpGg6b7P9RXaFpGK` (commit `10e4410`), READY/PROMOTED.
+(Prior: `dpl_8hrvUUHGdAo4M9dab1zDH49bypXN` / `ebdc929` in-house monitoring; `dpl_7crFWKbxzzhr1Qts2LopxnCaqGod` / `e7d8346` env-gated healthchecks.io pings; `dpl_7hN3HmW5SjpAA5GCVDYi5NqgRxFs` / `9d53591` before that.)
 This file is the index. Each gate links to its working document. No gate is closed
 by a build or a unit test alone.
 

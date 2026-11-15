@@ -41,6 +41,8 @@ Harness: `/home/user/workability-pass.mjs`, results `/home/user/workability-pass
   inviting external testers.
 
 ## Deploy status
-- Commit with the Cell fix: see git history (this file committed in the same change).
-- Production deployment created via Vercel API (push does not deploy); verify READY/PROMOTED
-  and re-shoot `list-arinvoices` / `list-projects` before claiming the fix is live.
+- Fix shipped as commit `10e4410`; deployed 2026-11-15 as `dpl_3w42NyyfrkeCfpGg6b7P9RXaFpGK`
+  (READY/PROMOTED, aliases `myla.co.zw` / `app.myla.co.zw`).
+- Live re-check after deploy: `/m/arInvoices` settles with client names in Client column and
+  job/project names as link-styled Job/project column (screenshot
+  `artifacts/workability/list-arinvoices-after.png`); 0 page errors.
