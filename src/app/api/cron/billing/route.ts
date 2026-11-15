@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { billingConfig, safeHashEqual } from '@/lib/billing';
 import { runBillingSweep } from '@/lib/billing-cron';
+import { pingHeartbeat } from '@/lib/heartbeat';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,8 +15,10 @@ async function run(req: Request) {
   if (cfg.cronSecret && !safeHashEqual(cfg.cronSecret, token)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const result = await runBillingSweep();
+    await pingHeartbeat(process.env.HEALTHCHECK_BILLING_URL, 'success');
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
+    await pingHeartbeat(process.env.HEALTHCHECK_BILLING_URL, 'fail');
     return NextResponse.json({ error: e?.message || 'Billing sweep failed' }, { status: 500 });
   }
 }

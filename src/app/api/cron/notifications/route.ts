@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { safeHashEqual } from '@/lib/billing';
 import { runNotificationSweep } from '@/lib/reminders';
+import { pingHeartbeat } from '@/lib/heartbeat';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,8 +18,10 @@ async function run(req: Request) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const result = await runNotificationSweep();
+    await pingHeartbeat(process.env.HEALTHCHECK_NOTIFICATIONS_URL, 'success');
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
+    await pingHeartbeat(process.env.HEALTHCHECK_NOTIFICATIONS_URL, 'fail');
     return NextResponse.json({ error: e?.message || 'Notification sweep failed' }, { status: 500 });
   }
 }

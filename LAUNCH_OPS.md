@@ -14,9 +14,12 @@ Minimum viable monitoring before public launch:
 2. **Uptime check** — free external probe (UptimeRobot/Better Stack) on
    `https://myla.co.zw/login` every 1–5 min; alert to same channel; record probe URL.
 3. **Cron heartbeats** — billing sweep (02:00) and notifications sweep (05:00) must
-   report success; create a dead-man's-switch (e.g. healthchecks.io) pinged from
-   `src/app/api/cron/billing/route.ts` and `.../notifications/route.ts` on success, alert
-   if missed > 26h. (Do not put the ping token in git.)
+   report success. Implemented in code (2026-11-13, commit pending at time of writing):
+   both routes now ping `HEALTHCHECK_BILLING_URL` / `HEALTHCHECK_NOTIFICATIONS_URL` on
+   success and `<url>/fail` on error (see `src/lib/heartbeat.ts`; no-op when unset; no
+   token in git; 5s timeout; never throws). Remaining: create the healthchecks.io
+   checks, set the two env vars in Vercel production, deploy, and verify a ping lands
+   (plus a test `/fail`) before Gate 4 sign-off. Alert if missed > 26h.
 4. **Business metric alerts** — optional: daily email from the billing sweep with counts
    (invoices created, locked workspaces, payment failures) to the owner.
 5. **Log hygiene** — confirm no request bodies with tokens/passwords are logged; review
