@@ -10,6 +10,7 @@ import { userMessage } from '@/lib/user-message';
 import { Button, Icon, Field, Badge, Toggle } from './ui';
 import Logo from './Logo';
 import * as Lucide from '@/components/lucide';
+import { usePlatformPublic } from '@/lib/use-platform-public';
 
 const STEPS = [
   { id:1, title:'Your company', desc:'A few details about your company' },
@@ -52,6 +53,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [revenueBand,setRevenueBand]=useState('');
   const [qualifiers,setQualifiers]=useState<string[]>([]);
   const [addons,setAddons]=useState<string[]>([]);
+  const {demo}=usePlatformPublic();
   const [loadDemo,setLoadDemo]=useState(false);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
@@ -175,10 +177,10 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
               <div className="max-h-48 overflow-y-auto rounded-md border divider p-3"><div className="flex flex-wrap gap-2">{optional.map(m=>{
               const on=addons.includes(m.id);
               return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition ${on?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div></div>}
-            <div className="flex items-center justify-between gap-4 rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
-              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with sample data <span className="ml-1 text-[11px] font-normal muted">Off by default</span></p><p className="mt-0.5 text-xs muted">Optional: 616 sample records across jobs, staff, orders, invoices, time sheets, site queries and safety events. Your workspace starts empty unless you switch this on.</p></div>
+            {demo&&<div className="flex items-center justify-between gap-4 rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
+              <div><p className="text-sm font-semibold text-ink-900 dark:text-white">Try it with demo data <span className="ml-1 text-[11px] font-normal muted">Off by default</span></p><p className="mt-0.5 text-xs muted">Optional: 616 demo records across jobs, staff, orders, invoices, time sheets, site queries and safety events. Your workspace starts empty unless you switch this on.</p></div>
               <Toggle checked={loadDemo} onChange={setLoadDemo}/>
-            </div>
+            </div>}
             {planError&&<p className="text-xs text-red-700">We couldn’t load your plan. Refresh and try again.</p>}
             {error&&<p className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{error}</p>}
           </div>}

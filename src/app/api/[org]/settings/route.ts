@@ -12,6 +12,7 @@ import { writeGuard, capabilityGuard, billingGuard } from '@/lib/guard';
 import { userLimitMessage } from '@/lib/billing-limits';
 import { planModuleIds } from '@/lib/billing-plans';
 import { seedDemo, clearDemo } from '@/lib/seed-service';
+import { getPlatformPublic } from '@/lib/platform-public';
 import { fetchAll } from '@/lib/fetch';
 
 const adminOnly = (role: string) => ['OWNER', 'ADMIN'].includes(role);
@@ -271,7 +272,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ org: st
     return NextResponse.json({ok:true,deliveryStatus:status,message:status==='sent'?'Invitation sent to the email provider. Access begins only after acceptance.':status==='queued'?'Invitation queued, but delivery is not yet confirmed.':'Invitation created but email could not be queued; use Resend invitation.'});
   }
   if (b.action === 'seedDemo') {
-    if (!hasServiceKey()) return NextResponse.json({ error: 'Sample data is temporarily unavailable. Please try again shortly.' }, { status: 503 });
+    if (!(await getPlatformPublic()).demo) return NextResponse.json({ error: 'Demo mode is off for this platform.' }, { status: 403 });
+    if (!hasServiceKey()) return NextResponse.json({ error: 'Demo data is temporarily unavailable. Please try again shortly.' }, { status: 503 });
     const r = await seedDemo(a.orgId, a.userId, a.name);
     return NextResponse.json({ ok: true, message: `Loaded ${r.records} demo records, ${r.wallets} wallets and ${r.pdfs} sample PDFs` });
   }

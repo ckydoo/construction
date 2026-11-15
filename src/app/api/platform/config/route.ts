@@ -12,6 +12,7 @@
 import { NextResponse } from 'next/server';
 import { requirePlatformAdmin, type PlatformAdminCtx } from '@/lib/platform-admin';
 import { supabaseAdmin, unwrap } from '@/lib/supabase';
+import { invalidatePlatformPublicCache } from '@/lib/platform-public';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
 
 const SETTINGS_FIELDS = new Set([
   'billing_enabled','trial_days','grace_days','currency','tax_included',
-  'active_gateway','pricing_model','maintenance_mode',
+  'active_gateway','pricing_model','maintenance_mode','demo_enabled',
 ]);
 const GATEWAY_FIELDS = new Set([
   'enabled','mode','api_url','payment_url_template','service_type','service_type_name',
@@ -151,7 +152,7 @@ export async function GET(): Promise<NextResponse> {
       organizationBillingOverrides: overrides,
       platformAdmins: admins,
       audit,
-      note: 'Database values are desired/staged state only. BILLING_ENABLED is the environment master switch and DPO_LIVE_MODE gates the retained fallback; the billing runtime still reads code constants and env.',
+      note: 'billing_enabled and gateway/pricing values are staged desired state (BILLING_ENABLED is the env master switch). maintenance_mode and demo_enabled are enforced at runtime (middleware-free guards in lib/auth + /maintenance).',
     });
   } catch (e) { return fail(e); }
 }
@@ -190,6 +191,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       }
       const payload = { ...fields, updated_at: new Date().toISOString(), updated_by: actor.userId };
       const data = unwrap(await admin.from('platform_settings').update(payload).eq('id', 1).select().maybeSingle());
+      invalidatePlatformPublicCache();
       return ok({ settings: data });
     }
 

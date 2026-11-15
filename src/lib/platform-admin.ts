@@ -43,3 +43,20 @@ export async function requirePlatformAdmin(): Promise<{ ctx: PlatformAdminCtx; e
     return { ctx: null as any, error: NextResponse.json({ error: e?.message || 'Service-role client unavailable.' }, { status: 503 }) };
   }
 }
+
+/** Lightweight check used by maintenance enforcement. Never throws. */
+export async function isPlatformAdminUser(userId: string | undefined | null): Promise<boolean> {
+  if (!userId) return false;
+  try {
+    const admin = supabaseAdmin();
+    const { data, error } = await admin
+      .from('platform_admins')
+      .select('user_id')
+      .eq('user_id', userId)
+      .is('revoked_at', null)
+      .maybeSingle();
+    return !error && !!data;
+  } catch {
+    return false;
+  }
+}

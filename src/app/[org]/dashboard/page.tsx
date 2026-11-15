@@ -10,6 +10,7 @@ import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar,
 import { BarChart, DonutChart } from '@/components/Charts';
 import EmailVerificationReminder from '@/components/EmailVerificationReminder';
 import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
+import { usePlatformPublic } from '@/lib/use-platform-public';
 
 type OV = { kpis:Record<string,number>; wallets:{clientId:string;clientName:string;balance:number;currency:string}[]; projects:any[]; revenueSeries:{label:string;value:number}[]; costBreakdown:{label:string;value:number}[]; attention:any[]; notifications:any[]; audit:any[]; counts:Record<string,number>; currency:string };
 
@@ -24,7 +25,7 @@ function Kpi({label,value,sub,loading}:{label:string;value:string;sub?:string;lo
 
 export default function DashboardPage(){
   const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
-  const {org}=useParams<{org:string}>();
+  const {org}=useParams<{org:string}>(); const {demo}=usePlatformPublic();
   const [period,setPeriod]=useState<'3'|'6'>('6');
   const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
@@ -77,7 +78,7 @@ export default function DashboardPage(){
         <p className="mt-0.5 text-xs muted">{num(threeWay.summary.matched)} matched · {num(threeWay.summary.orphanBills)} bills without a PO · {num(threeWay.summary.orphanReceipts)} deliveries without a PO · workspace base {threeWay.base}</p></div>
       <Link href={`/${org}/three-way-match`} className="btn-outline btn-sm inline-flex items-center gap-1.5"><Icon name="ClipboardCheck" size={15}/>Open three-way match</Link>
     </Card>}
-    {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description="Load sample data to look around, or start by adding your first client and job." action={<Link href={`/${org}/settings`}><Button variant="primary" icon="Database">Load sample data</Button></Link>}/></Card>}
+    {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description={demo?'Load demo data to look around, or start by adding your first client and job.':'Start by adding your first client and job.'} action={demo?<Link href={`/${org}/settings?tab=data`}><Button variant="primary" icon="Database">Load demo data</Button></Link>:<Link href={`/${org}/clients`}><Button variant="primary" icon="Plus">Add your first client</Button></Link>}/></Card>}
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 gap-px bg-slate-200 sm:grid-cols-3 xl:grid-cols-5 dark:bg-ink-800">
         {on('projects')&&<Kpi loading={isLoading} label="Jobs running" value={num(k?.activeProjects)} sub={`${num(k?.pipelineProjects)} being quoted`}/>}

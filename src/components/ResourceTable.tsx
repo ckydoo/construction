@@ -19,6 +19,7 @@ import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import SearchSelect from './SearchSelect';
 import ReceiptAllocationForm from './ReceiptAllocationForm';
 import { useRouter } from 'next/navigation';
+import { usePlatformPublic } from '@/lib/use-platform-public';
 
 type ListData = { rows:any[]; total:number; page:number; pages:number; pageSize:number };
 const PAGE_SIZE=25;
@@ -57,7 +58,7 @@ function Cell({def,col,row,refs,org,refsLoading}:{def:ResourceDef;col:string;row
 export default function ResourceTable({org,resource,embedded=false,fixedProjectId,initialOpenId,initialNew=false,initialProjectId}:{
   org:string; resource:string; embedded?:boolean; fixedProjectId?:string; initialOpenId?:string|null; initialNew?:boolean; initialProjectId?:string;
 }){
-  const def=RESOURCE_MAP[resource]; const qc=useQueryClient(); const toast=useToast(); const router=useRouter();
+  const def=RESOURCE_MAP[resource]; const qc=useQueryClient(); const toast=useToast(); const router=useRouter(); const {demo}=usePlatformPublic();
   const [page,setPage]=useState(1), [qInput,setQInput]=useState(''), [q,setQ]=useState('');
   const [status,setStatus]=useState('ALL'), [projectFilter,setProjectFilter]=useState(fixedProjectId||'ALL');
   const [sort,setSort]=useState(''), [dir,setDir]=useState<'asc'|'desc'>('desc');
@@ -238,8 +239,8 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
           <tbody className="divide-y divider">
             {isLoading&&!data?Array.from({length:6}).map((_,i)=><tr key={i}>{Array.from({length:cols.length+2}).map((__,j)=><td key={j} className="table-td"><Skeleton className={`h-3.5 ${j===1?'w-40':'w-20'}`}/></td>)}</tr>):
             rows.length===0?<tr><td colSpan={cols.length+2}><EmptyState compact icon={def.icon} title={q||status!=='ALL'?'No matching records':`No ${def.label.toLowerCase()} yet`}
-              description={q||status!=='ALL'?'Try a different search or clear your filters.':`Create your first ${def.singular.toLowerCase()} to get started, or load sample data to look around.`}
-              action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={openNewRecord}>{newLabel}</Button>{!q&&<Link href={`/${org}/settings`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
+              description={q||status!=='ALL'?'Try a different search or clear your filters.':`Create your first ${def.singular.toLowerCase()} to get started${demo?', or load demo data to look around':''}.`}
+              action={canEdit?<div className="flex gap-2"><Button variant="primary" icon="Plus" onClick={openNewRecord}>{newLabel}</Button>{demo&&!q&&<Link href={`/${org}/settings?tab=data`}><Button icon="Database">Load demo data</Button></Link>}</div>:undefined}/></td></tr>:
             rows.map(r=><tr key={r.id} onClick={()=>openRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>

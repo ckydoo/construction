@@ -8,6 +8,7 @@ import { seedDemo } from '@/lib/seed-service';
 import { notify } from '@/lib/records';
 import { getSubscription } from '@/lib/billing';
 import { startNoCardTrial } from '@/lib/billing-lifecycle';
+import { getPlatformPublic } from '@/lib/platform-public';
 
 export async function GET() {
   const a = await apiAuth(); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
     }).eq('id', a.orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
 
-    if (b.loadDemo) {
+    if (b.loadDemo && (await getPlatformPublic()).demo) {
       await seedDemo(a.orgId, a.userId, a.name);
     } else {
       await notify(a.orgId, 'Workspace ready',

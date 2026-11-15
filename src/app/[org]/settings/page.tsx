@@ -9,6 +9,7 @@ import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MO
 import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
 import { resourceFullyEnabled } from '@/lib/module-visibility';
 import { planModuleIds, isPlanId } from '@/lib/billing-plans';
+import { usePlatformPublic } from '@/lib/use-platform-public';
 import { Card, CardHead, Button, Icon, Badge, Field, Tabs, Toggle, Skeleton, ConfirmDialog, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/Providers';
 import NotificationSettings from '@/components/NotificationSettings';
@@ -28,6 +29,7 @@ const SECTION_GROUP_ORDER=['Overview','Clients & quotes','Jobs & sites','Materia
 export default function SettingsPage(){
   const {org}=useParams<{org:string}>(); const qc=useQueryClient(); const toast=useToast();
   const [tab,setTab]=useState('general');
+  const {demo}=usePlatformPublic();
   const {data:meta,isLoading}:any=useQuery({queryKey:['meta-settings',org],queryFn:()=>apiGet(orgApi(org,'meta?scope=settings'))});
   const [form,setForm]=useState<any>({}); const [companyForm,setCompanyForm]=useState<any>({}); const [saving,setSaving]=useState(false);
   const [invite,setInvite]=useState<any>({name:'',email:'',role:'VIEWER',entityId:'',staffEmployeeId:'',temporaryPassword:''});
@@ -246,9 +248,9 @@ export default function SettingsPage(){
       <Button variant="primary" loading={busy} icon="RefreshCw" onClick={()=>send('reconfigure',{companyType:type,size,qualifiers:quals},'POST')}>Update my sections</Button></div></Card></div>}
 
     {tab==='data'&&<div className="space-y-4">
-      <Card><CardHead title="Sample data" subtitle="616 sample records — jobs, staff, orders, tax invoices, time sheets, site queries, safety and more"/>
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><p className="max-w-lg text-xs muted">This replaces all existing business records in this workspace with the demo dataset. Perfect for evaluating every screen with live, reconciled data.</p>
-          <Button variant="primary" icon="Database" loading={busy} onClick={()=>setConfirm({title:'Replace data with demo dataset?',desc:'All existing records in this workspace will be deleted and replaced with 616 demo records.',action:'seedDemo'})}>Load demo data</Button></div></Card>
+      {demo&&<Card><CardHead title="Demo data" subtitle="616 demo records — jobs, staff, orders, tax invoices, time sheets, site queries, safety and more"/>
+        <div className="flex flex-wrap items-center justify-between gap-3 p-5"><p className="max-w-lg text-xs muted">This replaces all existing business records in this workspace with the demo dataset. For evaluating and training, not for live trading.</p>
+          <Button variant="primary" icon="Database" loading={busy} onClick={()=>setConfirm({title:'Replace data with demo dataset?',desc:'All existing records in this workspace will be deleted and replaced with 616 demo records.',action:'seedDemo'})}>Load demo data</Button></div></Card>}
       <Card><CardHead title="Import CSV" subtitle="Paste a CSV with a header row (for example name,status,amount)"/>
         <div className="grid gap-4 p-5 sm:grid-cols-[220px_1fr]"><Field label="Target resource"><select className="select" value={csvResource} onChange={e=>setCsvResource(e.target.value)}>{csvDefs.map((r:any)=><option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
           <Field label="CSV data"><textarea className="input min-h-[100px] font-mono text-xs" value={csv} onChange={e=>setCsv(e.target.value)} placeholder={'name,type,city,status\nNew Client,Private developer,Harare,ACTIVE'}/></Field>

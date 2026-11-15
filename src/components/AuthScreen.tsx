@@ -21,7 +21,7 @@ const DEMO = [
 const PASSWORD='Demo@1234';
 type View = 'login' | 'register' | 'forgot';
 
-function BrandPanel(){
+function BrandPanel({demo}:{demo:boolean}){
   return <div className="relative hidden w-[42%] shrink-0 flex-col justify-between overflow-hidden bg-ink-900 p-10 text-white lg:flex">
     <div className="absolute inset-0 opacity-[0.035]" style={{backgroundImage:'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)',backgroundSize:'44px 44px'}}/>
     <div className="relative"><Logo variant="full" light className="w-full max-w-[420px]" title={`${BRAND.name} · ${BRAND.motto}`}/></div>
@@ -32,14 +32,14 @@ function BrandPanel(){
     </div>
     <div className="relative">
       <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
-        {[['34','sections'],['49','lists'],['616','sample records']].map(([n,l])=><div key={l}><p className="text-lg font-semibold tabular-nums text-white">{n}</p><p className="text-[11px] text-slate-400">{l}</p></div>)}
+        {(demo?[['34','sections'],['49','lists'],['616','demo records']]:[['34','sections'],['49','lists'],['24/7','support']]).map(([n,l])=><div key={l}><p className="text-lg font-semibold tabular-nums text-white">{n}</p><p className="text-[11px] text-slate-400">{l}</p></div>)}
       </div>
       <p className="mt-6 text-[11px] text-slate-500">© 2026 {BRAND.name} · Harare, Zimbabwe</p>
     </div>
   </div>;
 }
 
-export default function AuthScreen({configured=true}:{configured?:boolean}){
+export default function AuthScreen({configured=true,demo=false}:{configured?:boolean;demo?:boolean}){
   const router=useRouter();
   const [view,setView]=useState<View>('login');
   const [name,setName]=useState(''), [company,setCompany]=useState('');
@@ -87,7 +87,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
 
   const authTab = view==='login'||view==='register';
   return <div className="flex min-h-screen bg-white dark:bg-ink-950">
-    <BrandPanel/>
+    <BrandPanel demo={demo}/>
     <div className="flex flex-1 items-center justify-center px-5 py-10">
       <div className="w-full max-w-[400px]">
         <div className="mb-8 flex items-center gap-3 lg:hidden"><Logo variant="lockup" autoDark className="h-7 w-auto" title={BRAND.name}/></div>
@@ -129,7 +129,7 @@ export default function AuthScreen({configured=true}:{configured?:boolean}){
         {view==='login'&&<div className="mt-4 flex items-center justify-between text-xs"><button type="button" onClick={()=>switchView('forgot')} className="font-medium text-brand-700 hover:underline dark:text-brand-300">Forgot password?</button></div>}
         {!authTab&&<button type="button" onClick={()=>switchView('login')} className="mt-5 flex items-center gap-1.5 text-xs font-medium text-brand-700 hover:underline dark:text-brand-300"><Lucide.ArrowLeft size={14}/>Back to sign in</button>}
 
-        {view==='login'&&<div className="mt-8">
+        {demo&&view==='login'&&<div className="mt-8">
           <div className="mb-3 flex items-center gap-3"><span className="h-px flex-1 bg-slate-200 dark:bg-ink-800"/><span className="text-[10px] font-semibold uppercase tracking-wider muted">Demo accounts · one-click access</span><span className="h-px flex-1 bg-slate-200 dark:bg-ink-800"/></div>
           <div className="flex flex-wrap gap-2">{DEMO.map(d=><button key={d.email} onClick={()=>{setEmail(d.email);setPassword(PASSWORD);setError('');setNotice('');switchView('login');}} className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition ${email===d.email?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'border-slate-200 text-ink-600 hover:border-brand-300 hover:bg-brand-50/60 dark:border-ink-700 dark:text-slate-300'}`}>{d.label}</button>)}</div>
           <p className="mt-3 text-xs muted">Password: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono dark:bg-ink-800">{PASSWORD}</code> · Full demo data is preloaded.</p>

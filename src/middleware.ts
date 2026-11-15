@@ -10,7 +10,8 @@ const ACCESS_STATUSES = new Set(['comped','trialing','active','past_due','grace'
 const READ_ONLY_STATUSES = new Set(['past_due','grace','switch_pending']);
 const RESERVED = new Set([
   'api','auth','onboarding','login','register','setup','_next','favicon.ico',
-  'webhooks','cron','qa','billing','invite','accept-invite','platform',
+  'webhooks','cron','qa','billing','invite','accept-invite','platform','maintenance',
+  'solutions','preview','reset-password','verify-email',
 ]);
 const SAFE_METHODS = new Set(['GET','HEAD','OPTIONS']);
 
@@ -33,6 +34,23 @@ function billingMode(): 'off' | 'qa' | 'live' | 'misconfigured' {
   const dpoReady = truthy(process.env.DPO_LIVE_MODE) && Boolean(token && service && callback && push);
   return paynowReady || dpoReady ? 'live' : 'misconfigured';
 }
+/* Maintenance gate — platform owner switch (/platform) or MAINTENANCE_MODE=true env.
+ * Non-owners get the maintenance page (pages) or a 503 JSON (APIs). Platform
+ * owners keep access so they can turn it off. Cached 15s per isolate. */
+let maintenanceCache: { at: number; on: boolean } | null = null;
+async function maintenanceOn(admin: any): Promise<boolean> {
+  if (truthy(process.env.MAINTENANCE_MODE)) return true;
+  if (maintenanceCache && Date.now() - maintenanceCache.at < 15_000) return maintenanceCache.on;
+  try {
+    const { data } = await admin.from('platform_settings').select('maintenance_mode').eq('id', 1).maybeSingle();
+    const on = !!(data as any)?.maintenance_mode;
+    maintenanceCache = { at: Date.now(), on };
+    return on;
+  } catch {
+    return false; // fail open: a settings hiccup must not take the app down
+  }
+}
+
 function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
   for (const cookie of from.cookies.getAll()) to.cookies.set(cookie);
   return to;
@@ -56,6 +74,34 @@ export async function middleware(request: NextRequest) {
   });
   const session = await client.auth.getUser();
 
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim();
+  if (serviceKey) {
+    const segments0 = request.nextUrl.pathname.split('/').filter(Boolean);
+    const isApi0 = segments0[0] === 'api';
+    const slug0 = decodeURIComponent((isApi0 ? segments0[1] : segments0[0]) || '');
+    if (!slug0 || RESERVED.has(slug0)) return response; // landing/marketing/auth/platform/maintenance pass through
+    const admin = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    if (await maintenanceOn(admin)) {
+      let isAdmin = false;
+      if (session.data?.user) {
+        const { data } = await admin.from('platform_admins').select('user_id')
+          .eq('user_id', session.data.user.id).is('revoked_at', null).maybeSingle();
+        isAdmin = !!data;
+      }
+      if (!isAdmin) {
+        if (isApi0) {
+          return copyCookies(response, NextResponse.json({
+            error: 'MYLA is briefly offline for planned maintenance. Please try again shortly.',
+            code: 'MAINTENANCE',
+          }, { status: 503 }));
+        }
+        return copyCookies(response, NextResponse.redirect(new URL('/maintenance', request.url)));
+      }
+    }
+  }
+
   const mode = billingMode();
   if (mode === 'off') return response;
 
@@ -75,7 +121,6 @@ export async function middleware(request: NextRequest) {
   }
   if (!session.data?.user) return response; // route handlers return 401 themselves
 
-  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim();
   if (!serviceKey) {
     return copyCookies(response, NextResponse.json({ error: 'Billing enforcement needs SUPABASE_SERVICE_ROLE_KEY.' }, { status: 503 }));
   }

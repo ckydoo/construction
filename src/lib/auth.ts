@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation';
 import { supabase, supabaseAdmin, hasSupabaseConfig } from './supabase';
 import { resolveWorkspace, type WorkspaceConfig } from './catalog';
 import { billingActive, getSubscription } from './billing';
+import { getPlatformPublic } from './platform-public';
+import { isPlatformAdminUser } from './platform-admin';
 import {
   billingAllowsAccess, billingAllowsWrite, entitledLimits, entitledModules,
   entitledResources, isPlanId, planLabel, type BillingStatus, type PlanId,
@@ -150,12 +152,16 @@ export async function requireOrg(slug: string): Promise<AuthCtx> {
     if (row) await switchOrg(a, m, row.organizations);
   }
   if (!a.onboarded) redirect('/onboarding');
+  const maintenance = (await getPlatformPublic()).maintenance
+    && !(await isPlatformAdminUser(a.userId));
+  if (maintenance) redirect('/maintenance');
   return a;
 }
 
 /** For API route handlers: returns null instead of redirecting. */
 export async function apiAuth(slug?: string): Promise<AuthCtx | null> {
   const a = await getAuth(); if (!a) return null;
+  if ((await getPlatformPublic()).maintenance && !(await isPlatformAdminUser(a.userId))) return null;
   if (slug) {
     const m = a.memberships.find(x => x.orgSlug === slug);
     if (!m) return null;
