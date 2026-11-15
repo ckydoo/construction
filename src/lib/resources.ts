@@ -266,7 +266,7 @@ export const RESOURCES: ResourceDef[] = [
     ['number','name','code','type','category','balance','status'],{statusOptions:['ACTIVE','DORMANT','CLOSED'],amountKey:'balance'}),
 
   d('journals','Journals & adjustments','Journal','finance','Money & invoices','BookOpen','JNL','name',
-    'Double-entry style journals with period control.',
+    'Draft journal adjustments only. Posting, balancing and period control are not supported yet — a posted journal cannot be created.',
     [T('name','Journal description',{required:true}),D('date','Posting date'),T('period','Month / period'),R('accountId','Account','accounts'),PRJ(),C('debit','Debit'),C('credit','Credit'),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),A('narration','Narration'),R('preparedBy','Prepared by','employees'),IT('items','Itemised lines'),STS(['DRAFT','POSTED','REVERSED'],'DRAFT')],
     ['number','name','date','period','accountId','debit','credit','status'],{statusOptions:['DRAFT','POSTED','REVERSED'],amountKey:'debit',dateKey:'date'}),
 

@@ -7,7 +7,7 @@ import { billingMode } from '@/lib/billing';
 import { buildScope } from '@/lib/access';
 import { getRecord } from '@/lib/records';
 import { hasServiceKey, supabaseAdmin } from '@/lib/supabase';
-import { cents } from '@/lib/receipt-allocation';
+import { cents, decimal } from '@/lib/receipt-allocation';
 
 type Ctx = { params: Promise<{org:string;id:string}> };
 const uuid = (x:unknown) => typeof x==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
@@ -68,17 +68,40 @@ export async function POST(req:Request,{params}:Ctx) {
     return NextResponse.json({ok:true,result:data});
   }
   if (!Array.isArray(body.allocations) || body.allocations.length<1 || body.allocations.length>100) return fail('Add at least one invoice allocation.',400);
+  // Fail fast with a plain-language reason instead of a generic conflict:
+  // client match, currency match, invoice status, and outstanding balance.
+  const receiptDirection = String(receipt.direction||'').toUpperCase();
+  if (receiptDirection && receiptDirection !== 'RECEIPT') return fail('Only receipts can be allocated to invoices.',400);
+  if (String(receipt.status||'').toUpperCase()==='REVERSED') return fail('This receipt was reversed, so it cannot be allocated. Reversed money stays unavailable.',409);
+  const receiptCurrency = String(receipt.currency||'').toUpperCase();
   const lines:{invoiceId:string;amountMinor:number}[]=[];
   const seen=new Set<string>();
+  let allocatedTogether = 0n;
+  try { allocatedTogether = cents(String(receipt.amount)); } catch { /* RPC re-checks */ }
+  let allocationTotal = 0n;
   for (const line of body.allocations) {
     if (!line || typeof line.invoiceId!=='string' || !line.invoiceId || seen.has(line.invoiceId) || typeof line.amount!=='string') return fail('Invalid or duplicate invoice.',400);
     seen.add(line.invoiceId);
     let amount:bigint;
     try { amount=cents(line.amount); } catch { return fail('Enter a valid amount with at most two decimal places.',400); }
     if (amount<=0n || amount>BigInt(Number.MAX_SAFE_INTEGER)) return fail('Allocation amount must be positive and within the supported limit.',400);
-    if (!await getRecord(a.orgId,'arInvoices',line.invoiceId,scope)) return fail('Invoice not found or not accessible.',403);
+    const invoice = await getRecord(a.orgId,'arInvoices',line.invoiceId,scope);
+    if (!invoice) return fail('Invoice not found or not accessible.',403);
+    const invStatus = String(invoice.status||'').toUpperCase();
+    if (['DRAFT','VOID'].includes(invStatus)) return fail('This invoice has not been issued yet, or it is void. Only issued invoices can be settled.',422);
+    if (invStatus==='PAID') return fail('This invoice is already settled.',422);
+    const receiptClient = String(receipt.clientId||''), invoiceClient = String(invoice.clientId||'');
+    if (receiptClient && invoiceClient && receiptClient !== invoiceClient) return fail('This invoice belongs to a different client than the receipt.',422);
+    const invoiceCurrency = String(invoice.currency||'').toUpperCase();
+    if (receiptCurrency && invoiceCurrency && receiptCurrency !== invoiceCurrency) return fail(`This receipt is in ${receiptCurrency} but the invoice is in ${invoiceCurrency}. Allocate in the same currency.`,422);
+    let outstanding:bigint;
+    try { outstanding = cents(String(invoice.total)) - cents(String(invoice.amountPaid||'0')); } catch { outstanding = 0n; }
+    if (outstanding < 0n) outstanding = 0n;
+    if (amount > outstanding) return fail(`This allocation is more than the invoice's outstanding balance (${decimal(outstanding)} ${invoiceCurrency||receiptCurrency}).`,422);
+    allocationTotal += amount;
     lines.push({invoiceId:line.invoiceId,amountMinor:Number(amount)});
   }
+  if (allocatedTogether > 0n && allocationTotal > allocatedTogether) return fail('The allocations add up to more than the receipt amount.',422);
   const {data,error} = await admin.rpc('draft_allocate_receipt_v2',{p_org:a.orgId,p_receipt:id,p_request:body.requestId,p_actor:a.userId,p_lines:lines,p_billing_enabled:mode==='qa'||mode==='live'});
   if (error) return fail('Allocation could not be confirmed. Retry the same request before changing details.',409);
   return NextResponse.json({ok:true,result:data});

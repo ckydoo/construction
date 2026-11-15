@@ -26,7 +26,10 @@ export async function GET(req: Request, { params }: Ctx) {
   if (qp.mode === 'refs') {
     const ids = qp.ids ? qp.ids.split(',').map(s=>s.trim()).filter(Boolean).slice(0, 500) : undefined;
     const limit = Number(qp.limit) || 300;
-    return NextResponse.json({ options: await refOptions(a.orgId, def, limit, scope, qp.q, ids) });
+    const filters = (qp.clientId || qp.currency || qp.issued === '1')
+      ? { clientId: qp.clientId || undefined, currency: qp.currency || undefined, issued: qp.issued === '1' }
+      : undefined;
+    return NextResponse.json({ options: await refOptions(a.orgId, def, limit, scope, qp.q, ids, filters) });
   }
   const csvMode = qp.mode === 'csv' || qp.mode === 'csv-items';
   if (csvMode) { const eg = capabilityGuard(a.role, 'exports'); if (eg) return eg; }

@@ -12,7 +12,7 @@ import { receiptRequestKey,clearReceiptRequest } from '@/lib/receipt-request';
 type Allocation={invoiceId:string;invoiceNumber:string;invoiceTitle:string;amountMinor:number;reversedAt:string|null};
 type Data={allocations:Allocation[];allocatedMinor:number};
 export default function ReceiptAllocations({org,row,canEdit}:{org:string;row:any;canEdit:boolean}){
- const qc=useQueryClient(),toast=useToast();const [invoice,setInvoice]=useState(''),[amount,setAmount]=useState(''),[busy,setBusy]=useState(false);
+ const qc=useQueryClient(),toast=useToast();const [invoice,setInvoice]=useState(''),[amount,setAmount]=useState(''),[busy,setBusy]=useState(false),[allocError,setAllocError]=useState<string|null>(null);
  const requestId=useRef<string|null>(null),reverseId=useRef<string|null>(null),inFlight=useRef(false);
  const endpoint=orgApi(org,`receipts/${encodeURIComponent(row.id)}/allocations`);
  const {data,isLoading,isError}=useQuery<Data>({queryKey:['receipt-allocations',org,row.id],queryFn:()=>apiGet(endpoint)});
@@ -21,25 +21,29 @@ export default function ReceiptAllocations({org,row,canEdit}:{org:string;row:any
   if(inFlight.current)return;
   if(!invoice||!amount){toast.push({tone:'error',title:'Select an invoice and amount'});return;}
   inFlight.current=true;setBusy(true);
-  try{const payload={action:'allocate',allocations:[{invoiceId:invoice,amount}]};const key=await receiptRequestKey(org,`allocate:${row.id}`,payload,requestId.current);requestId.current=key.requestId;await apiSend(endpoint,'POST',{...payload,requestId:key.requestId});await refresh();clearReceiptRequest(key.storageKey);requestId.current=null;setInvoice('');setAmount('');toast.push({tone:'success',title:'Receipt allocated'});}
-  catch(e:any){toast.push({tone:'error',title:'Allocation not confirmed',description:userMessage(e,'Retry without changing the fields to use the same request key.')});}finally{inFlight.current=false;setBusy(false);}
+  setAllocError(null);try{const payload={action:'allocate',allocations:[{invoiceId:invoice,amount}]};const key=await receiptRequestKey(org,`allocate:${row.id}`,payload,requestId.current);requestId.current=key.requestId;await apiSend(endpoint,'POST',{...payload,requestId:key.requestId});await refresh();clearReceiptRequest(key.storageKey);requestId.current=null;setInvoice('');setAmount('');toast.push({tone:'success',title:'Receipt allocated'});}
+  catch(e:any){const message=userMessage(e,'Allocation not confirmed. Retry without changing the fields to use the same request key.');setAllocError(message);toast.push({tone:'error',title:'Allocation not confirmed',description:message});}finally{inFlight.current=false;setBusy(false);}
  }
  async function reverse(){
   if(inFlight.current)return;
   if(!window.confirm('Reverse this receipt and all its invoice allocations? This records a reversal; it does not transfer money.'))return;
   inFlight.current=true;setBusy(true);
-  try{const key=await receiptRequestKey(org,`reverse:${row.id}`,{action:'reverse'},reverseId.current);reverseId.current=key.requestId;await apiSend(endpoint,'POST',{action:'reverse',requestId:key.requestId});await refresh();clearReceiptRequest(key.storageKey);reverseId.current=null;toast.push({tone:'success',title:'Receipt reversed'});}
-  catch(e:any){toast.push({tone:'error',title:'Reversal not confirmed',description:userMessage(e,'Retry the same reversal to avoid duplicates.')});}finally{inFlight.current=false;setBusy(false);}
+  setAllocError(null);try{const key=await receiptRequestKey(org,`reverse:${row.id}`,{action:'reverse'},reverseId.current);reverseId.current=key.requestId;await apiSend(endpoint,'POST',{action:'reverse',requestId:key.requestId});await refresh();clearReceiptRequest(key.storageKey);reverseId.current=null;setAllocError(null);toast.push({tone:'success',title:'Receipt reversed'});}
+  catch(e:any){const message=userMessage(e,'Reversal not confirmed. Retry the same reversal to avoid duplicates.');setAllocError(message);toast.push({tone:'error',title:'Reversal not confirmed',description:message});}finally{inFlight.current=false;setBusy(false);}
  }
- let remaining='—',unallocatedMinor=0n;try{const rem=cents(String(row.amount))-BigInt(data?.allocatedMinor||0);unallocatedMinor=rem>0n?rem:0n;remaining=decimal(rem>=0n?rem:0n);}catch{}
+ const reversed=String(row.status||'').toUpperCase()==='REVERSED';
+ let remaining='—',unallocatedMinor=0n;try{const rem=cents(String(row.amount))-BigInt(data?.allocatedMinor||0);unallocatedMinor=!reversed&&rem>0n?rem:0n;remaining=decimal(rem>=0n?rem:0n);}catch{}
  const active=['CLEARED','RECONCILED'].includes(String(row.status||''));
  return <section className="space-y-3 border-t divider px-4 py-4"><h3 className="text-sm font-semibold">Invoice allocations</h3>
  {isLoading?<p className="caption">Loading allocations…</p>:isError?<p className="caption text-red-600">Allocations unavailable or you do not have permission to view them.</p>:<>
-  <p className="caption">Unallocated receipt amount: {remaining} {row.currency||''}. A receipt is not a bank transfer.</p>
-  {unallocatedMinor>0n&&<div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">{remaining} {row.currency||''} is not allocated to any invoice.</p><p className="mt-0.5">Unallocated money does not reduce an invoice balance, and invoice paid-to-date stays blank. To settle {row.reference?`invoice ${row.reference}`:'an invoice'} use the controls below. Future receipts can be allocated as they are recorded with the “Record and allocate receipt” button on the invoice.</p></div>}
+  {reversed?<div className="rounded-md border divider bg-slate-50 px-3 py-2 text-xs muted dark:bg-ink-950/40"><p className="font-semibold">This receipt was reversed. The {remaining} {row.currency||''} shown as unallocated is historical — it is not available to settle invoices and cannot be allocated.</p></div>
+  :<><p className="caption">Unallocated receipt amount: {remaining} {row.currency||''}. A receipt is not a bank transfer.</p>
+  {unallocatedMinor>0n&&<div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"><p className="font-semibold">{remaining} {row.currency||''} is not allocated to any invoice.</p><p className="mt-0.5">Unallocated money does not reduce an invoice balance, and invoice paid-to-date stays blank. To settle {row.reference?`invoice ${row.reference}`:'an invoice'} use the controls below. Future receipts can be allocated as they are recorded with the “Record and allocate receipt” button on the invoice.</p></div>}</>}
+  {allocError&&<div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200" role="alert">{allocError}</div>}
   {data?.allocations.map((a,i)=><div key={`${a.invoiceId}-${i}`} className="rounded border divider p-2 text-xs">{a.invoiceNumber||a.invoiceTitle||a.invoiceId} · {decimal(BigInt(a.amountMinor))} {row.currency||''} {a.reversedAt?'· Reversed':''}</div>)}
   {!data?.allocations.length&&<p className="caption">No invoice allocations.</p>}
-  {canEdit&&active&&<><div className="grid gap-3 sm:grid-cols-2"><Field label="Invoice"><SearchSelect org={org} resource="arInvoices" label="Invoice to allocate" value={invoice} onChange={v=>{requestId.current=null;setInvoice(v);}}/></Field><Field label="Allocation amount"><input className="input" type="text" inputMode="decimal" value={amount} onChange={e=>{requestId.current=null;setAmount(e.target.value);}}/></Field></div>
+  {canEdit&&active&&<p className="caption">Eligible invoices: <strong>issued</strong> invoices for this receipt’s client in <strong>{row.currency||'the same currency'}</strong> with an outstanding balance. Anything else (draft, void, settled, another client or currency) will be refused with a reason.</p>}
+  {canEdit&&active&&<><div className="grid gap-3 sm:grid-cols-2"><Field label="Invoice"><SearchSelect org={org} resource="arInvoices" label="Invoice to allocate" value={invoice} onChange={v=>{requestId.current=null;setInvoice(v);}} query={`issued=1${row.clientId?`&clientId=${encodeURIComponent(row.clientId)}`:''}${row.currency?`&currency=${encodeURIComponent(row.currency)}`:''}`}/></Field><Field label="Allocation amount"><input className="input" type="text" inputMode="decimal" value={amount} onChange={e=>{requestId.current=null;setAmount(e.target.value);}}/></Field></div>
    <div className="flex flex-wrap gap-2"><Button onClick={allocate} loading={busy}>Allocate receipt</Button><Button variant="outline" onClick={reverse} disabled={busy}>Reverse receipt</Button></div></>}
  </>}
  </section>;

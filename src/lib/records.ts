@@ -144,7 +144,7 @@ export async function getRecord(orgId:string, resourceId:string, id:string, scop
   return row;
 }
 
-export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope, q?:string, ids?:string[]) {
+export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope?:Scope, q?:string, ids?:string[], filters?:{ clientId?:string; currency?:string; issued?:boolean }) {
   const sb = await supabase();
   const cap = Math.min(Math.max(Number(limit)||300, 1), 500);
   let query = sb.from('records').select('id,title,number,data,project_id')
@@ -161,6 +161,15 @@ export async function refOptions(orgId:string, def:ResourceDef, limit=300, scope
   let rows = (recs||[]).map(r => ({ value:r.id, label:r.title || r.number || r.id,
     _row:{ id:r.id, ...(r.data||{}), projectId:r.project_id } }));
   if (scope?.kind) rows = rows.filter(r => rowAllowed(scope, def.id, r._row));
+  if (filters?.clientId) rows = rows.filter(r => String(r._row.clientId || '') === filters.clientId);
+  if (filters?.currency) rows = rows.filter(r => String(r._row.currency || '').toUpperCase() === filters.currency!.toUpperCase());
+  if (filters?.issued) rows = rows.filter(r => {
+    const status = String(r._row.status || '').toUpperCase();
+    if (['DRAFT', 'VOID', 'PAID'].includes(status)) return false;
+    let outstanding = 0;
+    try { outstanding = Number(r._row.total || 0) - Number(r._row.amountPaid || 0); } catch { outstanding = 0; }
+    return outstanding > 0.004;
+  });
   return rows.map(r => ({ value:r.value, label:r.label }));
 }
 
@@ -245,11 +254,11 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   if (expected) query = query.eq('status', expected);
   const { data: rec, error } = await query.select('*').maybeSingle();
   if (error) {
-    // The database is the authority for approval locks. Return its expected
-    // business conflict as a usable error rather than an internal server error.
-    if (error.code === 'P0001' && ['timesheets','changeOrders'].includes(def.id)
-        && ['Return the approved record to draft before changing it', 'Return the approved record to draft before changing its status'].includes(error.message))
-      return { ok:false as const, errors:{ _:'Return the approved record to draft before making changes.' }, status:409 as const };
+    // The database trigger is the authority for approval locks and workflow
+    // order. Its messages are safe, deliberate business text — surface them
+    // as a 409 conflict instead of a generic 500.
+    if (error.code === 'P0001' && ['timesheets','changeOrders'].includes(def.id))
+      return { ok:false as const, errors:{ _: error.message || 'This approval action is not allowed right now.' }, status:409 as const };
     dbError(error);
   }
   if (!rec) return { ok:false as const, errors:{ _:'This record changed while you were editing. Refresh and try again.' }, status:409 as const };

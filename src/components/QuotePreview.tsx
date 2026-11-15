@@ -33,15 +33,15 @@ export default function QuotePreview({
       <div><p className="text-[10px] font-semibold uppercase tracking-wide muted">Status</p><div className="mt-1"><Badge tone={draft.status === 'DRAFT' ? 'slate' : 'green'}>{draft.status.replace(/_/g, ' ')}</Badge></div></div>
     </div>
     <div className="px-5 py-4">
-      <div className="mb-2 grid grid-cols-[minmax(0,1fr)_50px_85px] gap-2 border-b divider pb-2 text-[10px] font-semibold uppercase tracking-wide muted">
-        <span>Description</span><span className="text-right">Qty</span><span className="text-right">Amount</span>
+      <div className="mb-2 grid grid-cols-[minmax(0,1fr)_50px_70px_85px] gap-2 border-b divider pb-2 text-[10px] font-semibold uppercase tracking-wide muted">
+        <span>Description</span><span className="text-right">Qty</span><span className="text-right">Unit</span><span className="text-right">Amount</span>
       </div>
       <div className="space-y-2">
         {!shown.length && <p className="py-5 text-center text-xs muted">Add a priced line to see it here.</p>}
-        {shown.map((l, i) => <div key={i} className="grid grid-cols-[minmax(0,1fr)_50px_85px] gap-2 text-xs">
+        {shown.map((l, i) => <div key={i} className="grid grid-cols-[minmax(0,1fr)_50px_70px_85px] gap-2 text-xs">
           <div className="min-w-0"><p className="truncate font-medium text-ink-800 dark:text-slate-200">{l.description}</p>
             <p className="truncate text-[10px] muted">{l.detail || LINE_CATEGORIES.find(c => c.id === l.category)?.label}</p></div>
-          <span className="text-right tabular-nums muted">{l.qty}</span>
+          <span className="text-right tabular-nums muted">{l.qty}</span><span className="text-right tabular-nums muted">{l.unit||"—"}</span>
           <span className="text-right font-medium tabular-nums">{formatMoney(l.qty * l.unitPrice, draft.currency)}</span>
         </div>)}
         {more > 0 && <p className="pt-1 text-[10px] muted">+ {more} more line{more === 1 ? '' : 's'} in the full quotation</p>}

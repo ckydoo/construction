@@ -67,3 +67,61 @@ Live-verified after deploy: myla.co.zw 200, app.myla.co.zw 307→login, login 20
 strings on landing. Note: the tester password in TEST_HERE.md no longer authenticates
 against production (local smoke with it was rejected — likely rotated); report kept
 limited to read-only data checks and unauthenticated probes.
+
+## Round-2 QA-fix release — prepared 2026-11-15 (NOT deployed)
+Code-complete, build-green (`next build`), awaiting owner go-ahead for deploy.
+Addresses the round-2 live-QA findings (TESTER CONSTRUCTIONS, 2026-11-15):
+
+- D01 Forecast totals: jobs with no approved budget and no cost basis are excluded
+  from company forecast-final-cost/margin totals; their forecast is shown as
+  unavailable (never zero-cost 100% margin). Jobs whose only cost signal is the
+  awarded quote's proposed cost (or actuals alone) get a clearly-labelled
+  *provisional* forecast on their row, excluded from headline company totals and
+  reported separately ("Awaiting budget" card + provisional banner). Planning/bid
+  jobs now appear in the profitability view with provisional forecasts (labelled),
+  closing D08's silent disappearance; view scope is stated on-page and in the
+  method grid. Verified against the round-2 scenario (revised 23,419 → margin
+  4,359 provisional).
+- D02 Timesheet approval: DRAFT can no longer jump straight to APPROVED — list
+  dropdowns and the edit drawer only offer state-machine-valid targets
+  (`allowedStatusOptions`); the API refuses out-of-machine targets with 400 and a
+  plain message; database-trigger conflicts (P0001) now surface the trigger's real
+  business text as 409 instead of a generic 500/"Something went wrong". Approval
+  still goes through the `SUBMITTED` queue, so exactly one approval (and one
+  derivation of labour cost) happens; retrying cannot double-post labour cost.
+  Workflow QA updated (draft-skip-to-approved now asserted blocked).
+- D03 Dashboard receivables: the only remaining all-record invoice sums were
+  audited — `overview` route already counts issued invoices only (bb2bd47); the
+  round-2 "345 / ~34.8k" is consistent with the tester reading pre-deploy data
+  (timing vs bb2bd47 unconfirmed). Code now double-safe; confirm against
+  production after the next deploy with a hard refresh.
+- D04 Allocation/reversal: receipt allocation and receipt creation fail fast with
+  specific reasons (client mismatch, currency mismatch, draft/void/settled
+  invoice, outstanding-balance exceeded, receipt total exceeded, reversed receipt);
+  invoice pickers (record-and-allocate form + allocate controls) list only issued,
+  outstanding, same-client, same-currency invoices; rejection reasons are shown
+  inline on the receipt panel (not only in a toast); reversed receipts no longer
+  appear to hold available credit (banner + zero unallocated + allocations marked
+  Reversed) and cannot be allocated; payment (receipt) status transitions now go
+  through dedicated actions (REVERSED blocked manually; RECONCILED only from
+  CLEARED).
+- D05 Receipt detail: reversed receipts state the historical amount explicitly and
+  present zero available credit. (Fixed with D04.)
+- D06 Journal honesty: journals are draft-only end-to-end — description, reports
+  tile and module copy state posting/period control are not supported; POSTED
+  blocked (already) and manual REVERSED now blocked; legacy POSTED/REVERSED
+  journals may only move back to DRAFT; a legacy incomplete POSTED journal needs a
+  data decision (production review) — no posting has been enabled.
+- D07 Units of measure: BOQ/quote lines carry a separate unit (m³/t/bags/hour/sum
+  …) through quote templates → quote builder → estimate/contract/tender lines →
+  variation → valuation → invoice → preview/print → CSV item export. The shared
+  columns now show UoM next to Qty; the mislabelled "Unit" (rate) column in the
+  record detail now reads "Rate"; built-in quote templates are unit-tagged.
+- Not code: D-series items blocked on owner/business actions (excluded modules —
+  purchasing, stock, plant, diaries, safety, payroll, payment certificates/
+  retention; multi-role/tenant release tests) remain open.
+User-copy QA: 3/6 checks pass; the three failures (settings-page copy token,
+accept-invite/login screen copy scan, deployed-copy probe requiring tester
+credentials) are pre-existing on the previous commit and unrelated to this round.
+NEXT: owner go-ahead to deploy; confirm D02/D03/D05 fixes re-tested on
+app.myla.co.zw; tester credentials in TEST_HERE.md need rotating/confirming.

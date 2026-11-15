@@ -7,7 +7,7 @@ import { billingMode } from '@/lib/billing';
 import { buildScope } from '@/lib/access';
 import { getRecord } from '@/lib/records';
 import { hasServiceKey, supabaseAdmin } from '@/lib/supabase';
-import { cents } from '@/lib/receipt-allocation';
+import { cents, decimal } from '@/lib/receipt-allocation';
 type Ctx = {params:Promise<{org:string}>};
 const uuid=(s:unknown)=>typeof s==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 const fail=(error:string,status:number)=>NextResponse.json({error},{status});
@@ -31,9 +31,20 @@ export async function POST(req:Request,{params}:Ctx){
   if(!x||typeof x.invoiceId!=='string'||!x.invoiceId||seen.has(x.invoiceId)||typeof x.amount!=='string')return fail('Invalid or duplicate invoice.',400);
   seen.add(x.invoiceId); let n:bigint;try{n=cents(x.amount);}catch{return fail('Enter valid allocation amounts.',400);}
   if(n<=0n||n>BigInt(Number.MAX_SAFE_INTEGER))return fail('Allocation amount is out of range.',400);
-  if(!await getRecord(a.orgId,'arInvoices',x.invoiceId,scope))return fail('Invoice not found or not accessible.',403);
+  const invoice=await getRecord(a.orgId,'arInvoices',x.invoiceId,scope);
+  if(!invoice)return fail('Invoice not found or not accessible.',403);
+  const invStatus=String(invoice.status||'').toUpperCase();
+  if(['DRAFT','VOID'].includes(invStatus))return fail('This invoice has not been issued yet, or it is void. Only issued invoices can be settled.',422);
+  if(invStatus==='PAID')return fail('This invoice is already settled.',422);
+  if(String(invoice.clientId||'')&&String(invoice.clientId)!==clientId)return fail('This invoice belongs to a different client than the receipt.',422);
+  const invoiceCurrency=String(invoice.currency||'').toUpperCase();
+  if(invoiceCurrency&&invoiceCurrency!==currency)return fail(`This receipt is in ${currency} but the invoice is in ${invoiceCurrency}. Allocate in the same currency.`,422);
+  let outstanding:bigint;try{outstanding=cents(String(invoice.total))-cents(String(invoice.amountPaid||'0'));}catch{outstanding=0n;}
+  if(outstanding<0n)outstanding=0n;
+  if(n>outstanding)return fail(`This allocation is more than the invoice's outstanding balance (${decimal(outstanding)} ${invoiceCurrency||currency}).`,422);
   lines.push({invoiceId:x.invoiceId,amountMinor:Number(n)});
  }
+ const allocatedTogether=cents(r.amount);let allocationTotal=0n;for(const l of lines){allocationTotal+=BigInt(l.amountMinor);}if(allocationTotal>allocatedTogether)return fail('The allocations add up to more than the receipt amount.',422);
  const payload={name,clientId,currency,method,paymentDate,amount:r.amount,projectId,reference:typeof r.reference==='string'?r.reference.trim().slice(0,200):''};
  const {data,error}=await supabaseAdmin().rpc('draft_create_receipt_v2',{p_org:a.orgId,p_actor:a.userId,p_request:body.requestId,p_receipt:payload,p_lines:lines,p_billing_enabled:billingMode()==='qa'||billingMode()==='live'});
  if(error)return fail('Receipt could not be confirmed. Retry the same request before changing any details.',409);

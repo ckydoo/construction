@@ -83,10 +83,13 @@ check('pending status transitions are guarded', () => {
   if (!blocked.ok) assert.match(blocked.error, /Use an action button in My work/);
   const allowed = validateWorkflowTransition('timesheets', 'SUBMITTED', 'APPROVED', 'OWNER');
   assert.equal(allowed.ok, true);
-  const draft = validateWorkflowTransition('timesheets', 'DRAFT', 'POSTED', 'OWNER');
-  assert.equal(draft.ok, true, 'draft states must remain flexible');
+  const draft = validateWorkflowTransition('timesheets', 'DRAFT', 'SUBMITTED', 'OWNER');
+  assert.equal(draft.ok, true, 'a draft timesheet can still be submitted');
   if (draft.ok) assert.equal(draft.guarded, false);
-  return 'blocked bypass · allowed decision · draft unchanged';
+  const skip = validateWorkflowTransition('timesheets', 'DRAFT', 'APPROVED', 'OWNER');
+  assert.equal(skip.ok, false, 'a draft timesheet must not jump straight to approved');
+  if (!skip.ok) assert.match(skip.error, /Submit it for approval first/);
+  return 'blocked bypass · allowed decision · draft submit kept · jump blocked';
 });
 
 check('assignment wording is role-aware', () => {

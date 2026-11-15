@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
 import { validateFields } from '@/lib/field-validation';
 import { taxDefault } from '@/lib/tax-settings';
+import { allowedStatusOptions } from '@/lib/workflow';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
 
@@ -70,7 +71,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
     const common=`input ${errors[f.key]?'border-red-400 focus:ring-red-400/30':''}`;
     switch(f.type){
       case 'textarea': return <textarea className={`${common} min-h-[76px] resize-y py-2`} value={v??''} onChange={e=>set(f.key,e.target.value)} placeholder={f.placeholder||`Enter ${f.label.toLowerCase()}`}/>;
-      case 'select': return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">Select…</option>{(f.options||[]).map(o=><option key={o} value={o}>{o.replace(/_/g,' ')}</option>)}</select>;
+      case 'select': { const options = f.key==='status' ? allowedStatusOptions(def.id, String(v??''), f.options||[]) : (f.options||[]); return <select className={`select ${errors[f.key]?'border-red-400':''}`} value={v??''} onChange={e=>set(f.key,e.target.value)}><option value="">Select…</option>{options.map(o=><option key={o} value={o}>{o.replace(/_/g,' ')}</option>)}</select>; }
       case 'ref': {
         const opts=refs[f.ref||'']||[];
         return <SearchSelect org={org} resource={f.ref||''} value={v??''} onChange={x=>set(f.key,x)}

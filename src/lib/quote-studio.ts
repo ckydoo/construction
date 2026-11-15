@@ -75,8 +75,10 @@ function quoteLine(raw: any, fallback: LineCategory = 'materials'): QuoteLine {
 
 const line = (
   description: string, detail: string, qty: number, unitPrice: number, category: LineCategory,
+  unit?: string,
 ): QuoteLine => ({
   description, detail, qty, unitPrice, total: round2(qty * unitPrice), category,
+  ...(unit ? { unit } : {}),
 });
 
 export function blankQuoteDraft(): QuoteDraft {
@@ -95,11 +97,11 @@ export const BUILT_IN_QUOTE_TEMPLATES: QuoteTemplate[] = [
       name:'Interior renovation quotation', workType:'Fit-out / refurb', currency:'USD', markup:18,
       scope:'Includes labour, standard materials, site cleaning and handover. Excludes structural alterations, statutory approvals and items not listed below. Valid for 30 days.',
       items:[
-        line('Strip out and prepare existing areas', 'Protect adjacent finishes; remove nominated fixtures', 1, 1800, 'labour'),
-        line('Supply plasterboard, trims and fixings', 'Standard specification, delivered to site', 1, 2600, 'materials'),
-        line('Install partitions and ceilings', 'Setting out, framing, boarding and jointing', 48, 32, 'labour'),
-        line('Paint and finish', 'Two coats to prepared surfaces', 1, 1450, 'subcontract'),
-        line('Site supervision and cleaning', 'Daily checks, waste removal and final clean', 1, 850, 'overheads'),
+        line('Strip out and prepare existing areas', 'Protect adjacent finishes; remove nominated fixtures', 1, 1800, 'labour', 'sum'),
+        line('Supply plasterboard, trims and fixings', 'Standard specification, delivered to site', 1, 2600, 'materials', 'sum'),
+        line('Install partitions and ceilings', 'Setting out, framing, boarding and jointing', 48, 32, 'labour', 'm²'),
+        line('Paint and finish', 'Two coats to prepared surfaces', 1, 1450, 'subcontract', 'sum'),
+        line('Site supervision and cleaning', 'Daily checks, waste removal and final clean', 1, 850, 'overheads', 'sum'),
       ],
     },
   },
@@ -110,11 +112,11 @@ export const BUILT_IN_QUOTE_TEMPLATES: QuoteTemplate[] = [
       name:'Concrete works quotation', workType:'Civil / roads', currency:'USD', markup:15,
       scope:'Includes setting out, excavation, blinding, reinforcement, concrete placement and curing. Excludes spoil removal off site, testing fees and unforeseen underground services. Valid for 30 days.',
       items:[
-        line('Bulk excavation', 'Machine and hand trim to formation level', 120, 18, 'plant'),
-        line('Blinding concrete', '50 mm class 15/20 blinding', 18, 95, 'materials'),
-        line('Reinforcement supply and fix', 'B500B mesh and bars as per drawings', 2.4, 1450, 'subcontract'),
-        line('Structural concrete', 'Class 30/37, placed, vibrated and cured', 46, 185, 'materials'),
-        line('Formwork and finishing', 'Edge forms and power-floated surface', 1, 3200, 'labour'),
+        line('Bulk excavation', 'Machine and hand trim to formation level', 120, 18, 'plant', 'm³'),
+        line('Blinding concrete', '50 mm class 15/20 blinding', 18, 95, 'materials', 'm³'),
+        line('Reinforcement supply and fix', 'B500B mesh and bars as per drawings', 2.4, 1450, 'subcontract', 'tonne'),
+        line('Structural concrete', 'Class 30/37, placed, vibrated and cured', 46, 185, 'materials', 'm³'),
+        line('Formwork and finishing', 'Edge forms and power-floated surface', 1, 3200, 'labour', 'm²'),
       ],
     },
   },
@@ -125,10 +127,10 @@ export const BUILT_IN_QUOTE_TEMPLATES: QuoteTemplate[] = [
       name:'Reactive maintenance quotation', workType:'Commercial building', currency:'USD', markup:22,
       scope:'Includes one site attendance during normal working hours, diagnosis, minor consumables and a short written report. Replacement parts and follow-up works are quoted separately. Valid for 14 days.',
       items:[
-        line('Call-out and site attendance', 'Travel, inspection and fault diagnosis', 1, 180, 'labour'),
-        line('Skilled technician', 'Up to four hours on site', 4, 45, 'labour'),
-        line('Minor consumables', 'Sealants, fixings and standard spares', 1, 95, 'materials'),
-        line('Supervision and report', 'Quality check and close-out note', 1, 75, 'overheads'),
+        line('Call-out and site attendance', 'Travel, inspection and fault diagnosis', 1, 180, 'labour', 'sum'),
+        line('Skilled technician', 'Up to four hours on site', 4, 45, 'labour', 'hour'),
+        line('Minor consumables', 'Sealants, fixings and standard spares', 1, 95, 'materials', 'sum'),
+        line('Supervision and report', 'Quality check and close-out note', 1, 75, 'overheads', 'sum'),
       ],
     },
   },
@@ -139,11 +141,11 @@ export const BUILT_IN_QUOTE_TEMPLATES: QuoteTemplate[] = [
       name:'Electrical installation quotation', workType:'Commercial building', currency:'USD', markup:20,
       scope:'Includes containment, cabling, final connections, labelling and a standard test certificate. Excludes utility fees, standby power and builder work. Valid for 30 days.',
       items:[
-        line('Cable trays and conduit', 'Supply and fix galvanised containment', 65, 22, 'materials'),
-        line('Power and lighting cable', 'Sized and installed to approved layout', 420, 6.5, 'materials'),
-        line('Distribution board', '12-way board with protective devices', 1, 1450, 'materials'),
-        line('Installation labour', 'Electrician and assistant', 36, 48, 'labour'),
-        line('Testing and commissioning', 'Continuity, insulation and functional tests', 1, 620, 'subcontract'),
+        line('Cable trays and conduit', 'Supply and fix galvanised containment', 65, 22, 'materials', 'm'),
+        line('Power and lighting cable', 'Sized and installed to approved layout', 420, 6.5, 'materials', 'm'),
+        line('Distribution board', '12-way board with protective devices', 1, 1450, 'materials', 'no'),
+        line('Installation labour', 'Electrician and assistant', 36, 48, 'labour', 'hour'),
+        line('Testing and commissioning', 'Continuity, insulation and functional tests', 1, 620, 'subcontract', 'sum'),
       ],
     },
   },

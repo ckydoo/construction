@@ -18,6 +18,8 @@ export type DocLine = {
   description: string;
   detail: string;
   qty: number;
+  /** Measurement unit for the quantity (m3, kg, tonne, bag, lump sum…). Free text, kept separate from the rate. */
+  unit?: string;
   unitPrice: number;
   total: number;
   /** Optional pricing bucket used by Quote Studio and cost roll-ups. */
@@ -93,7 +95,8 @@ const normaliseLine = (raw: any): DocLine | null => {
   if (!description && !detail && !unitPrice && !total) return null;
   const rawCategory = raw && typeof raw === 'object' && raw.category != null ? String(raw.category) : '';
   const category = LINE_CATEGORIES.some(c => c.id === rawCategory) ? rawCategory as LineCategory : undefined;
-  return { description: description || 'Item', detail, qty, unitPrice, total, ...(category ? { category } : {}) };
+  const unit = raw && typeof raw === 'object' && raw.unit != null ? s(raw.unit, 20) : '';
+  return { description: description || 'Item', detail, qty, ...(unit ? { unit } : {}), unitPrice, total, ...(category ? { category } : {}) };
 };
 
 export function normaliseLines(raw: any): DocLine[] {

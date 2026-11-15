@@ -43,6 +43,9 @@ export function recordInvariantErrors(resource: string, row: Record<string, any>
   if (resource === 'journals' && status === 'POSTED') {
     errors.status = 'Journal posting is unavailable until balanced ledger entries and accounting periods are supported. Save as draft.';
   }
+  if (resource === 'journals' && status === 'REVERSED' && oldStatus !== 'REVERSED') {
+    errors.status = 'Journal reversal is not a supported action yet. Save as draft.';
+  }
   if (resource === 'arInvoices') {
     if (['ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'].includes(status)) {
       if (!String(row.clientId || '').trim()) errors.clientId = 'Select a client before issuing this invoice.';
@@ -58,6 +61,14 @@ export function recordInvariantErrors(resource: string, row: Record<string, any>
     }
     if (['PAID', 'PARTIALLY_PAID'].includes(status) && status !== oldStatus) {
       errors.status = 'Payment status cannot be set manually until payment reconciliation is supported.';
+    }
+  }
+  if (resource === 'payments') {
+    if (status === 'REVERSED' && oldStatus !== 'REVERSED') {
+      errors.status = 'A receipt can only be reversed with the “Reverse receipt” action on its detail view.';
+    }
+    if (status === 'RECONCILED' && oldStatus !== 'RECONCILED' && oldStatus !== 'CLEARED') {
+      errors.status = 'Only a cleared receipt can be marked reconciled.';
     }
   }
   return errors;

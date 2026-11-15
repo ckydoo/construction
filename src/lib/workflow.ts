@@ -221,24 +221,97 @@ export function resolveWorkflowAction(resource: string, from: string, actionId: 
 }
 
 /** Used by the generic PATCH route so a status dropdown cannot bypass approvals. */
+/** True when `to` is a status the user may pick from `from` for this resource. Resources without a defined rule keep all options. */
+export function workflowAllowedTargets(resource: string, from: string): string[] | null {
+  const up = (v: string) => String(v || '').toUpperCase();
+  const f = up(from);
+  const all = ['DRAFT','SUBMITTED','UNDER_REVIEW','APPROVED','REJECTED','POSTED','RECONCILED','CLEARED','PENDING','ISSUED','OVERDUE','PARTIALLY_PAID','PAID','VOID','INCLUDED_IN_CERT','REVERSED'];
+  const withCurrent = (...allowed: string[]) => { const set = new Set(allowed.map(up)); if (f) set.add(f); return all.filter(o => set.has(o)); };
+  switch (resource) {
+    case 'timesheets':
+      if (f === 'DRAFT') return withCurrent('DRAFT', 'SUBMITTED');
+      if (f === 'SUBMITTED') return withCurrent('SUBMITTED', 'APPROVED', 'REJECTED', 'DRAFT');
+      if (f === 'REJECTED') return withCurrent('REJECTED', 'DRAFT', 'SUBMITTED');
+      if (f === 'APPROVED') return withCurrent('APPROVED', 'POSTED', 'DRAFT');
+      if (f === 'POSTED') return withCurrent('POSTED', 'APPROVED', 'DRAFT');
+      return [f];
+    case 'changeOrders':
+      if (f === 'DRAFT') return withCurrent('DRAFT', 'SUBMITTED');
+      if (f === 'SUBMITTED') return withCurrent('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'DRAFT');
+      if (f === 'UNDER_REVIEW') return withCurrent('UNDER_REVIEW', 'SUBMITTED', 'APPROVED', 'REJECTED', 'DRAFT');
+      if (f === 'APPROVED') return withCurrent('APPROVED', 'INCLUDED_IN_CERT', 'DRAFT');
+      if (f === 'INCLUDED_IN_CERT') return withCurrent('INCLUDED_IN_CERT', 'APPROVED', 'DRAFT');
+      if (f === 'REJECTED') return withCurrent('REJECTED', 'DRAFT', 'SUBMITTED');
+      return [f];
+    case 'payments':
+      // Allocation and reversal post through the dedicated receipt actions.
+      if (f === 'PENDING') return withCurrent('PENDING', 'CLEARED', 'RECONCILED');
+      if (f === 'CLEARED') return withCurrent('CLEARED', 'RECONCILED');
+      if (f === 'RECONCILED') return withCurrent('RECONCILED', 'CLEARED');
+      if (f === 'REVERSED') return ['REVERSED'];
+      return [f];
+    case 'arInvoices':
+      // Payment states belong to the allocation transaction, not the dropdown.
+      if (f === 'DRAFT') return withCurrent('DRAFT', 'ISSUED');
+      if (f === 'ISSUED') return withCurrent('ISSUED', 'OVERDUE', 'VOID');
+      if (f === 'OVERDUE') return withCurrent('OVERDUE', 'ISSUED', 'VOID');
+      if (f === 'PARTIALLY_PAID') return withCurrent('PARTIALLY_PAID');
+      if (f === 'PAID') return withCurrent('PAID');
+      return [f];
+    case 'journals':
+      // Posting is not supported. A legacy POSTED/REVERSED record may only move
+      // back to DRAFT for corrective review — POSTED/REVERSED are never offered.
+      return ['DRAFT', ...(f && ['POSTED', 'REVERSED'].includes(f) ? [f] : [])];
+    default:
+      return null;
+  }
+}
+
 export function validateWorkflowTransition(resource: string, from: string, to: string, role: string) {
   const rule = workflowRule(resource);
-  if (!rule || !to || to === from) return { ok: true as const, guarded: false as const };
-  if (!rule.pending.includes(String(from || ''))) return { ok: true as const, guarded: false as const };
-  const action = rule.actions.find(a => a.to === to);
-  if (!action) {
+  const target = String(to || '').toUpperCase();
+  if (!to || target === String(from || '').toUpperCase()) return { ok: true as const, guarded: false as const };
+  if (rule && rule.pending.includes(String(from || ''))) {
+    const action = rule.actions.find(a => a.to === to);
+    if (!action) {
+      return {
+        ok: false as const, guarded: true as const, status: 400 as const,
+        error: `A ${rule.singular.toLowerCase()} in ${from} can only move to ${rule.actions.map(a => a.to).join(', ')}. Use an action button in My work.`,
+      };
+    }
+    if (!action.roles.includes(role)) {
+      return {
+        ok: false as const, guarded: true as const, status: 403 as const,
+        error: 'Your role is not permitted to take this action. Use My work or ask an approver.',
+      };
+    }
+    return { ok: true as const, guarded: true as const, action };
+  }
+  // Outside a pending queue: still refuse targets the state machine never
+  // allows (e.g. DRAFT straight to APPROVED). Otherwise keep legacy freedom.
+  const allowed = workflowAllowedTargets(resource, from);
+  if (allowed && !allowed.includes(target)) {
+    const ruleName = rule?.singular?.toLowerCase() || resource;
     return {
       ok: false as const, guarded: true as const, status: 400 as const,
-      error: `A ${rule.singular.toLowerCase()} in ${from} can only move to ${rule.actions.map(a => a.to).join(', ')}. Use an action button in My work.`,
+      error: `A ${ruleName} in ${String(from || '').toUpperCase()} can only move to ${allowed.join(', ')}. Submit it for approval first.`,
     };
   }
-  if (!action.roles.includes(role)) {
-    return {
-      ok: false as const, guarded: true as const, status: 403 as const,
-      error: 'Your role is not permitted to take this action. Use My work or ask an approver.',
-    };
-  }
-  return { ok: true as const, guarded: true as const, action };
+  return { ok: true as const, guarded: false as const };
+}
+
+/**
+ * Allowed status targets from `from` for the status dropdowns, so the UI never
+ * offers a transition the database trigger will reject (or that belongs to a
+ * dedicated posting/allocation action). Unknown resources keep all options.
+ * The server remains the authority; this just stops impossible jumps.
+ */
+export function allowedStatusOptions(resource: string, from: string, options: string[]): string[] {
+  const f = String(from || '').toUpperCase();
+  const allowed = workflowAllowedTargets(resource, from);
+  if (!allowed) return options;
+  const set = new Set(allowed);
+  return options.filter(o => set.has(String(o).toUpperCase()));
 }
 
 export function workflowAssignedRole(resource: string, role: string): string {

@@ -23,7 +23,7 @@ const REPORTS = [
     {title:'Certificates & retention',desc:'Work certified, retention held, advances and net due',resource:'paymentApps',icon:'Landmark'},
     {title:'Budget vs actual',desc:'What you planned, committed and actually spent',resource:'budgets',icon:'PieChart'},
     {title:'Money in & out',desc:'Client receipts and payments to suppliers',resource:'payments',icon:'Banknote'},
-    {title:'Accounting entries',desc:'Posted and draft entries by month and account',resource:'journals',icon:'BookOpen'},
+    {title:'Accounting entries',desc:'Draft journal entries by month and account — posting not yet supported',resource:'journals',icon:'BookOpen'},
   ]},
   { group:'Site & materials', items:[
     {title:'Orders & deliveries',desc:'Material requests, orders and goods received',resource:'purchaseOrders',icon:'ShoppingCart'},

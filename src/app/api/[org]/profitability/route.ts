@@ -13,7 +13,8 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const INCLUDED_PROJECT_STATUSES = new Set(['ACTIVE', 'ON_HOLD', 'COMPLETED', 'CLOSED']);
+// Planning and bid-stage jobs are shown with provisional forecasts (clearly labelled, excluded from company forecast totals) so they are not silently hidden.
+const INCLUDED_PROJECT_STATUSES = new Set(['ACTIVE', 'ON_HOLD', 'COMPLETED', 'CLOSED', 'PLANNING', 'BID']);
 
 function groupByProject(rows: any[] = []) {
   const out = new Map<string, any[]>();

@@ -56,11 +56,13 @@ export default function QuoteLinesEditor({
             <button type="button" className="rounded p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Remove line" onClick={() => remove(i)}><Icon name="Trash2" size={13}/></button>
           </div>
         </div>
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_90px_120px]">
+        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_84px_90px_120px]">
           <input className={`${input} sm:col-span-3`} value={l.description} onChange={e => update(i, { description: e.target.value })}
             placeholder="What work or material is this?"/>
           <input className={`${input} muted`} value={l.detail} onChange={e => update(i, { detail: e.target.value })}
             placeholder="Optional detail / specification"/>
+          <label className="relative"><span className="absolute left-2 top-2 text-[10px] uppercase muted">Unit</span>
+            <input className={`${input} pl-10`} value={l.unit||''} onChange={e => update(i, { unit: e.target.value })} placeholder="m³" aria-label={`Line ${i + 1} unit of measure`}/></label>
           <label className="relative"><span className="absolute left-2 top-2 text-[10px] uppercase muted">Qty</span>
             <input className={`${input} pl-9 text-right`} type="number" min="0" step="any" value={l.qty}
               onChange={e => update(i, { qty: e.target.value === '' ? 0 : Number(e.target.value) })}/></label>
@@ -78,6 +80,6 @@ export default function QuoteLinesEditor({
         <Icon name="Plus" size={11} className="mr-1 inline"/>{c.label}</button>)}
       <span className="ml-auto text-xs font-semibold tabular-nums text-ink-900 dark:text-white">Cost subtotal {formatMoney(subtotal, currency)}</span>
     </div>
-    <p className="caption">Enter a description, quantity and unit rate. The builder recalculates each line, the five cost buckets and the final total as you type.{preference&&displayCurrency!==currency&&<> Rates are entered in {currency}; displayed totals are shown in {displayCurrency}.</>}</p>
+    <p className="caption">Enter a description, unit of measure, quantity and unit rate. The builder recalculates each line, the five cost buckets and the final total as you type.{preference&&displayCurrency!==currency&&<> Rates are entered in {currency}; displayed totals are shown in {displayCurrency}.</>}</p>
   </div>;
 }

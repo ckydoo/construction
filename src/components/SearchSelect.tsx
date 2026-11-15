@@ -12,11 +12,13 @@ type Opt = { value:string; label:string };
 
 export default function SearchSelect({
   org, resource, value, onChange, placeholder='Type to search…', label,
-  disabled=false, allowClear=true, initialLabel, className='', pageSize=25,
+  disabled=false, allowClear=true, initialLabel, className='', pageSize=25, query,
 }:{
   org:string; resource:string; value?:string|null; onChange:(v:string)=>void;
   placeholder?:string; label?:string; disabled?:boolean; allowClear?:boolean;
   initialLabel?:string; className?:string; pageSize?:number;
+  /** Extra query string locked to this picker, e.g. "issued=1&clientId=abc&currency=USD". */
+  query?:string;
 }){
   const [open,setOpen]=useState(false);
   const [term,setTerm]=useState('');
@@ -34,9 +36,10 @@ export default function SearchSelect({
   useEffect(()=>{ const t=setTimeout(()=>setDebounced(term.trim()),250); return()=>clearTimeout(t); },[term]);
   useEffect(()=>{ setActive(0); },[debounced,open]);
 
+  const locked = query ? `&${query.replace(/^&/,'')}` : '';
   const {data:searchData,isFetching}=useQuery<{options:Opt[]}>({
-    queryKey:['refSearch',org,resource,debounced,pageSize],
-    queryFn:()=>apiGet(orgApi(org,`records/${resource}?mode=refs&limit=${pageSize}&q=${encodeURIComponent(debounced)}`)),
+    queryKey:['refSearch',org,resource,debounced,pageSize,locked],
+    queryFn:()=>apiGet(orgApi(org,`records/${resource}?mode=refs&limit=${pageSize}&q=${encodeURIComponent(debounced)}${locked}`)),
     enabled:mounted&&open,
     staleTime:30_000,
   });

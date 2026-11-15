@@ -52,8 +52,10 @@ function pricedLines(items: any, markupPct: any, fallback: any, label: string) {
     description: l.description,
     detail: l.detail,
     qty: l.qty,
+    ...(l.unit ? { unit: l.unit } : {}),
     unitPrice: round2(l.unitPrice * factor),
     total: round2(l.total * factor),
+    ...(l.category ? { category: l.category } : {}),
   }));
   if (lines.length) return lines;
   const v = amount(fallback);

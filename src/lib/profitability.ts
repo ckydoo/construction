@@ -55,6 +55,12 @@ export type ProfitabilityJob = {
   missingRates: string[];
   tone: ProfitabilityTone;
   statusLabel: string;
+  /** Where the forecast-to-complete came from. 'unknown' means no budget, no proposed cost and no actuals — the job is excluded from company forecast totals. */
+  forecastBasis: 'budget' | 'proposed-cost' | 'actual-cost' | 'unknown';
+  /** True when the forecast rests on the awarded quote's proposed cost (or actuals alone) because no approved budget exists. Shown, but labelled provisional and kept out of headline company totals. */
+  marginProvisional: boolean;
+  /** False when nothing supports a forecast; job is excluded from company forecast totals entirely. */
+  forecastAvailable: boolean;
 };
 
 export type ProfitabilitySummary = {
@@ -74,6 +80,12 @@ export type ProfitabilitySummary = {
   currentMargin: number;
   forecastMargin: number;
   marginPct: number;
+  /** Jobs whose forecast uses the proposed cost (or actuals) for lack of an approved budget. */
+  provisionalJobs: number;
+  /** Jobs with no approved budget, no proposed cost and no actuals — excluded from forecast totals. */
+  unknownCostJobs: number;
+  /** Indicative margin of provisional jobs, shown separately — never mixed into forecastMargin. */
+  provisionalForecastMargin: number;
   atRisk: number;
   watch: number;
   onTrack: number;
@@ -204,9 +216,40 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
       : actualFromTransactions ? 'transactions' as const : 'none' as const;
 
   const forecastToCompleteFromLines = sumRows(budgetLines, 'forecastToComplete');
-  const costToComplete = forecastToCompleteFromLines
-    || Math.max(0, (budget || committed) - actualCost);
-  const forecastFinalCost = actualCost + costToComplete;
+  const proposedCost = inBase(p.proposedEstimateCost, p);
+  let forecastBasis: ProfitabilityJob['forecastBasis'];
+  let marginProvisional = false;
+  let forecastAvailable = true;
+  let costToComplete: number;
+  let forecastFinalCost: number;
+  if (forecastToCompleteFromLines > 0 || budget > 0) {
+    // Approved budget (or approved forecast lines) is the basis: reliable.
+    forecastBasis = 'budget';
+    costToComplete = forecastToCompleteFromLines || Math.max(0, budget - actualCost);
+    forecastFinalCost = actualCost + costToComplete;
+  } else if (proposedCost > 0) {
+    // No approved budget: the awarded quote's proposed cost is the only cost
+    // signal. Show the forecast, labelled provisional, and keep it out of
+    // headline company totals.
+    forecastBasis = 'proposed-cost';
+    marginProvisional = true;
+    costToComplete = Math.max(0, proposedCost - actualCost);
+    forecastFinalCost = actualCost + costToComplete;
+  } else if (actualCost > 0) {
+    // Actuals exist but nothing says what remains to be spent.
+    forecastBasis = 'actual-cost';
+    marginProvisional = true;
+    costToComplete = 0;
+    forecastFinalCost = actualCost;
+  } else {
+    // Unknown cost entirely — an unknown forecast must never become
+    // zero-cost 100% margin in the company totals.
+    forecastBasis = 'unknown';
+    marginProvisional = true;
+    forecastAvailable = false;
+    costToComplete = 0;
+    forecastFinalCost = 0;
+  }
   const costVariance = budget ? budget - forecastFinalCost : 0;
 
   const billed = sumRows(issuedInvoices, 'total');
@@ -223,8 +266,8 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
   const earnedValue = revisedContract * (progress / 100);
   const billingVariance = billed - earnedValue;
   const currentMargin = billed - actualCost;
-  const forecastMargin = revisedContract - forecastFinalCost;
-  const marginPct = revisedContract ? (forecastMargin / revisedContract) * 100 : 0;
+  const forecastMargin = forecastAvailable ? revisedContract - forecastFinalCost : 0;
+  const marginPct = forecastAvailable && revisedContract ? (forecastMargin / revisedContract) * 100 : 0;
 
   const categoryTotals = new Map<string, number>();
   for (const line of budgetLines) {
@@ -250,8 +293,12 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
 
   const flags: string[] = [];
   if (budget <= 0) flags.push('No approved budget');
-  if (forecastMargin < 0) flags.push('Forecast loss at completion');
-  else if (marginPct < 10) flags.push('Thin forecast margin');
+  if (forecastBasis === 'unknown') flags.push('Forecast unavailable — approve a budget');
+  else if (marginProvisional) flags.push('Provisional forecast (no approved budget)');
+  if (forecastAvailable) {
+    if (forecastMargin < 0) flags.push('Forecast loss at completion');
+    else if (marginPct < 10) flags.push('Thin forecast margin');
+  }
   if (budget > 0 && costVariance < -budget * 0.05) flags.push('Cost overrun forecast');
   if (revisedContract > 0 && billingVariance < -revisedContract * 0.1) flags.push('Underbilled for work done');
   if (revisedContract > 0 && billingVariance > revisedContract * 0.1) flags.push('Overbilled for work done');
@@ -260,7 +307,8 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
   if (missing.size) flags.push('Missing manual FX rate');
 
   let tone: ProfitabilityTone = 'green';
-  if (!revisedContract && !budget && !actualCost) tone = 'slate';
+  if (forecastBasis === 'unknown') tone = 'slate';
+  else if (!revisedContract && !budget && !actualCost) tone = 'slate';
   else if (forecastMargin < 0 || (budget > 0 && costVariance < -budget * 0.05) || marginPct < 5) tone = 'red';
   else if (flags.length) tone = 'amber';
   const statusLabel = tone === 'red' ? 'At risk'
@@ -289,14 +337,25 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
     marginPct: round2(marginPct),
 
     categories, flags, missingRates: Array.from(missing).sort(), tone, statusLabel,
+    forecastBasis, marginProvisional, forecastAvailable,
   };
 }
 
 export function summariseProfitability(jobs: ProfitabilityJob[]): ProfitabilitySummary {
   const total = (pick: (j: ProfitabilityJob) => number) => jobs.reduce((t, j) => t + num(pick(j)), 0);
   const revisedContract = total(j => j.revisedContract);
-  const forecastFinalCost = total(j => j.forecastFinalCost);
-  const forecastMargin = total(j => j.forecastMargin);
+  // Headline cost/forecast figures cover jobs whose forecast rests on an
+  // approved budget or approved forecast lines only. Provisional jobs are
+  // reported separately so they never inflate the company margin.
+  const confident = jobs.filter(j => j.forecastAvailable && !j.marginProvisional);
+  const confidentRevised = confident.reduce((t, j) => t + num(j.revisedContract), 0);
+  const forecastFinalCost = confident.reduce((t, j) => t + num(j.forecastFinalCost), 0);
+  const forecastMargin = confident.reduce((t, j) => t + num(j.forecastMargin), 0);
+  const costVariance = confident.reduce((t, j) => t + num(j.costVariance), 0);
+  const provisionalJobs = jobs.filter(j => j.forecastAvailable && j.marginProvisional).length;
+  const unknownCostJobs = jobs.filter(j => !j.forecastAvailable).length;
+  const provisionalForecastMargin = jobs.filter(j => j.forecastAvailable && j.marginProvisional).reduce((t, j) => t + num(j.forecastMargin), 0);
+  const marginPct = confidentRevised ? (forecastMargin / confidentRevised) * 100 : 0;
   return {
     projectCount: jobs.length,
     contractValue: round2(total(j => j.contractValue)),
@@ -305,7 +364,7 @@ export function summariseProfitability(jobs: ProfitabilityJob[]): ProfitabilityS
     committed: round2(total(j => j.committed)),
     actualCost: round2(total(j => j.actualCost)),
     forecastFinalCost: round2(forecastFinalCost),
-    costVariance: round2(total(j => j.costVariance)),
+    costVariance: round2(costVariance),
     billed: round2(total(j => j.billed)),
     certified: round2(total(j => j.certified)),
     received: round2(total(j => j.received)),
@@ -313,7 +372,8 @@ export function summariseProfitability(jobs: ProfitabilityJob[]): ProfitabilityS
     pendingVariations: round2(total(j => j.pendingVariations)),
     currentMargin: round2(total(j => j.currentMargin)),
     forecastMargin: round2(forecastMargin),
-    marginPct: round2(revisedContract ? (forecastMargin / revisedContract) * 100 : 0),
+    marginPct: round2(marginPct),
+    provisionalJobs, unknownCostJobs, provisionalForecastMargin: round2(provisionalForecastMargin),
     atRisk: jobs.filter(j => j.tone === 'red').length,
     watch: jobs.filter(j => j.tone === 'amber').length,
     onTrack: jobs.filter(j => j.tone === 'green').length,

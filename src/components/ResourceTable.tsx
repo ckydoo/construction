@@ -18,6 +18,7 @@ import ConvertFlow from './ConvertFlow';
 import { CONVERTIBLE_RESOURCE_IDS } from '@/lib/conversion-chain';
 import SearchSelect from './SearchSelect';
 import ReceiptAllocationForm from './ReceiptAllocationForm';
+import { allowedStatusOptions } from '@/lib/workflow';
 import { useRouter } from 'next/navigation';
 import { usePlatformPublic } from '@/lib/use-platform-public';
 
@@ -244,8 +245,8 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
             rows.map(r=><tr key={r.id} onClick={()=>openRow(r)} className={`group cursor-pointer transition hover:bg-slate-50 dark:hover:bg-ink-800/60 ${r._optimistic?'opacity-60':''}`}>
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
-                {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
-                  {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={mergedRefs} org={org} refsLoading={refsLoading}/>}
+                {c==='status'&&def.statusOptions&&canEdit?(()=>{const current=String(r.status||def.statusOptions[0]);const allowed=allowedStatusOptions(resource,current,def.statusOptions);return <select value={allowed.includes(current)?current:allowed[0]||current} onChange={e=>updateMut.mutate({id:r.id,values:{status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
+                  {allowed.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>;})():<Cell def={def} col={c} row={r} refs={mergedRefs} org={org} refsLoading={refsLoading}/>}
               </td>)}
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
                 {resource==='projects'&&<Link href={`/${org}/projects/${encodeURIComponent(r.id)}`} aria-label={`Open full page for ${r.title||r.number}`} title="Open full project page" className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700"><Lucide.ExternalLink size={14}/></Link>}

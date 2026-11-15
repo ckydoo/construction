@@ -263,12 +263,13 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
       </div>}
 
       <table className="fp-items">
-        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>UoM</th><th>Unit price</th><th>Subtotal</th></tr></thead>
         <tbody>
           {lines.map((l, i) => <tr key={`${i}-${l.description}`}>
             <td>{i + 1}</td>
             <td>{l.description}{l.detail && <span className="fp-item-detail">{l.detail}</span>}</td>
             <td>{num(l.qty, 2)}</td>
+            <td>{l.unit||"—"}</td>
             <td>{money(l.unitPrice, docCurrency)}</td>
             <td><strong>{money(l.total, docCurrency)}</strong></td>
           </tr>)}

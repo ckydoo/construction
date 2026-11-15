@@ -67,7 +67,7 @@ export default function ProfitabilityPage() {
   }, [jobs, tab, q, sort]);
 
   const exceptions = jobs.filter(j => j.flags.length).slice(0, 8);
-  const marginJobs = [...jobs].sort((a, b) => Math.abs(b.forecastMargin) - Math.abs(a.forecastMargin)).slice(0, 6);
+  const marginJobs = [...jobs].filter(j => j.forecastAvailable).sort((a, b) => Math.abs(b.forecastMargin) - Math.abs(a.forecastMargin)).slice(0, 6);
   const maxMargin = Math.max(...marginJobs.map(j => Math.abs(j.forecastMargin)), 1);
   const cards = summary ? [
     { label: 'Jobs in view', value: num(summary.projectCount), sub: `${summary.onTrack} on track · ${summary.watch} watch · ${summary.atRisk} at risk`, icon: 'HardHat', tone: 'blue' },
@@ -77,7 +77,12 @@ export default function ProfitabilityPage() {
     { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.certified, true)} certified for payment`, icon: 'FileText', tone: 'slate' },
     { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding`, icon: 'Banknote', tone: 'slate' },
     { label: 'Current margin', value: fmtSigned(summary.currentMargin, true), sub: 'Billed less actual cost', icon: 'TrendingUp', tone: metricTone(summary.currentMargin) },
-    { label: 'Forecast margin', value: fmtSigned(summary.forecastMargin, true), sub: `${pct(summary.marginPct)} of revised contract`, icon: 'Target', tone: metricTone(summary.forecastMargin) },
+    { label: 'Forecast margin', value: fmtSigned(summary.forecastMargin, true),
+      sub: `${pct(summary.marginPct)} of revised contract${summary.provisionalJobs + summary.unknownCostJobs > 0 ? ' · approved budgets only' : ''}`,
+      icon: 'Target', tone: metricTone(summary.forecastMargin) },
+    ...(summary.provisionalJobs + summary.unknownCostJobs > 0 ? [{ label: 'Awaiting budget', value: `${summary.provisionalJobs + summary.unknownCostJobs} job${summary.provisionalJobs + summary.unknownCostJobs === 1 ? '' : 's'}`,
+      sub: `${summary.unknownCostJobs ? `${summary.unknownCostJobs} with no cost basis · ` : ''}${fmtSigned(summary.provisionalForecastMargin, true)} provisional margin, not counted above`,
+      icon: 'ClipboardList', tone: 'amber' }] : []),
   ] : [];
 
   return <div className="space-y-4" data-testid="profitability-page">
@@ -85,6 +90,7 @@ export default function ProfitabilityPage() {
       <div>
         <h1 className="heading">Job profitability</h1>
         <p className="caption mt-1">Which jobs are making money, which are drifting, and what is still to be billed or collected — in {base}, your workspace base currency.</p>
+        <p className="mt-1 text-[11px] muted">In view: active, on-hold, completed and closed jobs, plus planning and bid-stage jobs with provisional costs (labelled, and excluded from company forecast totals until a budget is approved).</p>
         <p className="mt-1 text-[11px] muted">Manual rates from Settings → Currencies. Reports, PDFs, CSV exports and saved records keep their original currency; your personal display currency does not change this cockpit.</p>
       </div>
       <div className="flex items-center gap-2">
@@ -99,6 +105,10 @@ export default function ProfitabilityPage() {
           <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">Currencies: {data.currency.missingRates.join(', ')}. Their amounts are shown unconverted until a rate is set in Settings → Currencies.</p></div></div>
     </Card>}
 
+    {!!summary && (summary.provisionalJobs + summary.unknownCostJobs) > 0 && <Card className="border-amber-300 bg-amber-50 p-3.5 dark:border-amber-500/20 dark:bg-amber-500/10">
+      <div className="flex items-start gap-3"><Icon name="ClipboardList" size={18} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"/>
+        <div><p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{summary.provisionalJobs + summary.unknownCostJobs} job{summary.provisionalJobs + summary.unknownCostJobs === 1 ? ' has' : 's have'} no approved budget</p>
+          <p className="mt-0.5 text-xs text-amber-800 dark:text-amber-300">Their forecasts are shown as provisional on each row and are excluded from company forecast totals above. Approve a budget for these jobs to include them. A blank budget never counts as zero-cost, 100% margin work.</p></div></div></Card>}
     <div data-testid="profitability-summary" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {isLoading ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-24"/>) : cards.map(c => <Card key={c.label} className="flex items-start gap-3 p-3.5">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={c.icon} size={17}/></span>
@@ -112,9 +122,9 @@ export default function ProfitabilityPage() {
         <CardHead title="Forecast margin by job" subtitle="Biggest gains and losses at completion · base currency"/>
         <div className="space-y-3 p-4">
           {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10"/>) : marginJobs.length ? marginJobs.map(j => <div key={j.id} className="space-y-1">
-            <div className="flex items-center justify-between gap-3 text-xs"><Link href={j.href} className="min-w-0 flex-1 truncate font-medium hover:text-brand-700 hover:underline dark:hover:text-brand-300">{j.name}</Link><span className={`font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{fmtSigned(j.forecastMargin, true)}</span></div>
+            <div className="flex items-center justify-between gap-3 text-xs"><Link href={j.href} className="min-w-0 flex-1 truncate font-medium hover:text-brand-700 hover:underline dark:hover:text-brand-300">{j.name}{j.marginProvisional ? ' · provisional' : ''}</Link><span className={`font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{j.forecastAvailable ? fmtSigned(j.forecastMargin, true) : '—'}</span></div>
             <div className="h-2 overflow-hidden rounded-md bg-slate-100 dark:bg-ink-800"><div className={`h-full rounded-md ${j.forecastMargin < 0 ? 'bg-red-500' : j.tone === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.max(3, (Math.abs(j.forecastMargin) / maxMargin) * 100)}%` }}/></div>
-            <p className="text-[10px] muted">{pct(j.marginPct)} margin · {j.statusLabel}</p>
+            <p className="text-[10px] muted">{j.forecastAvailable ? `${pct(j.marginPct)} margin` : "Forecast unavailable — approve a budget"} · {j.statusLabel}</p>
           </div>) : <EmptyState compact icon="Gauge" title="No job margin data yet"/>}
         </div>
       </Card>
@@ -130,7 +140,7 @@ export default function ProfitabilityPage() {
         : exceptions.length ? <div className="divide-y divider">{exceptions.map(j => <div key={j.id} className="flex flex-wrap items-start gap-3 p-3.5">
           <Badge tone={j.tone}>{j.statusLabel}</Badge>
           <div className="min-w-0 flex-1"><Link href={j.href} className="text-sm font-semibold hover:text-brand-700 hover:underline dark:hover:text-brand-300">{j.name}</Link>
-            <p className="mt-0.5 text-[11px] muted">{j.clientName || 'No client'} · {j.code || j.number} · {pct(j.progress)} complete · forecast margin {fmt(j.forecastMargin, true)}</p>
+            <p className="mt-0.5 text-[11px] muted">{j.clientName || 'No client'} · {j.code || j.number} · {pct(j.progress)} complete · {j.forecastAvailable ? `forecast margin ${fmt(j.forecastMargin, true)}${j.marginProvisional ? ' (provisional)' : ''}` : 'forecast unavailable'}</p>
             <div className="mt-2 flex flex-wrap gap-1">{j.flags.map(flag => <Badge key={flag} tone={flagTone(flag)}>{flag}</Badge>)}</div></div>
           <Link href={j.href} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-300">Open job →</Link>
         </div>)}</div>
@@ -163,16 +173,16 @@ export default function ProfitabilityPage() {
             </tr></thead>
             <tbody className="divide-y divider">{filtered.map(j => <tr key={j.id} data-testid="profitability-row" className="hover:bg-slate-50 dark:hover:bg-ink-800/40">
               <td className="px-3 py-2.5"><Link href={j.href} className="font-semibold text-ink-900 hover:text-brand-700 hover:underline dark:text-white dark:hover:text-brand-300">{j.name}</Link><p className="mt-0.5 text-[10px] muted">{[j.code || j.number, j.clientName, j.endDate ? `Ends ${date(j.endDate)}` : ''].filter(Boolean).join(' · ')}</p><p className="mt-0.5 text-[10px] muted">Cost from {j.costSource}{j.approvedVariations ? ` · ${fmt(j.approvedVariations, true)} approved extras` : ''}</p></td>
-              <td className="px-3 py-2.5"><StatusPill status={j.status}/><div className="mt-1"><Badge tone={j.tone}>{j.statusLabel}</Badge></div></td>
+              <td className="px-3 py-2.5"><StatusPill status={j.status}/><div className="mt-1 flex flex-wrap gap-1"><Badge tone={j.tone}>{j.statusLabel}</Badge>{j.marginProvisional && <Badge tone="amber">{j.forecastAvailable ? 'Provisional' : 'Unavailable'}</Badge>}</div></td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.revisedContract, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.budget, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.actualCost, true)}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.costToComplete, true)}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.forecastFinalCost, true)}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.costToComplete, true) : '—'}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.forecastFinalCost, true) : '—'}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.billed, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.received, true)}</td>
-              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{fmtSigned(j.forecastMargin, true)}</td>
-              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.marginPct < 0 ? 'text-red-600 dark:text-red-300' : ''}`}>{pct(j.marginPct)}</td>
+              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{j.forecastAvailable ? fmtSigned(j.forecastMargin, true) : '—'}</td>
+              <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.marginPct < 0 ? 'text-red-600 dark:text-red-300' : ''}`}>{j.forecastAvailable ? pct(j.marginPct) : '—'}</td>
               <td className="px-3 py-2.5"><div className="flex items-center gap-2"><ProgressBar value={j.progress} tone={j.tone === 'red' ? 'red' : j.tone === 'amber' ? 'amber' : 'green'}/><span className="w-8 text-right tabular-nums muted">{num(j.progress)}%</span></div><p className="mt-1 text-[10px] muted">{j.billingVariance < 0 ? `${fmt(-j.billingVariance, true)} underbilled` : j.billingVariance > 0 ? `${fmt(j.billingVariance, true)} overbilled` : 'Billing in line'}</p></td>
             </tr>)}</tbody>
           </table></div>}
@@ -187,8 +197,9 @@ export default function ProfitabilityPage() {
         {[
           ['Revised contract', 'Original contract value plus approved variations. Pending variations are shown separately, not counted as revenue.'],
           ['Actual cost', 'The job’s recorded cost to date; if absent, approved budget lines; if absent, posted supplier bills, approved expenses and approved/posted time sheets.'],
-          ['Forecast final cost', 'Actual cost plus forecast-to-complete from budget lines, or the remaining budget when no forecast is entered.'],
-          ['Forecast margin', 'Revised contract minus forecast final cost. Margin % is that figure as a share of the revised contract.'],
+          ['Forecast final cost', 'Actual cost plus forecast-to-complete from budget lines, or the remaining budget when no forecast is entered. With no approved budget, the awarded quote’s proposed cost is used and the forecast is labelled provisional. With no cost information at all, the forecast is unavailable — never zero-cost.'],
+          ['Forecast margin', 'Revised contract minus forecast final cost, for jobs with an approved budget only. Provisional forecasts are shown per job and excluded from the company figure; Margin % is that figure as a share of those jobs’ revised contract.'],
+          ['Planning & bid jobs', 'Planning and bid-stage jobs appear in this view so proposals are not hidden. Their forecasts are provisional and excluded from company forecast totals until an approved budget exists.'],
           ['Billing position', 'Billed less earned value (revised contract × progress). A negative figure means the job is underbilled for work done.'],
           ['Cash gap', 'Gross invoiced amount less amounts allocated to invoices. Unallocated customer receipts do not reduce this balance.'],
         ].map(([title, body]) => <div key={title} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-xs font-semibold">{title}</p><p className="mt-1 text-[11px] leading-relaxed muted">{body}</p></div>)}
