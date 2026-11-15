@@ -32,8 +32,9 @@ Deployed as `3316bdb` via production deployment `dpl_4fz8QNKEM5YLg2QNQgDW8YA1xiE
 
 ## Current production state
 - `billing_enabled = true` (env `BILLING_ENABLED`), `maintenance_mode = false`,
-  **`demo_enabled = true` — owner decision 2026-11-15: leave demo ON until further notice.**
-- To fully hide demo: `/platform` → Demo mode off, or set demo_enabled=false.
+  **`demo_enabled = false`** — owner decision 2026-11-15: demo hidden in production
+  (flipped same day; login/settings/onboarding/empty-states and seed APIs closed).
+- To re-enable demo (e.g. for an internal demo): `/platform` → Demo mode on.
 - To open a maintenance window: `/platform` → Maintenance mode on (or
   `MAINTENANCE_MODE=true` in Vercel env). App APIs → 503, pages → /maintenance.
 
