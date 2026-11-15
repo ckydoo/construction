@@ -43,3 +43,27 @@ Deployed as `3316bdb` via production deployment `dpl_4fz8QNKEM5YLg2QNQgDW8YA1xiE
 - `.env.example` documents `NEXT_PUBLIC_DEMO_MODE` and `MAINTENANCE_MODE`.
 - Maintenance gate bypass: active `platform_admins` rows. Audit trigger records
   every change; direct SQL edits to platform_settings surface in the trail too.
+
+## QA-fix release — 2026-11-15 (bb2bd47 → dpl_BkSoGnJRXMkDz5NsjqoBcTfWpniu)
+Owner-approved production deploy of the live-QA fixes (TESTER CONSTRUCTIONS report):
+- Dashboard/Reports money figures count issued invoices only (DRAFT/VOID excluded),
+  matching job profitability; "Money billed" chart derives from real dated issued
+  invoices over a rolling 6-month window (no fabricated fallback bars); stale
+  hard-coded Nov-2026 chart base date replaced with today.
+- Project Overview: billed = issued invoices; received = cleared/reconciled receipts
+  (parity with profitability); cost-to-date falls back to approved budget lines, then
+  posted bills + reimbursed expenses + approved timesheet labour when the manual
+  project cost is unset. Financial snapshot subtitle states the basis.
+- Numeric bounds enforced end-to-end: field contract gains min/max/integer; generic
+  validator + generated input attributes; record invariants backstop clients/vendors/
+  subcontractors (credit limit ≥ 0, payment terms ≥ 0 whole days, rating 1–5).
+- Edit drawer subtitle no longer claims "changes are saved immediately"; lists no
+  longer flash "No records" before first load; empty months render zero-height bars.
+- Receipt allocations panel calls out unallocated receipt amounts and explains the
+  allocation route (invoice allocations only; unallocated receipts never reduce
+  invoice balances). QA3 records (CLI-0003, PRJ-0003, EST-0003, INV-0003) untouched.
+Live-verified after deploy: myla.co.zw 200, app.myla.co.zw 307→login, login 200,
+/api/platform/public-config = {demo:false, maintenance:false}; no forbidden contact
+strings on landing. Note: the tester password in TEST_HERE.md no longer authenticates
+against production (local smoke with it was rejected — likely rotated); report kept
+limited to read-only data checks and unauthenticated probes.
