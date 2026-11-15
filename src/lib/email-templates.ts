@@ -1,5 +1,6 @@
 /* Premium, self-contained email templates. No external CSS, fonts or images:
  * every message renders reliably in company mail clients and the in-app preview. */
+import { BRAND } from './brand';
 export type EmailTemplateKey =
   | 'verification' | 'welcome' | 'reset_password' | 'password_changed'
   | 'billing' | 'invite' | 'digest' | 'support' | 'reminder';
@@ -70,12 +71,12 @@ export function renderEmailTemplate(key: EmailTemplateKey, data: EmailTemplateDa
       </td></tr>
       <tr><td style="padding:20px 32px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:11px;line-height:1.7;color:#64748b">
         ${data.unsubscribeUrl && !essential ? `<a href="${esc(data.unsubscribeUrl)}" style="color:#b45309;text-decoration:none;font-weight:600">Turn off optional emails</a> · ` : ''}<a href="${esc(data.preferencesUrl)}" style="color:#b45309;text-decoration:none;font-weight:600">Manage email preferences</a> · <a href="${esc(data.appUrl)}" style="color:#64748b;text-decoration:none">Open MYLA</a><br>
-        MYLA · Harare, Zimbabwe. Please do not reply to this message.
+        MYLA · Please do not reply to this message. Contact: <a href="tel:${BRAND.contactPhone}" style="color:#b45309;text-decoration:none;font-weight:600">${BRAND.contactPhone}</a> · <a href="mailto:${BRAND.contactEmail}" style="color:#b45309;text-decoration:none;font-weight:600">${BRAND.contactEmail}</a>
       </td></tr>
     </table></td></tr>
   </table>
 </body></html>`;
   const unsubscribeText = data.unsubscribeUrl && !essential ? `Turn off optional emails: ${data.unsubscribeUrl}\n` : '';
-  const text = `${greeting}\n\n${data.headline}\n\n${data.body}${detailText}${data.ctaLabel && data.ctaUrl ? `\n\n${data.ctaLabel}: ${data.ctaUrl}` : ''}\n\n${note}\n\n${unsubscribeText}Manage email preferences: ${data.preferencesUrl}\nOpen MYLA: ${data.appUrl}\n\nMYLA · Harare, Zimbabwe. Please do not reply to this message.`;
+  const text = `${greeting}\n\n${data.headline}\n\n${data.body}${detailText}${data.ctaLabel && data.ctaUrl ? `\n\n${data.ctaLabel}: ${data.ctaUrl}` : ''}\n\n${note}\n\n${unsubscribeText}Manage email preferences: ${data.preferencesUrl}\nOpen MYLA: ${data.appUrl}\n\nMYLA · Please do not reply to this message. Contact: ${BRAND.contactPhone} · ${BRAND.contactEmail}`;
   return { subject, html, text };
 }

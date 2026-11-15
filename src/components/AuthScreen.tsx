@@ -34,7 +34,7 @@ function BrandPanel({demo}:{demo:boolean}){
       <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-5">
         {(demo?[['34','sections'],['49','lists'],['616','demo records']]:[['34','sections'],['49','lists'],['24/7','support']]).map(([n,l])=><div key={l}><p className="text-lg font-semibold tabular-nums text-white">{n}</p><p className="text-[11px] text-slate-400">{l}</p></div>)}
       </div>
-      <p className="mt-6 text-[11px] text-slate-500">© 2026 {BRAND.name} · Harare, Zimbabwe</p>
+      <p className="mt-6 text-[11px] text-slate-500">© 2026 {BRAND.name} · <a href={`tel:${BRAND.contactPhone}`} className="hover:text-slate-300">{BRAND.contactPhone}</a> · <a href={`mailto:${BRAND.contactEmail}`} className="hover:text-slate-300">{BRAND.contactEmail}</a></p>
     </div>
   </div>;
 }

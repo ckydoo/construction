@@ -9,4 +9,6 @@ export const BRAND = {
   descriptorTitleCase: 'Construction & Industrial Management',
   title: 'MYLA — Construction & Industrial Management',
   description: 'Built for Progress. Full-stack construction and industrial management for teams from micro to enterprise.',
+  contactPhone: '+263716826666',
+  contactEmail: 'codzlabzim53@gmail.com',
 } as const;
