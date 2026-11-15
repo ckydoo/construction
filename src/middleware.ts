@@ -10,7 +10,7 @@ const ACCESS_STATUSES = new Set(['comped','trialing','active','past_due','grace'
 const READ_ONLY_STATUSES = new Set(['past_due','grace','switch_pending']);
 const RESERVED = new Set([
   'api','auth','onboarding','login','register','setup','_next','favicon.ico',
-  'webhooks','cron','qa','billing','invite','accept-invite',
+  'webhooks','cron','qa','billing','invite','accept-invite','platform',
 ]);
 const SAFE_METHODS = new Set(['GET','HEAD','OPTIONS']);
 
