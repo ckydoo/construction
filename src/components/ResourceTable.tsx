@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation';
 type ListData = { rows:any[]; total:number; page:number; pages:number; pageSize:number };
 const PAGE_SIZE=25;
 
-function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:RefOptions;org:string}){
+function Cell({def,col,row,refs,org,refsLoading}:{def:ResourceDef;col:string;row:any;refs:RefOptions;org:string;refsLoading?:boolean}){
   const formatMoney=useDisplayMoney();
   const f=def.fields.find(x=>x.key===col);
   const v=row[col];
@@ -42,6 +42,9 @@ function Cell({def,col,row,refs,org}:{def:ResourceDef;col:string;row:any;refs:Re
   if(f.type==='tags') return <div className="flex gap-1">{(Array.isArray(v)?v:[v]).slice(0,2).map((t:string)=><Badge key={t} tone="blue">{t}</Badge>)}</div>;
   if(f.type==='ref'){
     const label=(refs[f.ref||'']||[]).find(o=>o.value===v)?.label;
+    // While the row-scoped label lookups are in flight, render a placeholder
+    // instead of raw truncated ids (important on slow 3G/4G links).
+    if(!label && refsLoading) return <span className="inline-block h-3.5 w-16 animate-pulse rounded bg-slate-200 align-middle dark:bg-ink-700" aria-label="Loading…" title="Loading…"/>;
     if(f.key==='projectId') return <Link href={`/${org}/projects/${encodeURIComponent(String(v))}`} onClick={e=>e.stopPropagation()} className="max-w-[160px] truncate text-brand-700 hover:underline dark:text-brand-300">{label||String(v).slice(-8)}</Link>;
     return <span className="max-w-[170px] truncate text-ink-600 dark:text-slate-300">{label||String(v).slice(-8)}</span>;
   }
@@ -75,7 +78,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
   const openNewRecord=()=>{ setServerErrors(undefined); if(quoteStudio) router.push(`/${org}/quotes/new`); else { setEditing(null); setFormOpen(true); } };
   const openEditRecord=(row:any)=>{ setServerErrors(undefined); if(quoteStudio) router.push(`/${org}/quotes/${encodeURIComponent(row.id)}/edit`); else { setEditing(row); setFormOpen(true); } };
   const refTargets=useMemo(()=>visibleRefTargets(def||({fields:[],columns:[]} as any),config),[def,meta]);
-  const {data:refs}=useQuery<RefOptions>({ queryKey:['refs',org,resource], queryFn:async()=>{
+  const {data:refs,isLoading:refsInitLoading}=useQuery<RefOptions>({ queryKey:['refs',org,resource], queryFn:async()=>{
     const entries=await Promise.all(refTargets.map(async r=>{ try{const d=await apiGet(orgApi(org,`records/${r}?mode=refs&limit=25`));return [r,d.options];}catch{return [r,[]];} }));
     return Object.fromEntries(entries);
   }, enabled:!!def, staleTime:60_000 });
@@ -99,7 +102,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
     }
     return out;
   },[def,refTargets,rows,projectFilter]);
-  const {data:rowRefs}=useQuery<RefOptions>({queryKey:['rowRefs',org,resource,rowRefValues],queryFn:async()=>{
+  const {data:rowRefs,isLoading:rowRefsLoading}=useQuery<RefOptions>({queryKey:['rowRefs',org,resource,rowRefValues],queryFn:async()=>{
     const entries=await Promise.all(Object.entries(rowRefValues).map(async ([target,ids])=>{
       try{const d=await apiGet(orgApi(org,`records/${target}?mode=refs&ids=${encodeURIComponent(ids.join(','))}`));return [target,d.options] as const;}
       catch{return [target,[]] as const;}
@@ -127,6 +130,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
     else apiGet(orgApi(org,`records/${resource}/${initialOpenId}`)).then(d=>setDetailRow(d.row)).catch(()=>{});
   },[initialOpenId,resource,org,router]); // eslint-disable-line
 
+  const refsLoading=refsInitLoading||rowRefsLoading;
   const invalidate=()=>{ qc.invalidateQueries({queryKey:['records',org,resource]}); qc.invalidateQueries({queryKey:['meta',org]}); };
   const createMut=useMutation({ mutationFn:(values:any)=>apiSend(orgApi(org,`records/${resource}`),'POST',values),
     onMutate:async(values:any)=>{
@@ -240,7 +244,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
               {canRemove&&<td className="table-td" onClick={e=>e.stopPropagation()}><input type="checkbox" checked={selected.has(r.id)} onChange={()=>toggleOne(r.id)} className="h-3.5 w-3.5 accent-brand-500"/></td>}
               {cols.map(c=><td key={c} className={`table-td ${numericCols.has(c)?'text-right':''}`} onClick={c==='status'?e=>e.stopPropagation():undefined}>
                 {c==='status'&&def.statusOptions&&canEdit?<select value={r.status||def.statusOptions[0]} onChange={e=>updateMut.mutate({id:r.id,values:{status:e.target.value}})} className={`rounded border divider bg-white px-1.5 py-1 text-[11px] font-medium focus:ring-1 focus:ring-brand-500 ${toneFor(r.status)==='green'?'text-emerald-600 dark:text-emerald-400':toneFor(r.status)==='red'?'text-red-600 dark:text-red-400':toneFor(r.status)==='amber'?'text-amber-600 dark:text-amber-400':'text-slate-600 dark:text-slate-300'}`}>
-                  {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={mergedRefs} org={org}/>}
+                  {def.statusOptions.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select>:<Cell def={def} col={c} row={r} refs={mergedRefs} org={org} refsLoading={refsLoading}/>}
               </td>)}
               <td className="table-td text-right" onClick={e=>e.stopPropagation()}><div className="flex justify-end gap-1 opacity-70 transition group-hover:opacity-100 focus-within:opacity-100">
                 {resource==='projects'&&<Link href={`/${org}/projects/${encodeURIComponent(r.id)}`} aria-label={`Open full page for ${r.title||r.number}`} title="Open full project page" className="rounded-md p-1.5 hover:bg-slate-200 dark:hover:bg-ink-700"><Lucide.ExternalLink size={14}/></Link>}
