@@ -22,6 +22,24 @@ export function recordInvariantErrors(resource: string, row: Record<string, any>
       if (!errors.weekStart && !errors.weekEnd && row.weekEnd < row.weekStart) errors.weekEnd = 'End date cannot be before start date.';
     }
   }
+  if (resource === 'clients') {
+    const cl = row.creditLimit;
+    if (cl != null && cl !== '' && (!Number.isFinite(Number(cl)) || Number(cl) < 0)) errors.creditLimit = 'Credit limit cannot be negative.';
+    const pt = row.paymentTerms;
+    if (pt != null && pt !== '' && (!Number.isFinite(Number(pt)) || !Number.isInteger(Number(pt)) || Number(pt) < 0)) errors.paymentTerms = 'Payment terms must be a whole number of days (0 or more).';
+  }
+  if (resource === 'vendors') {
+    const pt = row.paymentTerms;
+    if (pt != null && pt !== '' && (!Number.isFinite(Number(pt)) || !Number.isInteger(Number(pt)) || Number(pt) < 0)) errors.paymentTerms = 'Payment terms must be a whole number of days (0 or more).';
+    const rt = row.rating;
+    if (rt != null && rt !== '' && (!Number.isFinite(Number(rt)) || Number(rt) < 1 || Number(rt) > 5)) errors.rating = 'Supplier rating must be between 1 and 5.';
+  }
+  if (resource === 'subcontractors') {
+    const cl = row.creditLimit;
+    if (cl != null && cl !== '' && (!Number.isFinite(Number(cl)) || Number(cl) < 0)) errors.creditLimit = 'Jobs in hand limit cannot be negative.';
+    const rt = row.rating;
+    if (rt != null && rt !== '' && (!Number.isFinite(Number(rt)) || Number(rt) < 1 || Number(rt) > 5)) errors.rating = 'Supplier rating must be between 1 and 5.';
+  }
   if (resource === 'journals' && status === 'POSTED') {
     errors.status = 'Journal posting is unavailable until balanced ledger entries and accounting periods are supported. Save as draft.';
   }

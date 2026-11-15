@@ -258,7 +258,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
         </table>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t divider px-3 py-2.5">
-        <p className="text-xs muted">{data?.total?`Showing ${(page-1)*PAGE_SIZE+1}–${Math.min(page*PAGE_SIZE,data.total)} of ${data.total}`:'No records'}</p>
+        <p className="text-xs muted">{data?.total?`Showing ${(page-1)*PAGE_SIZE+1}–${Math.min(page*PAGE_SIZE,data.total)} of ${data.total}`:isLoading||!data?'Loading records…':'No records'}</p>
         <div className="flex items-center gap-1.5"><Button size="sm" variant="ghost" disabled={page<=1} onClick={()=>setPage(p=>p-1)} icon="ChevronLeft">Prev</Button><span className="px-2 text-xs font-medium">Page {page} / {data?.pages||1}</span><Button size="sm" variant="ghost" disabled={page>=(data?.pages||1)} onClick={()=>setPage(p=>p+1)}>Next<Icon name="ChevronRight" size={14}/></Button></div>
       </div>
     </Card>

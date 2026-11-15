@@ -22,8 +22,8 @@ export function BarChart({data,height=180,compact=false,currency,personal=false}
   return <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none" style={{height}}>
     {[0,.25,.5,.75,1].map(t=><g key={t}><line x1={padL} x2={W-8} y1={padT+(H-padT-padB)*(1-t)} y2={padT+(H-padT-padB)*(1-t)} stroke="currentColor" strokeOpacity=".08" strokeDasharray="3 4"/>
       {!compact&&<text x={padL-8} y={padT+(H-padT-padB)*(1-t)+4} textAnchor="end" fontSize={personal?9:10} fill="currentColor" opacity=".45">{fmt(max*t)}</text>}</g>)}
-    {data.map((d,i)=>{ const h=(d.value/max)*(H-padT-padB); const x=padL+i*bw+bw*0.18; const w=bw*0.64; const y=H-padB-h;
-      return <g key={i}><rect x={x} y={y} width={w} height={Math.max(h,2)} rx="2" fill={i===data.length-1?'#D9740B':'#F58712'} opacity={i===data.length-1?1:.78}/>
+    {data.map((d,i)=>{ const h=(d.value/max)*(H-padT-padB); const x=padL+i*bw+bw*0.18; const w=bw*0.64; const hZero=d.value<=0?0:Math.max(h,2); const y=H-padB-hZero;
+      return <g key={i}><rect x={x} y={y} width={w} height={hZero} rx="2" fill={i===data.length-1?'#D9740B':'#F58712'} opacity={i===data.length-1?1:.78}/>
         <text x={x+w/2} y={H-8} textAnchor="middle" fontSize="10" fill="currentColor" opacity=".55">{d.label}</text>
         {!compact&&h>24&&<text x={x+w/2} y={y-4} textAnchor="middle" fontSize={personal?8:9} fill="currentColor" opacity=".6">{fmt(d.value)}</text>}</g>;})}
   </svg>;

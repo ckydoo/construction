@@ -19,6 +19,11 @@ export function validateFields(def: Pick<ResourceDef, 'fields'>, input: Record<s
       const n = (typeof raw === 'number' || typeof raw === 'string') ? Number(raw) : NaN;
       clean[f.key] = Number.isFinite(n) ? n : null;
       if (!Number.isFinite(n)) errors[f.key] = 'Enter a valid number';
+      else {
+        if (f.integer && !Number.isInteger(n)) errors[f.key] = `${f.label} must be a whole number`;
+        else if (f.min != null && n < f.min) errors[f.key] = f.min === 0 ? `${f.label} cannot be negative` : `${f.label} cannot be less than ${f.min}`;
+        else if (f.max != null && n > f.max) errors[f.key] = `${f.label} cannot be more than ${f.max}`;
+      }
     } else if (f.type === 'boolean') {
       if (raw === true || raw === false) clean[f.key] = raw;
       else if (raw === 'true' || raw === 'false') clean[f.key] = raw === 'true';

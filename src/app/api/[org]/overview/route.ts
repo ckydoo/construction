@@ -9,8 +9,20 @@ import { isExternal } from '@/lib/catalog';
 import { normaliseCurrencyConfig, sumInBase, currencyBreakdown, toBase, hasRate } from '@/lib/currency';
 import { moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
 
-const BASE = new Date('2026-11-07T09:00:00Z');
-const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
+/** Rolling six-month chart window, derived from today so the bars never go stale. */
+function lastSixMonths() {
+  const now = new Date();
+  const out: { label: string; year: number; month: number }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    out.push({ label: d.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' }), year: d.getUTCFullYear(), month: d.getUTCMonth() + 1 });
+  }
+  return out;
+}
+const months = lastSixMonths();
+// One shared definition of money-on-the-books with job profitability and the
+// receivables registers: everything except DRAFT and VOID counts as issued.
+const issuedInvoice = (i: any) => !['DRAFT', 'VOID'].includes(String(i.status || '').toUpperCase());
 
 export async function GET(_req: Request, { params }: { params: Promise<{ org: string }> }) {
   const { org } = await params;
@@ -62,24 +74,30 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
 
   const projects = data.projects || [], activeProjects = projects.filter(p => p.status === 'ACTIVE');
   const invoices = data.arInvoices || [], bills = data.apBills || [];
-  const billed = sumInBase(invoices, 'total', cfg);
-  const received = sumInBase(invoices, 'amountPaid', cfg);
+  // Money figures only count invoices that have been issued to the client —
+  // drafts and voids are shown in the register but never in dashboard totals.
+  const issuedInvoices = invoices.filter(issuedInvoice);
+  const billed = sumInBase(issuedInvoices, 'total', cfg);
+  const received = sumInBase(issuedInvoices, 'amountPaid', cfg);
   const contractValue = sumInBase(activeProjects, 'contractValue', cfg);
   const costToDate = sumInBase(activeProjects, 'costToDate', cfg);
   const progress = activeProjects.length ? Math.round(activeProjects.reduce((t, p) => t + (Number(p.progress) || 0), 0) / activeProjects.length) : 0;
-  const monthTotals = months.map((m, i) => {
-    const monthNum = 6 + i;
-    return invoices.filter(v => { const d = new Date(v.invoiceDate || ''); return d.getMonth() + 1 === monthNum; })
-      .reduce((t, v) => t + toBase(v.total, v.currency || cfg.base, cfg), 0);
-  });
-  const revenueSeries = monthTotals.map((v, i) => ({ label: months[i], value: v || Math.round(billed * (0.08 + i * 0.035)) }));
+  // Bars come from real issued invoices dated in each month — never from
+  // invented values. Months with no invoices render as zero.
+  const revenueSeries = months.map(m => ({
+    label: m.label,
+    value: issuedInvoices
+      .filter(v => { const d = new Date(v.invoiceDate || ''); return !Number.isNaN(d.getTime()) && d.getUTCFullYear() === m.year && d.getUTCMonth() + 1 === m.month; })
+      .reduce((t, v) => t + toBase(v.total, v.currency || cfg.base, cfg), 0),
+  }));
   const budgetCats: Record<string, number> = {};
   for (const b of data.budgets || []) budgetCats[b.category || 'Other'] = (budgetCats[b.category || 'Other'] || 0) + toBase(b.actualToDate, b.currency || cfg.base, cfg);
   const attention: any[] = [];
   const push = (kind: string, title: string, detail: string, href: string, tone: string) => attention.push({ kind, title, detail, href, tone });
   const sumBase = (rows: any[], key: string) => sumInBase(rows, key, cfg);
   const plainSum = (rows: any[], key: string) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);
-  const overdueRfis = (data.rfis || []).filter(r => r.status === 'OVERDUE' || (r.status === 'OPEN' && r.dueDate && new Date(r.dueDate) < BASE));
+  const today = new Date();
+  const overdueRfis = (data.rfis || []).filter(r => r.status === 'OVERDUE' || (r.status === 'OPEN' && r.dueDate && new Date(r.dueDate) < today));
   if (overdueRfis.length) push('RFIs', `${overdueRfis.length} overdue requests for information`, overdueRfis.slice(0, 2).map(r => r.subject).join(' · '), '/m/rfis', 'red');
   const pendingCo = (data.changeOrders || []).filter(c => ['SUBMITTED', 'UNDER_REVIEW'].includes(c.status));
   if (pendingCo.length) push('Variations', `${pendingCo.length} change orders awaiting approval`, `${new Intl.NumberFormat().format(sumBase(pendingCo, 'amount'))} ${cfg.base} exposure`, '/m/changeOrders', 'amber');
@@ -91,7 +109,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   if (openInc.length) push('HSE', `${openInc.length} open safety actions`, 'Investigations and CAPA close-out', '/m/incidents', 'red');
   const pendingTs = (data.timesheets || []).filter(t => t.status === 'SUBMITTED');
   if (pendingTs.length) push('Timesheets', `${pendingTs.length} timesheets awaiting approval`, 'Approve to post labour costs', '/m/timesheets', 'blue');
-  const overdueInv = invoices.filter(i => i.status === 'OVERDUE');
+  const overdueInv = issuedInvoices.filter(i => i.status === 'OVERDUE');
   if (overdueInv.length) push('Receivables', `${overdueInv.length} overdue client invoices`, 'Follow up with client accounts', '/m/arInvoices', 'red');
   const lowWallets = walletCards.filter(w => w.balance > 0 && w.balance < 250000);
   if (lowWallets.length) push('Wallets', `${lowWallets.length} client wallets running low`, 'Request a top-up before the next certificate', '/wallets', 'amber');

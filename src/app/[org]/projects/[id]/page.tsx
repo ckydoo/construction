@@ -41,7 +41,7 @@ export default function ProjectPage(){
     ['Actual to date', t?.actual, on('budgets')],
     ['Forecast to complete', t?.forecast, on('budgets')],
     ['Approved variations', t?.variations, on('changeOrders')],
-    ['Received', t?.received, on('arInvoices')],
+    ['Received (cleared receipts)', t?.received, on('payments')||on('arInvoices')],
   ] as [string, any, boolean][]).filter(x=>x[2]).map(([l,v])=>[l,v]);
   const showSnapshot=snapshotRows.length>0;
   const showWallet=mod('wallets')&&hrefVisible(data?.wallet?.href,config);
@@ -96,7 +96,7 @@ export default function ProjectPage(){
       <div className="grid gap-x-6 gap-y-3 border-t divider px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">{info.map(([l,v])=><div key={l}><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1 truncate text-sm text-ink-800 dark:text-slate-200">{v||'—'}</p></div>)}</div></Card>
     <Tabs tabs={tabs} active={tab} onChange={setTab}/>
     {tab==='overview'&&<div className="grid gap-4 lg:grid-cols-2">
-      {showSnapshot&&<Card><CardHead title="Financial snapshot" subtitle="Figures from the sections switched on in this workspace"/>
+      {showSnapshot&&<Card><CardHead title="Financial snapshot" subtitle="Issued invoices only (drafts excluded) · receipts count once cleared · cost matches job profitability"/>
         <div className="grid grid-cols-2 gap-2.5 p-4">{snapshotRows.map(([l,v])=><div key={l} className="rounded-md border divider bg-slate-50/60 p-3 dark:bg-ink-950/40"><p className="text-[11px] muted">{l}</p><p className="mt-1 text-sm font-semibold tabular-nums">{formatMoney(v,cur)}</p></div>)}</div></Card>}
       {showWallet&&<Card><CardHead title="Client wallet funding" subtitle="Prepaid client funds allocated to this project" action={data?.wallet?.href&&<Link href={`/${org}${data.wallet.href}`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">Open wallet →</Link>}/>
         <div className="space-y-3 p-4"><div className="flex items-end justify-between gap-3"><div><p className="text-[11px] font-semibold uppercase tracking-wider muted">Funded from wallet</p><p className="mt-1 text-2xl font-semibold tracking-tight">{formatMoney(t?.walletFunded,cur)}</p></div><Badge tone="green">{num(t?.walletFundingPct)}% of contract</Badge></div>
