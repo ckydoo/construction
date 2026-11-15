@@ -6,7 +6,7 @@ action owner + evidence to attach to LAUNCH_READINESS.md Gate 4/5.
 ## 1. Monitoring & alerting — IN-HOUSE (owner decision 2026-11-13; no third-party vendor)
 Rationale: keep data/costs minimal pre-launch; review weekly; upgrade later if volume grows.
 
-What is shipped (code + migration, commit pending at time of writing):
+What is shipped (commit ebdc929; deployed 2026-11-15 as dpl_8hrvUUHGdAo4M9dab1zDH49bypXN, READY/PROMOTED; /api/health verified live):
 - **Table** `public.monitor_events` (Supabase, eu-west-1): `kind` ('heartbeat'|'error'),
   `source`, `level`, `message` (clipped to 500 chars), `detail` (jsonb; small structured
   PII-free data — numeric sweep counts only), `created_at`. RLS enabled, **no client
