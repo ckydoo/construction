@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { safeHashEqual } from '@/lib/billing';
 import { runNotificationSweep } from '@/lib/reminders';
 import { pingHeartbeat } from '@/lib/heartbeat';
+import { recordMonitorEvent } from '@/lib/monitor';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,9 +20,11 @@ async function run(req: Request) {
   try {
     const result = await runNotificationSweep();
     await pingHeartbeat(process.env.HEALTHCHECK_NOTIFICATIONS_URL, 'success');
+    await recordMonitorEvent({ kind: 'heartbeat', source: 'notifications', level: 'info', message: 'notifications sweep ok', detail: result as unknown as Record<string, unknown> });
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
     await pingHeartbeat(process.env.HEALTHCHECK_NOTIFICATIONS_URL, 'fail');
+    await recordMonitorEvent({ kind: 'error', source: 'notifications', level: 'error', message: String((e as Error)?.message || e) });
     return NextResponse.json({ error: e?.message || 'Notification sweep failed' }, { status: 500 });
   }
 }

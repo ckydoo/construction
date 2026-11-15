@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { billingConfig, safeHashEqual } from '@/lib/billing';
 import { runBillingSweep } from '@/lib/billing-cron';
 import { pingHeartbeat } from '@/lib/heartbeat';
+import { recordMonitorEvent } from '@/lib/monitor';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,9 +17,11 @@ async function run(req: Request) {
   try {
     const result = await runBillingSweep();
     await pingHeartbeat(process.env.HEALTHCHECK_BILLING_URL, 'success');
+    await recordMonitorEvent({ kind: 'heartbeat', source: 'billing', level: 'info', message: 'billing sweep ok', detail: { ...result } });
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (e: any) {
     await pingHeartbeat(process.env.HEALTHCHECK_BILLING_URL, 'fail');
+    await recordMonitorEvent({ kind: 'error', source: 'billing', level: 'error', message: String((e as Error)?.message || e) });
     return NextResponse.json({ error: e?.message || 'Billing sweep failed' }, { status: 500 });
   }
 }

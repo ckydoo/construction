@@ -3,29 +3,52 @@
 MYLA Construction ERP · myla.co.zw · 2026-11-13. Each section ends with the concrete
 action owner + evidence to attach to LAUNCH_READINESS.md Gate 4/5.
 
-## 1. Monitoring & alerting (currently: none installed)
-Facts: no Sentry/OTel/Datadog in `package.json` or `src/`. Vercel logs + analytics only.
+## 1. Monitoring & alerting — IN-HOUSE (owner decision 2026-11-13; no third-party vendor)
+Rationale: keep data/costs minimal pre-launch; review weekly; upgrade later if volume grows.
 
-Minimum viable monitoring before public launch:
-1. **Error tracking** — pick one (Sentry recommended; `@sentry/nextjs`). Wire into
-   `src/middleware.ts`, route handlers and client. Set `SENTRY_DSN` (products DSN, not
-   secret) in Vercel production; alert on >N errors/min to an email/phone the owner sees.
-   Capture `beforeSend` PII scrubbing (emails, tokens, invoice data).
-2. **Uptime check** — free external probe (UptimeRobot/Better Stack) on
-   `https://myla.co.zw/login` every 1–5 min; alert to same channel; record probe URL.
-3. **Cron heartbeats** — billing sweep (02:00) and notifications sweep (05:00) must
-   report success. Implemented and deployed (2026-11-13, commit e7d8346, deployment dpl_7crFWKbxzzhr1Qts2LopxnCaqGod, READY/PROMOTED, aliased to myla.co.zw + app.myla.co.zw):
-   both routes now ping `HEALTHCHECK_BILLING_URL` / `HEALTHCHECK_NOTIFICATIONS_URL` on
-   success and `<url>/fail` on error (see `src/lib/heartbeat.ts`; no-op when unset; no
-   token in git; 5s timeout; never throws). Remaining: create the healthchecks.io
-   checks, set the two env vars in Vercel production, deploy, and verify a ping lands
-   (plus a test `/fail`) before Gate 4 sign-off. Alert if missed > 26h.
-4. **Business metric alerts** — optional: daily email from the billing sweep with counts
-   (invoices created, locked workspaces, payment failures) to the owner.
-5. **Log hygiene** — confirm no request bodies with tokens/passwords are logged; review
-   Vercel runtime logs after one week; set log retention policy.
+What is shipped (code + migration, commit pending at time of writing):
+- **Table** `public.monitor_events` (Supabase, eu-west-1): `kind` ('heartbeat'|'error'),
+  `source`, `level`, `message` (clipped to 500 chars), `detail` (jsonb; small structured
+  PII-free data — numeric sweep counts only), `created_at`. RLS enabled, **no client
+  policies** — service-role write/read only.
+- **Cron heartbeats**: billing (02:00 UTC) and notifications (05:00 UTC) routes record a
+  `heartbeat` row on success (with sweep counts as `detail`) and an `error` row on failure.
+  They also still support the optional `HEALTHCHECK_BILLING_URL` /
+  `HEALTHCHECK_NOTIFICATIONS_URL` dead-man's-switch ping (no-op when unset, 5s timeout).
+- **Server error log**: `src/instrumentation.ts` `onRequestError` records one `error`
+  row per server error (method, path, route type, message, digest — **no request bodies,
+  headers or user data**).
+- **Liveness**: `GET /api/health` → `{ ok, db, heartbeats: { billing, notifications }, time }`.
+  Public but uninformative beyond DB reachability and last heartbeat timestamps.
+- **Weekly review (OWNER, calendar it — it is the only alert channel)**:
+  ```sql
+  select created_at, kind, source, level, message, detail
+  from public.monitor_events
+  where created_at > now() - interval '7 days'
+  order by created_at desc limit 500;
+  ```
+  Expected: one `heartbeat` per cron per day (~02:00 / ~05:00 UTC). **Any missing day, any
+  `error` row, or `/api/health` returning 503 → treat as SEV-2** (hourly check, fix forward,
+  rollback via Vercel instant rollback if code-related). If nothing has been reviewed for
+  > 7 days the gate must be treated as unmonitored.
+- **Housekeeping**: prune quarterly, e.g. `delete from public.monitor_events where created_at
+  < now() - interval '90 days';`
 
-Owner action: choose provider, add DSN to Vercel, verify alert arrives (test event).
+DISCLOSED LIMITS (not a substitute for the items originally scoped):
+- **No push/page/email alerting.** Nobody is notified automatically; detection relies on the
+  weekly review or a human opening `/api/health`.
+- **No external uptime probe.** A total outage (Vercel down / bad deploy / DNS) is invisible
+  to this system — only Vercel's own status would show it. Recommended upgrade: a free
+  UptimeRobot/Better Stack probe on `/api/health` with email alert.
+- **Message-only error records** (no stack traces, no breadcrumbs); Postgres/insert failures
+  inside the monitoring path are swallowed by design.
+- **No PII scrubbing pipeline** — mitigated by construction (callers may only pass counts and
+  short messages; do not widen `detail` without a review).
+- Does not cover client-side errors or performance.
+
+Owner checklist (attach to Gate 4):
+[ ] Weekly review calendared (owner)  [ ] First weekly review done & filed
+[ ] Retention prune scheduled          [ ] Upgrade decision (external probe/Sentry) by day-30
 
 ## 2. Legal & data protection (requires qualified advice — NOT drafted as final terms)
 MYLA's customers are Zimbabwe construction firms; data may include employee timesheets
@@ -85,7 +108,7 @@ application (the receipt/approval trigger application was manual and must be rec
   30-day review before opening the gate wider.
 
 Owner action list (attach to Gate 4):
-[ ] Sentry DSN in prod + alert tested   [ ] Uptime probe live
-[ ] healthchecks.io pings on both crons [ ] ToS & Privacy published + footer link
-[ ] POTRAZ status confirmed             [ ] support mailbox + runbook links
-[ ] Incident runbook printed/pinned     [ ] Backups drill report attached
+[x] In-house error log + heartbeats shipped [ ] Weekly review calendared + first review done
+[ ] ToS & Privacy published + footer link  [ ] POTRAZ status confirmed
+[ ] support mailbox + runbook links        [ ] Incident runbook printed/pinned
+[ ] Backups drill report attached           [ ] Upgrade decision (external probe/Sentry) by day-30

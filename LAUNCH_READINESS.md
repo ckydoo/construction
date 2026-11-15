@@ -38,7 +38,7 @@ OPEN: Full role/RLS matrix, billing authorization audit, secrets review, outbox/
 plus an actual restore drill with measured RPO/RTO.
 
 ## Gate 4 — Launch ops (owner: owner) — LAUNCH_OPS.md
-- OPEN: Monitoring/alerting — **no error-tracking SDK is installed at all** (no Sentry/etc. in package.json or src). Vercel runtime logs + analytics are the only signals today.
+- PARTIAL: Monitoring/alerting — owner chose in-house over third-party. Shipped: `monitor_events` table (RLS, service-role only), cron heartbeat rows, global `onRequestError` error logging, public `/api/health`. Disclosed limits: no push/page alerting, no external uptime probe (a total outage pages nobody), message-only errors, relies on manual weekly review. See LAUNCH_OPS.md §1. Gate stays open until the weekly review is calendared and run.
 - OPEN: Terms of Service & Privacy Policy (draft outline provided; requires qualified legal/tax advice — Zimbabwe Data Protection Act [Cap 11:12], POTRAZ registration, no US-hosted marketing without review).
 - OPEN: Support process (intake, SLA, escalation), incident runbook (SEV definitions, rollback = Vercel instant rollback + Supabase PITR), customer comms templates.
 - OPEN: Status/maintenance comms channel for customers; data residency statement (eu-west-1); data-subject request process.
