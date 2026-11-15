@@ -9,6 +9,7 @@ import { useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 import { Card, CardHead, Button, Icon, Badge, StatusPill, Skeleton, Tabs, ProgressBar, EmptyState } from '@/components/ui';
 import ResourceTable from '@/components/ResourceTable';
 import RecordDetail from '@/components/RecordDetail';
+import CloseProjectDrawer from '@/components/CloseProjectDrawer';
 import { RESOURCE_MAP } from '@/lib/resources';
 import { canWrite, canDelete } from '@/lib/catalog';
 import { resourceFullyEnabled, moduleEnabled, visibleRefTargets, hrefVisible } from '@/lib/module-visibility';
@@ -23,7 +24,8 @@ export default function ProjectPage(){
   const formatMoney=useDisplayMoney();
   const {org,id}=useParams<{org:string;id:string}>();
   const [tab,setTab]=useState('overview');
-  const {data,isLoading}=useQuery({queryKey:['project',org,id],queryFn:()=>apiGet(orgApi(org,`projects/${id}`))});
+  const [closeOpen,setCloseOpen]=useState(false);
+  const {data,isLoading,refetch}=useQuery({queryKey:['project',org,id],queryFn:()=>apiGet(orgApi(org,`projects/${id}`))});
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const p=data?.project, t=data?.totals, g=data?.grouped||{}, cur=data?.currency||'USD';
   const d=data?.display, recordCur=p?.currency||cur;
@@ -87,13 +89,14 @@ export default function ProjectPage(){
       <div className="mt-2 flex flex-wrap items-start justify-between gap-3"><div className="flex items-start gap-3"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-400"><Icon name="HardHat" size={17}/></span>
         <div><div className="flex flex-wrap items-center gap-2"><h1 className="heading">{p.name}</h1><StatusPill status={p.status}/><Badge tone={p.health==='ON_TRACK'?'green':p.health==='AT_RISK'?'amber':'red'}>{String(p.health||'').replace(/_/g,' ')}</Badge></div>
         <p className="mt-1 text-xs muted">{p.type} · {p.location} · {p.code}</p></div></div>
-        <div className="flex gap-2">{on('tasks')&&<Link href={`/${org}/m/tasks?new=1&project=${encodeURIComponent(id)}`}><Button icon="Plus">Add task</Button></Link>}{on('rfis')&&<Link href={`/${org}/m/rfis?new=1`}><Button variant="primary" icon="Plus">New RFI</Button></Link>}</div></div>
+        <div className="flex gap-2">{on('tasks')&&<Link href={`/${org}/m/tasks?new=1&project=${encodeURIComponent(id)}`}><Button icon="Plus">Add task</Button></Link>}{on('rfis')&&<Link href={`/${org}/m/rfis?new=1`}><Button variant="primary" icon="Plus">New RFI</Button></Link>}{canEdit&&p.status!=='CLOSED'&&<Button variant="outline" icon="Lock" onClick={()=>setCloseOpen(true)}>Close project…</Button>}</div></div>
     </div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {kpis.map(([l,v])=><Card key={l} className="p-3.5"><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1.5 text-[18px] font-semibold tabular-nums tracking-tight">{v}</p></Card>)}
     </div>
     <Card className="overflow-hidden"><div className="px-4 py-3"><div className="mb-2 flex items-center justify-between"><p className="text-sm font-semibold">Physical progress</p><span className="text-sm font-semibold text-brand-600 dark:text-brand-400">{pct(p.progress)}</span></div><ProgressBar value={p.progress}/></div>
       <div className="grid gap-x-6 gap-y-3 border-t divider px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">{info.map(([l,v])=><div key={l}><p className="text-[11px] font-semibold uppercase tracking-wide muted">{l}</p><p className="mt-1 truncate text-sm text-ink-800 dark:text-slate-200">{v||'—'}</p></div>)}</div></Card>
+    {p.status==='CLOSED'&&<Card className="border-slate-300 bg-slate-50 p-3.5 dark:border-ink-700 dark:bg-ink-950/50"><div className="flex flex-wrap items-center gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:text-slate-300"><Icon name="Lock" size={15}/></span><div className="min-w-0 flex-1"><p className="text-sm font-semibold">Closed{p.closedOn?` on ${date(p.closedOn)}`:''}{p.closureType?` · ${({COMPLETION:'Successful completion',CANCELLATION:'Cancellation',ADMINISTRATIVE:'Administrative closure'} as any)[p.closureType]||p.closureType}`:''}</p>{p.closureNote&&<p className="mt-0.5 text-xs muted">{p.closureNote}</p>}</div><Link href={`/${org}/projects/${id}`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">Reopen from register →</Link></div></Card>}
     <Tabs tabs={tabs} active={tab} onChange={setTab}/>
     {tab==='overview'&&<div className="grid gap-4 lg:grid-cols-2">
       {showSnapshot&&<Card><CardHead title="Financial snapshot" subtitle="Issued invoices only (drafts excluded) · receipts count once cleared · cost matches job profitability"/>
@@ -116,5 +119,6 @@ export default function ProjectPage(){
     {tab==='team'&&<div className="space-y-4">{on('timesheets')&&<ResourceTable org={org} resource="timesheets" embedded fixedProjectId={id}/>}{on('crews')&&<ResourceTable org={org} resource="crews" embedded fixedProjectId={id}/>}{on('equipment')&&<ResourceTable org={org} resource="equipment" embedded fixedProjectId={id}/>}</div>}
     {tab==='record'&&<RecordDetail org={org} def={RESOURCE_MAP.projects} row={p} open={false} inline onClose={()=>{}}
       refs={refs||{}} canEdit={canEdit} canRemove={canRemove}/>}
+    <CloseProjectDrawer org={org} id={id} open={closeOpen} onClose={()=>setCloseOpen(false)} onClosed={()=>refetch()}/>
   </div>;
 }

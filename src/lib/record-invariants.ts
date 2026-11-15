@@ -8,6 +8,35 @@ export function recordInvariantErrors(resource: string, row: Record<string, any>
     const progress = Number(row.progress);
     if (!Number.isFinite(progress) || progress < 0 || progress > 100) errors.progress = 'Progress must be between 0 and 100.';
   }
+  if (resource === 'tasks') {
+    const valid = (value: any) => {
+      const v = String(value || '');
+      if (!v) return true; // pairs may be partial; only order is enforced
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+      const d = new Date(`${v}T00:00:00Z`);
+      return !Number.isNaN(d.valueOf()) && d.toISOString().slice(0, 10) === v;
+    };
+    if (!valid(row.plannedStart) || !valid(row.plannedEnd) || !valid(row.actualStart) || !valid(row.actualEnd)) {
+      errors.plannedStart = 'Enter valid dates (YYYY-MM-DD).';
+    } else {
+      const d = (v: any) => new Date(`${String(v)}T00:00:00Z`).valueOf();
+      if (row.plannedStart && row.plannedEnd && d(row.plannedEnd) < d(row.plannedStart)) {
+        errors.plannedEnd = 'Planned finish cannot be before planned start.';
+      }
+      if (row.actualStart && row.actualEnd && d(row.actualEnd) < d(row.actualStart)) {
+        errors.actualEnd = 'Actual finish cannot be before actual start.';
+      }
+      // Both planned dates set: duration must agree with them (derived elsewhere).
+      if (row.plannedStart && row.plannedEnd && row.duration != null && row.duration !== '') {
+        const days = Math.round((d(row.plannedEnd) - d(row.plannedStart)) / 86400000) + 1;
+        if (days >= 1 && Number(row.duration) !== days) errors.duration = `Duration must equal the planned dates (${days} days inclusive).`;
+        else if (days < 1) { const n = Number(row.duration); if (!Number.isInteger(n) || n < 1) errors.duration = 'Duration must be a whole number of days, at least 1.'; }
+      } else if (row.duration != null && row.duration !== '') {
+        const n = Number(row.duration);
+        if (!Number.isInteger(n) || n < 1) errors.duration = 'Duration must be a whole number of days, at least 1.';
+      }
+    }
+  }
   if (resource === 'timesheets') {
     for (const key of ['regularHours','overtimeHours']) {
       if (row[key] != null && row[key] !== '' && (!Number.isFinite(Number(row[key])) || Number(row[key]) < 0)) errors[key] = 'Enter non-negative hours.';
@@ -60,7 +89,7 @@ export function recordInvariantErrors(resource: string, row: Record<string, any>
       if (!errors.invoiceDate && !errors.dueDate && row.dueDate < row.invoiceDate) errors.dueDate = 'Due date cannot be before the invoice date.';
     }
     if (['PAID', 'PARTIALLY_PAID'].includes(status) && status !== oldStatus) {
-      errors.status = 'Payment status cannot be set manually until payment reconciliation is supported.';
+      errors.status = 'Use “Record and allocate receipt” on this invoice to settle it. Paid-to-date updates automatically when receipts are allocated — it cannot be set by hand.';
     }
   }
   if (resource === 'payments') {

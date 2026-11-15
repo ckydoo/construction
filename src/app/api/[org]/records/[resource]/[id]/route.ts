@@ -44,6 +44,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const nextStatus = body && typeof body === 'object' ? String(body.status || '') : '';
   const transition = validateWorkflowTransition(resource, String(prior.status || ''), nextStatus, a.role);
   if (!transition.ok) return NextResponse.json({ error: transition.error, workflowGuarded: true }, { status: transition.status });
+  // A job leaves the active portfolio only through the reviewed close-out
+  // action (unresolved-items review + reason + audited note), never a raw PATCH.
+  if (resource === 'projects' && nextStatus === 'CLOSED' && String(prior.status || '').toUpperCase() !== 'CLOSED')
+    return NextResponse.json({ error: 'Closing a project requires the close-out review. Open the project and choose “Close project” to review unfinished work and record the reason.', workflowGuarded: true }, { status: 409 });
   const result = await updateRecord(a.orgId, a.userId, a.name, def, id, body);
   if (!result.ok) return NextResponse.json({ error: 'Validation failed', errors: result.errors }, { status: (result as any).status || 400 });
   return NextResponse.json({ row: result.row });

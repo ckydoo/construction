@@ -222,6 +222,8 @@ export function resolveWorkflowAction(resource: string, from: string, actionId: 
 
 /** Used by the generic PATCH route so a status dropdown cannot bypass approvals. */
 /** True when `to` is a status the user may pick from `from` for this resource. Resources without a defined rule keep all options. */
+const PROJECT_STATUSES_MINUS_CLOSED = ['BID','PLANNING','ACTIVE','ON_HOLD','COMPLETED'];
+
 export function workflowAllowedTargets(resource: string, from: string): string[] | null {
   const up = (v: string) => String(v || '').toUpperCase();
   const f = up(from);
@@ -258,6 +260,12 @@ export function workflowAllowedTargets(resource: string, from: string): string[]
       if (f === 'PARTIALLY_PAID') return withCurrent('PARTIALLY_PAID');
       if (f === 'PAID') return withCurrent('PAID');
       return [f];
+    case 'projects': {
+      // Closing goes through the reviewed close-out action, never the raw picker.
+      if (f === 'CLOSED') return ['CLOSED', 'ACTIVE']; // reopen only
+      const set = new Set([...PROJECT_STATUSES_MINUS_CLOSED, f].filter(Boolean));
+      return ['BID','PLANNING','ACTIVE','ON_HOLD','COMPLETED','CLOSED'].filter(o => set.has(o));
+    }
     case 'journals':
       // Posting is not supported. A legacy POSTED/REVERSED record may only move
       // back to DRAFT for corrective review — POSTED/REVERSED are never offered.

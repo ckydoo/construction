@@ -51,7 +51,11 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
     }
   },[open,initial,def,defaultProjectId,meta?.config?.tax]);
   useEffect(()=>{ if(serverErrors) setErrors(serverErrors); },[serverErrors]);
-  const set=(k:string,v:any)=>{ if(k==='vatPct') formSession.current.taxEdited=true; setValues(s=>({...s,[k]:v})); setErrors(e=>{const n={...e};delete n[k];return n;}); };
+  const set=(k:string,v:any)=>{ if(k==='vatPct') formSession.current.taxEdited=true; setValues(s=>{
+    const next={...s,[k]:v};
+    if(def.id==='tasks'&&(k==='plannedStart'||k==='plannedEnd')){ const a=String(next.plannedStart||''),b=String(next.plannedEnd||''); const ok=(x:string)=>/^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNaN(new Date(`${x}T00:00:00Z`).valueOf()); if(ok(a)&&ok(b)){ const days=Math.round((Date.parse(`${b}T00:00:00Z`)-Date.parse(`${a}T00:00:00Z`))/86400000)+1; if(days>=1) next.duration=days; } }
+    return next;
+  }); setErrors(e=>{const n={...e};delete n[k];return n;}); };
   const submit=(e:React.FormEvent)=>{
     e.preventDefault();
     const err=validateFields({fields}, values).errors;

@@ -17,6 +17,37 @@ export type Row = Record<string, any> & { id:string; number?:string; title?:stri
 
 export const validate = validateFields;
 
+/**
+ * Task lifecycle rules, applied identically on create, edit, inline status
+ * change, CSV import and retry: COMPLETE means progress 100% and an actual
+ * finish date (today when missing); IN_PROGRESS records an actual start when
+ * it is missing. Duration is derived from the planned dates when both are
+ * set (inclusive days); otherwise it must be a whole number of days ≥ 1.
+ * These are deliberate product decisions, enforced server-side.
+ */
+export function applyTaskLifecycle(resource: string, row: Record<string, any>): Record<string, any> {
+  if (resource !== 'tasks') return row;
+  const out = { ...row };
+  const status = String(out.status || '').toUpperCase();
+  const today = new Date().toISOString().slice(0, 10);
+  const start = String(out.plannedStart || ''), end = String(out.plannedEnd || '');
+  const validDate = (v: string) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(new Date(`${v}T00:00:00Z`).valueOf());
+  if (validDate(start) && validDate(end) && (out.duration == null || out.duration === '')) {
+    // Duration derives from the planned dates when both are set and it was not
+    // entered. An explicit contradictory duration is rejected by the invariant,
+    // never silently overwritten.
+    const days = Math.round((new Date(`${end}T00:00:00Z`).valueOf() - new Date(`${start}T00:00:00Z`).valueOf()) / 86400000) + 1;
+    if (Number.isFinite(days) && days >= 1) out.duration = days;
+  }
+  if (status === 'COMPLETE') {
+    out.progress = 100;
+    if (!String(out.actualEnd || '').trim()) out.actualEnd = today;
+  } else if (status === 'IN_PROGRESS') {
+    if (!String(out.actualStart || '').trim()) out.actualStart = today;
+  }
+  return out;
+}
+
 export { fetchAll } from './fetch';
 
 export async function validateRefs(orgId:string, def:ResourceDef, clean:Record<string,any>): Promise<Record<string,string>> {
@@ -196,7 +227,8 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
   if (def.id === 'arInvoices' && input.amountPaid != null && input.amountPaid !== '' && (!Number.isFinite(Number(input.amountPaid)) || Number(input.amountPaid) !== 0)) return { ok:false as const, errors:{ amountPaid:'Paid amount cannot be set without payment reconciliation.' } };
   const limitMessage = await projectLimitMessage(orgId, def.id, limits);
   if (limitMessage) return { ok:false as const, errors:{ _: limitMessage }, status:402 as const };
-  const prepared = await deriveInvoiceClient(orgId, def, input);
+  const lifecyclePrepared = applyTaskLifecycle(def.id, await deriveInvoiceClient(orgId, def, input));
+  const prepared = lifecyclePrepared;
   const v = validate(def, { ...prepared, ...financialTotalsPatch(def.id, prepared, normaliseLines(prepared.items)) });
   const invariantErrors = recordInvariantErrors(def.id, { ...v.clean, status: v.clean.status || def.statusOptions?.[0] || null });
   const refErrors = v.ok && !Object.keys(invariantErrors).length ? await validateRefs(orgId, def, v.clean) : {};
@@ -237,7 +269,7 @@ export async function updateRecord(orgId:string, userId:string|undefined, actor:
   // older records with no structured lines keep their stored amounts.
   const suppliedLines = normaliseLines(input.items);
   const derived = suppliedLines.length ? financialTotalsPatch(def.id, { ...prior, ...input }, suppliedLines) : {};
-  const prepared = await deriveInvoiceClient(orgId, def, { ...prior, ...input, ...derived });
+  const prepared = applyTaskLifecycle(def.id, await deriveInvoiceClient(orgId, def, { ...prior, ...input, ...derived }));
   const v = validate(def, prepared);
   const invariantErrors = recordInvariantErrors(def.id, { ...v.clean, status: v.clean.status || def.statusOptions?.[0] || null }, existing.status);
   const refErrors = v.ok && !Object.keys(invariantErrors).length ? await validateRefs(orgId, def, v.clean) : {};

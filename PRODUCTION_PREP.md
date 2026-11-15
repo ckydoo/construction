@@ -125,3 +125,47 @@ accept-invite/login screen copy scan, deployed-copy probe requiring tester
 credentials) are pre-existing on the previous commit and unrelated to this round.
 NEXT: owner go-ahead to deploy; confirm D02/D03/D05 fixes re-tested on
 app.myla.co.zw; tester credentials in TEST_HERE.md need rotating/confirming.
+
+## Round-3 QA-fix release — prepared 2026-11-15 (NOT deployed)
+Code-complete, build-green, awaiting owner go-ahead. Addresses R6-01/02/03 and the
+message wording note from the 15 Nov 2026 task/document/close-out QA report:
+
+- R6-01 Task chronology & duration (create/edit/inline list/import/retry all
+  enforce server-side): planned finish cannot precede planned start; actual
+  finish cannot precede actual start; pairs may be partial; when both planned
+  dates are set, duration MUST equal the inclusive calendar days (auto-derived on
+  the form, explicit contradictions rejected with a clear message — never silently
+  overwritten); when dates are not set, duration must be a whole number of days
+  ≥ 1 (was: negative durations accepted). Reasonable UX: the task drawer derives
+  duration live from the two date fields.
+- R6-02 Completion lifecycle: marking a task COMPLETE now sets progress to 100%
+  and captures actual finish (today when missing) — everywhere (list dropdown,
+  edit drawer, CSV import, retries). IN_PROGRESS stamps actual start when missing.
+  Progress remains an independent physical measure for everything else; a 100%
+  figure does NOT auto-complete a task (sign-off stays a deliberate action).
+  A dedicated inspection quality workflow still does not exist — the generic task
+  COMPLETE is consistent, not a certification.
+- R6-03 Project close-out review: projects can no longer move ACTIVE/ON_HOLD/
+  etc. → CLOSED from any raw status picker (blocked in PATCH with 409; picker and
+  form no longer offer CLOSED). Instead, project detail header now has
+  "Close project…" which opens a reviewed close-out drawer: server recomputes —
+  unfinished tasks, progress < 100%, variations awaiting decision, unissued draft
+  invoices, issued invoices with outstanding balances (count + total, per-currency
+  aware), open punch items, open RFIs, outstanding client-wallet funding — then
+  requires a closure type (Successful completion / Cancellation / Administrative),
+  a note when the job is below 100% or non-completion, and an explicit
+  acknowledgement when anything is outstanding. The decision, acknowledgement,
+  reason and actor are written to the audit trail; a closure banner shows on the
+  project header (who when why). Reopening remains possible from the register.
+  Closing does NOT send email and does NOT settle money. Delivery of "successful
+  completion" at <100% is an acknowledged override, recorded as such.
+- Message wording: the manual invoice PAID/PARTIALLY_PAID guard now reads
+  'Use “Record and allocate receipt” on this invoice to settle it…', pointing to
+  the supported workflow instead of implying reconciliation is broken.
+Verification: next build green; lifecycle helpers unit-checked against the exact
+round-3 scenario (backwards dates + negative duration rejected; consistent row
+passes; COMPLETE ⇒ 100% + actualFinish; IN_PROGRESS ⇒ actualStart; zero duration
+rejected). NOT YET re-tested on production (deploy needs owner go-ahead; TS-0003-
+class re-verification owed). The blocked release gates (multi-role/multi-tenant,
+purchasing & retention modules, backup restore, weak network, phone/tablet) remain
+unaddressed by this work.
