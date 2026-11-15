@@ -14,7 +14,7 @@ Minimum viable monitoring before public launch:
 2. **Uptime check** — free external probe (UptimeRobot/Better Stack) on
    `https://myla.co.zw/login` every 1–5 min; alert to same channel; record probe URL.
 3. **Cron heartbeats** — billing sweep (02:00) and notifications sweep (05:00) must
-   report success. Implemented in code (2026-11-13, commit pending at time of writing):
+   report success. Implemented and deployed (2026-11-13, commit e7d8346, deployment dpl_7crFWKbxzzhr1Qts2LopxnCaqGod, READY/PROMOTED, aliased to myla.co.zw + app.myla.co.zw):
    both routes now ping `HEALTHCHECK_BILLING_URL` / `HEALTHCHECK_NOTIFICATIONS_URL` on
    success and `<url>/fail` on error (see `src/lib/heartbeat.ts`; no-op when unset; no
    token in git; 5s timeout; never throws). Remaining: create the healthchecks.io
