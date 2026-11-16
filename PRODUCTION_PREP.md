@@ -169,3 +169,21 @@ rejected). NOT YET re-tested on production (deploy needs owner go-ahead; TS-0003
 class re-verification owed). The blocked release gates (multi-role/multi-tenant,
 purchasing & retention modules, backup restore, weak network, phone/tablet) remain
 unaddressed by this work.
+
+## Round-3 QA-fix release — deployed 2026-11-16 (cba1470 → dpl_8qWxMyqH7Ds3Y7Ydg5RJiH1J93ec)
+Owner-approved production deploy of the R6 QA fixes. Build READY and PROMOTED;
+aliases myla.co.zw and app.myla.co.zw live.
+Live-verified after deploy: myla.co.zw → 200; app.myla.co.zw/login → 200;
+/api/platform/public-config = {demo:false, maintenance:false}; new close-out route
+returns 401 for unauthenticated calls (route present, guarded, not 404/5xx);
+landing shows only +263716826666 (×4) and codzlabzim53@gmail.com (×6); no
+support@myla.co.zw / developer strings. No schema changes, so nothing ran on
+production data; no records created or modified by the deploy or the checks.
+RETEST OWED (round-3 report): TSK-0003-class impossible-date/negative-duration
+rejection; COMPLETE ⇒ progress 100% + actual finish; projects no longer move to
+CLOSED via the register (use Close project… on the job overview; review of
+unresolved items, closure type, note, audit); invoice PAID attempt message now
+points to "Record and allocate receipt". Tester credentials in TEST_HERE.md still
+return 401 — supply fresh ones or accept read-only verification. Blocked gates
+remain open (multi-role/tenant, purchasing/stock/plant/payroll/safety/retention,
+backup restore, weak network, phone/tablet).
