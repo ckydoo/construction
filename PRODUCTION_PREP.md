@@ -209,3 +209,21 @@ Aliases assigned: myla.co.zw, app.myla.co.zw (+ *.vercel.app). Production now ru
 - Authenticated end-to-end pass of the new micro-onboarding → first-job checklist (needs fresh tester credentials — TEST_HERE.md creds still return 401 — or owner).
 - Design-partner pilots (2–3 real small ZW builders) recommended before broad "for everyone" positioning.
 - Still open gates: multi-role/multi-tenant isolation proof, backup-restore proof, round-3 R6 re-test (needs fresh tester credentials or owner hands).
+
+## Release-hygiene re-verification — 2026-11-17 (deployed)
+
+Owner-approved production deploy of `4b7669c` ("R6 UX completion…") as deployment
+`dpl_R7ZxQiHxzDrgK5BZArpDJcPywzo3` (READY, aliases myla.co.zw + app.myla.co.zw).
+App code is unchanged since `11058d0` except the R6 workflow guards + create-201
+fix now living directly in `validateWorkflowTransition` (PATCH-level duplicate removed):
+
+- raw PATCH project → CLOSED now returns 409 with close-out guidance; invoice → PAID/PARTIALLY_PAID returns 400 with "Record and allocate receipt" guidance (both enforced server-side on every path).
+- Authenticated first-job QA suite re-run against prod (`scripts/first-job-qa.mjs`, service-role magic-link sessions): **22/22 checks pass** — MICRO onboarding = exactly 9 sections, client → quote → job → invoice → receipt → task loop, 201 creates, date/duration 400s, COMPLETE ⇒ progress 100% + actualEnd, close-without-ack ⇒ 422, acknowledged close ⇒ 200, both R6 guard regressions green. QA artifacts cleaned up (orgs/users removed; verified zero residue).
+- Multi-role / multi-tenant isolation proof (`scripts/isolation-qa.ts`): **30/30 checks pass** against production — org B is refused on all 49 catalogued resources (list/detail/create), on 18 special routes, overview is not polluted by org A data, and intra-A role enforcement holds (VIEWER read-only; ACCOUNTANT cannot administer roles/settings; OWNER unaffected). QA orgs marked + comped for the test, then orgs (and their seeded billing rows) deleted; verified zero residue.
+- Note: isolation gate 2 treats method-405 as blocked for routes without GET handlers (`/settings`, `/receipts`).
+
+## Backup — logical export created 2026-11-17 (NOT a restore drill)
+
+`scripts/export-logical-backup.mjs` wrote a full logical snapshot of all **42 public tables (10,280 rows, 7.7 MB)** to `backups/logical-2026-11-17T10-16-39-248Z/` (git-ignored). `scripts/verify-logical-backup.mjs` re-hashes and re-parses every file against its manifest — **VERIFY OK**; per-table counts match a direct production count. Auth schema (password hashes) and Storage bucket objects are **not** covered (owner scope: public schema only); Supabase daily backup/PITR covers those if enabled — owner to confirm in dashboard. No restore drill has been executed (owner chose logical-only; no scratch project, no DDL on prod). `scripts/restore-logical-backup.mjs` is a guarded, UNTESTED loader prepared for that drill; see `BACKUP_RESTORE.md` for status and the full runbook. Treat backups as UNPROVEN until the drill runs.
+
+Remaining gates before broad "for everyone" positioning: backup-restore drill execution, design-partner pilot validation, landing-copy owner review. R6 re-test is DONE (22/22). Isolation gate is DONE (30/30).

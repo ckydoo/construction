@@ -25,3 +25,6 @@ TESTER_FEEDBACK.md
 TEST_RESULTS.md
 screenshots/tester-here-dashboard.png
 scripts/tester-here-*.mjs
+
+# Logical backups may contain production data — never commit
+backups/
