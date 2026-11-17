@@ -278,6 +278,22 @@ export function workflowAllowedTargets(resource: string, from: string): string[]
 export function validateWorkflowTransition(resource: string, from: string, to: string, role: string) {
   const rule = workflowRule(resource);
   const target = String(to || '').toUpperCase();
+  // Payment states belong to the allocation workflow, never the status picker —
+  // tell the user exactly where to go instead of a generic approval message.
+  if (resource === 'arInvoices' && (target === 'PAID' || target === 'PARTIALLY_PAID') && target !== String(from || '').toUpperCase()) {
+    return {
+      ok: false as const, guarded: true as const, status: 400 as const,
+      error: 'Use “Record and allocate receipt” on this invoice to settle it. Paid-to-date updates automatically when receipts are allocated — it cannot be set by hand.',
+    };
+  }
+  // A job leaves the active portfolio only through the reviewed close-out
+  // action, never a raw status change — point users at it from anywhere.
+  if (resource === 'projects' && target === 'CLOSED' && String(from || '').toUpperCase() !== 'CLOSED') {
+    return {
+      ok: false as const, guarded: true as const, status: 409 as const,
+      error: 'Closing a project requires the close-out review. Open the project and choose “Close project” to review unfinished work and record the reason.',
+    };
+  }
   if (!to || target === String(from || '').toUpperCase()) return { ok: true as const, guarded: false as const };
   if (rule && rule.pending.includes(String(from || ''))) {
     const action = rule.actions.find(a => a.to === to);
