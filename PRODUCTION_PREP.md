@@ -237,3 +237,31 @@ Owner-instructed production deploy of `57d4fe7` (docs + QA/backup tooling only �
 Owner-approved. Supabase Auth for `oeadisqfuyhelppinaxw` updated via connector: `site_url` localhost → `https://myla.co.zw`; `uri_allow_list` = `https://myla.co.zw,https://app.myla.co.zw,http://localhost:3000`. Side effects of the config overwrite (disclosed to owner): `rate_limit_email_sent` 2 → null (provider default), `sms_provider` twilio → null (unused), `sessions_inactivity_timeout`/`sessions_timebox` 0 → null (no timeout, unchanged behaviour). Everything else preserved incl. `security_captcha_enabled=true` (turnstile) and refresh-token rotation. Live re-verified after change: landing 200, login 200, unauth API 401, public-config {demo:false,maintenance:false}.
 
 Owner actions still owed (no code, dashboard/DNS): SPF record for myla.co.zw (`v=spf1 include:spf.brevo.com ~all` — confirm include with Brevo), DMARC move p=none → quarantine → reject after ~2 weeks of reports (current: p=none, rua=mailto:rua@dmarc.brevo.com; Brevo DKIM brevo1/2 OK); enable Leaked password protection (HIBP) in Supabase → Authentication → Passwords; restore Email rate limit = 2/hr in Supabase → Authentication → Rate Limits; Vercel Firewall rule for /api/auth/* (plan permitting); TOTP MFA for owner accounts; MX records absent by design (send-only domain).
+
+## QA7 fixes + dashboard performance — deployed 2026-11-17 (`ec3f10d` → dpl_4jeLoUd5ZczDhG6NHJLALJxKc1KE)
+
+Owner-authorised controlled production update. Vercel production deployment of main @
+`ec3f10d` created from GitHub; READY/PROMOTED; aliases myla.co.zw and app.myla.co.zw live;
+timeToReady 97.0s; crons remain billing 0 2 * * * and notifications 0 5 * * *.
+
+Live verification:
+- Unauthenticated: myla.co.zw 200; app.myla.co.zw/login 200; /api/platform/public-config
+  {"demo":false,"maintenance":false}; unauthenticated overview route returns 401.
+- Authenticated first-job QA suite re-run against production: **22/22 pass**. Creates one
+  clearly-marked QA organisation/OWNER user, drives onboarding MICRO, job-to-cash loop,
+  R6 regressions and close-out. QA org and user deleted afterwards via connector;
+  final counts qa_orgs=0, qa_users=0.
+- QA7 fixture verification against production was read-only. It used a service-role-generated
+  magic-link session for the synthetic owning user; no records were created or modified.
+  PRJ-0001 (`f4b5c11e...`, TEST ONLY) now reports: received 4,830; billed/gross 4,830;
+  net billed 4,200; VAT billed 630; cash gap 0; actual cost 480; current margin 3,720;
+  forecast margin 1,900; Convert flow for INV-0001 reports Receipt stage done. Job-360
+  snapshots the same 4,830/4,200/630.
+- `overview` endpoint: 30s keyed private cache (tenant/user/role/scope/config); exact resource
+  counts now use parallel HEAD COUNT queries rather than reading all record rows; dashboard and
+  meta client queries use 30s staleTime.
+
+Controlled production does not close the remaining broad-launch gates: backup restore drill,
+accountant sign-off, HIBP/email rate-limit restore/SPF/DMARC/firewall/MFA actions, legal
+(Terms/Privacy), Paynow live end-to-end, load/concurrency test, design-partner pilot, and
+monitor/incident processes. Public launch remains gated.
