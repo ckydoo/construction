@@ -75,7 +75,7 @@ export default function ProfitabilityPage() {
     { label: 'Approved budget', value: fmt(summary.budget, true), sub: `${fmt(summary.committed, true)} committed to suppliers`, icon: 'PieChart', tone: 'slate' },
     { label: 'Actual cost to date', value: fmt(summary.actualCost, true), sub: `${fmt(summary.forecastFinalCost, true)} forecast final cost`, icon: 'Receipt', tone: 'slate' },
     { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.billedNet, true)} net billed · ${fmt(summary.vatBilled, true)} VAT · ${fmt(summary.certified, true)} certified`, icon: 'FileText', tone: 'slate' },
-    { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding${summary.unallocatedCredit && Object.keys(summary.unallocatedCredit).length ? ` · ${Object.entries(summary.unallocatedCredit).map(([c, n]) => `${fmt(n, true)} ${c} unallocated`).join(', ')}` : ''}`, icon: 'Banknote', tone: 'slate' },
+    { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding${summary.unallocatedCredit && Object.keys(summary.unallocatedCredit).length ? ` · ${Object.entries(summary.unallocatedCredit).map(([c, n]) => `${Number(n).toFixed(2)} ${c} unallocated`).join(', ')}` : ''}`, icon: 'Banknote', tone: 'slate' },
     { label: 'Current margin', value: fmtSigned(summary.currentMargin, true), sub: 'Net billed less actual cost', icon: 'TrendingUp', tone: metricTone(summary.currentMargin) },
     { label: 'Forecast margin', value: fmtSigned(summary.forecastMargin, true),
       sub: `${pct(summary.marginPct)} of revised contract${summary.provisionalJobs + summary.unknownCostJobs > 0 ? ' · approved budgets only' : ''}`,
