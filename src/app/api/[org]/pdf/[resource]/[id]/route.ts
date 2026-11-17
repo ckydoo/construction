@@ -132,7 +132,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   let page = pdf.addPage([A4W, A4H]);
   let y = A4H - M;
   let inTable = false;
-  const cols = [24, 272, 48, 78, 89];
+  const cols = [24, 236, 64, 46, 82, 59];
   const colX = [M];
   for (let i = 1; i < cols.length; i++) colX.push(colX[i - 1] + cols[i - 1]);
 
@@ -219,8 +219,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     drawAt('#', M + 4, y - 13, 8, bold, WHITE);
     drawAt('Description', colX[1] + 4, y - 13, 8, bold, WHITE);
     drawRight('Qty', colX[2] + cols[2] - 4, y - 13, 8, bold, WHITE);
-    drawRight('Unit price', colX[3] + cols[3] - 4, y - 13, 8, bold, WHITE);
-    drawRight('Subtotal', colX[4] + cols[4] - 4, y - 13, 8, bold, WHITE);
+    drawAt('UoM', colX[3] + 4, y - 13, 8, bold, WHITE);
+    drawRight('Unit price', colX[4] + cols[4] - 4, y - 13, 8, bold, WHITE);
+    drawRight('Subtotal', colX[5] + cols[5] - 4, y - 13, 8, bold, WHITE);
     y -= 22;
   }
   function drawKeyValueGrid(entries: [string, string][]) {
@@ -279,8 +280,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       let ly = y - 14;
       for (const dl of descLines) { drawAt(dl, colX[1] + 4, ly, 8.5, font, INK); ly -= 11; }
       drawRight(String(Math.round(l.qty * 100) / 100), colX[2] + cols[2] - 4, y - 14, 8.5, font, INK);
-      drawRight(money(l.unitPrice, docCurrency), colX[3] + cols[3] - 4, y - 14, 8.5, font, INK);
-      drawRight(money(l.total, docCurrency), colX[4] + cols[4] - 4, y - 14, 8.5, bold, INK);
+      drawAt(String(l.unit || '—').slice(0, 12), colX[3] + 4, y - 14, 8, font, INK);
+      drawRight(money(l.unitPrice, docCurrency), colX[4] + cols[4] - 4, y - 14, 8.5, font, INK);
+      drawRight(money(l.total, docCurrency), colX[5] + cols[5] - 4, y - 14, 8.5, bold, INK);
       page.drawLine({ start: { x: M, y: y - rowH }, end: { x: A4W - M, y: y - rowH }, thickness: 0.4, color: LINE });
       y -= rowH;
     });

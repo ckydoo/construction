@@ -74,9 +74,9 @@ export default function ProfitabilityPage() {
     { label: 'Revised contract', value: fmt(summary.revisedContract, true), sub: `${fmt(summary.pendingVariations, true)} variations awaiting approval`, icon: 'FileSignature', tone: 'slate' },
     { label: 'Approved budget', value: fmt(summary.budget, true), sub: `${fmt(summary.committed, true)} committed to suppliers`, icon: 'PieChart', tone: 'slate' },
     { label: 'Actual cost to date', value: fmt(summary.actualCost, true), sub: `${fmt(summary.forecastFinalCost, true)} forecast final cost`, icon: 'Receipt', tone: 'slate' },
-    { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.certified, true)} certified for payment`, icon: 'FileText', tone: 'slate' },
-    { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding`, icon: 'Banknote', tone: 'slate' },
-    { label: 'Current margin', value: fmtSigned(summary.currentMargin, true), sub: 'Billed less actual cost', icon: 'TrendingUp', tone: metricTone(summary.currentMargin) },
+    { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.billedNet, true)} net billed · ${fmt(summary.vatBilled, true)} VAT · ${fmt(summary.certified, true)} certified`, icon: 'FileText', tone: 'slate' },
+    { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding${summary.unallocatedCredit && Object.keys(summary.unallocatedCredit).length ? ` · ${Object.entries(summary.unallocatedCredit).map(([c, n]) => `${fmt(n, true)} ${c} unallocated`).join(', ')}` : ''}`, icon: 'Banknote', tone: 'slate' },
+    { label: 'Current margin', value: fmtSigned(summary.currentMargin, true), sub: 'Net billed less actual cost', icon: 'TrendingUp', tone: metricTone(summary.currentMargin) },
     { label: 'Forecast margin', value: fmtSigned(summary.forecastMargin, true),
       sub: `${pct(summary.marginPct)} of revised contract${summary.provisionalJobs + summary.unknownCostJobs > 0 ? ' · approved budgets only' : ''}`,
       icon: 'Target', tone: metricTone(summary.forecastMargin) },
@@ -179,7 +179,7 @@ export default function ProfitabilityPage() {
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.actualCost, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.costToComplete, true) : '—'}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.forecastFinalCost, true) : '—'}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.billed, true)}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums" title={`${fmt(j.billedNet, true)} net · ${fmt(j.vatBilled, true)} VAT`}>{fmt(j.billed, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.received, true)}</td>
               <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{j.forecastAvailable ? fmtSigned(j.forecastMargin, true) : '—'}</td>
               <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.marginPct < 0 ? 'text-red-600 dark:text-red-300' : ''}`}>{j.forecastAvailable ? pct(j.marginPct) : '—'}</td>
@@ -200,8 +200,10 @@ export default function ProfitabilityPage() {
           ['Forecast final cost', 'Actual cost plus forecast-to-complete from budget lines, or the remaining budget when no forecast is entered. With no approved budget, the awarded quote’s proposed cost is used and the forecast is labelled provisional. With no cost information at all, the forecast is unavailable — never zero-cost.'],
           ['Forecast margin', 'Revised contract minus forecast final cost, for jobs with an approved budget only. Provisional forecasts are shown per job and excluded from the company figure; Margin % is that figure as a share of those jobs’ revised contract.'],
           ['Planning & bid jobs', 'Planning and bid-stage jobs appear in this view so proposals are not hidden. Their forecasts are provisional and excluded from company forecast totals until an approved budget exists.'],
-          ['Billing position', 'Billed less earned value (revised contract × progress). A negative figure means the job is underbilled for work done.'],
-          ['Cash gap', 'Gross invoiced amount less amounts allocated to invoices. Unallocated customer receipts do not reduce this balance.'],
+          ['Billed vs net billed', 'Invoiced totals include VAT the client remits on your behalf. Net billed excludes VAT and is what margin and work-progress comparisons use. Cash and outstanding balances stay on gross, because receipts settle the gross invoice.'],
+          ['Billing position', 'Net billed less earned value (revised contract × progress). A negative figure means the job is underbilled for work done.'],
+          ['Cash gap', 'Gross invoiced amount less amounts paid on those invoices. Receipts with no project link are attributed through their invoice allocations to the job that earned the money. Anything still unallocated is shown separately as customer credit, never as a job’s cash.'],
+          ['Unallocated customer credit', 'Money received that is pinned to no job and no allocated invoice. It stays out of every job’s cash figure until it is allocated, and is reported in the Cash received card.'],
         ].map(([title, body]) => <div key={title} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-xs font-semibold">{title}</p><p className="mt-1 text-[11px] leading-relaxed muted">{body}</p></div>)}
       </div>}
     </Card>

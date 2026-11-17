@@ -9,6 +9,7 @@ import { visibleFields, type ConfigLike } from '@/lib/module-visibility';
 import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
 import { validateFields } from '@/lib/field-validation';
+import { recordInvariantErrors } from '@/lib/record-invariants';
 import { taxDefault } from '@/lib/tax-settings';
 import { allowedStatusOptions } from '@/lib/workflow';
 
@@ -59,6 +60,10 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   const submit=(e:React.FormEvent)=>{
     e.preventDefault();
     const err=validateFields({fields}, values).errors;
+    // Same guardrails the server applies, run before anything is inserted —
+    // an invalid task is never optimistically added to the list.
+    const invariants=recordInvariantErrors(def.id, values);
+    for(const k of Object.keys(invariants)) if(!(k in err)) err[k]=invariants[k];
     setErrors(err); if(Object.keys(err).length) return;
     const payload=Object.fromEntries(Object.entries(values).filter(([k])=>fields.some(f=>f.key===k)));
     onSubmit(payload);

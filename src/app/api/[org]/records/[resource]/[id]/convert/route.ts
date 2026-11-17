@@ -22,6 +22,7 @@ import {
   CONVERSION_RULES, buildContext, buildPreview, describePatch, provenance,
   type ConversionRule,
 } from '@/lib/conversions';
+import { allocatedReceiptsForInvoices } from '@/lib/receipt-attribution';
 
 type Ctx = { params: Promise<{ org: string; resource: string; id: string }> };
 type ChainRow = {
@@ -62,7 +63,7 @@ async function chainRows(orgId: string): Promise<ChainRow[]> {
 
 /** Walk up the provenance links to the first record of this job, then walk
  *  down again so a quote, a certificate or a receipt all show the same chain. */
-function buildChain(current: ChainRow, all: ChainRow[]) {
+function buildChain(current: ChainRow, all: ChainRow[], receiptByInvoice: Map<string, { receiptId: string; amount: number }[]>) {
   const byId = new Map<string, ChainRow>(all.map(r => [r.id, r]));
   if (!byId.has(current.id)) byId.set(current.id, current);
   const children = new Map<string, ChainRow[]>();
@@ -90,8 +91,18 @@ function buildChain(current: ChainRow, all: ChainRow[]) {
   if (!family.has(current.id)) family.set(current.id, current);
   const rows = Array.from(family.values());
   return CHAIN_STAGES.map(stage => {
-    const match = rows.find(r => r.resource === stage.id && r.id === current.id)
+    let match = rows.find(r => r.resource === stage.id && r.id === current.id)
       || rows.find(r => r.resource === stage.id);
+    if (!match && stage.id === 'payments') {
+      // Invoices are settled by allocated receipts, not by the conversion flow.
+      // A non-reversed allocation to any invoice in this job completes the stage.
+      const hit = rows.map(r => (r.resource === 'arInvoices' ? receiptByInvoice.get(r.id) : undefined)).find(list => list?.length);
+      if (hit?.length) {
+        const receiptId = hit[0].receiptId;
+        const receiptRow = all.find(r => r.resource === 'payments' && r.id === receiptId);
+        match = { id: receiptId, resource: 'payments', number: receiptRow?.number, title: receiptRow?.title, status: receiptRow?.status };
+      }
+    }
     const state = match?.id === current.id ? 'current' : match ? 'done' : stage.optional ? 'skipped' : 'todo';
     return {
       id: stage.id, label: stage.label, short: stage.short, singular: stage.singular,
@@ -113,6 +124,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   if (!src) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const all = await chainRows(a.orgId);
+  const receiptByInvoice = await allocatedReceiptsForInvoices(a.orgId);
   const current: ChainRow = {
     id, resource, number: src.number, title: src.title || src.name || src.subject,
     status: src.status, projectId: src.projectId,
@@ -148,7 +160,7 @@ export async function GET(_req: Request, { params }: Ctx) {
       };
     });
 
-  const chain = buildChain(current, all);
+  const chain = buildChain(current, all, receiptByInvoice);
   // A client may be linked as a master record without being the provenance
   // parent. Resolve it with the same read and row-scope checks as other views.
   const clientStage = chain.find(stage => stage.id === 'clients');

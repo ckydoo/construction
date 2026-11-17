@@ -32,7 +32,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const cfg = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
   const modOn = (id: string) => moduleEnabled(a.config, id);
   const walletsOn = modOn('wallets');
-  const ids = ['projects', 'clients', 'employees', 'equipment', 'rfis', 'changeOrders', 'incidents', 'certifications', 'inventory', 'timesheets', 'arInvoices', 'apBills', 'payments', 'paymentApps', 'budgets', 'purchaseOrders', 'leads', 'tasks', 'punchLists', 'toolboxTalks', 'inspections'].filter(r => visible.includes(r));
+  const ids = ['projects', 'clients', 'employees', 'equipment', 'rfis', 'changeOrders', 'incidents', 'certifications', 'inventory', 'timesheets', 'arInvoices', 'apBills', 'payments', 'paymentApps', 'budgets', 'purchaseOrders', 'leads', 'tasks', 'punchLists', 'toolboxTalks', 'inspections', 'estimates', 'bids'].filter(r => visible.includes(r));
   const data: Record<string, any[]> = {};
   await Promise.all(ids.map(async r => { data[r] = await rowsForScoped(a, scope, r); }));
   const sb = await supabase();
@@ -139,6 +139,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       openChangeOrders: pendingCo.length, openIncidents: openInc.length, openPunch: (data.punchLists || []).filter(p => p.status !== 'CLOSED').length,
       safetyScore: (data.inspections || []).length ? Math.round(plainSum(data.inspections || [], 'score') / (data.inspections || []).length) : 0,
       pipelineValue: sumBase((data.leads || []).filter(l => l.status === 'OPEN'), 'value'),
+      openQuotesValue: sumBase((data.estimates || []).filter(e => ['DRAFT', 'INTERNAL_REVIEW', 'SUBMITTED'].includes(e.status)), 'total'),
+      awardedQuotesValue: sumBase((data.estimates || []).filter(e => e.status === 'AWARDED'), 'total')
+        + sumBase((data.bids || []).filter(b => b.outcome === 'AWARDED'), 'bidValue'),
       certifiedValue: sumBase(data.paymentApps || [], 'netCertified'),
       committedPo: sumBase(data.purchaseOrders || [], 'amount'),
       walletBalance: walletCards.reduce((t, w) => t + w.baseBalance, 0),

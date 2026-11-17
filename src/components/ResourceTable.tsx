@@ -142,7 +142,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
       qc.setQueryData(listKey,(old:any)=>old?{...old,rows:[temp,...old.rows],total:old.total+1}:old);
       return {prev};
     },
-    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); toast.push({tone:'error',title:'Could not create record',description:userMessage(e, 'We couldn’t create that record. Please try again.')}); setServerErrors(e.details); },
+    onError:(e:any,_v,ctx:any)=>{ if(ctx?.prev)qc.setQueryData(listKey,ctx.prev); const fieldErrors=e.details && typeof e.details==='object' ? Object.values(e.details).filter((v):v is string=>typeof v==='string').join(' ') : ''; toast.push({tone:'error',title:'Could not create record',description:fieldErrors || userMessage(e, 'We couldn’t create that record. Please try again.')}); setServerErrors(e.details); },
     onSuccess:(r:any)=>{ setFormOpen(false); setEditing(null); setServerErrors(undefined); toast.push({tone:'success',title:`${def.singular} created`,description:`${r.row.title} · ${r.row.number}`}); },
     onSettled:invalidate });
   const updateMut=useMutation({ mutationFn:({id,values}:any)=>apiSend(orgApi(org,`records/${resource}/${id}`),'PATCH',values),

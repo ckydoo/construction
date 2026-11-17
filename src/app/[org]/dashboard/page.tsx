@@ -83,8 +83,8 @@ export default function DashboardPage(){
     {!isLoading&&totalRecords===0&&<Card><EmptyState icon="Database" title="Nothing here yet" description={demo?'Load demo data to look around, or start by adding your first client and job.':'Start by adding your first client and job.'} action={demo?<Link href={`/${org}/settings?tab=data`}><Button variant="primary" icon="Database">Load demo data</Button></Link>:<Link href={`/${org}/clients`}><Button variant="primary" icon="Plus">Add your first client</Button></Link>}/></Card>}
     <Card className="overflow-hidden">
       <div className="grid grid-cols-2 gap-px bg-slate-200 sm:grid-cols-3 xl:grid-cols-5 dark:bg-ink-800">
-        {on('projects')&&<Kpi loading={isLoading} label="Jobs running" value={num(k?.activeProjects)} sub={`${num(k?.pipelineProjects)} being quoted`}/>}
-        {showJobs&&<Kpi loading={isLoading} label="Value of jobs" value={formatMoney(k?.contractValue,base,true)} sub={`${formatMoney(k?.pipelineValue,base,true)} quotes in hand`}/>}
+        {on('projects')&&<Kpi loading={isLoading} label="Jobs running" value={num(k?.activeProjects)} sub={`${num(k?.pipelineProjects)} in bid/planning stage`}/>}
+        {showJobs&&<Kpi loading={isLoading} label="Value of jobs" value={formatMoney(k?.contractValue,base,true)} sub={`${formatMoney(k?.awardedQuotesValue,base,true)} awarded · ${formatMoney((k?.pipelineValue ?? 0) + (k?.openQuotesValue ?? 0),base,true)} open pipeline`}/>}
         {mod('finance')&&<Kpi loading={isLoading} label="Invoiced to date" value={formatMoney(k?.billed,base,true)} sub={`${formatMoney(k?.certifiedValue,base,true)} certified for payment`}/>}
         {mod('finance')&&<Kpi loading={isLoading} label="Money owed to you" value={formatMoney(k?.outstanding,base,true)} sub={`${formatMoney(k?.payables,base,true)} you owe suppliers`}/>}
         {mod('wallets')&&<Kpi loading={isLoading} label="Client money in hand" value={formatMoney(k?.walletBalance,base,true)} sub={`${formatMoney(k?.walletFunded,base,true)} set aside for jobs`}/>}

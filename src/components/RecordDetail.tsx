@@ -193,7 +193,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     {canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}
   </div>;
   const receiptFlow = def.id==='arInvoices'&&<ReceiptAllocationForm org={org} open={receiptOpen} onClose={()=>setReceiptOpen(false)} initialInvoice={data?.row||row}/>;
-  const flow = canConvert&&<ConvertFlow org={org} resource={def.id} row={row} open={convertOpen} onClose={()=>setConvertOpen(false)}/>;
+  const flow = canConvert&&<ConvertFlow org={org} resource={def.id} row={row} open={convertOpen} onClose={()=>setConvertOpen(false)} onRecordReceipt={()=>{setConvertOpen(false);setReceiptOpen(true);}}/>;
   if(inline) return <Card className="overflow-hidden">
     <CardHead title={`${title} · record & files`} subtitle="Full project record, linked modules, comments and document revisions" action={inlineActions}/>
     {body}

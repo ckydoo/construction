@@ -250,7 +250,8 @@ export function toRecordPayload(draft: QuoteDraft, status?: string): Record<stri
   const totals = quoteTotals(draft);
   const items = totals.lines.map(l => ({
     description: text(l.description, 300), detail: text(l.detail, 500),
-    qty: round2(l.qty), unitPrice: round2(l.unitPrice),
+    qty: round2(l.qty), unit: text(l.unit, 20) || null,
+    unitPrice: round2(l.unitPrice),
     total: round2(l.qty * l.unitPrice), category: l.category,
   }));
   return {

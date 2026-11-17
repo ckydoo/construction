@@ -43,6 +43,7 @@ export default function ProjectPage(){
     ['Actual to date', t?.actual, on('budgets')],
     ['Forecast to complete', t?.forecast, on('budgets')],
     ['Approved variations', t?.variations, on('changeOrders')],
+    ['Net billed (excl. VAT)', t?.billedNet, on('arInvoices')],
     ['Received (cleared receipts)', t?.received, on('payments')||on('arInvoices')],
   ] as [string, any, boolean][]).filter(x=>x[2]).map(([l,v])=>[l,v]);
   const showSnapshot=snapshotRows.length>0;

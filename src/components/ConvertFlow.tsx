@@ -37,8 +37,10 @@ const STATE_STYLE: Record<string, string> = {
   todo: 'border-slate-200 bg-white text-slate-500 dark:border-ink-700 dark:bg-ink-900 dark:text-slate-400',
 };
 
-export default function ConvertFlow({ org, resource, row, open, onClose }: {
+export default function ConvertFlow({ org, resource, row, open, onClose, onRecordReceipt }: {
   org: string; resource: string; row: any; open: boolean; onClose: () => void;
+  /** Opens the record-and-allocate-receipt flow for this invoice (arInvoices only). */
+  onRecordReceipt?: () => void;
 }) {
   const router = useRouter();
   const qc = useQueryClient();
@@ -113,6 +115,25 @@ export default function ConvertFlow({ org, resource, row, open, onClose }: {
           </div>
         </>}
       </section>
+
+      {resource === 'arInvoices' && <section data-testid="receipt-settlement-action">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Record the money</h3>
+          <Badge tone="blue">Settles this invoice</Badge>
+        </div>
+        <Card className="p-3.5">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="flex min-w-0 items-start gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider bg-slate-50 text-ink-600 dark:bg-ink-950/40 dark:text-slate-300"><Icon name="Banknote" size={16} /></span>
+              <div className="min-w-0"><p className="card-title">Record and allocate receipt</p>
+                <p className="caption mt-0.5">Records the money received against this invoice and updates paid-to-date. Paid status is never set by hand.</p></div>
+            </div>
+            {onRecordReceipt
+              ? <Button size="sm" variant="primary" icon="Banknote" onClick={onRecordReceipt}>Record receipt</Button>
+              : <Link href={`/${org}/m/arInvoices?open=${encodeURIComponent(row?.id || '')}`} className="btn-outline btn-sm whitespace-nowrap"><Lucide.ExternalLink size={13} />Open invoice</Link>}
+          </div>
+        </Card>
+      </section>}
 
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">

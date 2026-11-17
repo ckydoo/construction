@@ -6,6 +6,8 @@ import { apiAuth } from '@/lib/auth';
 import { billingGuard, guardModule, readGuard } from '@/lib/guard';
 import { buildScope, visibleResources, rowsForScoped } from '@/lib/access';
 import { normaliseCurrencyConfig } from '@/lib/currency';
+import { getRecord } from '@/lib/records';
+import { attributeReceiptsToProjects } from '@/lib/receipt-attribution';
 import {
   PROFITABILITY_RESOURCE_IDS, computeJobProfitability,
   summariseProfitability, profitabilityCostBreakdown, type ProfitabilityJob,
@@ -44,6 +46,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     data[resource] = await rowsForScoped(a, scope, resource);
   }));
 
+  const allInvoices = data.arInvoices || [];
+  const invoiceById = new Map(allInvoices.map(i => [String(i.id), i]));
+  const clearedReceipts = (data.payments || []).filter(x =>
+    String(x.direction || '').toUpperCase() === 'RECEIPT' && ['CLEARED', 'RECONCILED'].includes(String(x.status || '').toUpperCase()));
+  const attribution = await attributeReceiptsToProjects(a.orgId, clearedReceipts, async (invoiceId) =>
+    invoiceById.get(invoiceId) || (await getRecord(a.orgId, 'arInvoices', invoiceId, scope).catch(() => null)));
+
   const projects = (data.projects || []).filter(p => INCLUDED_PROJECT_STATUSES.has(String(p.status || '').toUpperCase()));
   const grouped = Object.fromEntries(Object.entries(data).map(([key, rows]) => [key, groupByProject(rows)]));
   const pick = (resource: string, projectId: string) => (grouped[resource]?.get(projectId) || []) as any[];
@@ -61,7 +70,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     timesheets: pick('timesheets', project.id),
     arInvoices: pick('arInvoices', project.id),
     paymentApps: pick('paymentApps', project.id),
-    payments: pick('payments', project.id),
+    payments: attribution.byProject.get(project.id) || [],
   })).sort((x, y) => {
     const rank = (j: ProfitabilityJob) => j.tone === 'red' ? 0 : j.tone === 'amber' ? 1 : j.tone === 'slate' ? 2 : 3;
     return rank(x) - rank(y) || x.forecastMargin - y.forecastMargin || y.revisedContract - x.revisedContract;
@@ -76,7 +85,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       updatedAt: cfg.updatedAt || null, updatedBy: cfg.updatedBy || null,
       missingRates,
     },
-    summary,
+    summary: { ...summary, unallocatedCredit: attribution.unallocated },
     jobs,
     costBreakdown: profitabilityCostBreakdown(jobs),
     generatedAt: new Date().toISOString(),

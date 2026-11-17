@@ -40,6 +40,9 @@ export type ProfitabilityJob = {
   costSource: 'project' | 'budget lines' | 'transactions' | 'none';
 
   billed: number;
+  /** Net revenue billed (excl. VAT) — margin and work-value comparisons use this. */
+  billedNet: number;
+  vatBilled: number;
   certified: number;
   received: number;
   cashGap: number;
@@ -73,6 +76,8 @@ export type ProfitabilitySummary = {
   forecastFinalCost: number;
   costVariance: number;
   billed: number;
+  billedNet: number;
+  vatBilled: number;
   certified: number;
   received: number;
   cashGap: number;
@@ -86,6 +91,8 @@ export type ProfitabilitySummary = {
   unknownCostJobs: number;
   /** Indicative margin of provisional jobs, shown separately — never mixed into forecastMargin. */
   provisionalForecastMargin: number;
+  /** Money received that is pinned to no job (customer credit / unassigned allocations). */
+  unallocatedCredit?: Record<string, number>;
   atRisk: number;
   watch: number;
   onTrack: number;
@@ -253,6 +260,14 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
   const costVariance = budget ? budget - forecastFinalCost : 0;
 
   const billed = sumRows(issuedInvoices, 'total');
+  // Net revenue separates VAT the client pays on our behalf from our
+  // earnings. Margin and work-value (earned value) comparisons run on net;
+  // receivables/cash stay on gross because receipts settle the gross total.
+  const netBilledOf = (inv: any) => (inv && inv.amount !== undefined && inv.amount !== null && inv.amount !== ''
+    ? num(inv.amount)
+    : Math.max(0, num(inv?.total) - num(inv?.vatAmount)));
+  const billedNet = issuedInvoices.reduce((t, inv) => t + inBase(netBilledOf(inv), inv), 0);
+  const vatBilled = issuedInvoices.reduce((t, inv) => t + inBase(num(inv?.vatAmount), inv), 0);
   const certified = sumRows(certifiedApps, 'netCertified');
   const receivedFromInvoices = sumRows(issuedInvoices, 'amountPaid');
   const receivedFromPayments = sumRows(clearedReceipts, 'amount');
@@ -264,8 +279,8 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
 
   const progress = clampPct(p.progress);
   const earnedValue = revisedContract * (progress / 100);
-  const billingVariance = billed - earnedValue;
-  const currentMargin = billed - actualCost;
+  const billingVariance = billedNet - earnedValue;
+  const currentMargin = billedNet - actualCost;
   const forecastMargin = forecastAvailable ? revisedContract - forecastFinalCost : 0;
   const marginPct = forecastAvailable && revisedContract ? (forecastMargin / revisedContract) * 100 : 0;
 
@@ -330,7 +345,8 @@ export function computeJobProfitability(input: ProfitabilityInput): Profitabilit
     costToComplete: round2(costToComplete), forecastFinalCost: round2(forecastFinalCost),
     costVariance: round2(costVariance), costSource,
 
-    billed: round2(billed), certified: round2(certified), received: round2(received),
+    billed: round2(billed), billedNet: round2(billedNet), vatBilled: round2(vatBilled),
+    certified: round2(certified), received: round2(received),
     cashGap: round2(cashGap), earnedValue: round2(earnedValue), billingVariance: round2(billingVariance),
 
     currentMargin: round2(currentMargin), forecastMargin: round2(forecastMargin),
@@ -366,6 +382,8 @@ export function summariseProfitability(jobs: ProfitabilityJob[]): ProfitabilityS
     forecastFinalCost: round2(forecastFinalCost),
     costVariance: round2(costVariance),
     billed: round2(total(j => j.billed)),
+    billedNet: round2(total(j => j.billedNet)),
+    vatBilled: round2(total(j => j.vatBilled)),
     certified: round2(total(j => j.certified)),
     received: round2(total(j => j.received)),
     cashGap: round2(total(j => j.cashGap)),

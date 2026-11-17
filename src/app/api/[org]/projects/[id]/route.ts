@@ -9,6 +9,7 @@ import { buildScope, rowsForScoped } from '@/lib/access';
 import { fetchAll } from '@/lib/fetch';
 import { normaliseCurrencyConfig, toBase } from '@/lib/currency';
 import { resourceFullyEnabled, moduleEnabled, hrefVisible } from '@/lib/module-visibility';
+import { attributeReceiptsToProjects } from '@/lib/receipt-attribution';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ org: string; id: string }> }) {
   const { org, id } = await params;
@@ -21,18 +22,39 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   if (!project) return NextResponse.json({ error: 'Project not found' }, scope.kind ? { status: 403 } : { status: 404 });
   const related = ['tasks', 'contracts', 'changeOrders', 'rfis', 'submittals', 'documents', 'dailyLogs', 'meetings', 'punchLists', 'permits', 'budgets', 'arInvoices', 'paymentApps', 'purchaseOrders', 'timesheets', 'incidents', 'inspections', 'ncrs', 'equipment', 'crews', 'expenses', 'apBills', 'payments']
     .filter(r => resourceFullyEnabled(a.config, r) && canRead(a.role, r));
+  // Fetch every org receipt: money pinned to neither job nor invoice must
+  // not disappear, and allocation-derived attribution needs the unassigned ones.
   const grouped: Record<string, any[]> = {};
-  await Promise.all(related.map(async r => { grouped[r] = await rowsForScoped(a, scope, r, id); }));
-  for (const k of Object.keys(grouped)) grouped[k] = grouped[k].filter(x => x.projectId === id);
+  await Promise.all(related.map(async r => {
+    grouped[r] = r === 'payments'
+      ? await rowsForScoped(a, scope, r)
+      : await rowsForScoped(a, scope, r, id);
+  }));
+  for (const k of Object.keys(grouped)) if (k !== 'payments') grouped[k] = grouped[k].filter(x => x.projectId === id);
   const budgets = grouped.budgets || [], apps = grouped.paymentApps || [];
   const allInvoices = grouped.arInvoices || [];
   // Match job profitability: money figures only count invoices issued to the
   // client. Drafts and voids stay in the register but are excluded here.
   const invoices = allInvoices.filter(i => !['DRAFT', 'VOID'].includes(String(i.status || '').toUpperCase()));
-  // Job profitability reports cash received from cleared/reconciled receipts
-  // (invoice-linked allocations settle invoice balances separately).
+  // Cash attributed to this job: explicit receipt links +
+  // every non-reversed allocation to this job's invoices.
+  const allInvoicesForScope = grouped.arInvoices || [];
+  const invoiceById = new Map(allInvoicesForScope.map(i => [String(i.id), i]));
+  const ourInvoices = new Set(allInvoicesForScope.map(i => String(i.id)));
   const clearedReceipts = (grouped.payments || []).filter(x =>
     String(x.direction || '').toUpperCase() === 'RECEIPT' && ['CLEARED', 'RECONCILED'].includes(String(x.status || '').toUpperCase()));
+  const attribution = await attributeReceiptsToProjects(a.orgId, clearedReceipts, async (invoiceId) => {
+    const cached = invoiceById.get(invoiceId);
+    if (cached) return cached;
+    if (!ourInvoices.has(invoiceId)) {
+      // Line points at another job's invoice: resolve it so the project
+      // attribution is correct there (the other project's own endpoint
+      // recomputes its own share).
+      return await getRecord(a.orgId, 'arInvoices', invoiceId, scope).catch(() => null);
+    }
+    return null;
+  });
+  const projectReceipts = attribution.byProject.get(id) || [];
   const sum = (rows: any[], key: string) => rows.reduce((t, r) => t + toBase(r[key], r.currency || project.currency || cfg.base, cfg), 0);
 
   const allocs = walletsOn ? await fetchAll('wallet_transactions', q => q
@@ -49,7 +71,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const totals = {
     originalBudget: sum(budgets, 'originalBudget'), committed: sum(budgets, 'committed'), actual: sum(budgets, 'actualToDate'),
     forecast: sum(budgets, 'forecastToComplete'), billed: sum(invoices, 'total'),
-    received: clearedReceipts.reduce((t, r) => t + toBase(r.amount, r.currency || project.currency || cfg.base, cfg), 0),
+    billedNet: invoices.reduce((t, i) => {
+      const net = i.amount !== undefined && i.amount !== null && i.amount !== ''
+        ? Number(i.amount) : Math.max(0, Number(i.total || 0) - Number(i.vatAmount || 0));
+      return t + toBase(net, i.currency || project.currency || cfg.base, cfg);
+    }, 0),
+    vatBilled: sum(invoices, 'vatAmount'),
+    received: projectReceipts.reduce((t, r) => t + toBase(r.amount, r.currency || project.currency || cfg.base, cfg), 0),
     receivedFromInvoices: sum(invoices, 'amountPaid'),
     certified: sum(apps, 'netCertified'), variations: sum(grouped.changeOrders || [], 'amount'),
     tasksComplete: (grouped.tasks || []).filter(t => t.status === 'COMPLETE').length, tasksTotal: (grouped.tasks || []).length,
