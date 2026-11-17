@@ -93,6 +93,11 @@ export const STARTER_MODULE_IDS: string[] = [
   'documents','finance','wallets','hr','time','reports',
 ];
 export const STARTER_MODULE_SET = new Set(STARTER_MODULE_IDS);
+// The smallest useful workspace: exactly the job-to-cash loop — clients, a
+// priced quote, the job and its contract, tax invoices, money in, documents.
+// Everything else is one click away in Settings → Sections.
+export const SOLO_MODULE_IDS: string[] = ['dashboard','company','crm','estimating','projects','contracts','finance','documents','reports'];
+export const SOLO_RESOURCE_IDS: string[] = ['clients','contacts','estimates','projects','tasks','contracts','changeOrders','arInvoices','payments','documents'];
 // A company's defining modules (unit sales, rental, commissioning) unlock as soon
 // as that company type is chosen; everything else follows a size/tier ramp.
 const TYPE_DEFINING_MODULES = new Set(['unitSales','rental','commissioning']);
@@ -106,6 +111,10 @@ export type OnboardingInput = {
   revenueBand?: string;
   qualifiers?: string[];
   addons?: string[];
+  /** New micro workspaces start with the smallest useful section set. Existing
+   * workspaces reconfiguring in Settings keep the essentials so nothing they
+   * use disappears — this flag is only passed at onboarding. */
+  minimal?: boolean;
 };
 
 export type WorkspaceConfig = {
@@ -134,7 +143,10 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   const addons = input.addons || [];
   // Start small: only the essentials. Type, size, qualifiers and explicit
   // add-ons then layer on modules — nothing is enabled "just because it exists".
-  const enabled = new Set<string>(STARTER_MODULE_IDS);
+  // A brand-new micro workspace starts even smaller — just the job-to-cash
+  // loop — so the first screen is never overwhelming.
+  const soloStart = !!input.minimal && si === 0;
+  const enabled = new Set<string>(soloStart ? SOLO_MODULE_IDS : STARTER_MODULE_IDS);
 
   for (const m of MODULES) {
     if (enabled.has(m.id)) continue;
@@ -174,7 +186,17 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
     clientPortal: enabled.has('portal'),
   };
 
-  const resources = Array.from(new Set(MODULES.filter(m => enabled.has(m.id)).flatMap(m => m.resources)));
+  let resources: string[];
+  if (soloStart) {
+    // Trim the money/accounts module down to just invoices, receipts and the
+    // quote→job→bill chain; full ledger stays one click away in Settings.
+    const soloBase = new Set(SOLO_RESOURCE_IDS);
+    const fromSoloModules = MODULES.filter(m => enabled.has(m.id) && SOLO_MODULE_IDS.includes(m.id)).flatMap(m => m.resources).filter(r => soloBase.has(r));
+    const fromOtherModules = MODULES.filter(m => enabled.has(m.id) && !SOLO_MODULE_IDS.includes(m.id)).flatMap(m => m.resources);
+    resources = Array.from(new Set([...fromSoloModules, ...fromOtherModules]));
+  } else {
+    resources = Array.from(new Set(MODULES.filter(m => enabled.has(m.id)).flatMap(m => m.resources)));
+  }
   const sizeDef = COMPANY_SIZES.find(s => s.id === size) || COMPANY_SIZES[1];
   return {
     modules: Array.from(enabled),

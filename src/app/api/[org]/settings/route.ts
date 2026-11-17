@@ -3,7 +3,7 @@ import { apiAuth } from '@/lib/auth';
 import { findAccountByEmail } from '@/lib/auth-email';
 import { newInviteToken, sendWorkspaceInvite } from '@/lib/workspace-invites';
 import { supabase, supabaseAdmin, hasServiceKey } from '@/lib/supabase';
-import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
+import { resolveWorkspace, MODULES, STARTER_MODULE_IDS, SOLO_MODULE_IDS, SOLO_RESOURCE_IDS, ROLES, type WorkspaceConfig } from '@/lib/catalog';
 import { CURRENCY_CODES, normaliseCurrencyConfig } from '@/lib/currency';
 import { normaliseCompanyProfile } from '@/lib/company';
 import { getResource } from '@/lib/resources';
@@ -104,13 +104,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ org: s
     return NextResponse.json({ ok: true, config: cfg });
   }
   if (b.action === 'applyPack') {
-    if (!['essentials', 'full'].includes(b.pack)) return NextResponse.json({ error: 'Choose a valid section pack.' }, { status: 400 });
+    if (!['essentials', 'full', 'solo'].includes(b.pack)) return NextResponse.json({ error: 'Choose a valid section pack.' }, { status: 400 });
     const cfg: WorkspaceConfig = { ...a.config, ...(a.org.config || {}) };
     const allowed = a.billing ? planModuleIds(a.billing.planId) : MODULES.map(m => m.id);
-    const ids = (b.pack === 'essentials' ? STARTER_MODULE_IDS : MODULES.map(m => m.id)).filter(id => allowed.includes(id));
+    const ids = (b.pack === 'essentials' ? STARTER_MODULE_IDS : b.pack === 'solo' ? SOLO_MODULE_IDS : MODULES.map(m => m.id)).filter(id => allowed.includes(id));
     const unavailable = (cfg.modules || []).filter(id => !allowed.includes(id));
     cfg.modules = [...new Set([...ids, ...unavailable])];
-    cfg.resources = [...new Set(MODULES.filter(m => cfg.modules.includes(m.id)).flatMap(m => m.resources))];
+    const allowedResources = new Set(MODULES.filter(m => allowed.includes(m.id)).flatMap(m => m.resources));
+    cfg.resources = b.pack === 'solo'
+      ? SOLO_RESOURCE_IDS.filter(r => allowedResources.has(r))
+      : [...new Set(MODULES.filter(m => cfg.modules.includes(m.id)).flatMap(m => m.resources))];
     const { error } = await sb.from('organizations').update({ config: cfg }).eq('id', a.orgId);
     if (error) return NextResponse.json({ error: error.message }, { status: 403 });
     return NextResponse.json({ ok: true, config: cfg, message: b.pack === 'full' && ids.length < MODULES.length ? `Enabled all ${ids.length} sections included in your plan. Visit Billing for more sections.` : `Enabled ${ids.length} sections.` });

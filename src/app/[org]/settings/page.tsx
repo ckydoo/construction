@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { userMessage } from '@/lib/user-message';
-import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
+import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, ROLES, ROLE_RULES, STARTER_MODULE_IDS, SOLO_MODULE_IDS, canRead, canWrite, canDelete, canCapability, isFullAccess } from '@/lib/catalog';
 import { CURRENCY_CODES, CURRENCY_LABELS, normaliseCurrencyConfig, switchCurrencyBase, toBase } from '@/lib/currency';
 import { resourceFullyEnabled } from '@/lib/module-visibility';
 import { planModuleIds, isPlanId } from '@/lib/billing-plans';
@@ -173,8 +173,8 @@ export default function SettingsPage(){
 
     {tab==='modules'&&<div className="space-y-4">
       <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Sections on your sidebar</p><p className="mt-0.5 text-xs muted">{enabled.size} of {meta.modules.length} sections on · changes show on the sidebar straight away.</p></div><Badge tone="green">{meta.config.plan} plan</Badge></Card>
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">A very small company can start with just clients, quotes, jobs and money. Switch on sections included in your plan. Visit Billing to see plans with additional sections.</p></div>
-        <div className="flex shrink-0 gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Enable included sections</Button></div></Card>
+      <Card className="flex flex-wrap items-center justify-between gap-3 p-4"><div><p className="text-sm font-semibold">Start small or open everything</p><p className="mt-0.5 max-w-2xl text-xs muted">Small builder: just clients, quotes, jobs, bills and payments — one job from first call to money in the bank. Essentials: the full day-to-day set. Or enable everything in your plan. You can switch sections on or off any time; your records are kept either way.</p></div>
+        <div className="flex shrink-0 flex-wrap gap-2"><Button variant="outline" size="sm" icon="Minimize2" loading={busy} onClick={()=>send('applyPack',{pack:'solo'})}>{`Small builder (${SOLO_MODULE_IDS.length})`}</Button><Button variant="outline" size="sm" icon="Zap" loading={busy} onClick={()=>send('applyPack',{pack:'essentials'})}>{`Essentials (${STARTER_MODULE_IDS.length})`}</Button><Button variant="primary" size="sm" icon="Layers" loading={busy} onClick={()=>send('applyPack',{pack:'full'})}>Enable included sections</Button></div></Card>
       {Object.entries(grouped).map(([group,mods]:any)=><Card key={group}><CardHead title={group} subtitle={`${mods.filter((m:any)=>enabled.has(m.id)).length} of ${mods.length} switched on`}/>
         <div className="grid gap-px bg-slate-100 dark:bg-ink-800 sm:grid-cols-2">{mods.map((m:any)=><div key={m.id} className="flex items-start gap-3 bg-white p-4 dark:bg-ink-900">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider text-ink-500 dark:bg-ink-800 dark:text-slate-300"><Icon name={m.icon} size={16}/></span>

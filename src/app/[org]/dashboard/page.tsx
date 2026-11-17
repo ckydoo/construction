@@ -9,6 +9,7 @@ import { resourceFullyEnabled, moduleEnabled, hrefVisible, auditResourceVisible 
 import { Button, Card, CardHead, Icon, Badge, Skeleton, EmptyState, ProgressBar, TableSkeleton } from '@/components/ui';
 import { BarChart, DonutChart } from '@/components/Charts';
 import EmailVerificationReminder from '@/components/EmailVerificationReminder';
+import QuickstartCard from '@/components/QuickstartCard';
 import { useDisplayCurrency, useDisplayMoney } from '@/components/DisplayCurrencyProvider';
 import { usePlatformPublic } from '@/lib/use-platform-public';
 
@@ -60,6 +61,7 @@ export default function DashboardPage(){
         <Button variant="ghost" size="icon" onClick={()=>refetch()}><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
         {on('projects')&&<Link href={`/${org}/m/projects?new=1`}><Button variant="primary" size="sm" icon="Plus">New job</Button></Link>}</div>
     </div>
+    <QuickstartCard org={org} counts={data?.counts||null} config={config}/>
     {workQueue&&<Card className="flex flex-wrap items-center gap-3 border-brand-200 bg-brand-50/60 p-3.5 dark:border-brand-500/20 dark:bg-brand-500/5">
       <span data-testid="dashboard-my-work" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white text-brand-700 shadow-sm dark:bg-ink-900 dark:text-brand-300"><Icon name="Inbox" size={18}/></span>
       <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink-900 dark:text-white">{workQueue.summary.total ? `${num(workQueue.summary.total)} item${workQueue.summary.total===1?'':'s'} need a decision or close-out` : 'You are all caught up'}</p>

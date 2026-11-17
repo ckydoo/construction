@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     const config = resolveWorkspace({
       companyType: type, size, headcount: Number(b.headcount) || undefined,
       revenueBand: b.revenueBand, qualifiers: b.qualifiers || [], addons: b.addons || [],
+      minimal: true, // brand-new micro workspaces start with the job-to-cash loop only
     });
     const sb = await supabase();
     const { error } = await sb.from('organizations').update({

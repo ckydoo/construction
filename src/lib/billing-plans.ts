@@ -42,7 +42,7 @@ export const PLANS: readonly PlanDef[] = [
   {
     id: 'STARTER', name: 'Starter', priceUsd: 6,
     maxUsers: 6, maxProjects: 15, modules: STARTER_MODULES,
-    features: ['Essential construction sections', 'Up to 6 users', 'Up to 15 active projects', 'Standard support'],
+    features: ['Start with just the job-to-cash loop — add sections any time', 'Up to 6 users', 'Up to 15 active projects', 'Guided first-job setup', 'Standard support'],
     support: 'Standard support',
   },
   {

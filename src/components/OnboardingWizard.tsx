@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS } from '@/lib/catalog';
+import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS, SOLO_MODULE_IDS } from '@/lib/catalog';
 import { BRAND } from '@/lib/brand';
 import { apiGet, apiSend } from '@/lib/client';
 import { useQuery } from '@tanstack/react-query';
@@ -59,7 +59,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [error,setError]=useState('');
 
   const {data: provisioning, isLoading: planLoading, isError: planError} = useQuery({queryKey:['onboarding-plan'],queryFn:()=>apiGet('/api/onboarding')});
-  const requested=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons}),[companyType,size,headcount,revenueBand,qualifiers,addons]);
+  const requested=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,minimal:true}),[companyType,size,headcount,revenueBand,qualifiers,addons]);
   const planId = provisioning?.plan?.id;
   const config=useMemo(()=> provisioning?.enforcePlan && isPlanId(planId) ? {...requested, modules:entitledModules(planId,requested.modules), resources:entitledResources(planId,requested.resources), limits:entitledLimits(planId,requested.limits), plan:provisioning.plan.name} : {...requested, plan:provisioning?.plan?.name || 'Loading…'}, [requested, provisioning, planId]);
   const enabled=useMemo(()=>new Set(config.modules),[config]);
@@ -69,6 +69,8 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     return g;
   },[]);
   const starter=new Set(STARTER_MODULE_IDS);
+  const solo=new Set(SOLO_MODULE_IDS);
+  const basicBadge=size==='MICRO'?solo:starter;
   const optional=MODULES.filter(m=>!starter.has(m.id)&&!enabled.has(m.id));
 
   function toggleQ(id:string){ setQualifiers(q=>q.includes(id)?q.filter(x=>x!==id):[...q,id]); }
@@ -161,14 +163,17 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
             </div>
             <div className="rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
               {provisioning?.enforcePlan && requested.modules.some(m=>!enabled.has(m)) && <p className="mb-2 text-xs font-semibold text-amber-700">Some selected sections are not included in your current plan. Your choices will be saved, but these sections need a suitable plan before they appear. Visit Billing after setup.</p>}
-              <p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
-              <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → document library → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p>
+              {size==='MICRO'
+                ? <><p className="text-xs font-semibold text-ink-900 dark:text-white">You start with just the job-to-cash basics — Clients, quotes, jobs, invoices and payments</p>
+                   <p className="mt-1 text-[11px] leading-relaxed muted">A few everyday sections only, so your first screen is never busy. Need enquiries, contracts, your team or wallets? Switch them on in one click in Settings, then add more as you grow.</p></>
+                : <><p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
+                   <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → document library → tax invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p></>}
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">What is switched on</p><span className="text-xs muted">{config.modules.length} on</span></div>
               <div className="max-h-64 space-y-3 overflow-y-auto rounded-md border divider p-4">{Object.entries(byGroup).map(([group,mods])=><div key={group}>
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider muted">{group}</p>
-                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}{starter.has(m.id)&&<span className="ml-0.5 rounded bg-emerald-600/15 px-1 text-[9px] font-bold uppercase">basic</span>}</span>)}</div>
+                <div className="flex flex-wrap gap-1.5">{mods.map(m=><span key={m.id} className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium ${enabled.has(m.id)?'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300':'bg-slate-100 text-slate-400 dark:bg-ink-800 dark:text-slate-500'}`}><Icon name={m.icon} size={12}/>{m.label}{basicBadge.has(m.id)&&<span className="ml-0.5 rounded bg-emerald-600/15 px-1 text-[9px] font-bold uppercase">basic</span>}</span>)}</div>
               </div>)}</div>
             </div>
             {optional.length>0&&<div>
