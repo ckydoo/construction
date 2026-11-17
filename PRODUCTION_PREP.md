@@ -231,3 +231,9 @@ Remaining gates before broad "for everyone" positioning: backup-restore drill ex
 ## Docs/tooling deploy — 2026-11-17 (57d4fe7 → dpl_5a27k6bkc1TBgZNws3qnGYZscRSG)
 
 Owner-instructed production deploy of `57d4fe7` (docs + QA/backup tooling only — no app-code change). READY/PROMOTED; aliases myla.co.zw / app.myla.co.zw; crons intact (billing 0 2 * * *, notifications 0 5 * * *). Live-verified after deploy: landing 200, login 200, unauthenticated API 401, public-config {demo:false, maintenance:false}. Production is functionally identical to 4b7669c.
+
+## Security quick-fix — 2026-11-17 (config only, no code)
+
+Owner-approved. Supabase Auth for `oeadisqfuyhelppinaxw` updated via connector: `site_url` localhost → `https://myla.co.zw`; `uri_allow_list` = `https://myla.co.zw,https://app.myla.co.zw,http://localhost:3000`. Side effects of the config overwrite (disclosed to owner): `rate_limit_email_sent` 2 → null (provider default), `sms_provider` twilio → null (unused), `sessions_inactivity_timeout`/`sessions_timebox` 0 → null (no timeout, unchanged behaviour). Everything else preserved incl. `security_captcha_enabled=true` (turnstile) and refresh-token rotation. Live re-verified after change: landing 200, login 200, unauth API 401, public-config {demo:false,maintenance:false}.
+
+Owner actions still owed (no code, dashboard/DNS): SPF record for myla.co.zw (`v=spf1 include:spf.brevo.com ~all` — confirm include with Brevo), DMARC move p=none → quarantine → reject after ~2 weeks of reports (current: p=none, rua=mailto:rua@dmarc.brevo.com; Brevo DKIM brevo1/2 OK); enable Leaked password protection (HIBP) in Supabase → Authentication → Passwords; restore Email rate limit = 2/hr in Supabase → Authentication → Rate Limits; Vercel Firewall rule for /api/auth/* (plan permitting); TOTP MFA for owner accounts; MX records absent by design (send-only domain).
