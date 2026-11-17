@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'node:crypto';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { countsByResource } from '@/lib/queries';
@@ -8,6 +9,44 @@ import { auditView, notificationView } from '@/lib/views';
 import { isExternal } from '@/lib/catalog';
 import { normaliseCurrencyConfig, sumInBase, currencyBreakdown, toBase, hasRate } from '@/lib/currency';
 import { moduleEnabled, hrefVisible, auditResourceVisible } from '@/lib/module-visibility';
+
+const OVERVIEW_TTL_MS = 30_000;
+const OVERVIEW_CACHE_MAX = 100;
+const overviewCache = new Map<string, { expires: number; body: Record<string, any> }>();
+
+/** 30 second private cache for an otherwise expensive aggregation endpoint.
+ * Keyed by workspace, caller and effective scope/config so one user never sees
+ * another role's tenant boundary. */
+function overviewCacheKey(a: any, scope: any) {
+  return createHash('sha256').update(JSON.stringify({
+    orgId: a.orgId,
+    userId: a.userId,
+    role: a.role,
+    scope,
+    baseCurrency: a.org.baseCurrency,
+    config: a.config,
+  })).digest('hex');
+}
+
+function overviewCacheRead(key: string) {
+  const cached = overviewCache.get(key);
+  if (!cached) return null;
+  if (cached.expires <= Date.now()) { overviewCache.delete(key); return null; }
+  return cached.body;
+}
+
+function overviewCacheWrite(key: string, body: Record<string, any>) {
+  const now = Date.now();
+  for (const [entryKey, value] of overviewCache) {
+    if (value.expires <= now) overviewCache.delete(entryKey);
+  }
+  while (overviewCache.size >= OVERVIEW_CACHE_MAX) {
+    const oldestKey = overviewCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    overviewCache.delete(oldestKey);
+  }
+  overviewCache.set(key, { expires: now + OVERVIEW_TTL_MS, body });
+}
 
 /** Rolling six-month chart window, derived from today so the bars never go stale. */
 function lastSixMonths() {
@@ -29,6 +68,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const a = await apiAuth(org); if (!a) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const scope = await buildScope(a);
   const visible = visibleResources(a);
+  const cacheKey = overviewCacheKey(a, scope);
+  const cached = overviewCacheRead(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached, {
+      headers: { 'Cache-Control': 'private, max-age=30', 'X-Overview-Cache': 'HIT' },
+    });
+  }
   const cfg = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
   const modOn = (id: string) => moduleEnabled(a.config, id);
   const walletsOn = modOn('wallets');
@@ -39,7 +85,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const [notifications, audit, allCounts, walletRows, txns] = await Promise.all([
     isExternal(a.role) ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(12),
     isExternal(a.role) ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(10),
-    scope.kind ? Promise.resolve({}) : countsByResource(a.orgId),
+    scope.kind ? Promise.resolve({}) : countsByResource(a.orgId, visible),
     walletsOn ? fetchAll('wallets', q => {
       let x = q.eq('organization_id', a.orgId);
       if (scope.kind === 'client') x = x.eq('client_id', scope.entityId!);
@@ -130,7 +176,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       .filter(c => !hasRate(c, cfg)),
   };
 
-  return NextResponse.json({
+  const responseBody = {
     kpis: {
       activeProjects: activeProjects.length, pipelineProjects: projects.filter(p => ['BID', 'PLANNING'].includes(p.status)).length,
       contractValue, costToDate, billed, outstanding: Math.max(0, billed - received), received,
@@ -163,5 +209,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       .filter((x: any) => (!scope.kind || x.user_id === a.userId) && auditResourceVisible(x.resource, a.config))
       .map(auditView),
     counts, currency: cfg.base, fx,
+  };
+  overviewCacheWrite(cacheKey, responseBody);
+  return NextResponse.json(responseBody, {
+    headers: { 'Cache-Control': 'private, max-age=30', 'X-Overview-Cache': 'MISS' },
   });
 }

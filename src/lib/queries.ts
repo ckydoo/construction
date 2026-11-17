@@ -1,4 +1,5 @@
 import { fetchAll } from './fetch';
+import { supabase, dbError } from './supabase';
 
 export async function rowsFor(orgId: string, resource: string, projectId?: string): Promise<Record<string, any>[]> {
   const recs = await fetchAll('records', q => {
@@ -13,12 +14,23 @@ export async function rowsFor(orgId: string, resource: string, projectId?: strin
   }));
 }
 
-export async function countsByResource(orgId: string): Promise<Record<string, number>> {
-  const recs = await fetchAll('records', q => q
-    .eq('organization_id', orgId).is('deleted_at', null), 'id,resource');
-  const out: Record<string, number> = {};
-  for (const r of recs) out[r.resource] = (out[r.resource] || 0) + 1;
-  return out;
+/** Exact counts for the resources the caller can already see. Uses HEAD count
+ *  queries so no row data is transferred; scoped callers derive counts from
+ *  the rows they already fetched. */
+export async function countsByResource(orgId: string, resources: string[]): Promise<Record<string, number>> {
+  const unique = Array.from(new Set(resources.filter(Boolean)));
+  if (!unique.length) return {};
+  const sb = await supabase();
+  const entries = await Promise.all(unique.map(async resource => {
+    const { count, error } = await sb.from('records')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', orgId)
+      .eq('resource', resource)
+      .is('deleted_at', null);
+    if (error) dbError(error);
+    return [resource, count ?? 0] as [string, number];
+  }));
+  return Object.fromEntries(entries);
 }
 
 export const sum = (rows: any[], key: string) => rows.reduce((t, r) => t + (Number(r[key]) || 0), 0);

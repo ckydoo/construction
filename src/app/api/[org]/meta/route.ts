@@ -40,7 +40,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ org: str
     memberQuery,
     external ? Promise.resolve({ data: [] }) : sb.from('notifications').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(30),
     external ? Promise.resolve({ data: [] }) : sb.from('audit_logs').select('*').eq('organization_id', a.orgId).order('created_at', { ascending: false }).limit(25),
-    full ? countsByResource(a.orgId) : Promise.resolve({}),
+    full ? countsByResource(a.orgId, visible) : Promise.resolve({}),
     full ? sb.from('records').select('id,number,title')
       .eq('organization_id', a.orgId).eq('resource', 'clients').is('deleted_at', null)
       .order('created_at', { ascending: true }).limit(300) : Promise.resolve({ data: [] }),

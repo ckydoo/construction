@@ -28,8 +28,8 @@ export default function DashboardPage(){
   const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
   const {org}=useParams<{org:string}>(); const {demo}=usePlatformPublic();
   const [period,setPeriod]=useState<'3'|'6'>('6');
-  const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview'))});
-  const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
+  const {data,isLoading,isFetching,refetch}=useQuery<OV>({queryKey:['overview',org],queryFn:()=>apiGet(orgApi(org,'overview')),staleTime:30_000});
+  const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta')),staleTime:30_000});
   const config=meta?.config||{modules:[],resources:[]};
   const on=(id:string)=>resourceFullyEnabled(config,id);
   const mod=(id:string)=>moduleEnabled(config,id);

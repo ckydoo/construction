@@ -96,6 +96,19 @@ Owner decision (2026-11-17): **show both, labelled.**
   still visible, now labelled open pipeline; the awarded quote (8,400) shows as
   awarded.
 
+## Performance pass — dashboard aggregation (not a spec change)
+- `overview` GET now has a 30-second in-memory cache, keyed by a SHA-256 of
+  workspace + user + role + effective row scope + base currency + workspace config,
+  with a 100-entry cap and 30s `Cache-Control: private, max-age=30`. Returns
+  `X-Overview-Cache: HIT|MISS`. No tenant boundary crosses the key.
+- `countsByResource()` no longer reads all record rows: it uses parallel HEAD
+  `COUNT(*)` queries for only the caller-visible resources (uses the existing
+  `records_org_resource_idx`). Meta uses the same path. Scoped roles still
+  derive counts from the rows they fetched.
+- Dashboard `overview` and `meta` queries use 30s `staleTime`.
+- No aggregation definition, KPI, role or DB schema changed — only caching and
+  index-backed exact counts. Build passes; `tsc --noEmit` clean after the pass.
+
 ## Verification so far
 - `npx tsc --noEmit` clean; `npm run build` succeeds.
 - Unit checks: record-invariants QA and field-validation QA pass;
