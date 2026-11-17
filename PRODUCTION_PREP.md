@@ -187,3 +187,25 @@ points to "Record and allocate receipt". Tester credentials in TEST_HERE.md stil
 return 401 — supply fresh ones or accept read-only verification. Blocked gates
 remain open (multi-role/tenant, purchasing/stock/plant/payroll/safety/retention,
 backup restore, weak network, phone/tablet).
+
+## First-job experience release — deployed 2026-11-17 (11058d0 → dpl_2KJssfSAtMTRrPCCAmpHMzqg3DrP)
+
+Vercel production deploy of main @ `11058d0`, target production, build ~79s (timeToReady 79338ms).
+Aliases assigned: myla.co.zw, app.myla.co.zw (+ *.vercel.app). Production now runs `11058d0`.
+
+### Shipped
+- New MICRO workspaces (minimal onboarding) start with exactly the job-to-cash loop (9 sections: dashboard, company, clients, quotes, jobs, contracts, invoices/payments, documents, reports). Type-defining modules still unlock. Settings reconfigure keeps essentials — existing workspaces are never auto-hidden.
+- Dashboard "Your first job" checklist: client → quote → job → invoice → record payment. Progress derived live from workspace records; dismissible; shows completion state.
+- Settings → Sections: new "Small builder" pack trims modules AND record lists (drops journals/accounts/AP bills); Essentials and Enable-included packs unchanged; nothing deleted.
+- Marketing + Billing copy: "From USD 6 — built for the way you build"; honest Starter positioning (start with the job-to-cash loop, add sections any time); 7-day guided first job.
+
+### Live verification (2026-11-17, unauthenticated — no records created or modified)
+- myla.co.zw/ → 200; app.myla.co.zw/login → 200
+- /api/platform/public-config → {"demo":false,"maintenance":false}
+- closeout probe unauthenticated → 401
+- Landing: new copy present ("From USD 6", "one-person builder and the small crew", "7-day guided first job", "Start with just the job-to-cash loop"); stale strings absent (support@myla.co.zw, Harare, "A plan for the way you build"); contacts unchanged (+263716826666 ×4, codzlabzim53@gmail.com ×6)
+
+### Not done / owed
+- Authenticated end-to-end pass of the new micro-onboarding → first-job checklist (needs fresh tester credentials — TEST_HERE.md creds still return 401 — or owner).
+- Design-partner pilots (2–3 real small ZW builders) recommended before broad "for everyone" positioning.
+- Still open gates: multi-role/multi-tenant isolation proof, backup-restore proof, round-3 R6 re-test (needs fresh tester credentials or owner hands).
