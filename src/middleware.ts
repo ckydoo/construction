@@ -3,6 +3,7 @@
  * gate: Billing and meta remain reachable, every other org API/page is blocked
  * until the subscription is active. In shadow mode this adds zero DB queries. */
 import { NextResponse, type NextRequest } from 'next/server';
+import { bearerCredential } from '@/lib/bearer-auth';
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
@@ -57,6 +58,11 @@ function copyCookies(from: NextResponse, to: NextResponse): NextResponse {
 }
 
 export async function middleware(request: NextRequest) {
+  // These routes authenticate machine credentials/signatures themselves. A cron
+  // Bearer secret is not a Supabase user JWT and must not be rejected as one.
+  if (request.nextUrl.pathname.startsWith('/api/cron/') || request.nextUrl.pathname.startsWith('/api/webhooks/')) {
+    return NextResponse.next({ request: { headers: request.headers } });
+  }
   const url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
   const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '').trim();
   if (!url || !key) return NextResponse.next();
@@ -72,7 +78,12 @@ export async function middleware(request: NextRequest) {
       },
     },
   });
-  const session = await client.auth.getUser();
+  const credential = bearerCredential(request.headers.get('authorization'));
+  if (credential.present && !credential.token) return NextResponse.json({ error: 'Invalid authorization header.' }, { status: 401 });
+  const session = await client.auth.getUser(credential.token || undefined);
+  if (credential.present && (session.error || !session.data?.user)) {
+    return NextResponse.json({ error: 'Your session has expired. Please sign in again.' }, { status: 401 });
+  }
 
   const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim();
   if (serviceKey) {

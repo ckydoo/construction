@@ -1,0 +1,84 @@
+name: Build Android preview
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Do not cancel a job after it has submitted a paid EAS build.
+concurrency:
+  group: android-preview-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    name: Native checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/native/package-lock.json
+      # Native contract tests also import the backend's resource catalogue.
+      - run: npm ci
+      - run: npm ci
+        working-directory: apps/native
+      - run: npm test && npm run test:pipeline && npm run typecheck && npm run export:android
+        working-directory: apps/native
+        env:
+          CI: "1"
+          EXPO_NO_TELEMETRY: "1"
+
+  build:
+    name: EAS internal APK
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: expo-preview
+    defaults:
+      run:
+        working-directory: apps/native
+    env:
+      CI: "1"
+      EXPO_NO_TELEMETRY: "1"
+      EXPO_OWNER: ${{ vars.EXPO_OWNER }}
+      EXPO_PUBLIC_EAS_PROJECT_ID: ${{ vars.EXPO_PUBLIC_EAS_PROJECT_ID }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/native/package-lock.json
+      - run: npm ci
+      - name: Validate and inject public build configuration
+        run: node scripts/prepare-ci.mjs
+      - name: Authenticate and build APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo '::error::Add EXPO_TOKEN to the expo-preview GitHub environment secrets.'
+            exit 1
+          fi
+          npx --no-install eas whoami
+          npx --no-install eas build --platform android --profile preview --non-interactive --wait --json > build-result.json
+      - name: Add install link to run summary
+        run: node scripts/build-summary.mjs
+      - name: Preserve build metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-preview-build-${{ github.run_id }}
+          path: apps/native/build-result.json
+          if-no-files-found: ignore
+          retention-days: 14
