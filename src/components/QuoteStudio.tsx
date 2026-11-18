@@ -182,7 +182,7 @@ export default function QuoteStudio({
   }
 
   const stepRail = <Card className="p-3 lg:sticky lg:top-4">
-    <p className="px-1 text-[10px] font-semibold uppercase tracking-wider muted">Build path</p>
+    <p className="px-1 text-[10px] font-semibold uppercase tracking-wider muted">Your steps</p>
     <div className="mt-3 flex gap-1.5 overflow-x-auto lg:block lg:space-y-1 lg:overflow-visible">
       {QUOTE_STEPS.map((s,i)=>{
         const active=i===step, done=i<step;
@@ -205,14 +205,14 @@ export default function QuoteStudio({
     <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800"><div className="h-full rounded-full bg-brand-500 transition-all duration-500" style={{width:`${progress}%`}}/></div>
     {display.preference&&display.currency!==draft.currency&&<p className="mt-2 text-[10px] leading-relaxed muted">Viewing amounts in {display.currency}; the quotation will be saved in {draft.currency}.</p>}
     <div className="mt-4 space-y-2 text-xs">
-      <div className="flex justify-between"><span className="muted">Priced lines</span><span className="font-semibold tabular-nums">{totals.lines.length}</span></div>
+      <div className="flex justify-between"><span className="muted">Items priced</span><span className="font-semibold tabular-nums">{totals.lines.length}</span></div>
       <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{formatMoney(totals.subtotal,draft.currency)}</span></div>
-      <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount,draft.currency)}</span></div>
+      <div className="flex justify-between"><span className="muted">Added to cost ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount,draft.currency)}</span></div>
       <div className="flex justify-between border-t divider pt-2 text-base"><span className="font-semibold">Quote total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total,draft.currency)}</span></div>
     </div>
     <div className="mt-4 space-y-1.5 border-t divider pt-3">
       {[
-        ['Client chosen', !!draft.clientId], ['Priced lines added', totals.lines.length>0],
+        ['Client chosen', !!draft.clientId], ['Work & materials added', totals.lines.length>0],
         ['Scope written', !!draft.scope.trim()], ['Status set', !!draft.status],
       ].map(([label,ok])=><div key={String(label)} className="flex items-center gap-2 text-[11px]"><Icon name={ok?'CheckCircle2':'CircleDot'} size={13} className={ok?'text-emerald-500':'text-slate-300 dark:text-ink-700'}/><span className={ok?'text-ink-700 dark:text-slate-200':'muted'}>{label}</span></div>)}
     </div>
@@ -292,14 +292,14 @@ export default function QuoteStudio({
           <Card className="overflow-hidden"><CardHead title="Build the price" subtitle="One line per work item. Categories keep the cost breakdown understandable." action={<Badge tone="slate">{totals.lines.length} priced lines</Badge>}/>
             <div className="p-4"><QuoteLinesEditor value={draft.items} onChange={items=>setField('items',items)} currency={draft.currency}/>{errors.items&&<p className="mt-2 text-xs text-red-600 dark:text-red-400">{errors.items}</p>}</div>
           </Card>
-          <Card className="p-4"><div className="grid gap-4 sm:grid-cols-[220px_minmax(0,1fr)]"><div><Field label="Markup" hint="Added to your cost subtotal to cover overhead, risk and profit."><div className="relative"><input className="input pr-9" type="number" min="0" max="1000" step="any" value={draft.markup} onChange={e=>setField('markup',Math.max(0,Math.min(1000,Number(e.target.value)||0)))}/><span className="absolute right-3 top-2 text-xs muted">%</span></div></Field>
+          <Card className="p-4"><div className="grid gap-4 sm:grid-cols-[220px_minmax(0,1fr)]"><div><Field label="Markup — added to cost (%)" hint="Markup is added to your costs to cover running costs, risk and profit. It is not the same as profit margin."><div className="relative"><input className="input pr-9" type="number" min="0" max="1000" step="any" value={draft.markup} onChange={e=>setField('markup',Math.max(0,Math.min(1000,Number(e.target.value)||0)))}/><span className="absolute right-3 top-2 text-xs muted">%</span></div></Field>
             <div className="mt-2 flex flex-wrap gap-1.5">{[10,15,20,25].map(v=><button type="button" key={v} onClick={()=>setField('markup',v)} className={`rounded border px-2 py-1 text-[11px] font-semibold ${draft.markup===v?'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300':'divider muted hover:border-brand-400'}`}>{v}%</button>)}</div></div>
             <div className="rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/40"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Cost breakdown</p><div className="mt-2 grid gap-2 sm:grid-cols-2">{LINE_CATEGORIES.map(c=><div key={c.id} className="flex items-center justify-between gap-2 text-xs"><span className="muted">{c.label}</span><span className="font-semibold tabular-nums">{formatMoney(totals.byCategory[c.id],draft.currency)}</span></div>)}</div><p className="mt-3 border-t divider pt-2 text-[11px] leading-relaxed muted">Subtotal + {totals.markupPct}% markup = <span className="font-semibold text-ink-900 dark:text-white">{formatMoney(totals.total,draft.currency)}</span> quotation total.</p></div></div>
           </Card>
         </div>}
 
         {step===3&&<div className="space-y-4">
-          <Card className="overflow-hidden"><CardHead title="Scope & terms" subtitle="Say what is included, excluded and how long the price is valid."/>
+          <Card className="overflow-hidden"><CardHead title="Work details & terms" subtitle="Say what is included, excluded and how long the price is valid."/>
             <div className="p-4"><Field label="Plain-language scope"><textarea className="input min-h-[180px] resize-y py-2.5 leading-relaxed" value={draft.scope} onChange={e=>setField('scope',e.target.value)} placeholder="Example: Includes all labour, materials and supervision listed above. Excludes statutory approvals and variations. Valid for 30 days."/></Field>
               <div className="mt-3 flex flex-wrap gap-1.5">{SCOPE_SNIPPETS.map(s=><button type="button" key={s.label} onClick={()=>addScope(s.text)} className="rounded-md border divider px-2.5 py-1.5 text-[11px] font-medium text-ink-700 transition hover:border-brand-400 hover:text-brand-700 dark:text-slate-200"><Icon name="Plus" size={11} className="mr-1 inline"/>{s.label}</button>)}<button type="button" onClick={()=>setField('scope','')} className="rounded-md px-2.5 py-1.5 text-[11px] muted hover:bg-slate-100 dark:hover:bg-ink-800">Clear</button></div>
             </div>

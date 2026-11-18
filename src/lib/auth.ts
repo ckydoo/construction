@@ -2,7 +2,8 @@
  * Supabase Auth owns passwords, JWTs and sessions (no custom Session table).
  * Tenancy, roles and portal scoping are read from Postgres and re-checked by
  * every RLS policy. Nothing here grants access — it only describes the caller. */
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { bearerCredential } from './bearer-auth';
 import { redirect } from 'next/navigation';
 import { supabase, supabaseAdmin, hasSupabaseConfig } from './supabase';
 import { resolveWorkspace, type WorkspaceConfig } from './catalog';
@@ -86,7 +87,10 @@ export async function getAuth(): Promise<AuthCtx | null> {
   await cookies();
   if (!hasSupabaseConfig()) return null;
   const sb = await supabase();
-  const { data: authData, error } = await sb.auth.getUser();
+  const credential = bearerCredential((await headers()).get('authorization'));
+  if (credential.present && !credential.token) return null;
+  // getUser validates the JWT with Supabase Auth; never trust decoded claims.
+  const { data: authData, error } = await sb.auth.getUser(credential.token || undefined);
   if (error || !authData?.user) return null;
   const u = authData.user;
   // Email verification is optional. Supabase Auth confirmation only makes

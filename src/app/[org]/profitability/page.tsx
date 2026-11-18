@@ -1,4 +1,5 @@
 'use client';
+import { taxEnabled } from '@/lib/tax-settings';
 /* Phase 2 Job profitability cockpit. Read-only, workspace-base-currency only:
  * what each job is worth, what it has cost, what it will cost to finish, and
  * whether billing/cash are keeping up with progress. */
@@ -33,6 +34,8 @@ export default function ProfitabilityPage() {
     queryFn: () => apiGet(orgApi(org, 'profitability')),
     staleTime: 30_000,
   });
+  const { data: meta }: any = useQuery({ queryKey: ['meta', org], queryFn: () => apiGet(orgApi(org, 'meta')) });
+  const showTax = taxEnabled(meta?.config?.tax);
   const jobs = data?.jobs || [];
   const summary = data?.summary;
   const base = data?.base || 'USD';
@@ -74,7 +77,7 @@ export default function ProfitabilityPage() {
     { label: 'Revised contract', value: fmt(summary.revisedContract, true), sub: `${fmt(summary.pendingVariations, true)} variations awaiting approval`, icon: 'FileSignature', tone: 'slate' },
     { label: 'Approved budget', value: fmt(summary.budget, true), sub: `${fmt(summary.committed, true)} committed to suppliers`, icon: 'PieChart', tone: 'slate' },
     { label: 'Actual cost to date', value: fmt(summary.actualCost, true), sub: `${fmt(summary.forecastFinalCost, true)} forecast final cost`, icon: 'Receipt', tone: 'slate' },
-    { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.billedNet, true)} net billed · ${fmt(summary.vatBilled, true)} VAT · ${fmt(summary.certified, true)} certified`, icon: 'FileText', tone: 'slate' },
+    { label: 'Billed to clients', value: fmt(summary.billed, true), sub: `${fmt(summary.billedNet, true)} net billed · ${showTax ? `${fmt(summary.vatBilled, true)} VAT · ` : ''}${fmt(summary.certified, true)} certified`, icon: 'FileText', tone: 'slate' },
     { label: 'Cash received', value: fmt(summary.received, true), sub: `${fmt(summary.cashGap, true)} still outstanding${summary.unallocatedCredit && Object.keys(summary.unallocatedCredit).length ? ` · ${Object.entries(summary.unallocatedCredit).map(([c, n]) => `${Number(n).toFixed(2)} ${c} unallocated`).join(', ')}` : ''}`, icon: 'Banknote', tone: 'slate' },
     { label: 'Current margin', value: fmtSigned(summary.currentMargin, true), sub: 'Net billed less actual cost', icon: 'TrendingUp', tone: metricTone(summary.currentMargin) },
     { label: 'Forecast margin', value: fmtSigned(summary.forecastMargin, true),
@@ -179,7 +182,7 @@ export default function ProfitabilityPage() {
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.actualCost, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.costToComplete, true) : '—'}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{j.forecastAvailable ? fmt(j.forecastFinalCost, true) : '—'}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums" title={`${fmt(j.billedNet, true)} net · ${fmt(j.vatBilled, true)} VAT`}>{fmt(j.billed, true)}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums" title={showTax ? `${fmt(j.billedNet, true)} net · ${fmt(j.vatBilled, true)} VAT` : undefined}>{fmt(j.billed, true)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{fmt(j.received, true)}</td>
               <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.forecastMargin < 0 ? 'text-red-600 dark:text-red-300' : 'text-emerald-600 dark:text-emerald-300'}`}>{j.forecastAvailable ? fmtSigned(j.forecastMargin, true) : '—'}</td>
               <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${j.marginPct < 0 ? 'text-red-600 dark:text-red-300' : ''}`}>{j.forecastAvailable ? pct(j.marginPct) : '—'}</td>
@@ -204,7 +207,7 @@ export default function ProfitabilityPage() {
           ['Billing position', 'Net billed less earned value (revised contract × progress). A negative figure means the job is underbilled for work done.'],
           ['Cash gap', 'Gross invoiced amount less amounts paid on those invoices. Receipts with no project link are attributed through their invoice allocations to the job that earned the money. Anything still unallocated is shown separately as customer credit, never as a job’s cash.'],
           ['Unallocated customer credit', 'Money received that is pinned to no job and no allocated invoice. It stays out of every job’s cash figure until it is allocated, and is reported in the Cash received card.'],
-        ].map(([title, body]) => <div key={title} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-xs font-semibold">{title}</p><p className="mt-1 text-[11px] leading-relaxed muted">{body}</p></div>)}
+        ].filter(([title]) => showTax || title !== 'Billed vs net billed').map(([title, body]) => <div key={title} className="bg-white p-3.5 dark:bg-ink-900"><p className="text-xs font-semibold">{title}</p><p className="mt-1 text-[11px] leading-relaxed muted">{body}</p></div>)}
       </div>}
     </Card>
   </div>;

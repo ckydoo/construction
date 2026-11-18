@@ -7,7 +7,8 @@
  *                  trusted bootstrap work: creating auth users, first orgs,
  *                  demo seeding. Never import it into a client component.
  */
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { bearerCredential } from './bearer-auth';
 import { createServerClient } from '@supabase/ssr';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
@@ -32,6 +33,15 @@ export function hasServiceKey(): boolean {
 export async function supabase(): Promise<SupabaseClient> {
   const { url, anonKey } = supabaseEnv();
   if (!url || !anonKey) throw new Error('Supabase is not configured. Copy .env.example to .env and add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+  const credential = bearerCredential((await headers()).get('authorization'));
+  if (credential.present) {
+    // Native clients send a Supabase user JWT. No service role, cookie fallback
+    // or shared session: Postgres RLS still evaluates this caller's auth.uid().
+    return createClient(url, anonKey, {
+      global: { headers: { Authorization: `Bearer ${credential.token || 'invalid'}` } },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+  }
   const store = await cookies();
   return createServerClient(url, anonKey, {
     cookies: {

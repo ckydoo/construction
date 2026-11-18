@@ -21,7 +21,7 @@ export const CHAIN_STAGES: ChainStage[] = [
   { id: 'projects', label: 'Job', short: 'Job', singular: 'Job', icon: 'HardHat' },
   { id: 'contracts', label: 'Contract', short: 'Contract', singular: 'Contract', icon: 'FileSignature' },
   { id: 'paymentApps', label: 'Certificate', short: 'Certificate', singular: 'Payment certificate', icon: 'Receipt', optional: true },
-  { id: 'arInvoices', label: 'Tax invoice', short: 'Invoice', singular: 'Tax invoice', icon: 'FileText' },
+  { id: 'arInvoices', label: 'Invoice', short: 'Invoice', singular: 'Invoice', icon: 'FileText' },
   { id: 'payments', label: 'Receipt', short: 'Receipt', singular: 'Payment / receipt', icon: 'Banknote' },
 ];
 

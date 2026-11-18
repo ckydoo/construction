@@ -67,7 +67,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
     },
     onError: (e: any) => {
       setBusy(null);
-      toast.push({ tone: 'error', title: 'Could not convert', description: userMessage(e, 'We couldn’t create the next record. Please try again.') });
+      toast.push({ tone: 'error', title: 'Could not create the next step', description: userMessage(e, 'We couldn’t create the next record. Please try again.') });
       refetch();
     },
   });
@@ -75,19 +75,19 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
   const def = RESOURCE_MAP[resource];
 
   const footer = <div className="flex flex-wrap items-center justify-between gap-2">
-    <p className="text-[11px] muted max-w-lg">Converting creates a new draft and links it back. The record you are viewing is not deleted or replaced. Each step can only be done once.</p>
+    <p className="text-[11px] muted max-w-lg">This creates a new draft using the details you already entered. The record you are viewing is not deleted or replaced. Each step can only be done once.</p>
     <Button onClick={onClose}>Close</Button>
   </div>;
 
   return <Drawer open={open} onClose={onClose} title="Continue this job"
-    subtitle={`${row?.number || ''} · ${def?.singular || resource} · convert to the next step`}
+    subtitle={`${row?.number || ''} · ${def?.singular || resource} · choose your next step`}
     width="max-w-2xl" footer={footer}>
     <div className="space-y-5 px-4 py-4">
 
       {data?.convertedFrom && <div className="flex flex-wrap items-center gap-2 rounded-lg border divider bg-slate-50 p-3 dark:bg-ink-950/40">
         <Icon name="CornerDownRight" size={15} className="text-brand-600 dark:text-brand-300" />
-        <p className="text-xs">Converted from <strong>{data.convertedFrom.label || data.convertedFrom.number || data.convertedFrom.resource}</strong></p>
-        {data.convertedFrom.href && <Link href={data.convertedFrom.href} className="ml-auto text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open source →</Link>}
+        <p className="text-xs">Created from <strong>{data.convertedFrom.label || data.convertedFrom.number || data.convertedFrom.resource}</strong></p>
+        {data.convertedFrom.href && <Link href={data.convertedFrom.href} className="ml-auto text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open original →</Link>}
       </div>}
 
       <section>
@@ -125,11 +125,11 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="flex min-w-0 items-start gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border divider bg-slate-50 text-ink-600 dark:bg-ink-950/40 dark:text-slate-300"><Icon name="Banknote" size={16} /></span>
-              <div className="min-w-0"><p className="card-title">Record and allocate receipt</p>
+              <div className="min-w-0"><p className="card-title">Record payment</p>
                 <p className="caption mt-0.5">Records the money received against this invoice and updates paid-to-date. Paid status is never set by hand.</p></div>
             </div>
             {onRecordReceipt
-              ? <Button size="sm" variant="primary" icon="Banknote" onClick={onRecordReceipt}>Record receipt</Button>
+              ? <Button size="sm" variant="primary" icon="Banknote" onClick={onRecordReceipt}>Record payment</Button>
               : <Link href={`/${org}/m/arInvoices?open=${encodeURIComponent(row?.id || '')}`} className="btn-outline btn-sm whitespace-nowrap"><Lucide.ExternalLink size={13} />Open invoice</Link>}
           </div>
         </Card>
@@ -161,12 +161,12 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
               <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t divider pt-2.5">
                 <Badge tone="slate">Creates: {o.creates.join(' + ')}</Badge>
                 {o.sourcePatch && <Badge tone="amber">Also: {o.sourcePatch}</Badge>}
-                {o.existing && <Badge tone="green">Already converted</Badge>}
+                {o.existing && <Badge tone="green">Already created</Badge>}
               </div>
             </Card>)}</div>}
       </section>
 
-      <p className="caption border-t divider pt-3">Tip: status changes (WON, AWARDED, ISSUED, PAID) can also be made inline on any list. Convert to… is for carrying the details forward, not for changing status by hand.</p>
+      <p className="caption border-t divider pt-3">Choose a next step to reuse these details in a new document. To record an invoice payment, use Record payment on the invoice.</p>
     </div>
   </Drawer>;
 }

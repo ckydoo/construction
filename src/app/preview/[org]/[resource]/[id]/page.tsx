@@ -1,3 +1,4 @@
+import { taxEnabled } from '@/lib/tax-settings';
 import { notFound } from 'next/navigation';
 import { requirePageModule } from '@/lib/page-modules';
 import { buildScope } from '@/lib/access';
@@ -106,17 +107,18 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
 
   const company = normaliseCompanyProfile(a.config.company, a.org);
   const currencyConfig = normaliseCurrencyConfig(a.config.currency, a.org.baseCurrency);
-  const docCfg = financialDocConfig(resource);
+  const showTax = taxEnabled(a.config.tax);
+  const docCfg = financialDocConfig(resource, showTax);
   const isFinancial = isFinancialDocument(resource);
-  const lines = documentLines(row, defn);
+  const lines = documentLines(row, defn, showTax);
   const totals = financialTotals(row, defn, lines, company);
   const docCurrency = totals.currency;
   const status = String(row.status || 'DRAFT').replace(/_/g, ' ');
-  const docNo = String(row.number || row.taxInvoiceNo || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.reference || '—');
+  const docNo = String(row.number || (showTax && row.taxInvoiceNo) || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.reference || '—');
   const docDate = docCfg.dateKey && row[docCfg.dateKey] ? date(row[docCfg.dateKey]) : date(row.createdAt);
   const dueDate = row.dueDate ? date(row.dueDate) : '';
   const periodEnd = row.periodEnd ? date(row.periodEnd) : '';
-  const reference = String(row.reference || row.taxInvoiceNo || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.deliveryNote || '');
+  const reference = String(row.reference || (showTax && row.taxInvoiceNo) || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.deliveryNote || '');
 
   const refCache = new Map<string, string>();
   async function refLabel(target: string, value: any): Promise<string> {
@@ -194,7 +196,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
 
   const totalRows: [string, string, boolean][] = [['Subtotal', money(totals.subtotal, docCurrency), false]];
   if (resource === 'estimates' && Math.abs(totals.total - totals.subtotal - totals.tax) >= 0.005) totalRows.push(['Markup / adjustment', money(totals.total - totals.subtotal - totals.tax, docCurrency), false]);
-  if (totals.tax) totalRows.push(['VAT', money(totals.tax, docCurrency), false]);
+  if (showTax && totals.tax) totalRows.push(['VAT', money(totals.tax, docCurrency), false]);
   if (docCfg.showDeposit && totals.deposit > 0) {
     totalRows.push([`Deposit (${company.depositPct}%)`, money(totals.deposit, docCurrency), false]);
     totalRows.push(['Balance after deposit', money(totals.depositBalance, docCurrency), false]);
@@ -230,7 +232,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
           <div>
             <div className="fp-company-name">{company.displayName}</div>
             {[company.legalName, company.registrationNo ? `Reg: ${company.registrationNo}` : ''].filter(Boolean).join(' | ') && <div className="fp-company-line">{[company.legalName, company.registrationNo ? `Reg: ${company.registrationNo}` : ''].filter(Boolean).join(' | ')}</div>}
-            {[company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ') && <div className="fp-company-line">{[company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ')}</div>}
+            {[showTax && company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ') && <div className="fp-company-line">{[showTax && company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ')}</div>}
             {[company.email, company.phone].filter(Boolean).join(' | ') && <div className="fp-company-line">{[company.email, company.phone].filter(Boolean).join(' | ')}</div>}
             {company.website && <div className="fp-company-line">{company.website}</div>}
           </div>
@@ -255,7 +257,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
         </div>)}
       </div>
 
-      <p className="fp-intro">Dear {partyName}, {resource === 'arInvoices' ? 'Please find your tax invoice below.' : company.quoteIntro}</p>
+      <p className="fp-intro">Dear {partyName}, {resource === 'arInvoices' ? (showTax ? 'Please find your tax invoice below.' : 'Please find your invoice below.') : company.quoteIntro}</p>
 
       {isFinancial && <div className="fp-notice">
         <div className="fp-notice-label">Payment notice</div>
@@ -263,7 +265,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
       </div>}
 
       <table className="fp-items">
-        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>UoM</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit</th><th>Unit price</th><th>Subtotal</th></tr></thead>
         <tbody>
           {lines.map((l, i) => <tr key={`${i}-${l.description}`}>
             <td>{i + 1}</td>

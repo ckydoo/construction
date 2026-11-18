@@ -1,3 +1,4 @@
+import { taxVisibleFields } from './tax-settings';
 /* One source of truth for strict module visibility.
  * A resource is available only when BOTH its module switch and its resource ID
  * are enabled. Settings/Onboarding are the only surfaces allowed to show the
@@ -5,7 +6,7 @@
 import { MODULES, type ModuleDef } from './catalog';
 import { RESOURCES, RESOURCE_MAP, type ResourceDef, type Field } from './resources';
 
-export type ConfigLike = { modules?: string[]; resources?: string[] };
+export type ConfigLike = { modules?: string[]; resources?: string[]; tax?: unknown };
 export const EMPTY_CONFIG: ConfigLike = { modules: [], resources: [] };
 
 export const SPECIAL_ROUTE_MODULES: Record<string, string> = {
@@ -51,10 +52,12 @@ export function visibleResourceIds(config: ConfigLike): string[] {
 }
 /** Hide form/detail columns and reference fields that point at a disabled module. */
 export function visibleFields(def: ResourceDef, config: ConfigLike): Field[] {
-  return def.fields.filter(f => !f.hidden && (f.type !== 'ref' || resourceFullyEnabled(config, f.ref)));
+  return taxVisibleFields(def.fields, config.tax).filter(f => !f.hidden && (f.type !== 'ref' || resourceFullyEnabled(config, f.ref)));
 }
 export function visibleColumns(def: ResourceDef, config: ConfigLike): string[] {
+  const allowed = new Set(taxVisibleFields(def.fields, config.tax).map(f => f.key));
   return def.columns.filter(c => {
+    if (def.fields.some(f => f.key === c) && !allowed.has(c)) return false;
     const f = def.fields.find(x => x.key === c);
     return !f || f.type !== 'ref' || resourceFullyEnabled(config, f.ref);
   });

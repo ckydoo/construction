@@ -58,7 +58,7 @@ export const MODULES: ModuleDef[] = [
   { id:'fieldOps', label:'Site diaries & meetings', group:'Jobs & sites', icon:'Camera', tier:'CORE', description:'Daily site diaries, photos, meetings and instructions', resources:['dailyLogs','meetings'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','CONSTRUCTION_MANAGEMENT'] },
   { id:'closeout', label:'Snag lists & handover', group:'Jobs & sites', icon:'ListChecks', tier:'STANDARD', description:'Snagging, inspections, permits and handover', resources:['punchLists','permits'], defaultTypes:'*', minSize:1 },
   { id:'procurement', label:'Ordering & deliveries', group:'Materials & suppliers', icon:'ShoppingCart', tier:'CORE', description:'Material request → quote → order → delivery note → bill', resources:['requisitions','purchaseOrders','goodsReceipts'], defaultTypes:'*' },
-  { id:'vendors', label:'Suppliers & subcontractors', group:'Materials & suppliers', icon:'Store', tier:'CORE', description:'Supplier details, tax clearance and ratings', resources:['vendors','subcontractors'], defaultTypes:'*' },
+  { id:'vendors', label:'Suppliers & subcontractors', group:'Materials & suppliers', icon:'Store', tier:'CORE', description:'Supplier details and ratings', resources:['vendors','subcontractors'], defaultTypes:'*' },
   { id:'inventory', label:'Stock & stores', group:'Materials & suppliers', icon:'Package', tier:'STANDARD', description:'Stock on hand, issues, transfers and reorder levels', resources:['inventory','warehouses'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','EQUIPMENT_RENTAL','MIXED_GROUP'] },
   { id:'equipment', label:'Plant & equipment', group:'Materials & suppliers', icon:'Truck', tier:'STANDARD', description:'Plant register, hours used, fuel and servicing', resources:['equipment','workOrders'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','EQUIPMENT_RENTAL','MIXED_GROUP'] },
   { id:'hr', label:'Staff & teams', group:'Staff & wages', icon:'UsersRound', tier:'CORE', description:'Staff, teams, site crews and documents', resources:['employees','departments','crews'], defaultTypes:'*' },
@@ -94,7 +94,7 @@ export const STARTER_MODULE_IDS: string[] = [
 ];
 export const STARTER_MODULE_SET = new Set(STARTER_MODULE_IDS);
 // The smallest useful workspace: exactly the job-to-cash loop — clients, a
-// priced quote, the job and its contract, tax invoices, money in, documents.
+// priced quote, the job and its contract, invoices, money in, documents.
 // Everything else is one click away in Settings → Sections.
 export const SOLO_MODULE_IDS: string[] = ['dashboard','company','crm','estimating','projects','contracts','finance','documents','reports'];
 export const SOLO_RESOURCE_IDS: string[] = ['clients','contacts','estimates','projects','tasks','contracts','changeOrders','arInvoices','payments','documents'];
@@ -103,6 +103,19 @@ export const SOLO_RESOURCE_IDS: string[] = ['clients','contacts','estimates','pr
 const TYPE_DEFINING_MODULES = new Set(['unitSales','rental','commissioning']);
 const TIER_MIN_SIZE: Record<ModuleTier, number> = { CORE:2, STANDARD:3, ADVANCED:4, ENTERPRISE:4 };
 const SIZE_INDEX: Record<string, number> = { MICRO:0, SMALL:1, MID:2, LARGE:3, ENTERPRISE:4 };
+
+export const WORKSPACE_SETUPS = [
+  { id: 'essentials', label: 'Essentials', description: 'Clients, quotes, jobs, invoices and payments. Add more when you need it.' },
+  { id: 'team', label: 'Team operations', description: 'Coordinate staff, suppliers, purchasing and job costs alongside your everyday work.' },
+  { id: 'full', label: 'Full operations', description: 'Start with the full section catalogue, subject to your plan. Configure access for each role.' },
+] as const;
+export type WorkspaceSetup = typeof WORKSPACE_SETUPS[number]['id'];
+export function isWorkspaceSetup(value: unknown): value is WorkspaceSetup {
+  return WORKSPACE_SETUPS.some(s => s.id === value);
+}
+const ESSENTIAL_MODULES = ['dashboard','company','crm','estimating','projects','finance'];
+const ESSENTIAL_RESOURCES = ['clients','contacts','estimates','projects','tasks','arInvoices','payments'];
+const TEAM_MODULES = [...STARTER_MODULE_IDS, 'vendors','procurement','jobCosting','fieldOps'];
 
 export type OnboardingInput = {
   companyType: string;
@@ -115,6 +128,7 @@ export type OnboardingInput = {
    * workspaces reconfiguring in Settings keep the essentials so nothing they
    * use disappears — this flag is only passed at onboarding. */
   minimal?: boolean;
+  setup?: WorkspaceSetup;
 };
 
 export type WorkspaceConfig = {
@@ -145,10 +159,12 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   // add-ons then layer on modules — nothing is enabled "just because it exists".
   // A brand-new micro workspace starts even smaller — just the job-to-cash
   // loop — so the first screen is never overwhelming.
-  const soloStart = !!input.minimal && si === 0;
-  const enabled = new Set<string>(soloStart ? SOLO_MODULE_IDS : STARTER_MODULE_IDS);
+  const setup = isWorkspaceSetup(input.setup) ? input.setup : undefined;
+  const soloStart = !setup && !!input.minimal && si === 0;
+  const enabled = new Set<string>(setup === 'essentials' ? ESSENTIAL_MODULES : setup === 'team' ? TEAM_MODULES : setup === 'full' ? MODULES.map(m=>m.id) : soloStart ? SOLO_MODULE_IDS : STARTER_MODULE_IDS);
 
   for (const m of MODULES) {
+    if (setup) continue; // Explicit setup, not company size, chooses the starting sections.
     if (enabled.has(m.id)) continue;
     const typeMatch = m.defaultTypes === '*' || (m.defaultTypes || []).includes(type) || type === 'MIXED_GROUP';
     if (!typeMatch) continue;
@@ -187,7 +203,12 @@ export function resolveWorkspace(input: OnboardingInput): WorkspaceConfig {
   };
 
   let resources: string[];
-  if (soloStart) {
+  if (setup === 'essentials') {
+    const essentials = new Set(ESSENTIAL_RESOURCES);
+    resources = Array.from(new Set(MODULES.filter(m=>enabled.has(m.id)).flatMap(m =>
+      !ESSENTIAL_MODULES.includes(m.id) || addons.includes(m.id) ? m.resources : m.resources.filter(r=>essentials.has(r))
+    )));
+  } else if (soloStart) {
     // Trim the money/accounts module down to just invoices, receipts and the
     // quote→job→bill chain; full ledger stays one click away in Settings.
     const soloBase = new Set(SOLO_RESOURCE_IDS);

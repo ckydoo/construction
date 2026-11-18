@@ -1,4 +1,5 @@
 'use client';
+import { taxEnabled } from '@/lib/tax-settings';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -43,7 +44,7 @@ export default function ProjectPage(){
     ['Actual to date', t?.actual, on('budgets')],
     ['Forecast to complete', t?.forecast, on('budgets')],
     ['Approved variations', t?.variations, on('changeOrders')],
-    ['Net billed (excl. VAT)', t?.billedNet, on('arInvoices')],
+    [taxEnabled(config.tax) ? 'Net billed (excl. VAT)' : 'Net billed', t?.billedNet, on('arInvoices')],
     ['Received (cleared receipts)', t?.received, on('payments')||on('arInvoices')],
   ] as [string, any, boolean][]).filter(x=>x[2]).map(([l,v])=>[l,v]);
   const showSnapshot=snapshotRows.length>0;

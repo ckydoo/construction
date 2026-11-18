@@ -28,3 +28,17 @@ scripts/tester-here-*.mjs
 
 # Logical backups may contain production data — never commit
 backups/
+
+# Local build and browser-preview scratch files
+.cache/
+
+# Expo local state and Android/iOS build artifacts
+apps/native/.expo/
+apps/native/android/
+apps/native/ios/
+apps/native/dist/
+*.apk
+*.aab
+
+# EAS CI result metadata (may include temporary artifact URLs)
+apps/native/build-result.json

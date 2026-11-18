@@ -112,7 +112,7 @@ export default function BillingPage() {
 
   return <div className="space-y-5">
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <div><h1 className="heading">Billing & subscription</h1><p className="caption mt-1">USD 6 / 14 / 26 per organisation per month, everywhere. Prices exclude VAT/tax.</p></div>
+      <div><h1 className="heading">Billing & subscription</h1><p className="caption mt-1">USD 6 / 14 / 26 per organisation per month, everywhere. Final charges are shown at checkout.</p></div>
       <Badge tone={STATUS_TONES[status] || 'slate'}>{STATUS_LABELS[status] || status}</Badge>
     </div>
 
@@ -169,7 +169,7 @@ export default function BillingPage() {
             <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr className="border-b divider muted"><th className="py-2">Invoice</th><th className="py-2">Period</th><th className="py-2">Amount</th><th className="py-2">Status</th><th className="py-2"></th></tr></thead><tbody>
               {invoices.map((i: any) => <tr key={i.id} className="border-b divider/60"><td className="py-2 font-mono text-[10px]">{i.invoice_number}{i.metadata?.invoiceKind === 'plan_adjustment' && <span className="mt-0.5 block font-sans text-[10px] muted">Plan adjustment</span>}</td><td className="py-2">{new Date(i.period_start).toLocaleDateString('en-GB')}</td><td className="py-2">USD {Number(i.amount_usd).toFixed(2)}</td><td className="py-2"><Badge tone={i.status === 'paid' ? 'green' : i.status === 'failed' ? 'red' : 'amber'}>{i.status}</Badge></td><td className="py-2 text-right">{i.status === 'pending' && <Button size="sm" variant="primary" loading={busy === `pay-${i.id}`} onClick={() => send('billing/pay', { invoiceId: i.id }, `pay-${i.id}`)}>{dpoInvoice(i) ? 'Pay with DPO Pay' : 'Pay with Paynow'}</Button>}</td></tr>)}
             </tbody></table></div>}
-          <p className="mt-3 text-[11px] muted">Prices exclude VAT/tax. Your data stays safe if a payment is missed.</p>
+          <p className="mt-3 text-[11px] muted">Final charges are shown at checkout. Your data stays safe if a payment is missed.</p>
         </div></Card></div>
     </div>
   </div>;

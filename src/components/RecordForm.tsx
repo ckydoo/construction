@@ -10,7 +10,8 @@ import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
 import { validateFields } from '@/lib/field-validation';
 import { recordInvariantErrors } from '@/lib/record-invariants';
-import { taxDefault } from '@/lib/tax-settings';
+import { taxDefault, taxEnabled, taxVisibleFields } from '@/lib/tax-settings';
+import { splitFormFields } from '@/lib/simple-forms';
 import { allowedStatusOptions } from '@/lib/workflow';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
@@ -33,17 +34,19 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
 }){
   const [values,setValues]=useState<Record<string,any>>({});
   const [errors,setErrors]=useState<Record<string,string>>({});
+  const [moreOpen,setMoreOpen]=useState(false);
   const {data:meta}:any=useQuery({queryKey:['meta',org],queryFn:()=>apiGet(orgApi(org,'meta'))});
   const config:ConfigLike|undefined=meta?.config;
   // Until workspace settings arrive, keep every non-hidden field visible. A
   // blank fallback config would hide required ref fields such as Job / project.
-  const fields=useMemo(()=>config?visibleFields(def,config):def.fields.filter(f=>!f.hidden),[def,config]);
+  const fields=useMemo(()=>config?visibleFields(def,config):taxVisibleFields(def.fields, undefined).filter(f=>!f.hidden),[def,config]);
   const formSession=useRef({open:false,waitingForTax:false,taxEdited:false});
   useEffect(()=>{
     if(!open){ formSession.current.open=false; return; }
     if(!formSession.current.open){
       formSession.current={open:true,waitingForTax:!initial && meta?.config?.tax===undefined,taxEdited:false};
       setValues(initialValues(def,initial,defaultProjectId,meta?.config?.tax));
+      setMoreOpen(!!initial);
       setErrors({});
     } else if(formSession.current.waitingForTax && meta?.config?.tax!==undefined){
       formSession.current.waitingForTax=false;
@@ -68,12 +71,12 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
     const payload=Object.fromEntries(Object.entries(values).filter(([k])=>fields.some(f=>f.key===k)));
     onSubmit(payload);
   };
-  const grouped=useMemo(()=>{
-    const visible=fields.filter(f=>!f.readOnly);
-    const basic=visible.filter(f=>!f.wide&&f.type!=='tags'&&f.type!=='items');
-    const wide=visible.filter(f=>f.wide||f.type==='tags'||f.type==='items');
-    return {basic,wide};
-  },[fields]);
+  const grouped=useMemo(()=>splitFormFields(def.id,fields),[def.id,fields]);
+  const moreHasErrors=grouped.more.some(f=>!!errors[f.key]);
+  useEffect(()=>{ if(moreHasErrors) setMoreOpen(true); },[moreHasErrors,errors]);
+  function renderField(f:Field){
+    return <FWrap key={f.key} label={f.label} required={f.required} error={errors[f.key]} hint={f.hint} wide={f.wide||f.type==='tags'||f.type==='items'}>{control(f)}</FWrap>;
+  }
 
   function control(f:Field){
     const v=values[f.key];
@@ -90,18 +93,23 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
       case 'boolean': return <div className="flex h-9 items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
       case 'tags': return <input className={common} value={Array.isArray(v)?v.join(', '):v??''} onChange={e=>set(f.key,e.target.value)} placeholder="Comma separated tags"/>;
       case 'items': return <LineItemsEditor value={v} onChange={lines=>set(f.key,lines)}
-        currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
+        showTax={taxEnabled(config?.tax)} currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
       case 'date': return <input className={common} type="date" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'datetime': return <input className={common} type="datetime-local" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'number': case 'currency': case 'percent': return <div className="relative"><input className={`${common} ${f.type!=='number'?'pl-8':''}`} type="number" step={f.integer?1:'any'} min={f.min} max={f.max} value={v??''} onChange={e=>set(f.key,e.target.value===''?'':Number(e.target.value))} placeholder={f.placeholder||'0'}/>{f.type==='currency'&&<span className="absolute left-3 top-2 text-xs muted">$</span>}{f.type==='percent'&&<span className="absolute right-3 top-2 text-xs muted">%</span>}</div>;
       default: return <input className={common} type={f.type==='email'?'email':f.type==='phone'?'tel':'text'} value={v??''} onChange={e=>set(f.key,e.target.value)} placeholder={f.placeholder||`Enter ${f.label.toLowerCase()}`}/>;
     }
   }
-  return <Drawer open={open} onClose={onClose} title={`${initial?'Edit':'New'} ${def.singular}`} subtitle={initial?`${initial.number} · changes take effect when you save`:`Complete the fields below to create a new ${def.singular.toLowerCase()}.`}
+  return <Drawer open={open} onClose={onClose} title={`${initial?'Edit':'New'} ${def.singular}`} subtitle={initial?`${initial.number} · changes take effect when you save`:`Start with the basics. Fields marked * are required.`}
     footer={<div className="flex items-center justify-between"><p className="text-[11px] muted"><span className="text-red-500">*</span> Required field</p><div className="flex gap-2"><Button onClick={onClose}>Cancel</Button><Button variant="primary" onClick={submit as any} loading={submitting} icon="Save">{initial?'Save changes':`Create ${def.singular}`}</Button></div></div>}>
     <form onSubmit={submit} className="grid gap-4 px-4 py-4 sm:grid-cols-2">
-      {grouped.basic.map(f=><FWrap key={f.key} label={f.label} required={f.required} error={errors[f.key]} hint={f.hint}>{control(f)}</FWrap>)}
-      {grouped.wide.map(f=><FWrap key={f.key} label={f.label} required={f.required} error={errors[f.key]} wide>{control(f)}</FWrap>)}
+      {errors._&&<p role="alert" className="text-sm text-red-600 sm:col-span-2">{errors._}</p>}
+      {grouped.main.map(renderField)}
+      {grouped.more.length>0&&<details className="rounded-lg border divider sm:col-span-2" open={moreOpen} onToggle={e=>setMoreOpen(e.currentTarget.open)}>
+        <summary className="cursor-pointer px-3 py-3 text-sm font-semibold">More details <span className="font-normal muted">· optional</span></summary>
+        <p className="px-3 pb-3 text-xs muted">Add these when you need them. Any saved details are kept.</p>
+        <div className="grid gap-4 px-3 pb-4 sm:grid-cols-2">{grouped.more.map(renderField)}</div>
+      </details>}
     </form>
   </Drawer>;
 }
