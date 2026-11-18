@@ -94,7 +94,7 @@ export default function SettingsPage(){
     <Tabs tabs={TABS} active={tab} onChange={setTab}/>
 
     {tab==='general'&&<div className="space-y-4"><Card><CardHead title="Tax defaults" subtitle="When off, tax fields and document details are hidden. Saved values are preserved. When on, the default rate applies to new invoices and purchase orders."/>
-      <form className="space-y-4 p-4" onSubmit={e=>{e.preventDefault(); const rate=Number(taxForm.rate); if(taxForm.enabled&&(!Number.isFinite(rate)||rate<=0||rate>100)){toast.push({tone:'error',title:'Enter a tax rate between 0 and 100%'});return;} send('updateTax',{enabled:taxForm.enabled,rate:taxForm.rate===''?0:rate});}}>
+      <form className="flex flex-col items-start gap-4 p-4" onSubmit={e=>{e.preventDefault(); const rate=Number(taxForm.rate); if(taxForm.enabled&&(!Number.isFinite(rate)||rate<=0||rate>100)){toast.push({tone:'error',title:'Enter a tax rate between 0 and 100%'});return;} send('updateTax',{enabled:taxForm.enabled,rate:taxForm.rate===''?0:rate});}}>
         <Toggle checked={taxForm.enabled} onChange={enabled=>setTaxForm(v=>({...v,enabled}))} label="Enable tax"/>
         {taxForm.enabled&&<Field label="Default tax rate (%)"><input className="input" type="number" min="0" max="100" step="any" value={taxForm.rate} onChange={e=>setTaxForm(v=>({...v,rate:e.target.value}))}/></Field>}
         <Button type="submit" variant="primary" loading={busy}>Save tax defaults</Button>
