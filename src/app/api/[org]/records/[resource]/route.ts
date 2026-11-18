@@ -1,3 +1,4 @@
+import { taxVisibleFields } from '@/lib/tax-settings';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { getResource } from '@/lib/resources';
@@ -41,10 +42,10 @@ export async function GET(req: Request, { params }: Ctx) {
     all: qp.all === '1' || csvMode,
   }, scope);
   if (qp.mode === 'csv-items') {
-    return new NextResponse(lineItemsCsv(result.rows, def.fields), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${resource}-line-items.csv"` } });
+    return new NextResponse(lineItemsCsv(result.rows, taxVisibleFields(def.fields, a.config.tax)), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${resource}-line-items.csv"` } });
   }
   if (qp.mode === 'csv') {
-    const cols = def.fields.filter(f => !f.hidden);
+    const cols = taxVisibleFields(def.fields, a.config.tax).filter(f => !f.hidden);
     // Resolve names only through the same module, role and row-scope checks as
     // the corresponding reference endpoint. Keep IDs as separate columns.
     const labels: Record<string, Map<string, string>> = {};

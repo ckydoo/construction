@@ -10,7 +10,7 @@ const STEPS: Step[] = [
   { resource: 'clients',   label: 'Add your first client',        hint: 'Name, phone and where the job is — two minutes.',        href: 'm/clients?new=1',   cta: 'Add client' },
   { resource: 'estimates', label: 'Price the job — send a quote', hint: 'List the work and amounts; MYLA totals it for you.',     href: 'm/estimates?new=1', cta: 'Create quote' },
   { resource: 'projects',  label: 'Win it — open the job',        hint: 'Convert the accepted quote, or open the job directly.',  href: 'm/projects?new=1',  cta: 'Open job' },
-  { resource: 'arInvoices',label: 'Invoice the client',           hint: 'Turn the job or quote into a tax invoice.',              href: 'm/arInvoices?new=1', cta: 'Create invoice' },
+  { resource: 'arInvoices',label: 'Invoice the client',           hint: 'Turn the job or quote into a invoice.',              href: 'm/arInvoices?new=1', cta: 'Create invoice' },
   { resource: 'payments',  label: 'Record the money in',          hint: 'Log what the client paid and allocate it to the bill.',  href: 'm/payments?new=1',  cta: 'Record payment' },
 ];
 

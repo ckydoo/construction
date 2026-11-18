@@ -1,3 +1,4 @@
+import { taxVisibleFields } from './tax-settings';
 /* Server-side rules for "Convert to…".
  *
  * A conversion is deliberately non-destructive: it creates one or more NEW
@@ -236,10 +237,10 @@ export const CONVERSION_RULES: ConversionRule[] = [
   },
   {
     id: 'job-to-invoice', from: 'projects', to: 'arInvoices',
-    label: 'Create tax invoice directly', icon: 'FileText',
-    hint: 'Creates a draft tax invoice straight from the job when you do not use payment certificates.',
+    label: 'Create invoice directly', icon: 'FileText',
+    hint: 'Creates a draft invoice straight from the job when you do not use payment certificates.',
     build: (s, c) => ({
-      name: `Tax invoice – ${titleOf(s)}`,
+      name: `Invoice – ${titleOf(s)}`,
       projectId: ref(s.id),
       clientId: ref(s.clientId),
       invoiceDate: c.today,
@@ -254,14 +255,14 @@ export const CONVERSION_RULES: ConversionRule[] = [
   },
   {
     id: 'certificate-to-invoice', from: 'paymentApps', to: 'arInvoices',
-    label: 'Convert to tax invoice', icon: 'FileText',
-    hint: 'Turns the net certified amount into a draft tax invoice, VAT and due date calculated for you.',
+    label: 'Convert to invoice', icon: 'FileText',
+    hint: 'Turns the net certified amount into a draft invoice, due date calculated for you.',
     build: (s, c) => {
       const net = Number(s.netCertified ?? s.grossCertified) || 0;
       const vat = Number(s.vatAmount) || 0;
       const vatPct = c.taxRate ? (net && vat ? round2((vat / net) * 100) : c.taxRate) : 0;
       return {
-        name: `Tax invoice – ${titleOf(s)}`,
+        name: `Invoice – ${titleOf(s)}`,
         projectId: ref(s.projectId),
         clientId: ref(s.clientId),
         invoiceDate: c.today,
@@ -316,11 +317,11 @@ export function buildContext(tax?: unknown): BuildCtx {
 }
 
 /** Human-readable preview of what a conversion will copy, shown before Create. */
-export function buildPreview(resourceId: string, payload: Record<string, any>): { label: string; value: string }[] {
+export function buildPreview(resourceId: string, payload: Record<string, any>, tax?: unknown): { label: string; value: string }[] {
   const def = RESOURCE_MAP[resourceId];
   if (!def) return [];
   const out: { label: string; value: string }[] = [];
-  for (const f of def.fields) {
+  for (const f of taxVisibleFields(def.fields, tax)) {
     if (f.hidden || f.key === 'status' || f.type === 'ref') continue;
     const v = payload[f.key];
     if (v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length)) continue;

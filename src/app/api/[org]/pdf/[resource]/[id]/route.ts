@@ -1,3 +1,4 @@
+import { taxEnabled } from '@/lib/tax-settings';
 import { NextResponse } from 'next/server';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { apiAuth } from '@/lib/auth';
@@ -41,17 +42,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
 
   const company = normaliseCompanyProfile(auth.config.company, auth.org);
   const cfg = normaliseCurrencyConfig(auth.config.currency, auth.org.baseCurrency);
-  const docCfg = financialDocConfig(resource);
+  const showTax = taxEnabled(auth.config.tax);
+  const docCfg = financialDocConfig(resource, showTax);
   const isFinancial = isFinancialDocument(resource);
-  const lines = documentLines(row, defn);
+  const lines = documentLines(row, defn, showTax);
   const totals = financialTotals(row, defn, lines, company);
   const docCurrency = totals.currency;
   const status = String(row.status || 'DRAFT').replace(/_/g, ' ');
-  const docNo = String(row.number || row.taxInvoiceNo || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.reference || '—');
+  const docNo = String(row.number || (showTax && row.taxInvoiceNo) || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.reference || '—');
   const docDate = docCfg.dateKey && row[docCfg.dateKey] ? date(row[docCfg.dateKey]) : date(row.createdAt);
   const dueDate = row.dueDate ? date(row.dueDate) : '';
   const periodEnd = row.periodEnd ? date(row.periodEnd) : '';
-  const reference = String(row.reference || row.taxInvoiceNo || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.deliveryNote || '');
+  const reference = String(row.reference || (showTax && row.taxInvoiceNo) || row.tenderNo || row.certificateNo || row.vendorInvoiceNo || row.deliveryNote || '');
 
   // Resolve the linked client / supplier / employee and project so the document
   // shows names and addresses rather than raw UUIDs.
@@ -195,7 +197,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       while (nameSize > 10 && bold.widthOfTextAtSize(company.displayName, nameSize) > leftW) nameSize -= 0.5;
       drawAt(fitText(company.displayName, leftW, nameSize, bold), nameX, A4H - 28, nameSize, bold, NAVY);
       const identity = [company.legalName, company.registrationNo ? `Reg: ${company.registrationNo}` : ''].filter(Boolean).join(' | ');
-      const registered = [company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ');
+      const registered = [showTax && company.taxNo ? `VAT: ${company.taxNo}` : '', company.address].filter(Boolean).join(' | ');
       const contact = [company.email, company.phone].filter(Boolean).join(' | ');
       drawAt(fitText(identity, leftW, 7.2, font), nameX, A4H - 42, 7.2, font, MUTED);
       drawAt(fitText(registered, leftW, 7, font), nameX, A4H - 52, 7, font, MUTED);
@@ -248,7 +250,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     page.drawLine({ start: { x: M, y }, end: { x: A4W - M, y }, thickness: 0.8, color: LINE }); y -= 18;
   }
   function drawIntro() {
-    y = drawWrapped(`Dear ${partyName},\n\n${resource === 'arInvoices' ? 'Please find your tax invoice below.' : company.quoteIntro}`, M, TABLE_W, 9.5, font, INK, 14);
+    y = drawWrapped(`Dear ${partyName},\n\n${resource === 'arInvoices' ? (showTax ? 'Please find your tax invoice below.' : 'Please find your invoice below.') : company.quoteIntro}`, M, TABLE_W, 9.5, font, INK, 14);
     y -= 8;
   }
   function drawPaymentNotice() {
@@ -292,7 +294,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   function drawTotals() {
     const rows: [string, string][] = [['Subtotal', money(totals.subtotal, docCurrency)]];
     if (resource === 'estimates' && Math.abs(totals.total - totals.subtotal - totals.tax) >= 0.005) rows.push(['Markup / adjustment', money(totals.total - totals.subtotal - totals.tax, docCurrency)]);
-    if (totals.tax) rows.push(['VAT', money(totals.tax, docCurrency)]);
+    if (showTax && totals.tax) rows.push(['VAT', money(totals.tax, docCurrency)]);
     if (docCfg.showDeposit && totals.deposit > 0) {
       rows.push([`Deposit (${company.depositPct}%)`, money(totals.deposit, docCurrency)]);
       rows.push(['Balance after deposit', money(totals.depositBalance, docCurrency)]);

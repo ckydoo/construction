@@ -93,10 +93,10 @@ export default function SettingsPage(){
     <div><h1 className="heading">Settings</h1><p className="caption mt-1">Company details, which sections are on, who can use them, and your data.</p></div>
     <Tabs tabs={TABS} active={tab} onChange={setTab}/>
 
-    {tab==='general'&&<div className="space-y-4"><Card><CardHead title="Tax defaults" subtitle="Off by default. Applies to new invoices and purchase orders; existing records are not changed. Choose the rate applicable to your business."/>
+    {tab==='general'&&<div className="space-y-4"><Card><CardHead title="Tax defaults" subtitle="When off, tax fields and document details are hidden. Saved values are preserved. When on, the default rate applies to new invoices and purchase orders."/>
       <form className="space-y-4 p-4" onSubmit={e=>{e.preventDefault(); const rate=Number(taxForm.rate); if(taxForm.enabled&&(!Number.isFinite(rate)||rate<=0||rate>100)){toast.push({tone:'error',title:'Enter a tax rate between 0 and 100%'});return;} send('updateTax',{enabled:taxForm.enabled,rate:taxForm.rate===''?0:rate});}}>
-        <Toggle checked={taxForm.enabled} onChange={enabled=>setTaxForm(v=>({...v,enabled}))} label="Enable tax for new records"/>
-        <Field label="Default tax rate (%)"><input className="input" type="number" min="0" max="100" step="any" value={taxForm.rate} onChange={e=>setTaxForm(v=>({...v,rate:e.target.value}))}/></Field>
+        <Toggle checked={taxForm.enabled} onChange={enabled=>setTaxForm(v=>({...v,enabled}))} label="Enable tax"/>
+        {taxForm.enabled&&<Field label="Default tax rate (%)"><input className="input" type="number" min="0" max="100" step="any" value={taxForm.rate} onChange={e=>setTaxForm(v=>({...v,rate:e.target.value}))}/></Field>}
         <Button type="submit" variant="primary" loading={busy}>Save tax defaults</Button>
       </form></Card><Card><CardHead title="Company details" subtitle="Used on invoices, reports and documents"/>
       <form onSubmit={saveGeneral} className="grid gap-4 p-4 sm:grid-cols-2">
@@ -125,7 +125,7 @@ export default function SettingsPage(){
             <Field label="Document display name" hint="Falls back to your trading name when blank"><input className="input" value={companyForm.displayName||''} onChange={e=>setCompanyForm({...companyForm,displayName:e.target.value})} placeholder={meta?.org?.name}/></Field>
             <Field label="Legal name on documents"><input className="input" value={companyForm.legalName||''} onChange={e=>setCompanyForm({...companyForm,legalName:e.target.value})} placeholder={meta?.org?.legalName||''}/></Field>
             <Field label="Registration number"><input className="input" value={companyForm.registrationNo||''} onChange={e=>setCompanyForm({...companyForm,registrationNo:e.target.value})} placeholder={meta?.org?.regNumber||''}/></Field>
-            <Field label="VAT / tax number"><input className="input" value={companyForm.taxNo||''} onChange={e=>setCompanyForm({...companyForm,taxNo:e.target.value})}/></Field>
+            {meta?.config?.tax?.enabled===true&&<Field label="VAT / tax number"><input className="input" value={companyForm.taxNo||''} onChange={e=>setCompanyForm({...companyForm,taxNo:e.target.value})}/></Field>}
             <Field label="Website"><input className="input" value={companyForm.website||''} onChange={e=>setCompanyForm({...companyForm,website:e.target.value})}/></Field>
             <Field label="Postal / physical address" wide><textarea className="input min-h-[76px] resize-y py-2" value={companyForm.address||''} onChange={e=>setCompanyForm({...companyForm,address:e.target.value})} placeholder="Street, city, country"/></Field>
             <Field label="Email"><input className="input" type="email" value={companyForm.email||''} onChange={e=>setCompanyForm({...companyForm,email:e.target.value})}/></Field>
@@ -248,7 +248,7 @@ export default function SettingsPage(){
       <Button variant="primary" loading={busy} icon="RefreshCw" onClick={()=>send('reconfigure',{companyType:type,size,qualifiers:quals},'POST')}>Update my sections</Button></div></Card></div>}
 
     {tab==='data'&&<div className="space-y-4">
-      {demo&&<Card><CardHead title="Demo data" subtitle="616 demo records — jobs, staff, orders, tax invoices, time sheets, site queries, safety and more"/>
+      {demo&&<Card><CardHead title="Demo data" subtitle="616 demo records — jobs, staff, orders, invoices, time sheets, site queries, safety and more"/>
         <div className="flex flex-wrap items-center justify-between gap-3 p-5"><p className="max-w-lg text-xs muted">This replaces all existing business records in this workspace with the demo dataset. For evaluating and training, not for live trading.</p>
           <Button variant="primary" icon="Database" loading={busy} onClick={()=>setConfirm({title:'Replace data with demo dataset?',desc:'All existing records in this workspace will be deleted and replaced with 616 demo records.',action:'seedDemo'})}>Load demo data</Button></div></Card>}
       <Card><CardHead title="Import CSV" subtitle="Paste a CSV with a header row (for example name,status,amount)"/>

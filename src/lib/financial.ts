@@ -1,3 +1,4 @@
+import { isTaxField } from './tax-settings';
 /* Shared rules for proper financial documents: line items, document titles,
  * fallback rows for older records and totals calculated from entered items. */
 import { RESOURCE_MAP, type ResourceDef } from './resources';
@@ -72,7 +73,8 @@ export const FINANCIAL_DOCUMENT_IDS = Object.keys(FINANCIAL_DOCUMENT_CONFIG);
 export function isFinancialDocument(resourceId: string): boolean {
   return !!FINANCIAL_DOCUMENT_CONFIG[resourceId];
 }
-export function financialDocConfig(resourceId: string): FinancialDocConfig {
+export function financialDocConfig(resourceId: string, showTax = true): FinancialDocConfig {
+  if (!showTax && resourceId === 'arInvoices') return { ...FINANCIAL_DOCUMENT_CONFIG.arInvoices, title: 'INVOICE', shortTitle: 'Invoice' };
   return FINANCIAL_DOCUMENT_CONFIG[resourceId] || C({
     title: 'FINANCIAL DOCUMENT', shortTitle: 'Document', numberLabel: 'Document no.',
     partyKey: 'clientId', partyLabel: 'Client', amountKey: RESOURCE_MAP[resourceId]?.amountKey,
@@ -137,12 +139,13 @@ function notesFor(row: any, def: ResourceDef): string {
 
 /** Explicit itemised lines when present; otherwise a clean breakdown from the
  *  legacy currency fields, so all records created before this release still print. */
-export function documentLines(row: any, def: ResourceDef): DocLine[] {
+export function documentLines(row: any, def: ResourceDef, showTax = true): DocLine[] {
   const explicit = normaliseLines(row?.items ?? row?.lineItems);
   if (explicit.length) return explicit;
   const cfg = financialDocConfig(def.id);
   const lines: DocLine[] = [];
   for (const key of cfg.fallbackKeys) {
+    if (!showTax && isTaxField(key)) continue;
     const value = n(row?.[key]);
     if (!value) continue;
     lines.push({ description: labelFor(def, key), detail: '', qty: 1, unitPrice: value, total: value });

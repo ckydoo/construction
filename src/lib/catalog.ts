@@ -58,7 +58,7 @@ export const MODULES: ModuleDef[] = [
   { id:'fieldOps', label:'Site diaries & meetings', group:'Jobs & sites', icon:'Camera', tier:'CORE', description:'Daily site diaries, photos, meetings and instructions', resources:['dailyLogs','meetings'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','CONSTRUCTION_MANAGEMENT'] },
   { id:'closeout', label:'Snag lists & handover', group:'Jobs & sites', icon:'ListChecks', tier:'STANDARD', description:'Snagging, inspections, permits and handover', resources:['punchLists','permits'], defaultTypes:'*', minSize:1 },
   { id:'procurement', label:'Ordering & deliveries', group:'Materials & suppliers', icon:'ShoppingCart', tier:'CORE', description:'Material request → quote → order → delivery note → bill', resources:['requisitions','purchaseOrders','goodsReceipts'], defaultTypes:'*' },
-  { id:'vendors', label:'Suppliers & subcontractors', group:'Materials & suppliers', icon:'Store', tier:'CORE', description:'Supplier details, tax clearance and ratings', resources:['vendors','subcontractors'], defaultTypes:'*' },
+  { id:'vendors', label:'Suppliers & subcontractors', group:'Materials & suppliers', icon:'Store', tier:'CORE', description:'Supplier details and ratings', resources:['vendors','subcontractors'], defaultTypes:'*' },
   { id:'inventory', label:'Stock & stores', group:'Materials & suppliers', icon:'Package', tier:'STANDARD', description:'Stock on hand, issues, transfers and reorder levels', resources:['inventory','warehouses'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','EQUIPMENT_RENTAL','MIXED_GROUP'] },
   { id:'equipment', label:'Plant & equipment', group:'Materials & suppliers', icon:'Truck', tier:'STANDARD', description:'Plant register, hours used, fuel and servicing', resources:['equipment','workOrders'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','EQUIPMENT_RENTAL','MIXED_GROUP'] },
   { id:'hr', label:'Staff & teams', group:'Staff & wages', icon:'UsersRound', tier:'CORE', description:'Staff, teams, site crews and documents', resources:['employees','departments','crews'], defaultTypes:'*' },
@@ -94,7 +94,7 @@ export const STARTER_MODULE_IDS: string[] = [
 ];
 export const STARTER_MODULE_SET = new Set(STARTER_MODULE_IDS);
 // The smallest useful workspace: exactly the job-to-cash loop — clients, a
-// priced quote, the job and its contract, tax invoices, money in, documents.
+// priced quote, the job and its contract, invoices, money in, documents.
 // Everything else is one click away in Settings → Sections.
 export const SOLO_MODULE_IDS: string[] = ['dashboard','company','crm','estimating','projects','contracts','finance','documents','reports'];
 export const SOLO_RESOURCE_IDS: string[] = ['clients','contacts','estimates','projects','tasks','contracts','changeOrders','arInvoices','payments','documents'];

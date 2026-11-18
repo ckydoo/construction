@@ -231,7 +231,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
         <table className="w-full min-w-[760px] border-collapse">
           <thead className="bg-slate-50/80 dark:bg-ink-950/40"><tr>
             {canRemove&&<th className="w-10 px-3 py-2.5"><input type="checkbox" checked={allSelected} onChange={toggleAll} className="h-3.5 w-3.5 accent-brand-500"/></th>}
-            {cols.map(c=>{const f=def.fields.find(x=>x.key===c);return <th key={c} className={`table-th ${numericCols.has(c)?'text-right':''}`}>
+            {cols.map(c=>{const f=visibleFields(def,config).find(x=>x.key===c);return <th key={c} className={`table-th ${numericCols.has(c)?'text-right':''}`}>
               <button className="inline-flex items-center gap-1 hover:text-ink-800 dark:hover:text-white" onClick={()=>{if(sort===c)setDir(d=>d==='asc'?'desc':'asc');else{setSort(c);setDir('asc');}}}>
                 {f?.label||(c==='number'?'No.':c)}{sort===c&&<Icon name={dir==='asc'?'ChevronUp':'ChevronDown'} size={12}/>}
               </button></th>;})}

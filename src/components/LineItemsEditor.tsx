@@ -7,10 +7,10 @@ const m = (n: number) => (Math.round(n * 100) / 100).toLocaleString('en-US', { m
 const input = 'input h-9 px-2 text-xs';
 
 export default function LineItemsEditor({
-  value, onChange, currency = 'USD', vatPct = 0, markupPct = 0,
+  value, onChange, currency = 'USD', vatPct = 0, markupPct = 0, showTax = false,
 }: {
   value: any; onChange: (lines: DocLine[]) => void;
-  currency?: string; vatPct?: number; markupPct?: number;
+  showTax?: boolean; currency?: string; vatPct?: number; markupPct?: number;
 }) {
   const lines = editableLines(value);
   const update = (i: number, patch: Partial<DocLine>) => {
@@ -56,7 +56,7 @@ export default function LineItemsEditor({
       <Button type="button" size="sm" variant="ghost" icon="Plus" onClick={add}>Add line</Button>
       <div className="min-w-[230px] space-y-1 rounded-md border divider bg-slate-50/70 p-2.5 text-xs dark:bg-ink-950/30">
         <div className="flex justify-between"><span className="muted">Subtotal</span><span className="font-semibold tabular-nums">{currency} {m(subtotal)}</span></div>
-        {tax > 0&&<div className="flex justify-between"><span className="muted">VAT ({Number(vatPct) || 0}%)</span><span className="tabular-nums">{m(tax)}</span></div>}
+        {showTax && tax > 0&&<div className="flex justify-between"><span className="muted">VAT ({Number(vatPct) || 0}%)</span><span className="tabular-nums">{m(tax)}</span></div>}
         {markup > 0&&<div className="flex justify-between"><span className="muted">Markup ({Number(markupPct) || 0}%)</span><span className="tabular-nums">{m(markup)}</span></div>}
         <div className="flex justify-between border-t divider pt-1 text-sm"><span className="font-semibold">Total</span><span className="font-bold tabular-nums">{currency} {m(total)}</span></div>
       </div>

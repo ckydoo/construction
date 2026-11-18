@@ -275,8 +275,8 @@ export const RESOURCES: ResourceDef[] = [
     [T('name','Budget line',{required:true}),PRJ(true),T('costCode','Cost code'),S('category','Cost category',['Labour','Materials','Plant','Subcontract','Preliminaries','Overhead','Contingency']),C('originalBudget','Original budget'),C('approvedVariations','Approved variations'),C('committed','Committed'),C('actualToDate','Actual to date'),C('forecastToComplete','Forecast to complete'),P('variancePct','Variance (%)'),IT('items','Itemised lines'),STS(['DRAFT','APPROVED','REVISED','CLOSED'],'APPROVED')],
     ['number','name','projectId','costCode','originalBudget','actualToDate','variancePct','status'],{projectScoped:true,statusOptions:['DRAFT','APPROVED','REVISED','CLOSED'],amountKey:'originalBudget'}),
 
-  d('arInvoices','Client invoices','Tax invoice','finance','Money & invoices','FileText','INV','name',
-    'Accounts receivable invoices, VAT and ageing.',
+  d('arInvoices','Client invoices','Invoice','finance','Money & invoices','FileText','INV','name',
+    'Accounts receivable invoices and ageing.',
     [T('name','Invoice description',{required:true}),PRJ(true),R('clientId','Client','clients'),D('invoiceDate','Invoice date'),D('dueDate','Due date'),C('amount','Net amount'),N('vatPct','VAT (%)',{defaultValue:0}),C('vatAmount','VAT'),C('total','Total incl. VAT'),C('amountPaid','Paid to date',{readOnly:true,hint:'Recorded from reconciled payments when available'}),S('currency','Currency',CURRENCIES,{defaultValue:'USD'}),T('taxInvoiceNo','Tax invoice no.'),IT('items','Itemised lines'),STS(INVOICE_STATUSES,'DRAFT'),...CONV()],
     ['number','name','clientId','projectId','invoiceDate','dueDate','total','status'],{projectScoped:true,statusOptions:INVOICE_STATUSES,amountKey:'total',dateKey:'invoiceDate'}),
 

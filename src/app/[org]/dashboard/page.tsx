@@ -45,7 +45,7 @@ export default function DashboardPage(){
   const k=data?.kpis; const series=(data?.revenueSeries||[]).slice(-Number(period));
   const totalRecords=Object.entries(data?.counts||{}).filter(([k])=>on(k)).reduce((a,[,b])=>a+Number(b||0),0);
   const base=data?.currency||'USD';
-  const glance=[['Staff','employees'],['Jobs','projects'],['Clients','clients'],['Plant','equipment'],['Tax invoices','arInvoices'],['Time sheets','timesheets'],['Site queries','rfis'],['Incidents','incidents']].filter(([,key])=>on(key));
+  const glance=[['Staff','employees'],['Jobs','projects'],['Clients','clients'],['Plant','equipment'],['Invoices','arInvoices'],['Time sheets','timesheets'],['Site queries','rfis'],['Incidents','incidents']].filter(([,key])=>on(key));
   const attention=(data?.attention||[]).filter((a:any)=>hrefVisible(a.href,config));
   const audit=(data?.audit||[]).filter((a:any)=>auditResourceVisible(a.resource,config));
   const projects=(data?.projects||[]).filter(()=>on('projects'));
@@ -96,7 +96,7 @@ export default function DashboardPage(){
         <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{w.clientName}</p><p className="text-[10px] muted">Ready to put on jobs</p></div>
         <span className="text-[13px] font-semibold tabular-nums">{formatMoney(w.balance,w.currency)}</span></Link>)}</div></Card>}
     <div className="grid gap-4 lg:grid-cols-3">
-      {mod('finance')&&<Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed" subtitle="Last 6 months · issued tax invoices (excludes drafts)" action={<Badge tone="green">{formatMoney(k?.billed,base,true)} total</Badge>}/>
+      {mod('finance')&&<Card className="lg:col-span-2 overflow-hidden"><CardHead title="Money billed" subtitle="Last 6 months · issued invoices (excludes drafts)" action={<Badge tone="green">{formatMoney(k?.billed,base,true)} total</Badge>}/>
         <div className="p-4 text-ink-500 dark:text-slate-400">{isLoading?<Skeleton className="h-[180px]"/>:series.length?<BarChart data={series} height={180} currency={base} personal/>:<EmptyState compact icon="BarChart3" title="No invoices yet"/>}</div></Card>}
       {on('budgets')&&<Card className="overflow-hidden"><CardHead title="Where the money went" subtitle="From your job budgets"/>
         <div className="p-4">{isLoading?<div className="space-y-3">{Array.from({length:5}).map((_,i)=><Skeleton key={i} className="h-5"/>)}</div>:data?.costBreakdown?.length?<DonutChart data={data.costBreakdown} size={148} currency={base} personal/>:<EmptyState compact icon="PieChart" title="No budget lines"/>}</div></Card>}

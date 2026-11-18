@@ -74,10 +74,10 @@ function JobFlow() {
     { n: 2, title: 'Price the work', lines: ['Measure & cost it', 'Add your markup', 'Send a quote / tender'] },
     { n: 3, title: 'Agree & plan', lines: ['Sign the contract', 'Set a job budget', 'List the tasks'] },
     { n: 4, title: 'Do the work', lines: ['Daily site diary', 'Order materials', 'Time sheets & safety'] },
-    { n: 5, title: 'Bill for it', lines: ['Measure work done', 'Payment certificate', 'Tax invoice + 15% VAT'] },
+    { n: 5, title: 'Bill for it', lines: ['Measure work done', 'Payment certificate', 'Invoice'] },
     { n: 6, title: 'Get paid & close', lines: ['Record the receipt', 'Snag list & handover', 'See what you made'] },
   ];
-  return <SvgFrame viewBox="0 0 1000 300" label="Business flow: a client calls, you price the work, agree and plan, do the work on site, bill for it with a payment certificate and tax invoice, then get paid and hand over. Each step is one record, and what you learn feeds the next quote.">
+  return <SvgFrame viewBox="0 0 1000 300" label="Business flow: a client calls, you price the work, agree and plan, do the work on site, bill for it with a payment certificate and invoice, then get paid and hand over. Each step is one record, and what you learn feeds the next quote.">
     <rect x={0} y={0} width={1000} height={300} rx={8} className="fill-slate-50 dark:fill-ink-950" />
     <text x={18} y={26} fontSize={12} fontWeight={600} className={C.text}>One job, start to finish</text>
     <text x={18} y={39} fontSize={9.5} className={C.muted}>The same record follows the work — nothing gets typed twice.</text>
@@ -219,12 +219,12 @@ const EVERYDAY: { title: string; icon: string; blurb: string; steps: Step[] }[] 
   },
   {
     title: 'Money in & out', icon: 'Wallet',
-    blurb: 'Client money in advance, certificates, tax invoices and receipts.',
+    blurb: 'Client money in advance, certificates, invoices and receipts.',
     steps: [
       { label: 'Client pays in', sub: 'RTGS / mobile money' },
       { label: 'Put on the job', sub: 'Client money in hand' },
       { label: 'Certify work', sub: 'Payment certificate' },
-      { label: 'Tax invoice', sub: '15% VAT included' },
+      { label: 'Invoice', sub: 'Amount due' },
       { label: 'Record receipt', sub: 'USD or ZWG' },
     ],
   },
@@ -248,7 +248,7 @@ const MODULE_MAP = [
   { group: 'Materials & suppliers', icon: 'Truck', holds: 'Suppliers, orders, deliveries, stock and payment checks', items: [{ label: 'Suppliers', href: 'm/vendors' }, { label: 'Orders to suppliers', href: 'm/purchaseOrders' }, { label: 'Delivery notes', href: 'm/goodsReceipts' }, { label: 'Three-way match', href: 'three-way-match' }, { label: 'Stock & materials', href: 'm/inventory' }] },
   { group: 'Staff & wages', icon: 'UsersRound', holds: 'Staff, time sheets, payroll and trade certificates', items: [{ label: 'Staff & workers', href: 'm/employees' }, { label: 'Time sheets', href: 'm/timesheets' }, { label: 'Payroll & payslips', href: 'm/payRuns' }, { label: 'Trade certificates', href: 'm/certifications' }] },
   { group: 'Safety & quality', icon: 'ShieldCheck', holds: 'Incidents, site checks and rework', items: [{ label: 'Incidents & near misses', href: 'm/incidents' }, { label: 'Site checks', href: 'm/inspections' }, { label: 'Faults & rework', href: 'm/ncrs' }] },
-  { group: 'Money & invoices', icon: 'CreditCard', holds: 'Client money, tax invoices, certificates and budgets', items: [{ label: 'Client wallets', href: 'wallets' }, { label: 'Client invoices', href: 'm/arInvoices' }, { label: 'Payment certificates', href: 'm/paymentApps' }, { label: 'Job budgets & costs', href: 'm/budgets' }] },
+  { group: 'Money & invoices', icon: 'CreditCard', holds: 'Client money, invoices, certificates and budgets', items: [{ label: 'Client wallets', href: 'wallets' }, { label: 'Client invoices', href: 'm/arInvoices' }, { label: 'Payment certificates', href: 'm/paymentApps' }, { label: 'Job budgets & costs', href: 'm/budgets' }] },
   { group: 'Reports & extras', icon: 'BarChart3', holds: 'Ready-made lists, downloads and job margin', items: [{ label: 'Reports', href: 'reports' }, { label: 'Job profitability', href: 'profitability' }] },
   { group: 'Specialist modules', icon: 'Layers', holds: 'Only for property developers, plant hire and industrial handover', items: [{ label: 'Stands & unit sales', href: 'm/units' }, { label: 'Leases & rentals', href: 'm/rentalContracts' }, { label: 'Handover packs', href: 'm/commissioning' }] },
   { group: 'Settings', icon: 'Settings', holds: 'Company details, sections and people', items: [{ label: 'Settings', href: 'settings' }] },
@@ -267,7 +267,7 @@ const GLOSSARY: [string, string][] = [
   ['Plant', 'Equipment / fleet — machines, tools and vehicles'],
   ['Time sheet', 'Timesheet — hours worked on a job'],
   ['Wages', 'Payroll — payday, with PAYE and NSSA deducted'],
-  ['Tax invoice', 'Invoice with 15% VAT and a tax invoice number'],
+  ['Invoice', 'A bill sent to the client for payment'],
   ['Payment certificate', 'The QS certificate saying how much work is due'],
   ['Stand', 'A plot of land; stands / units is what a developer sells'],
   ['Drawing approvals', 'Shop drawings or material samples sent to someone for a decision'],
@@ -295,8 +295,8 @@ const CONVERSION_STEPS: [string, string][] = [
   ['Tender', 'Award as job + contract'],
   ['Job', 'Create prime contract  ·  Create payment certificate'],
   ['Contract', 'Create payment certificate'],
-  ['Payment certificate', 'Convert to tax invoice'],
-  ['Tax invoice', 'Record receipt in full'],
+  ['Payment certificate', 'Convert to invoice'],
+  ['Invoice', 'Record receipt in full'],
 ];
 
 /* ── Every module, generated from the live catalogue so it never goes stale ─ */
@@ -419,7 +419,7 @@ export default function DocumentationPage() {
           {[
             ['You always know the price', 'The quote, the agreed contract and every extra stay together.'],
             ['You always know the cost', 'Materials, plant, wages and subcontractors are written against the job.'],
-            ['You always know what is owed', 'Certificates, tax invoices, receipts and retention sit in one chain.'],
+            ['You always know what is owed', 'Certificates, invoices, receipts and retention sit in one chain.'],
           ].map(([t, d]) => <div key={t} className="rounded-md border border-slate-200 p-3 dark:border-ink-700">
             <p className="card-title">{t}</p><p className="mt-1 caption">{d}</p>
           </div>)}
@@ -434,7 +434,7 @@ export default function DocumentationPage() {
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {[
             ['Where the button is', 'In a record drawer footer, in the Actions column of any list, and on the project 360° record tab.'],
-            ['What it copies', 'Client, job, itemised lines, the quoted total, the certified net amount, VAT, dates and the contract form.'],
+            ['What it copies', 'Client, job, itemised lines, the quoted total, the certified net amount, dates and the contract form.'],
             ['What it never does', 'It never deletes records, never skips your role permissions or module switches, and never overwrites the source except the status shown in the preview.'],
           ].map(([t, d]) => <div key={t} className="rounded-md border divider p-3"><p className="text-[12px] font-semibold">{t}</p><p className="caption mt-1">{d}</p></div>)}
         </div>
@@ -525,7 +525,7 @@ export default function DocumentationPage() {
           { icon: 'Handshake', t: '1. Clients', d: 'Who you are working for and how to reach them.' },
           { icon: 'FileText', t: '2. Quotes', d: 'Price the work and send a quote or tender.' },
           { icon: 'HardHat', t: '3. Jobs', d: 'What is on site, what has been done, what is left.' },
-          { icon: 'Receipt', t: '4. Tax invoices', d: 'Bill the client, add 15% VAT, record the receipt.' },
+          { icon: 'Receipt', t: '4. Invoices', d: 'Bill the client, add record the receipt.' },
         ].map(x => <Card key={x.t} className="p-3.5">
           <Icon name={x.icon} size={17} className="text-brand-600 dark:text-brand-300" />
           <p className="mt-2 card-title">{x.t}</p><p className="mt-1 caption">{x.d}</p>
@@ -535,8 +535,8 @@ export default function DocumentationPage() {
         <div className="grid gap-3 sm:grid-cols-3">
           {[
             ['Add more when you grow', 'Need materials, wages, safety or plant? Switch that section on in Settings. Nothing already saved is lost.'],
-            ['Set up for Zimbabwe first', 'USD and ZWG, 15% VAT and tax invoices, PAYE / NSSA, RTGS and mobile money, (Pvt) Ltd and CR14 numbers.'],
-            ['Other African countries', 'Country, currency and tax wording are settings, so the same system can be rolled out beyond Zimbabwe later.'],
+            ['Set up for Zimbabwe first', 'USD and ZWG, invoices, PAYE / NSSA, RTGS and mobile money, (Pvt) Ltd and CR14 numbers.'],
+            ['Other African countries', 'Country, currency and document wording are settings, so the same system can be rolled out beyond Zimbabwe later.'],
           ].map(([t, d]) => <div key={t} className="rounded-md border border-slate-200 p-3 dark:border-ink-700">
             <p className="card-title">{t}</p><p className="mt-1 caption">{d}</p>
           </div>)}
@@ -550,7 +550,7 @@ export default function DocumentationPage() {
         {[
           { icon: 'User', t: 'Owner / MD', d: 'Sees everything: jobs, money, people and settings. Can invite others.' },
           { icon: 'HardHat', t: 'Site supervisor / foreman', d: 'Records site diaries, hours, questions from site and safety checks.' },
-          { icon: 'Wallet', t: 'Accounts person', d: 'Handles tax invoices, supplier bills, wages and receipts.' },
+          { icon: 'Wallet', t: 'Accounts person', d: 'Handles invoices, supplier bills, wages and receipts.' },
           { icon: 'Handshake', t: 'Client', d: 'If you invite them, they see only their own jobs and their own money.' },
         ].map(x => <Card key={x.t} className="p-3.5">
           <Icon name={x.icon} size={17} className="text-brand-600 dark:text-brand-300" />

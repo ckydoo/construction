@@ -150,7 +150,7 @@ export async function GET(_req: Request, { params }: Ctx) {
         icon: r.icon,
         creates: [RESOURCE_MAP[r.to]?.singular || r.to,
           ...(r.also || []).map(x => RESOURCE_MAP[x.resource]?.singular || x.resource)],
-        preview: buildPreview(r.to, r.build(sourceRow, ctx)),
+        preview: buildPreview(r.to, r.build(sourceRow, ctx), a.config.tax),
         also: (r.also || []).map(x => x.label),
         sourcePatch: r.sourcePatch ? describePatch(resource, r.sourcePatch(sourceRow)) : null,
         existing: existing ? {

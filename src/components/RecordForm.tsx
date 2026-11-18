@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiGet, orgApi } from '@/lib/client';
 import { validateFields } from '@/lib/field-validation';
 import { recordInvariantErrors } from '@/lib/record-invariants';
-import { taxDefault } from '@/lib/tax-settings';
+import { taxDefault, taxEnabled, taxVisibleFields } from '@/lib/tax-settings';
 import { allowedStatusOptions } from '@/lib/workflow';
 
 export type RefOptions = Record<string,{value:string;label:string}[]>;
@@ -37,7 +37,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
   const config:ConfigLike|undefined=meta?.config;
   // Until workspace settings arrive, keep every non-hidden field visible. A
   // blank fallback config would hide required ref fields such as Job / project.
-  const fields=useMemo(()=>config?visibleFields(def,config):def.fields.filter(f=>!f.hidden),[def,config]);
+  const fields=useMemo(()=>config?visibleFields(def,config):taxVisibleFields(def.fields, undefined).filter(f=>!f.hidden),[def,config]);
   const formSession=useRef({open:false,waitingForTax:false,taxEdited:false});
   useEffect(()=>{
     if(!open){ formSession.current.open=false; return; }
@@ -90,7 +90,7 @@ export default function RecordForm({def,open,onClose,onSubmit,initial,refs,defau
       case 'boolean': return <div className="flex h-9 items-center"><Toggle checked={!!v} onChange={x=>set(f.key,x)} label={v?'Yes':'No'}/></div>;
       case 'tags': return <input className={common} value={Array.isArray(v)?v.join(', '):v??''} onChange={e=>set(f.key,e.target.value)} placeholder="Comma separated tags"/>;
       case 'items': return <LineItemsEditor value={v} onChange={lines=>set(f.key,lines)}
-        currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
+        showTax={taxEnabled(config?.tax)} currency={String(values.currency||'USD')} vatPct={Number(values.vatPct)||0} markupPct={Number(values.markup)||0}/>;
       case 'date': return <input className={common} type="date" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'datetime': return <input className={common} type="datetime-local" value={v??''} onChange={e=>set(f.key,e.target.value)}/>;
       case 'number': case 'currency': case 'percent': return <div className="relative"><input className={`${common} ${f.type!=='number'?'pl-8':''}`} type="number" step={f.integer?1:'any'} min={f.min} max={f.max} value={v??''} onChange={e=>set(f.key,e.target.value===''?'':Number(e.target.value))} placeholder={f.placeholder||'0'}/>{f.type==='currency'&&<span className="absolute left-3 top-2 text-xs muted">$</span>}{f.type==='percent'&&<span className="absolute right-3 top-2 text-xs muted">%</span>}</div>;
