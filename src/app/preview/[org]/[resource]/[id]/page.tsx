@@ -265,7 +265,7 @@ export default async function DocumentPreviewPage({ params }: Ctx) {
       </div>}
 
       <table className="fp-items">
-        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>UoM</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+        <thead><tr><th>#</th><th>Description</th><th>Qty</th><th>Unit</th><th>Unit price</th><th>Subtotal</th></tr></thead>
         <tbody>
           {lines.map((l, i) => <tr key={`${i}-${l.description}`}>
             <td>{i + 1}</td>

@@ -1,7 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, STARTER_MODULE_IDS, SOLO_MODULE_IDS } from '@/lib/catalog';
+import { COMPANY_TYPES, COMPANY_SIZES, QUALIFIERS, MODULES, resolveWorkspace, WORKSPACE_SETUPS, type WorkspaceSetup } from '@/lib/catalog';
 import { BRAND } from '@/lib/brand';
 import { apiGet, apiSend } from '@/lib/client';
 import { useQuery } from '@tanstack/react-query';
@@ -52,6 +52,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [headcount,setHeadcount]=useState('');
   const [revenueBand,setRevenueBand]=useState('');
   const [qualifiers,setQualifiers]=useState<string[]>([]);
+  const [setup,setSetup]=useState<WorkspaceSetup>('essentials');
   const [addons,setAddons]=useState<string[]>([]);
   const {demo}=usePlatformPublic();
   const [loadDemo,setLoadDemo]=useState(false);
@@ -59,7 +60,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   const [error,setError]=useState('');
 
   const {data: provisioning, isLoading: planLoading, isError: planError} = useQuery({queryKey:['onboarding-plan'],queryFn:()=>apiGet('/api/onboarding')});
-  const requested=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,minimal:true}),[companyType,size,headcount,revenueBand,qualifiers,addons]);
+  const requested=useMemo(()=>resolveWorkspace({companyType,size,headcount:Number(headcount),revenueBand,qualifiers,addons,setup,minimal:true}),[companyType,size,headcount,revenueBand,qualifiers,addons,setup]);
   const planId = provisioning?.plan?.id;
   const config=useMemo(()=> provisioning?.enforcePlan && isPlanId(planId) ? {...requested, modules:entitledModules(planId,requested.modules), resources:entitledResources(planId,requested.resources), limits:entitledLimits(planId,requested.limits), plan:provisioning.plan.name} : {...requested, plan:provisioning?.plan?.name || 'Loading…'}, [requested, provisioning, planId]);
   const enabled=useMemo(()=>new Set(config.modules),[config]);
@@ -68,10 +69,9 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
     for(const m of MODULES){ (g[m.group] ||= []).push(m); }
     return g;
   },[]);
-  const starter=new Set(STARTER_MODULE_IDS);
-  const solo=new Set(SOLO_MODULE_IDS);
-  const basicBadge=size==='MICRO'?solo:starter;
-  const optional=MODULES.filter(m=>!starter.has(m.id)&&!enabled.has(m.id));
+  const baseline=resolveWorkspace({companyType,size,setup,minimal:true});
+  const basicBadge=new Set(baseline.modules);
+  const optional=MODULES.filter(m=>!basicBadge.has(m.id));
 
   function toggleQ(id:string){ setQualifiers(q=>q.includes(id)?q.filter(x=>x!==id):[...q,id]); }
   function toggleAddon(id:string){ setAddons(a=>a.includes(id)?a.filter(x=>x!==id):[...a,id]); }
@@ -80,7 +80,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
   async function finish(){
     setLoading(true); setError('');
     try{
-      const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:headcount ? Number(headcount) : null,revenueBand,qualifiers,addons,loadDemo});
+      const r=await apiSend('/api/onboarding','POST',{name,legalName,regNumber,country,baseCurrency,companyType,size,headcount:headcount ? Number(headcount) : null,revenueBand,qualifiers,addons,setup,loadDemo});
       router.push(r.next || `/${r.slug}/billing`); router.refresh();
     }catch(e:any){ setError(userMessage(e, 'We couldn’t create your workspace. Please try again.')); setLoading(false); }
   }
@@ -158,16 +158,20 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
           </div>}
 
           {step===5&&<div className="mt-6 space-y-5">
+            <fieldset><legend className="text-sm font-semibold">What do you need to manage?</legend>
+              <p className="caption mt-1 mb-3">Choose a starting setup for your work, whatever your company size. This does not change your subscription.</p>
+              <div className="grid gap-3 sm:grid-cols-3">{WORKSPACE_SETUPS.map(s=><label key={s.id} className={`cursor-pointer rounded-lg border p-3 ${setup===s.id?'border-brand-500 bg-brand-50 dark:bg-brand-500/10':'divider'}`}>
+                <span className="flex items-center gap-2"><input type="radio" name="workspace-setup" value={s.id} checked={setup===s.id} onChange={()=>setSetup(s.id)}/><span className="text-sm font-semibold">{s.label}</span></span>
+                <span className="mt-2 block text-xs muted">{s.description}</span>
+              </label>)}</div>
+            </fieldset>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[['Sections',config.modules.length],['Lists',config.resources.length],['People',config.limits.users.toLocaleString()],['Plan',config.plan]].map(([l,v])=><div key={String(l)} className="rounded-md border divider bg-slate-50/60 p-3.5 dark:bg-ink-950/40"><p className="text-[11px] font-semibold uppercase tracking-wider muted">{l}</p><p className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">{v}</p></div>)}
             </div>
             <div className="rounded-md border divider bg-slate-50 p-4 dark:border-ink-700 dark:bg-ink-950/40">
               {provisioning?.enforcePlan && requested.modules.some(m=>!enabled.has(m)) && <p className="mb-2 text-xs font-semibold text-amber-700">Some selected sections are not included in your current plan. Your choices will be saved, but these sections need a suitable plan before they appear. Visit Billing after setup.</p>}
-              {size==='MICRO'
-                ? <><p className="text-xs font-semibold text-ink-900 dark:text-white">You start with just the job-to-cash basics — Clients, quotes, jobs, invoices and payments</p>
-                   <p className="mt-1 text-[11px] leading-relaxed muted">A few everyday sections only, so your first screen is never busy. Need enquiries, contracts, your team or wallets? Switch them on in one click in Settings, then add more as you grow.</p></>
-                : <><p className="text-xs font-semibold text-ink-900 dark:text-white">You start with {STARTER_MODULE_IDS.length} everyday sections — from first enquiry to getting paid</p>
-                   <p className="mt-1 text-[11px] leading-relaxed muted">Clients → enquiries → quotes &amp; tenders → jobs → contracts → document library → invoices &amp; payments, plus your team and reports. Everything else is optional, and you can switch it on later in Settings.</p></>}
+              <p className="text-xs font-semibold text-ink-900 dark:text-white">{WORKSPACE_SETUPS.find(s=>s.id===setup)?.label}: your starting point, not a limit</p>
+              <p className="mt-1 text-[11px] leading-relaxed muted">Your choices below determine the sections shown. Add or hide sections later in Settings without deleting records. Your subscription and each person's permissions still apply.</p>
             </div>
             <div>
               <div className="mb-3 flex items-center justify-between"><p className="text-sm font-semibold text-ink-900 dark:text-white">What is switched on</p><span className="text-xs muted">{config.modules.length} on</span></div>
@@ -178,7 +182,7 @@ export default function OnboardingWizard({initialName,userName}:{initialName:str
             </div>
             {optional.length>0&&<div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-ink-900 dark:text-white">Optional add-ons <span className="font-normal muted">({optional.length} available)</span></p>
-                <div className="flex gap-2"><button onClick={()=>setAddons(MODULES.map(m=>m.id))} className="text-[11px] font-medium text-brand-700 hover:underline dark:text-brand-300">Switch everything on</button><button onClick={()=>{setAddons([]);setQualifiers([]);}} className="text-[11px] font-medium muted hover:underline">Start small again</button></div></div>
+                <div className="flex gap-2"><button onClick={()=>setAddons(MODULES.map(m=>m.id))} className="text-[11px] font-medium text-brand-700 hover:underline dark:text-brand-300">Switch everything on</button><button onClick={()=>{setAddons([]);setQualifiers([]);setSetup('essentials');}} className="text-[11px] font-medium muted hover:underline">Start small again</button></div></div>
               <div className="max-h-48 overflow-y-auto rounded-md border divider p-3"><div className="flex flex-wrap gap-2">{optional.map(m=>{
               const on=addons.includes(m.id);
               return <button key={m.id} onClick={()=>toggleAddon(m.id)} className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition ${on?'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-500/10 dark:text-brand-300':'divider muted'}`}>{on?<Lucide.Check size={12}/>:<Lucide.Plus size={12}/>}{m.label}</button>;})}</div></div></div>}

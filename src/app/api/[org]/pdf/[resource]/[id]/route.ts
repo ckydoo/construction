@@ -221,7 +221,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     drawAt('#', M + 4, y - 13, 8, bold, WHITE);
     drawAt('Description', colX[1] + 4, y - 13, 8, bold, WHITE);
     drawRight('Qty', colX[2] + cols[2] - 4, y - 13, 8, bold, WHITE);
-    drawAt('UoM', colX[3] + 4, y - 13, 8, bold, WHITE);
+    drawAt('Unit', colX[3] + 4, y - 13, 8, bold, WHITE);
     drawRight('Unit price', colX[4] + cols[4] - 4, y - 13, 8, bold, WHITE);
     drawRight('Subtotal', colX[5] + cols[5] - 4, y - 13, 8, bold, WHITE);
     y -= 22;

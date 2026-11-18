@@ -29,7 +29,7 @@ export default function ReceiptAllocationForm({org,open,onClose,initialInvoice}:
  async function submit(){
   if(inFlight.current)return;
   if(!r.name.trim()||!r.clientId||!r.paymentDate||!r.amount||!r.currency||!r.method||lines.some(l=>!l.invoiceId||!l.amount)){
-   toast.push({tone:'error',title:'Complete the required receipt and allocation fields'});return;
+   toast.push({tone:'error',title:'Complete the payment details and any selected invoice amounts'});return;
   }
   inFlight.current=true;setBusy(true);
   try{
@@ -39,23 +39,23 @@ export default function ReceiptAllocationForm({org,open,onClose,initialInvoice}:
    await qc.invalidateQueries({queryKey:['records',org]});
    await qc.invalidateQueries({queryKey:['profitability',org]});
    clearReceiptRequest(key.storageKey);
-   toast.push({tone:'success',title:'Receipt recorded',description:result.result?.number||'Receipt and allocations saved.'});
+   toast.push({tone:'success',title:'Receipt recorded',description:result.result?.number||'Payment and invoice amounts saved.'});
    requestId.current=null;setR({name:'',clientId:'',projectId:'',paymentDate:'',amount:'',currency:'',method:'',reference:''});setLines([]);onClose();
   }catch(e:any){const details=e?.details&&typeof e.details==='object'?Object.values(e.details).filter((v:any):v is string=>typeof v==='string').join(' '):'';toast.push({tone:'error',title:'Could not record receipt',description:details||userMessage(e,'No confirmation received. Retry without changing the fields to safely use the same request key.')});}
   finally{inFlight.current=false;setBusy(false);}
  }
- return <Drawer open={open} onClose={close} title="Record and allocate receipt" subtitle="Records a receipt; it does not transfer money. Unallocated amounts remain customer credit." footer={<div className="flex justify-end gap-2"><Button onClick={close} disabled={busy}>Cancel</Button><Button variant="primary" loading={busy} onClick={submit}>Record receipt</Button></div>}>
+ return <Drawer open={open} onClose={close} title="Record payment" subtitle="Record money you have already received; this does not move money. Any amount not matched to an invoice stays as credit for the client." footer={<div className="flex justify-end gap-2"><Button onClick={close} disabled={busy}>Cancel</Button><Button variant="primary" loading={busy} onClick={submit}>Record payment</Button></div>}>
   <div className="grid gap-4 p-4 sm:grid-cols-2">
    <Field label="Receipt description" required><input className="input" value={r.name} onChange={e=>editReceipt('name',e.target.value)}/></Field>
    <Field label="Client" required><SearchSelect org={org} resource="clients" value={r.clientId} onChange={v=>editReceipt('clientId',v)} label="Client"/></Field>
-   <Field label="Job / project (optional)"><SearchSelect org={org} resource="projects" value={r.projectId} onChange={v=>editReceipt('projectId',v)} label="Job / project"/></Field>
+   <Field label="Job (optional)"><SearchSelect org={org} resource="projects" value={r.projectId} onChange={v=>editReceipt('projectId',v)} label="Job"/></Field>
    <Field label="Receipt date" required><input type="date" className="input" value={r.paymentDate} onChange={e=>editReceipt('paymentDate',e.target.value)}/></Field>
    <Field label="Amount received" required><input type="text" inputMode="decimal" className="input" value={r.amount} onChange={e=>editReceipt('amount',e.target.value)} placeholder="0.00"/></Field>
    <Field label="Currency" required><select className="select" value={r.currency} onChange={e=>editReceipt('currency',e.target.value)}><option value="">Select currency</option>{CURRENCY_CODES.map(c=><option key={c} value={c}>{c}</option>)}</select></Field>
    <Field label="Method" required><select className="select" value={r.method} onChange={e=>editReceipt('method',e.target.value)}><option value="">Select method</option>{['Bank transfer','RTGS','Mobile money','Cash','Cheque','Card','Offset'].map(m=><option key={m}>{m}</option>)}</select></Field>
    <Field label="Reference"><input className="input" value={r.reference} onChange={e=>editReceipt('reference',e.target.value)}/></Field>
-   <section className="space-y-3 sm:col-span-2"><h3 className="text-sm font-semibold">Invoice allocations</h3><p className="caption">Add invoice amounts, or leave empty to keep the receipt unallocated.</p>
-    {lines.map((l,i)=><div className="grid gap-2 rounded border divider p-3 sm:grid-cols-2" key={l.key}><Field label={`Invoice ${i+1}`} required><SearchSelect org={org} resource="arInvoices" value={l.invoiceId} onChange={v=>editLine(l.key,'invoiceId',v)} label={`Invoice ${i+1}`} query={`issued=1${r.clientId?`&clientId=${encodeURIComponent(r.clientId)}`:''}${r.currency?`&currency=${encodeURIComponent(r.currency)}`:''}`}/></Field><Field label="Allocation amount" required><input className="input" type="text" inputMode="decimal" value={l.amount} onChange={e=>editLine(l.key,'amount',e.target.value)}/></Field><button type="button" className="text-left text-xs text-red-600" onClick={()=>{requestId.current=null;setLines(v=>v.filter(x=>x.key!==l.key));}}>Remove allocation</button></div>)}
+   <section className="space-y-3 sm:col-span-2"><h3 className="text-sm font-semibold">Which invoices does this payment cover?</h3><p className="caption">Choose an invoice and the amount paid towards it. Leave this empty to save the money as client credit.</p>
+    {lines.map((l,i)=><div className="grid gap-2 rounded border divider p-3 sm:grid-cols-2" key={l.key}><Field label={`Invoice ${i+1}`} required><SearchSelect org={org} resource="arInvoices" value={l.invoiceId} onChange={v=>editLine(l.key,'invoiceId',v)} label={`Invoice ${i+1}`} query={`issued=1${r.clientId?`&clientId=${encodeURIComponent(r.clientId)}`:''}${r.currency?`&currency=${encodeURIComponent(r.currency)}`:''}`}/></Field><Field label="Amount for this invoice" required><input className="input" type="text" inputMode="decimal" value={l.amount} onChange={e=>editLine(l.key,'amount',e.target.value)}/></Field><button type="button" className="text-left text-xs text-red-600" onClick={()=>{requestId.current=null;setLines(v=>v.filter(x=>x.key!==l.key));}}>Remove invoice</button></div>)}
     <Button size="sm" icon="Plus" onClick={()=>{requestId.current=null;setLines(v=>[...v,{key:crypto.randomUUID(),invoiceId:'',amount:''}]);}}>Add invoice</Button>
    </section>
   </div>

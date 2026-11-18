@@ -84,7 +84,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
     if(f.type==='boolean') return v?<Badge tone="green">Yes</Badge>:<Badge tone="slate">No</Badge>;
     if(f.type==='tags') return <div className="flex flex-wrap gap-1">{(Array.isArray(v)?v:[v]).map((t:string)=><Badge key={t} tone="blue">{t}</Badge>)}</div>;
     if(f.type==='ref'){ const o=(refs[f.ref||'']||[]).find(x=>x.value===v); return <span className="text-brand-700 dark:text-brand-300">{o?.label||String(v).slice(-8)}</span>; }
-    if(f.type==='items'){ const lines=normaliseLines(v); return lines.length?<div className="overflow-x-auto rounded border divider"><table className="w-full text-xs"><thead className="bg-slate-50 dark:bg-ink-800/60"><tr><th className="px-2 py-1.5 text-left">Description</th><th className="px-2 py-1.5 text-right">Qty</th><th className="px-2 py-1.5 text-left">UoM</th><th className="px-2 py-1.5 text-right">Rate</th><th className="px-2 py-1.5 text-right">Subtotal</th></tr></thead><tbody>{lines.map((l,i)=><tr key={i} className="border-t divider"><td className="px-2 py-1.5">{l.description}{l.detail&&<span className="block muted">{l.detail}</span>}</td><td className="px-2 py-1.5 text-right tabular-nums">{num(l.qty, 8)}</td><td className="px-2 py-1.5 text-left muted">{l.unit||"—"}</td><td className="px-2 py-1.5 text-right tabular-nums">{formatMoney(l.unitPrice,row?.currency)}</td><td className="px-2 py-1.5 text-right font-semibold tabular-nums">{formatMoney(l.total,row?.currency)}</td></tr>)}</tbody></table></div>:<span className="muted">—</span>; }
+    if(f.type==='items'){ const lines=normaliseLines(v); return lines.length?<div className="overflow-x-auto rounded border divider"><table className="w-full text-xs"><thead className="bg-slate-50 dark:bg-ink-800/60"><tr><th className="px-2 py-1.5 text-left">Description</th><th className="px-2 py-1.5 text-right">Qty</th><th className="px-2 py-1.5 text-left">Unit</th><th className="px-2 py-1.5 text-right">Rate</th><th className="px-2 py-1.5 text-right">Subtotal</th></tr></thead><tbody>{lines.map((l,i)=><tr key={i} className="border-t divider"><td className="px-2 py-1.5">{l.description}{l.detail&&<span className="block muted">{l.detail}</span>}</td><td className="px-2 py-1.5 text-right tabular-nums">{num(l.qty, 8)}</td><td className="px-2 py-1.5 text-left muted">{l.unit||"—"}</td><td className="px-2 py-1.5 text-right tabular-nums">{formatMoney(l.unitPrice,row?.currency)}</td><td className="px-2 py-1.5 text-right font-semibold tabular-nums">{formatMoney(l.total,row?.currency)}</td></tr>)}</tbody></table></div>:<span className="muted">—</span>; }
     if(f.key==='status') return <StatusPill status={v}/>;
     return <span className="whitespace-pre-wrap break-words">{String(v)}</span>;
   }
@@ -116,7 +116,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   </section>;
   const body = <>
     <div className="border-b divider px-4 py-3"><div className="flex flex-wrap items-center gap-2"><StatusPill status={displayRow?.status}/><Badge tone="slate">{displayRow?.number}</Badge>{row?.projectId&&<span className="text-xs muted">Linked to a project</span>}
-      {row?.sourceResource&&row?.sourceId&&<Link href={row.sourceResource==='projects'?`/${org}/projects/${encodeURIComponent(row.sourceId)}`:`/${org}/m/${row.sourceResource}?open=${encodeURIComponent(row.sourceId)}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">Converted from {row.sourceLabel||row.sourceNumber||row.sourceResource} →</Link>}
+      {row?.sourceResource&&row?.sourceId&&<Link href={row.sourceResource==='projects'?`/${org}/projects/${encodeURIComponent(row.sourceId)}`:`/${org}/m/${row.sourceResource}?open=${encodeURIComponent(row.sourceId)}`} className="rounded-md border border-brand-200 bg-brand-50 px-2 py-1 text-[11px] font-medium text-brand-700 hover:underline dark:border-brand-400/30 dark:bg-brand-500/10 dark:text-brand-200">Created from {row.sourceLabel||row.sourceNumber||row.sourceResource} →</Link>}
     </div></div>
     <div id="record-fields" className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2">
       {fields.filter(f=>f.key!=='status').map(f=><div key={f.key} className={f.wide||f.type==='textarea'||f.type==='items'?'sm:col-span-2':''}>
@@ -124,7 +124,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
       </div>)}
     </div>
     {def.id==='payments' && String((data?.row||row)?.direction||'').toUpperCase()==='RECEIPT' && <ReceiptAllocations org={org} row={data?.row||row} canEdit={canEdit}/>}
-    {def.id==='arInvoices' && canEdit && ['ISSUED','OVERDUE','PARTIALLY_PAID'].includes(String((data?.row||row)?.status||'')) && <div className="border-t divider px-4 py-4"><Button icon="Banknote" onClick={()=>setReceiptOpen(true)}>Record and allocate receipt</Button></div>}
+    {def.id==='arInvoices' && canEdit && ['ISSUED','OVERDUE','PARTIALLY_PAID'].includes(String((data?.row||row)?.status||'')) && <div className="border-t divider px-4 py-4"><Button icon="Banknote" onClick={()=>setReceiptOpen(true)}>Record payment</Button></div>}
     {previewSection}
     <div className="border-t divider px-4 py-4">
       <div className="mb-3 flex items-center gap-2"><Icon name="Link2" size={16} className="text-slate-400"/><h3 className="text-sm font-semibold">Linked records</h3>
@@ -181,7 +181,7 @@ export default function RecordDetail({org,def,row,open,onClose,onEdit,onDelete,r
   </>;
   const title=row?.title||def.singular;
   const subtitle=`${row?.number||''} · ${def.singular}`;
-  const convertButton = canConvert&&<Button size="sm" variant="outline" icon="ArrowRightLeft" onClick={()=>setConvertOpen(true)}>Convert to…</Button>;
+  const convertButton = canConvert&&<Button size="sm" variant="outline" icon="ArrowRightLeft" onClick={()=>setConvertOpen(true)}>Next step…</Button>;
   const previewButton = canPreview&&<Button size="sm" variant="outline" icon="Eye" onClick={()=>document.getElementById('document-preview')?.scrollIntoView({behavior:'smooth',block:'start'})}>Preview</Button>;
   const downloadLink = <a href={pdfHref} download><Button size="sm" icon="FileDown">Download PDF</Button></a>;
   const footer = <div className="flex items-center justify-between gap-2"><p className="truncate text-[11px] muted">Created {date(row?.createdAt)}</p><div className="flex flex-wrap gap-2">{convertButton}{previewButton}{downloadLink}{canRemove&&onDelete&&<Button variant="ghost" size="sm" icon="Trash2" onClick={onDelete} className="text-red-600">Delete</Button>}{canEdit&&onEdit&&<Button variant="primary" size="sm" icon="Pencil" onClick={onEdit}>Edit record</Button>}</div></div>;

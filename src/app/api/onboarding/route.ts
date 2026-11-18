@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { resolveWorkspace, COMPANY_TYPES, COMPANY_SIZES } from '@/lib/catalog';
+import { resolveWorkspace, COMPANY_TYPES, COMPANY_SIZES, isWorkspaceSetup } from '@/lib/catalog';
 import { isPlanId, PLAN_MAP } from '@/lib/billing-plans';
 import { capabilityGuard } from '@/lib/guard';
 import { seedDemo } from '@/lib/seed-service';
@@ -31,7 +31,9 @@ export async function POST(req: Request) {
     if (!COMPANY_SIZES.some(s => s.id === size)) return NextResponse.json({ error: 'Choose your team size before continuing.' }, { status: 400 });
     if (String(b.name || '').trim().length < 2) return NextResponse.json({ error: 'Enter your company name.' }, { status: 400 });
     if (b.headcount !== '' && b.headcount != null && (!Number.isInteger(Number(b.headcount)) || Number(b.headcount) < 1)) return NextResponse.json({ error: 'Enter a valid number of people.' }, { status: 400 });
+    if (b.setup != null && !isWorkspaceSetup(b.setup)) return NextResponse.json({ error: 'Choose a valid starting setup.' }, { status: 400 });
     const config = resolveWorkspace({
+      setup: b.setup,
       companyType: type, size, headcount: Number(b.headcount) || undefined,
       revenueBand: b.revenueBand, qualifiers: b.qualifiers || [], addons: b.addons || [],
       minimal: true, // brand-new micro workspaces start with the job-to-cash loop only

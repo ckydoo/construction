@@ -48,10 +48,10 @@ export default function QuotePreview({
       </div>
       <div className="mt-4 ml-auto max-w-[260px] space-y-1.5 rounded-lg border divider bg-slate-50 p-3 text-xs dark:bg-ink-950/50">
         <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{formatMoney(totals.subtotal, draft.currency)}</span></div>
-        <div className="flex justify-between"><span className="muted">Markup ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount, draft.currency)}</span></div>
+        <div className="flex justify-between"><span className="muted">Added to cost ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount, draft.currency)}</span></div>
         <div className="flex justify-between border-t divider pt-1.5 text-sm"><span className="font-semibold">Quotation total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total, draft.currency)}</span></div>
       </div>
-      {draft.scope && <div className="mt-4 border-t divider pt-3"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Scope & terms</p><p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-ink-700 dark:text-slate-300">{draft.scope}</p></div>}
+      {draft.scope && <div className="mt-4 border-t divider pt-3"><p className="text-[10px] font-semibold uppercase tracking-wide muted">Work details & terms</p><p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-ink-700 dark:text-slate-300">{draft.scope}</p></div>}
     </div>
   </div>;
 }

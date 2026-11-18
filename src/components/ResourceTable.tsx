@@ -199,7 +199,7 @@ export default function ResourceTable({org,resource,embedded=false,fixedProjectI
         <a href={csvHref} download><Button icon="Download" size="sm">Export CSV</Button></a>
         {def.fields.some(f=>f.type==='items'&&!f.hidden)&&<a href={itemCsvHref} download><Button icon="Download" size="sm">Export line items CSV</Button></a>}
         <Button variant="ghost" size="icon" onClick={()=>refetch()} title="Refresh"><Icon name="RefreshCw" size={16} className={isFetching?'animate-spin':''}/></Button>
-        {canEdit&&resource==='payments'&&<Button size="sm" icon="Receipt" onClick={()=>setReceiptOpen(true)}>Record allocated receipt</Button>}
+        {canEdit&&resource==='payments'&&<Button size="sm" icon="Receipt" onClick={()=>setReceiptOpen(true)}>Record client payment</Button>}
         {canEdit&&<Button variant="primary" size="sm" icon="Plus" onClick={openNewRecord}>{newLabel}</Button>}
       </div>
     </div>}
