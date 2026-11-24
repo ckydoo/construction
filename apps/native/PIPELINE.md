@@ -17,8 +17,8 @@ This is a manually triggered internal APK build. It does not run on every push, 
 | `EXPO_OWNER` | Expo username or organisation slug |
 | `EXPO_PUBLIC_EAS_PROJECT_ID` | Existing project's UUID |
 | `EXPO_PUBLIC_API_URL` | HTTPS backend origin, e.g. `https://app.myla.co.zw` |
-| `EXPO_PUBLIC_SUPABASE_URL` | That backend's Supabase HTTPS project origin |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Public anon JWT or publishable key, never service-role/secret key |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase dashboard → Project Settings → API → Project URL (an HTTPS origin, not a key) |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The same project's public anon JWT or `sb_publishable_` key, never a service-role or `sb_secret_` key |
 
 The GitHub environment is the source of truth **for this workflow**. `prepare-ci.mjs` validates an explicit allowlist and writes only these public values into the runner's `build.preview.env` in `eas.json`. EAS then receives them for remote bundling too. This runner-only file change is not committed. There is no need to duplicate them in EAS environment variables for this pipeline; avoid conflicting values there. Local CLI builds still use the setup in README.md.
 
@@ -42,6 +42,7 @@ The GitHub artifact `android-preview-build-<run id>` contains build metadata, no
 ## Failures and boundaries
 
 - Missing variables, privileged Supabase keys or missing `EXPO_TOKEN` fail before cloud build submission.
+- If a key was placed in a public GitHub variable or appeared in logs, remove it from the variable and rotate it in Supabase; restrict access to or delete affected logs. Set the project URL and public key in their respective `expo-preview` variables before rerunning.
 - Authentication/project/signing errors require owner setup; this workflow does not create accounts or silently generate signing credentials.
 - If GitHub times out or a run is cancelled after submission, the remote EAS build may still run. Inspect EAS before retrying to avoid duplicate builds/charges. GitHub concurrency does not cancel a previously submitted cloud build.
 - A failed/incomplete EAS result never generates a success/install summary.
