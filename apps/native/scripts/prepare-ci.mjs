@@ -28,7 +28,14 @@ export function publicBuildEnv(source) {
   )
     throw new Error("Use the real Expo project UUID.");
   for (const name of ["EXPO_PUBLIC_API_URL", "EXPO_PUBLIC_SUPABASE_URL"]) {
-    const url = new URL(env[name]);
+    let url;
+    try {
+      url = new URL(env[name]);
+    } catch {
+      throw new Error(
+        `${name} must be an HTTPS origin without a path or credentials. Check the expo-preview GitHub environment variable.`,
+      );
+    }
     if (
       url.protocol !== "https:" ||
       url.username ||

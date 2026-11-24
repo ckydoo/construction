@@ -23,6 +23,16 @@ for (const url of [
   "https://example.com/?key=x",
 ])
   assert.throws(() => publicBuildEnv({ ...env, EXPO_PUBLIC_API_URL: url }));
+for (const name of ["EXPO_PUBLIC_API_URL", "EXPO_PUBLIC_SUPABASE_URL"]) {
+  const invalid = "sb_publishable_not-a-url";
+  assert.throws(
+    () => publicBuildEnv({ ...env, [name]: invalid }),
+    (error) =>
+      error.message.includes(name) &&
+      error.message.includes("expo-preview") &&
+      !error.message.includes(invalid),
+  );
+}
 const jwt = (role) =>
   `header.${Buffer.from(JSON.stringify({ role })).toString("base64url")}.signature`;
 assert.equal(
