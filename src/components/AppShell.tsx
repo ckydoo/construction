@@ -24,7 +24,6 @@ type Meta = {
 
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard', module:'dashboard' },
-  { id:'my-work', label:'My work', group:'Overview', icon:'Inbox', href:'/my-work', module:'dashboard', child:true },
   { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents', resource:'documents' },
   { id:'three-way-match', label:'Three-way match', group:'Materials & suppliers', icon:'ClipboardCheck', href:'/three-way-match', module:'procurement', alsoModule:'finance', resource:'purchaseOrders' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
@@ -32,7 +31,6 @@ const SPECIAL = [
   { id:'profitability', label:'Job profitability', group:'Reports & extras', icon:'Gauge', href:'/profitability', module:'reports', resource:'projects' },
   { id:'settings', label:'Settings', group:'Settings', icon:'Settings', href:'/settings', cap:'settings.view' },
   { id:'support', label:'Help & support', group:'Settings', icon:'HelpCircle', href:'/support' },
-  { id:'documentation', label:'Documentation', group:'Settings', icon:'BookOpen', href:'/documentation', module:'dashboard', child:true },
   { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
@@ -60,8 +58,6 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
   const display=useDisplayCurrency();
   const { setWorkspaceConfig }=display;
   const { data:meta, isLoading } = useQuery<Meta>({ queryKey:['meta',orgSlug], queryFn:()=>apiGet(orgApi(orgSlug,'meta')) });
-  const { data:workQueue }:any = useQuery({ queryKey:['work-items',orgSlug], queryFn:()=>apiGet(orgApi(orgSlug,'work-items')), enabled:!!meta, staleTime:30_000, refetchInterval:60_000 });
-  const workCount = Number(workQueue?.summary?.actionable || 0);
 
   useEffect(()=>{ const d=localStorage.getItem('buildops-theme')==='dark'; setDark(d); document.documentElement.classList.toggle('dark',d); },[]);
   useEffect(()=>{ if(meta?.org) setWorkspaceConfig(meta.org.currency, meta.org.baseCurrency||'USD'); },[meta,setWorkspaceConfig]);
@@ -130,10 +126,9 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
         <p className="mb-1 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">{g.group}</p>
         {g.items.map((it:any)=>{
           const href=`/${orgSlug}${it.href}`; const active=pathname===href||(it.id!=='dashboard'&&pathname.startsWith(href));
-          return <Link key={it.id} href={href} data-testid={it.id==='my-work'?'nav-my-work':it.id==='profitability'?'nav-profitability':it.id==='three-way-match'?'nav-three-way-match':it.id==='library'?'nav-library':undefined} aria-current={active?'page':undefined} className={`nav-item ${it.child?'ml-5 border border-slate-200 !text-xs dark:border-ink-700':''} ${active?'nav-active':''}`}>
+          return <Link key={it.id} href={href} data-testid={it.id==='profitability'?'nav-profitability':it.id==='three-way-match'?'nav-three-way-match':it.id==='library'?'nav-library':undefined} aria-current={active?'page':undefined} className={`nav-item ${active?'nav-active':''}`}>
             <Icon name={it.icon} size={15} className="shrink-0"/>
             <span className="min-w-0 flex-1 truncate">{it.label}</span>
-            {it.id==='my-work'&&workCount>0&&<span data-testid="nav-my-work-count" className="ml-auto rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">{workCount>99?'99+':workCount}</span>}
           </Link>;})}
       </div>)}
     </nav>
@@ -209,7 +204,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
       </main>
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 flex h-12 items-center justify-around border-t divider bg-white dark:bg-ink-900 lg:hidden">
-        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard',g:'Overview'},{h:'/my-work',i:'Inbox',l:'My work',m:'dashboard',g:'Overview'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects',g:'Jobs & sites'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets',g:'Staff & wages'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read',g:'Money & invoices'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view',g:'Settings'}].filter(x=>new Set(navGroupsFor(meta?.role||'ADMIN')).has((x as any).g)).filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
+        {[{h:'/dashboard',i:'LayoutDashboard',l:'Home',m:'dashboard',g:'Overview'},{h:'/m/projects',i:'HardHat',l:'Projects',r:'projects',g:'Jobs & sites'},{h:'/m/timesheets',i:'Clock',l:'Time',r:'timesheets',g:'Staff & wages'},{h:'/wallets',i:'CreditCard',l:'Wallets',m:'wallets',c:'wallet.read',g:'Money & invoices'},{h:'/settings',i:'Settings',l:'Settings',c:'settings.view',g:'Settings'}].filter(x=>new Set(navGroupsFor(meta?.role||'ADMIN')).has((x as any).g)).filter(x=>!(x as any).m||moduleEnabled(meta?.config||{modules:[],resources:[]},(x as any).m)).filter(x=>!(x as any).r||(resourceFullyEnabled(meta?.config||{modules:[],resources:[]},(x as any).r)&&canRead(meta?.role||'ADMIN',(x as any).r))).filter(x=>!(x as any).c||canCapability(meta?.role||'ADMIN',(x as any).c)).map(x=><Link key={x.h} href={`/${orgSlug}${x.h}`} className={`flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] ${pathname===`/${orgSlug}${x.h}`?'text-brand-600 dark:text-brand-300':'muted'}`}><Icon name={x.i} size={18}/>{x.l}</Link>)}
       </nav>
       <div className="h-12 lg:hidden"/>
     </div>
