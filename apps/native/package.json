@@ -10,7 +10,8 @@
     "export:android": "expo export --platform android",
     "build:preview": "eas build --platform android --profile preview",
     "test": "tsx tests/core.test.ts",
-    "test:pipeline": "node tests/pipeline.test.mjs"
+    "test:pipeline": "node tests/pipeline.test.mjs && npm run test:autolinking",
+    "test:autolinking": "node tests/autolinking.test.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -21,6 +22,7 @@
     "expo": "~54.0.38",
     "expo-crypto": "~15.0.8",
     "expo-file-system": "~19.0.21",
+    "expo-font": "~14.0.12",
     "expo-image-picker": "~17.0.10",
     "expo-secure-store": "~15.0.8",
     "expo-sharing": "~14.0.8",
