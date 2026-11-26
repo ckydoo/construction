@@ -4,7 +4,17 @@ const respond = (body: unknown, status = 200) => new Response(JSON.stringify(bod
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return respond({error:'Method not allowed'},405);
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!serviceKey || req.headers.get('authorization') !== `Bearer ${serviceKey}`) return respond({error:'Unauthorized'},401);
+  // Accept only server credentials provisioned for this project. New secret
+  // keys are not JWTs and need not equal the legacy service-role key.
+  const trustedKeys:string[]=serviceKey?[serviceKey]:[];
+  try{
+    const keys=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
+    if(keys&&typeof keys==='object'&&!Array.isArray(keys)){
+      for(const value of Object.values(keys))if(typeof value==='string'&&value.startsWith('sb_secret_'))trustedKeys.push(value);
+    }
+  }catch{/* Malformed optional key map must never authorize a caller. */}
+  const authorization=req.headers.get('authorization');
+  if (!serviceKey || !trustedKeys.some(key=>authorization===`Bearer ${key}`)) return respond({error:'Unauthorized'},401);
   const key = Deno.env.get('OPENROUTER_API_KEY');
   if (!key) return respond({error:'AI is not configured yet. Ask your administrator to add OPENROUTER_API_KEY in Supabase Edge Function secrets.'},503);
   const model = Deno.env.get('OPENROUTER_MODEL')?.trim() || 'nvidia/nemotron-3.5-super-vl:free';

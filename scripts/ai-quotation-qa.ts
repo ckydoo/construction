@@ -52,6 +52,11 @@ async function main(){
    const sent=JSON.parse(init.body);assert.equal(sent.model,'test/model:free');assert.deepEqual(sent.provider.max_price,{prompt:0,completion:0});assert.equal(sent.provider.require_parameters,true);assert.equal(sent.provider.allow_fallbacks,false);assert.equal(sent.provider.data_collection,'deny');assert.equal(sent.max_tokens,2500);assert.equal(sent.tools,undefined);
    return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(suggestion)}}]});
  }) as typeof fetch;
+ const modern={...env,SUPABASE_SECRET_KEYS:JSON.stringify({default:'sb_secret_test-backend'})};
+ assert.equal((await edge(modern,'Bearer sb_secret_test-backend',successful,body)).status,200);
+ assert.equal((await edge(modern,'Bearer sb_secret_other-project',denyFetch,body)).status,401);
+ assert.equal((await edge({...env,SUPABASE_SECRET_KEYS:'not-json'},'Bearer sb_secret_test-backend',denyFetch,body)).status,401);
+ assert.equal((await edge({...env,SUPABASE_SECRET_KEYS:JSON.stringify({default:'sb_publishable_test'})},'Bearer sb_publishable_test',denyFetch,body)).status,401);
  const response=await edge(env,'Bearer server-test',successful,body);assert.equal(response.status,200);assert.deepEqual((await response.json()).suggestion,suggestion);
  let defaultModel='';
  const defaultFetch=(async(url:any,init:any)=>{if(String(url).includes('/rpc/'))return Response.json(true);defaultModel=JSON.parse(init.body).model;return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(suggestion)}}]});}) as typeof fetch;
