@@ -10,11 +10,11 @@ import { Button, Drawer, Badge, Card, Icon, Skeleton } from './ui';
 import { useToast } from './Providers';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { userMessage } from '@/lib/user-message';
-import { CHAIN_STAGES } from '@/lib/conversion-chain';
 import { RESOURCE_MAP } from '@/lib/resources';
 
 type Preview = { label: string; value: string }[];
 type Option = {
+  blockedReason?: string | null;
   id: string; to: string; label: string; hint: string; icon: string;
   creates: string[]; preview: Preview; also: string[]; sourcePatch: string | null;
   existing: { id: string; number?: string; title?: string; href: string } | null;
@@ -25,6 +25,7 @@ type ChainStep = {
   record: { id: string; number?: string; title?: string; status?: string } | null;
 };
 type FlowData = {
+  canRecordReceipt?: boolean;
   chain: ChainStep[];
   options: Option[];
   convertedFrom: { resource: string; id: string; number?: string; label?: string; href: string | null } | null;
@@ -47,7 +48,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
   const url = orgApi(org, `records/${resource}/${row?.id}/convert`);
-  const { data, isLoading, refetch } = useQuery<FlowData>({
+  const { data, isLoading, error, refetch } = useQuery<FlowData>({
     queryKey: ['convert', org, resource, row?.id],
     queryFn: () => apiGet(url),
     enabled: open && !!row?.id,
@@ -79,8 +80,8 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
     <Button onClick={onClose}>Close</Button>
   </div>;
 
-  return <Drawer open={open} onClose={onClose} title="Continue this job"
-    subtitle={`${row?.number || ''} · ${def?.singular || resource} · choose your next step`}
+  return <Drawer open={open} onClose={onClose} title={resource === 'estimates' ? 'Next steps for this quotation' : 'Next steps'}
+    subtitle={`${row?.number || ''} · ${resource === 'estimates' ? 'Quotation' : def?.singular || resource} · choose your next step`}
     width="max-w-2xl" footer={footer}>
     <div className="space-y-5 px-4 py-4">
 
@@ -90,10 +91,11 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
         {data.convertedFrom.href && <Link href={data.convertedFrom.href} className="ml-auto text-xs font-medium text-brand-700 hover:underline dark:text-brand-300">Open original →</Link>}
       </div>}
 
+      {error&&<p role="alert" className="caption">Could not load next steps. <button type="button" className="underline" onClick={()=>refetch()}>Try again</button></p>}
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Where this job is</h3>
-          <Badge tone="slate">{CHAIN_STAGES.length} stages</Badge>
+          <h3 className="text-sm font-semibold">Your enabled workflow</h3>
+          <Badge tone="slate">{data?.chain.length ?? 0} stages</Badge>
         </div>
         {isLoading || !data ? <Skeleton className="h-20" /> : <>
           <div className="flex gap-1.5 overflow-x-auto pb-2">
@@ -103,7 +105,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
                 {s.state === 'done' ? <Lucide.Check size={13} /> : s.state === 'current' ? <Lucide.CircleDot size={13} /> : s.optional ? <span className="text-[9px]">optional</span> : null}
               </div>
               <p className="mt-1 text-[11px] font-semibold leading-tight">{s.short}</p>
-              <p className="mt-0.5 truncate text-[10px] opacity-75">{s.record?.number || (s.state === 'done' ? 'Created' : s.state === 'skipped' ? 'Skipped' : 'Not yet')}</p>
+              <p className="mt-0.5 truncate text-[10px] opacity-75">{s.record?.number || (s.state === 'done' ? 'Created' : 'No linked record')}</p>
             </div>)}
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5">
@@ -116,7 +118,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
         </>}
       </section>
 
-      {resource === 'arInvoices' && <section data-testid="receipt-settlement-action">
+      {resource === 'arInvoices' && data?.canRecordReceipt && <section data-testid="receipt-settlement-action">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Record the money</h3>
           <Badge tone="blue">Settles this invoice</Badge>
@@ -138,10 +140,10 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
       <section>
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold">Next step</h3>
-          <Badge tone="blue">{data?.options?.length ?? 0} available</Badge>
+          <Badge tone="blue">{data?.options?.filter(o=>!o.existing&&!o.blockedReason).length ?? 0} available</Badge>
         </div>
         {isLoading || !data ? <div className="space-y-2"><Skeleton className="h-24" /><Skeleton className="h-24" /></div>
-          : !data.options.length ? <Card className="p-4"><p className="caption">There is nothing to convert from this record. Either the next module is switched off, your role cannot create those records, or every next step has already been created.</p></Card>
+          : !data.options.length ? <Card className="p-4"><p className="caption">No next-step conversions are available for your enabled modules and access. Only modules available in this workspace are shown.</p></Card>
             : <div className="space-y-3">{data.options.map(o => <Card key={o.id} className="p-3.5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex min-w-0 items-start gap-2.5">
@@ -150,6 +152,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
                 </div>
                 {o.existing
                   ? <Link href={o.existing.href} className="btn-outline btn-sm whitespace-nowrap"><Lucide.ExternalLink size={13} />Open {o.existing.number || 'created'}</Link>
+                  : o.blockedReason ? <p className="text-xs text-amber-800 dark:text-amber-200">{o.blockedReason}</p>
                   : <Button size="sm" variant="primary" icon="ArrowRightLeft" loading={busy === o.id} disabled={!!busy} onClick={() => submit(o.id)}>{o.label}</Button>}
               </div>
               <div className="mt-3 grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
@@ -166,7 +169,7 @@ export default function ConvertFlow({ org, resource, row, open, onClose, onRecor
             </Card>)}</div>}
       </section>
 
-      <p className="caption border-t divider pt-3">Choose a next step to reuse these details in a new document. To record an invoice payment, use Record payment on the invoice.</p>
+      <p className="caption border-t divider pt-3">Choose an available next step to reuse these details in a new record. Disabled modules are not included.</p>
     </div>
   </Drawer>;
 }

@@ -13,9 +13,8 @@ import { apiAuth } from '@/lib/auth';
 import { getResource, RESOURCE_MAP } from '@/lib/resources';
 import { getRecord, createRecord, updateRecord, deleteRecord, logActivity } from '@/lib/records';
 import { readGuard, writeGuard, capabilityGuard, billingGuard } from '@/lib/guard';
-import { canWrite } from '@/lib/catalog';
+import { visibleConversionResource, workspaceConversionRule, conversionBlockReason } from '@/lib/conversion-visibility';
 import { buildScope } from '@/lib/access';
-import { resourceFullyEnabled } from '@/lib/module-visibility';
 import { fetchAll } from '@/lib/fetch';
 import { CHAIN_STAGES, CHAIN_RESOURCE_IDS } from '@/lib/conversion-chain';
 import {
@@ -41,7 +40,7 @@ function hrefFor(org: string, r: { id: string; resource: string }) {
 
 function ruleAvailable(a: NonNullable<Awaited<ReturnType<typeof apiAuth>>>, rule: ConversionRule) {
   const targets = [rule.to, ...(rule.also || []).map(x => x.resource)];
-  return targets.every(t => resourceFullyEnabled(a.config, t) && canWrite(a.role, t));
+  return targets.every(t => visibleConversionResource(a.config, a.role, t));
 }
 
 async function chainRows(orgId: string): Promise<ChainRow[]> {
@@ -139,10 +138,12 @@ export async function GET(_req: Request, { params }: Ctx) {
     // Receipt creation and invoice settlement are not yet atomic. Do not
     // advertise this conversion until allocation and reconciliation exist.
     .filter(r => r.id !== 'invoice-to-receipt')
+    .map(r => workspaceConversionRule(r, a.config))
     .filter(r => r.from === resource && ruleAvailable(a, r))
     .map(r => {
       const existing = children.find(c => c.resource === r.to);
       return {
+        blockedReason: existing ? null : conversionBlockReason(a.role,r,a.billing,a.temporaryPassword),
         id: r.id,
         to: r.to,
         label: r.label,
@@ -160,7 +161,7 @@ export async function GET(_req: Request, { params }: Ctx) {
       };
     });
 
-  const chain = buildChain(current, all, receiptByInvoice);
+  const chain = buildChain(current, all, receiptByInvoice).filter(stage => visibleConversionResource(a.config,a.role,stage.id));
   // A client may be linked as a master record without being the provenance
   // parent. Resolve it with the same read and row-scope checks as other views.
   const clientStage = chain.find(stage => stage.id === 'clients');
@@ -174,7 +175,8 @@ export async function GET(_req: Request, { params }: Ctx) {
   return NextResponse.json({
     chain,
     options,
-    convertedFrom: current.sourceId ? {
+    canRecordReceipt: visibleConversionResource(a.config,a.role,'payments') && !writeGuard(a.config,a.role,'payments') && !capabilityGuard(a.role,'records.create') && !billingGuard(a,{write:true}) && !a.temporaryPassword,
+    convertedFrom: current.sourceId && current.sourceResource && visibleConversionResource(a.config,a.role,current.sourceResource) && await getRecord(a.orgId,current.sourceResource,current.sourceId,scope) ? {
       resource: current.sourceResource, id: current.sourceId,
       number: current.sourceNumber, label: current.sourceLabel,
       href: current.sourceResource ? hrefFor(org, { id: current.sourceId, resource: current.sourceResource }) : null,
@@ -188,7 +190,8 @@ export async function POST(req: Request, { params }: Ctx) {
   const def = getResource(resource);
   if (!a || !def) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const rule = CONVERSION_RULES.find(r => r.id === String(body.to || '') && r.from === resource);
+  const baseRule = CONVERSION_RULES.find(r => r.id === String(body.to || '') && r.from === resource);
+  const rule = baseRule ? workspaceConversionRule(baseRule,a.config) : undefined;
   if (!rule) return NextResponse.json({ error: 'Unknown conversion' }, { status: 400 });
   // Reject stale clients and direct requests as well as hiding the UI option.
   // A receipt must not be created until it can be allocated and settled atomically.
@@ -196,6 +199,7 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ error: 'Invoice receipt conversion is temporarily unavailable pending payment reconciliation.' }, { status: 409 });
   }
 
+  if(a.temporaryPassword)return deny('Change your temporary password before creating records');
   const g = billingGuard(a, { write: true })
     || readGuard(a.config, a.role, resource)
     || capabilityGuard(a.role, 'records.create')
