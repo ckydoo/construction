@@ -35,14 +35,14 @@ const SCOPE_SNIPPETS = [
 ];
 
 export default function QuoteStudio({
-  org, mode, recordId, initialRow,
+  org, mode, recordId, initialRow, initialDraft,
 }: {
-  org: string; mode: 'create' | 'edit'; recordId?: string; initialRow?: any;
+  org: string; mode: 'create' | 'edit'; recordId?: string; initialRow?: any; initialDraft?: QuoteDraft;
 }) {
   const router = useRouter(); const qc = useQueryClient(); const toast = useToast();
   const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
-  const [draft, setDraft] = useState<QuoteDraft>(() => initialRow ? quoteDraftFromRow(initialRow) : blankQuoteDraft());
-  const [step, setStep] = useState(mode === 'edit' ? 1 : 0);
+  const [draft, setDraft] = useState<QuoteDraft>(() => initialRow ? quoteDraftFromRow(initialRow) : initialDraft ? {...initialDraft,status:'DRAFT'} : blankQuoteDraft());
+  const [step, setStep] = useState(mode === 'edit' || initialDraft ? 1 : 0);
   const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [pendingTemplate, setPendingTemplate] = useState<QuoteTemplate | null>(null);
   const [deleteFor, setDeleteFor] = useState<QuoteTemplate | null>(null);

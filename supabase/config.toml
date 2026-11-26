@@ -36,3 +36,7 @@ file_size_limit = "12MiB"
 
 [analytics]
 enabled = false
+
+# Auth is enforced inside the function against the server-only service role key.
+[functions.ai-quotation]
+verify_jwt = false
