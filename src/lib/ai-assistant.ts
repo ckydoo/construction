@@ -16,12 +16,13 @@ export function canUseAIMode(role:string,config:{modules?:string[];resources:str
   return resourceFullyEnabled(config,resource)&&canRead(role,resource)&&canWrite(role,resource)&&canCapability(role,'records.create');
 }
 export function availableAIModes(role:string,config:{modules?:string[];resources:string[]}){return (Object.keys(AI_MODES) as AIMode[]).filter(mode=>canUseAIMode(role,config,mode));}
-export type WritingDraft={title:string;body:string;questions:string[];assumptions:string[]};
-export function parseWritingDraft(raw:unknown):WritingDraft{
+export type WritingDraft={title:string;body:string;questions:string[];assumptions:string[];tasks?:{name:string}[]};
+export function parseWritingDraft(raw:unknown,includeTasks=false):WritingDraft{
   if(!raw||typeof raw!=='object')throw new Error('AI returned an invalid draft. Please try again.');
   const r=raw as Record<string,unknown>;
   const text=(v:unknown,max:number)=>typeof v==='string'?v.trim().slice(0,max):'';
   if(!text(r.title,150)||!text(r.body,12000))throw new Error('AI returned an incomplete draft. Please try again.');
   const list=(v:unknown)=>Array.isArray(v)?v.slice(0,8).map(x=>text(x,300)).filter(Boolean):[];
-  return {title:text(r.title,150),body:text(r.body,12000),questions:list(r.questions),assumptions:list(r.assumptions)};
+  const tasks=includeTasks&&Array.isArray(r.tasks)?r.tasks.slice(0,20).filter((v:any)=>v&&typeof v.name==='string'&&v.name.trim()).map((v:any)=>({name:text(v.name,200)})):[];
+  return {...(includeTasks?{tasks}:{}),title:text(r.title,150),body:text(r.body,12000),questions:list(r.questions),assumptions:list(r.assumptions)};
 }

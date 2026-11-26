@@ -23,6 +23,6 @@ export async function POST(req:Request,{params}:{params:Promise<{org:string}>}){
     const response=await fetch(`${url}/functions/v1/ai-quotation`,{method:'POST',headers:{Authorization:`Bearer ${serviceKey}`,apikey:serviceKey,'Content-Type':'application/json'},body:JSON.stringify({task:b.mode,prompt,orgId:a.orgId,userId:a.userId,currency:'USD',rates:[]}),signal:AbortSignal.timeout(55000),cache:'no-store'});
     const result=await response.json().catch(()=>null);
     if(!response.ok)return reply({error:response.status===429?'The shared workspace AI limit has been reached. Try again tomorrow.':response.status===503?'AI is not configured yet. Ask your administrator to check the Supabase function and provider settings.':'AI is temporarily unavailable. Nothing was saved or sent.'},[429,503].includes(response.status)?response.status:502);
-    return reply({draft:parseWritingDraft(result?.suggestion)});
+    return reply({draft:parseWritingDraft(result?.suggestion,b.mode==='project-plan')});
   }catch{return reply({error:'AI could not complete this draft. Please try again. Nothing was saved or sent.'},502);}
 }
