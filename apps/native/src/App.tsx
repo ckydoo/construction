@@ -1,3 +1,4 @@
+import { completeCaptcha } from './captcha';
 import React, {
   createContext,
   useCallback,
@@ -354,24 +355,29 @@ export default function App() {
   );
 }
 function Login() {
+  const loginInFlight = useRef(false);
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function login() {
-    if (busy) return;
+    if (loginInFlight.current || !email.trim() || !password) return;
+    loginInFlight.current = true;
     setBusy(true);
     setError("");
     try {
+      const captchaToken = await completeCaptcha();
       const { error } = await auth!.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
+        options: { captchaToken },
       });
       if (error) throw error;
     } catch (e) {
       setError(describe(e));
     } finally {
       setPassword("");
+      loginInFlight.current = false;
       setBusy(false);
     }
   }
@@ -420,9 +426,8 @@ function Login() {
           onPress={() => Linking.openURL(origin + "/login")}
         />
         <Text style={[styles.small, { marginTop: 18 }]}>
-          Use your existing MYLA account. An internet connection is required. If
-          your organisation requires browser verification, use the website; this
-          preview does not bypass it.
+          Use your existing MYLA account. Sign in opens a secure browser check,
+          then returns you to the app. An internet connection is required.
         </Text>
       </Screen>
     </SafeAreaView>
