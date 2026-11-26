@@ -10,7 +10,7 @@ const mocks={
  '@/lib/catalog':`export const canRead=()=>true;export const canWrite=(role)=>role!=='HR_MANAGER';export const canDelete=()=>true;export const canCapability=()=>true;`,
  '@/lib/module-visibility':`export const resourceFullyEnabled=()=>true;export const moduleEnabled=()=>true;`,
  '@/lib/access':`export const buildScope=async a=>a;`,
- '@/lib/records':`export const getRecord=async(o,r,id)=>globalThis.__receiptQA.visible.includes(id)?{id}:null;`,
+ '@/lib/records':`export const getRecord=async(o,r,id)=>globalThis.__receiptQA.visible.includes(id)?{id,...(r==='arInvoices'?{status:'ISSUED',clientId:'client-1',currency:'USD',total:'50.00',amountPaid:'0.00',...globalThis.__receiptQA.invoice}: {})}:null;`,
  '@/lib/supabase':`export const hasServiceKey=()=>true;export const supabaseAdmin=()=>({rpc:async(name,args)=>{globalThis.__receiptQA.calls.push({name,args});return {data:{ok:true},error:null}}});`,
 };
 const file='/home/user/receipt-api-guard-test.mjs';
@@ -28,6 +28,11 @@ __receiptQA.auth={...auth,role:'HR_MANAGER'};assert.equal((await POST(req(receip
 __receiptQA.auth=auth;assert.equal((await POST(req({...receipt,paymentDate:'2026-02-30'}),context)).status,400);
 assert.equal((await POST(req({...receipt,clientId:'another-tenant-client'}),context)).status,403);
 assert.equal((await POST(req(receipt,[{invoiceId:'another-tenant-invoice',amount:'10.00'}]),context)).status,403);
+for(const invoice of [{status:'DRAFT'},{status:'VOID'},{status:'PAID'},{clientId:'other-client'},{currency:'EUR'},{total:'9.00'}]){
+ __receiptQA.invoice=invoice;assert.equal((await POST(req(receipt,[{invoiceId:'invoice-1',amount:'10.00'}]),context)).status,422);
+}
+__receiptQA.invoice={};
+assert.equal((await POST(req({...receipt,amount:'5.00'},[{invoiceId:'invoice-1',amount:'10.00'}]),context)).status,422);
 assert.equal(__receiptQA.calls.length,0);
 const response=await POST(req(receipt,[{invoiceId:'invoice-1',amount:'10.00'}]),context);assert.equal(response.status,200);assert.equal(__receiptQA.calls.length,1);assert.equal(__receiptQA.calls[0].args.p_lines[0].amountMinor,1000);assert.equal(__receiptQA.calls[0].args.p_actor,'actor-1');
 fs.unlinkSync(file);console.log('PASS receipt creation API guard tests: mocked unauthenticated, real billing guard with read-only/locked contexts, role, invalid date, inaccessible tenant records, and valid cents/RPC.');

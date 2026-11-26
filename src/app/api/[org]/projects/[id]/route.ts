@@ -1,3 +1,4 @@
+import { normaliseLines } from '@/lib/financial';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +21,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const walletsOn = moduleEnabled(a.config, 'wallets') && hrefVisible('/wallets', a.config);
   const project = await getRecord(a.orgId, 'projects', id, scope);
   if (!project) return NextResponse.json({ error: 'Project not found' }, scope.kind ? { status: 403 } : { status: 404 });
+  const sourceResource=String(project.sourceResource||'');
+  const source=project.sourceId&&['estimates','bids'].includes(sourceResource)&&resourceFullyEnabled(a.config,sourceResource)&&canRead(a.role,sourceResource)?await getRecord(a.orgId,sourceResource,String(project.sourceId),scope):null;
   const related = ['tasks', 'contracts', 'changeOrders', 'rfis', 'submittals', 'documents', 'dailyLogs', 'meetings', 'punchLists', 'permits', 'budgets', 'arInvoices', 'paymentApps', 'purchaseOrders', 'timesheets', 'incidents', 'inspections', 'ncrs', 'equipment', 'crews', 'expenses', 'apBills', 'payments']
     .filter(r => resourceFullyEnabled(a.config, r) && canRead(a.role, r));
   // Fetch every org receipt: money pinned to neither job nor invoice must
@@ -31,7 +34,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
       : await rowsForScoped(a, scope, r, id);
   }));
   for (const k of Object.keys(grouped)) if (k !== 'payments') grouped[k] = grouped[k].filter(x => x.projectId === id);
-  const budgets = grouped.budgets || [], apps = grouped.paymentApps || [];
+  const budgets = (grouped.budgets || []).filter(b=>['APPROVED','REVISED','CLOSED'].includes(String(b.status||''))), apps = (grouped.paymentApps || []).filter(b=>['CERTIFIED','PARTIALLY_PAID','PAID'].includes(String(b.status||'')));
   const allInvoices = grouped.arInvoices || [];
   // Match job profitability: money figures only count invoices issued to the
   // client. Drafts and voids stay in the register but are excluded here.
@@ -79,7 +82,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
     vatBilled: sum(invoices, 'vatAmount'),
     received: projectReceipts.reduce((t, r) => t + toBase(r.amount, r.currency || project.currency || cfg.base, cfg), 0),
     receivedFromInvoices: sum(invoices, 'amountPaid'),
-    certified: sum(apps, 'netCertified'), variations: sum(grouped.changeOrders || [], 'amount'),
+    certified: sum(apps, 'netCertified'), variations: sum((grouped.changeOrders || []).filter(v=>['APPROVED','INCLUDED_IN_CERT'].includes(String(v.status||''))), 'amount'),
     tasksComplete: (grouped.tasks || []).filter(t => t.status === 'COMPLETE').length, tasksTotal: (grouped.tasks || []).length,
     walletFunded: funded, walletTarget: target, walletRemaining: Math.max(0, target - funded), walletFundingPct: target ? Math.min(100, Math.round(funded / target * 100)) : 0,
   };
@@ -96,6 +99,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ org: st
   const actualFromTransactions = sum(postedBills, 'total') + sum(postedExpenses, 'amount') + sum(postedTimesheets, 'labourCost');
   const cost = actualFromProject || actualFromLines || actualFromTransactions;
   return NextResponse.json({
+    sourceDocument: source ? {title:source.name||source.title||source.number,number:source.number,resource:sourceResource,href:`/${encodeURIComponent(org)}/m/${sourceResource}?open=${encodeURIComponent(source.id)}`,items:normaliseLines(source.items).slice(0,100).map(line=>({description:line.description,unit:line.unit,qty:line.qty,unitPrice:line.unitPrice,total:line.total}))} : null,
     project: { ...project, clientName: clientRec?.name || clientRec?.title || null }, grouped, totals, currency: cfg.base,
     display: {
       currency: cfg.base, originalCurrency,

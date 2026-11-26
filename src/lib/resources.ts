@@ -118,7 +118,7 @@ export const RESOURCES: ResourceDef[] = [
 
   d('documents','Document register','Drawing / document','documents','Jobs & sites','FolderOpen','DOC','name',
     'Drawing numbers, revisions and issue status. Files live in the Document library.',
-    [T('name','Document / drawing title',{required:true}),PRJ(),T('drawingNo','Drawing / doc no.'),T('revision','Revision'),S('type','Type',['Drawing','Specification','Method statement','Report','Contract','Correspondence','Photo set','O&M manual','Other']),S('discipline','Discipline',['Architectural','Structural','Civil','Mechanical','Electrical','HSE','Commercial','Other']),T('fileName','File name'),D('issuedDate','Issue date'),R('issuedBy','Issued by','employees'),A('notes','Notes'),STS(['DRAFT','FOR_REVIEW','CURRENT','SUPERSEDED','VOID'],'CURRENT')],
+    [T('name','Document / drawing title',{required:true}),PRJ(),T('drawingNo','Drawing / doc no.'),T('revision','Revision'),S('type','Type',['Drawing','Specification','Method statement','Report','Contract','Correspondence','Photo set','O&M manual','BoQ','Council approval','Permit','Other']),S('discipline','Discipline',['Architectural','Structural','Civil','Mechanical','Electrical','HSE','Commercial','Other']),T('fileName','File name'),D('issuedDate','Issue date'),R('issuedBy','Issued by','employees'),A('notes','Notes'),STS(['DRAFT','FOR_REVIEW','CURRENT','SUPERSEDED','VOID'],'CURRENT')],
     ['number','name','drawingNo','revision','type','projectId','issuedDate','status'],{projectScoped:true,statusOptions:['DRAFT','FOR_REVIEW','CURRENT','SUPERSEDED','VOID'],dateKey:'issuedDate'}),
 
   d('dailyLogs','Work reports','Work report','fieldOps','Jobs & sites','NotebookPen','DL','name',
@@ -138,8 +138,8 @@ export const RESOURCES: ResourceDef[] = [
 
   d('permits','Permits & inspections','Permit','closeout','Jobs & sites','Stamp','PMT','name',
     'Authority permits, statutory inspections and expiry tracking.',
-    [T('name','Permit / inspection',{required:true}),PRJ(),T('authority','Authority'),S('type','Type',['Building permit','Environmental','Occupational','Road authority','Fire','Electrical','Lift','Work permit','Other']),T('referenceNo','Reference no.'),D('issuedDate','Issued'),D('expiryDate','Expiry'),D('inspectionDate','Inspection date'),S('result','Result',['PENDING','PASSED','CONDITIONAL','FAILED']),A('conditions','Conditions'),STS(['PENDING','ACTIVE','EXPIRED','CLOSED'],'ACTIVE')],
-    ['number','name','projectId','authority','expiryDate','result','status'],{projectScoped:true,statusOptions:['PENDING','ACTIVE','EXPIRED','CLOSED'],dateKey:'expiryDate'}),
+    [T('name','Permit / inspection',{required:true}),PRJ(),T('authority','Authority'),S('type','Type',['Building permit','Plan approval','Stage inspection','Completion approval','Environmental','Occupational','Road authority','Fire','Electrical','Lift','Work permit','Other']),T('referenceNo','Authority reference no.'),S('authorityDecision','Authority decision',['NOT_SUBMITTED','SUBMITTED','APPROVED','CONDITIONAL','REJECTED']),D('submittedDate','Submitted to authority'),D('issuedDate','Issued'),D('expiryDate','Expiry'),D('inspectionDate','Inspection date'),S('result','Result',['PENDING','PASSED','CONDITIONAL','FAILED']),A('conditions','Conditions / evidence notes'),STS(['PENDING','ACTIVE','EXPIRED','CLOSED'],'PENDING')],
+    ['number','name','projectId','authority','authorityDecision','expiryDate','result','status'],{projectScoped:true,statusOptions:['PENDING','ACTIVE','EXPIRED','CLOSED'],dateKey:'expiryDate'}),
 
   // ---------------- SUPPLY CHAIN ----------------
   d('vendors','Suppliers','Supplier','vendors','Materials & suppliers','Store','VEN','name',

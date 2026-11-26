@@ -1,7 +1,7 @@
 'use client';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { userMessage } from '@/lib/user-message';
@@ -30,6 +30,8 @@ const isInternalFileDrag = (e: React.DragEvent) => {
 
 export default function LibraryPage() {
   const { org } = useParams<{ org: string }>();
+  const requestedProject=useSearchParams().get('project');
+  const appliedProject=useRef<string|null>(null);
   const qc = useQueryClient(); const toast = useToast();
   const uploadRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
@@ -57,6 +59,7 @@ export default function LibraryPage() {
     data?.projects || [],
     (data?.folders || []).map(f => ({ id: f.id, name: f.name, parent_key: f.parentKey, project_id: f.projectId })),
   ), [data]);
+  useEffect(()=>{if(!requestedProject||!data||appliedProject.current===requestedProject)return;appliedProject.current=requestedProject;const key=`p:${requestedProject}`;if(tree.byKey.has(key)){setCurrentKey(key);setQ('');}},[requestedProject,data,tree]);
   const children = childrenOf(tree.folders, currentKey);
   const crumbs = breadcrumbs(tree.byKey, currentKey);
   const allFiles = data?.files || [];
