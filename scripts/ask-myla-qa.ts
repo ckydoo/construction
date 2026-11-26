@@ -37,9 +37,26 @@ async function main(){
  assert.equal((await post({question:'Show tasks',consent:false})).status,400);assert.equal(calls,0);
  auth.temporaryPassword=true;assert.equal((await post()).status,403);auth.temporaryPassword=false;
  const response=await post();assert.equal(response.status,200);const answer=await response.json();assert.equal(answer.records.length,1);assert.equal(answer.records[0].id,'visible');assert.match(answer.records[0].href,/workspace\/m\/tasks\?open=visible/);assert.match(answer.note,/not a complete register/);assert.ok(callsSeen.some(c=>c[0]==='eq'&&c[1]==='organization_id'&&c[2]==='tenant-a'));
- plan={resource:'employees',filter:'recent',sql:'select *',href:'https://evil.test'};assert.equal((await post()).status,422);assert.equal(queries,1);
+ plan={resource:'employees',filter:'recent',sql:'select *',href:'https://evil.test'};assert.equal((await post()).status,502);assert.equal(queries,1);
  plan={resource:'projects',filter:'recent'};auth.config={...config,resources:['tasks']};const denied=await (await post()).json();assert.equal(denied.records.length,0);assert.equal(queries,1);
  plan={resource:null};assert.match((await (await post()).json()).answer,/Which would you like/);assert.equal(queries,1);
+ auth.config=config;
+ const before=calls;
+ const direct=await (await post({question:'Show my recent jobs',consent:true})).json();
+ assert.equal(calls,before);assert.equal(direct.records.length,1);assert.equal(direct.records[0].id,'visible');
+ auth.config={...config,resources:['tasks']};const beforeQueries=queries;
+ assert.equal((await (await post({question:'Show my recent jobs',consent:true})).json()).records.length,0);
+ assert.equal(queries,beforeQueries);assert.equal(calls,before);
+ for(const q of ['Which invoices are overdue?','Show overdue tasks','Which quotations are awaiting a decision?','Show my recent jobs'])assert.ok(ask.builtInMylaPlan(q));
+ for(const q of ['show overdue tasks assigned to Bob','show my recent jobs last month','toString'])assert.equal(ask.builtInMylaPlan(q),null);
+ assert.equal(ask.mylaServiceFailure(401).code,'MYLA_CONNECTION');
+ assert.equal(ask.mylaServiceFailure(503).code,'MYLA_SETUP');
+ assert.equal(ask.mylaServiceFailure(429).code,'MYLA_LIMIT');
+ assert.equal(ask.mylaServiceFailure(502).code,'MYLA_SERVICE');
+ assert.equal(ask.mylaServiceFailure(400,{error:'Invalid workspace'}).code,'MYLA_WORKSPACE');
+ assert.equal(ask.mylaServiceFailure(503,{error:'AI usage controls are not ready.'}).code,'MYLA_USAGE_SETUP');
+ assert.equal(ask.mylaServiceFailure(502,{error:'AI provider is unavailable.'}).code,'MYLA_GENERATION');
+ assert.doesNotMatch(ask.mylaServiceFailure(502,{error:'secret-private-body'}).error,/secret-private-body/);
  auth.billing.access=false;assert.equal((await post()).status,402);
  console.log('Ask Myla QA passed: read permissions, disabled modules, consent, billing, temporary password, tenant filter, row scope, safe links, constrained plans and read-only responses. No live records or provider calls.');
 }

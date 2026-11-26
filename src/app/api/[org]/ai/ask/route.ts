@@ -3,7 +3,7 @@ import {apiAuth} from '@/lib/auth';
 import {billingGuard} from '@/lib/guard';
 import {supabase,supabaseEnv} from '@/lib/supabase';
 import {buildScope,rowAllowed} from '@/lib/access';
-import {mylaResources,parseMylaPlan,matchesMylaPlan,mylaRecordLink,MYLA_LABELS} from '@/lib/ask-myla';
+import {mylaResources,builtInMylaPlan,mylaServiceFailure,parseMylaPlan,matchesMylaPlan,mylaRecordLink,MYLA_LABELS} from '@/lib/ask-myla';
 export const runtime='nodejs';
 export const maxDuration=60;
 const reply=(body:unknown,status=200)=>NextResponse.json(body,{status,headers:{'Cache-Control':'no-store'}});
@@ -16,14 +16,22 @@ export async function POST(req:Request,{params}:{params:Promise<{org:string}>}){
   let b:any;try{b=JSON.parse(raw);}catch{return reply({error:'Invalid request'},400);}
   const question=typeof b?.question==='string'?b.question.trim():'';
   if(question.length<3||question.length>2000||b?.consent!==true)return reply({error:'Enter a question and allow Myla to interpret it.'},400);
-  const {url,serviceKey}=supabaseEnv();if(!url||!serviceKey)return reply({error:'Myla is not configured yet.'},503);
   try{
+    let plan=builtInMylaPlan(question);
+    if(!plan){
+    const {url,serviceKey}=supabaseEnv();if(!url||!serviceKey)return reply(mylaServiceFailure(503),503);
     // Provider interprets only the user's question. It never sees database rows
     // and never decides tenancy, roles, SQL, identifiers or destination URLs.
-    const response=await fetch(`${url}/functions/v1/ai-quotation`,{method:'POST',headers:{Authorization:`Bearer ${serviceKey}`,apikey:serviceKey,'Content-Type':'application/json'},body:JSON.stringify({task:'ask',prompt:question,orgId:a.orgId,userId:a.userId,rates:[],currency:'USD'}),signal:AbortSignal.timeout(50000),cache:'no-store'});
+    let response:Response;
+    try{response=await fetch(`${url}/functions/v1/ai-quotation`,{method:'POST',headers:{Authorization:`Bearer ${serviceKey}`,apikey:serviceKey,'Content-Type':'application/json'},body:JSON.stringify({task:'ask',prompt:question,orgId:a.orgId,userId:a.userId,rates:[],currency:'USD'}),signal:AbortSignal.timeout(50000),cache:'no-store'});}catch{return reply(mylaServiceFailure(502),502);}
     const result=await response.json().catch(()=>null);
-    if(!response.ok)return reply({error:response.status===429?'Your workspace has reached its daily AI limit. Try again tomorrow.':'Myla could not interpret that question. Please try again or use the record registers.'},response.status===429?429:502);
-    let plan;try{plan=parseMylaPlan(result?.suggestion);}catch(e){return reply({error:(e as Error).message},422);}
+    if(!response.ok){
+      // Status only: never log questions, credentials, records or provider bodies.
+      console.error('myla_interpretation_failed',{status:response.status,code:mylaServiceFailure(response.status,result).code});
+      return reply(mylaServiceFailure(response.status,result),response.status===429?429:502);
+    }
+    try{plan=parseMylaPlan(result?.suggestion);}catch{return reply(mylaServiceFailure(502),502);}
+    }
     const checkedAt=new Date().toISOString();
     if(!plan.resource)return reply({answer:'I can find quotations, invoices, jobs and tasks. Which would you like to look at? Try “show overdue tasks” or “find quotation EST-0001”. I can’t change records or calculate business totals here yet.',checkedAt,records:[]});
     if(!allowed.includes(plan.resource))return reply({answer:'That section is not available with your current workspace access. Ask your administrator if you need access.',checkedAt,records:[]});
