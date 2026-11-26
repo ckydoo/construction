@@ -67,6 +67,10 @@ async function main(){
   const res=await edge(env,'Bearer server-test',writer,{...body,task});assert.equal(res.status,200);assert.deepEqual(parseWritingDraft((await res.json()).suggestion),writing);assert.equal(reservations,1);
   assert.equal((await edge(env,'Bearer server-test',limited,{...body,task})).status,429);
  }
+ const askFetcher=(async(url:any,init:any)=>{if(String(url).includes('/rpc/'))return Response.json(true);const sent=JSON.parse(init.body);assert.match(sent.messages[0].content,/READ-ONLY record lookup/);assert.match(sent.messages[0].content,/No database records are provided/);assert.deepEqual(JSON.parse(sent.messages[1].content),{request:'jobs'});return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({resource:'projects',filter:'recent',query:''})}}]});}) as typeof fetch;
+ assert.equal((await edge(env,'Bearer server-test',askFetcher,{...body,task:'ask',prompt:'jobs'})).status,200);
+ assert.equal((await edge(env,'Bearer user-test',denyFetch,{...body,task:'ask'})).status,401);
+ assert.equal((await edge(env,'Bearer server-test',limited,{...body,task:'ask'})).status,429);
  console.log('AI quotation and writing modes QA passed: permissions, untrusted output, price provenance, draft-only handoff, proxy authentication, configuration and quota enforcement.');
 }
 main().catch(e=>{console.error(e);process.exit(1);});

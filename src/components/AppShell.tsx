@@ -7,6 +7,7 @@ import * as Lucide from '@/components/lucide';
 import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { canRead, canWrite, canCapability, ROLES, navGroupsFor, resourceNavGroup } from '@/lib/catalog';
 import { moduleEnabled, resourceFullyEnabled, hrefVisible } from '@/lib/module-visibility';
+import {mylaResources} from '@/lib/ask-myla';
 import { availableAIModes } from '@/lib/ai-assistant';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
@@ -25,7 +26,7 @@ type Meta = {
 
 const SPECIAL = [
   { id:'dashboard', label:'Dashboard', group:'Overview', icon:'LayoutDashboard', href:'/dashboard', module:'dashboard' },
-  { id:'ai-assistant', label:'AI Assistant', group:'Overview', icon:'Sparkles', href:'/ai-assistant' },
+  { id:'ai-assistant', label:'Myla Assistant', group:'Overview', icon:'Sparkles', href:'/ai-assistant' },
   { id:'library', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', href:'/library', module:'documents', resource:'documents' },
   { id:'three-way-match', label:'Three-way match', group:'Materials & suppliers', icon:'ClipboardCheck', href:'/three-way-match', module:'procurement', alsoModule:'finance', resource:'purchaseOrders' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', href:'/wallets', module:'wallets', cap:'wallet.read' },
@@ -36,7 +37,7 @@ const SPECIAL = [
   { id:'billing', label:'Billing & subscription', group:'Settings', icon:'CreditCard', href:'/billing', adminOnly:true },
 ];
 const SPECIAL_TITLES:Record<string,string> = {
-  'ai-assistant':'AI Assistant', 'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', support:'Help & support', billing:'Billing & subscription',
+  'ai-assistant':'Myla Assistant', 'my-work':'My work', dashboard:'Dashboard', documentation:'Documentation', library:'Document library', 'three-way-match':'Three-way match', wallets:'Client wallets', reports:'Reports', profitability:'Job profitability', settings:'Settings', support:'Help & support', billing:'Billing & subscription',
 };
 export const QUICK_CREATE = ['projects','clients','employees','purchaseOrders','arInvoices','rfis','timesheets','incidents'];
 // The file-first Document library replaces the raw document register in the
@@ -83,7 +84,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     const role=meta.role||'ADMIN';
     const allowed=new Set(navGroupsFor(role));
     for(const s of SPECIAL){
-      if(s.id==='ai-assistant' && !availableAIModes(role,meta.config).length) continue;
+      if(s.id==='ai-assistant' && !availableAIModes(role,meta.config).length && !mylaResources(role,meta.config).length) continue;
       if(!allowed.has(s.group)) continue;
       if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
       if((s as any).alsoModule && !moduleEnabled(meta.config,(s as any).alsoModule)) continue;

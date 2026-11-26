@@ -30,18 +30,18 @@ export default function AIPlanTasks({org,tasks,onBusyChange}:{org:string;tasks:{
   }
   if(!allowed)return <p className="text-sm muted">Creating tasks requires enabled project and task modules and permission to create tasks. You can still copy the plan.</p>;
   if(!items.length)return <p className="text-sm muted">This response has no structured task suggestions. Generate a new project plan to prepare tasks.</p>;
-  return <section className="space-y-4 border-t divider pt-5"><h3 className="font-semibold">Review and create project tasks</h3>
-    <p className="text-sm muted">Review this checklist separately from the plan text above. Dates are optional and entered by you. Tasks will be unassigned, Not started, with 0% progress. Nothing is created until you approve below.</p>
-    <label className="block text-sm">Project<select className="input mt-2" value={projectId} disabled={started||busy} onChange={e=>{setProjectId(e.target.value);setApproved(false);}}><option value="">Choose an accessible project</option>{projects?.options.map(p=><option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
+  return <section className="space-y-4 border-t divider pt-5"><h3 className="font-semibold">Turn this plan into tasks</h3>
+    <p className="text-sm muted">Choose a project and check the tasks below. Dates are optional. Editing the plan above does not change this checklist.</p>
+    <label className="block text-sm">Project<select className="input mt-2" value={projectId} disabled={started||busy} onChange={e=>{setProjectId(e.target.value);setApproved(false);}}><option value="">Choose a project</option>{projects?.options.map(p=><option key={p.value} value={p.value}>{p.label}</option>)}</select></label>
     {!!projectError&&<p role="alert">Projects could not load. Refresh and try again.</p>}
     {items.map((item,i)=><fieldset key={item.requestId} disabled={started||busy} className="rounded border divider p-3 space-y-2"><legend className="text-sm">Task {i+1}{item.id?' — Created':''}</legend>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={item.selected} onChange={e=>edit(i,{selected:e.target.checked})}/>Include this task</label>
       <label className="block text-sm">Task name<input className="input" maxLength={200} value={item.name} onChange={e=>edit(i,{name:e.target.value})}/></label>
       <div className="grid gap-2 sm:grid-cols-2"><label className="text-sm">Planned start<input type="date" className="input" value={item.plannedStart} onChange={e=>edit(i,{plannedStart:e.target.value})}/></label><label className="text-sm">Planned finish<input type="date" className="input" value={item.plannedEnd} onChange={e=>edit(i,{plannedEnd:e.target.value})}/></label></div>
     </fieldset>)}
-    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={approved} disabled={started||busy} onChange={e=>setApproved(e.target.checked)}/>I have reviewed the selected tasks, project, dates, questions and assumptions, and approve creating these tasks.</label>
-    <p className="text-xs muted">Tasks are created individually. If one fails, earlier successes remain saved. After submission, this approval is locked so retries cannot duplicate or alter it. Edit saved tasks in the task register.</p>
-    <Button variant="primary" loading={busy} disabled={busy||!approved||!projectId||!pending.length} onClick={create}>{started?'Retry remaining tasks':`Create ${pending.length} approved tasks`}</Button>
+    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={approved} disabled={started||busy} onChange={e=>setApproved(e.target.checked)}/>I’ve checked the selected tasks and approve creating them in this project.</label>
+    <p className="text-xs muted">Tasks start unassigned and Not started. Nothing is created until you approve.</p><details className="text-xs muted"><summary className="cursor-pointer py-1">Saving and retrying tasks</summary><p className="mt-2">Tasks save one at a time. If one fails, earlier successes stay saved. This approval locks after submission so you can safely retry. Keep this view open until the result is confirmed; edit saved tasks in the task register.</p></details>
+    <Button variant="primary" loading={busy} disabled={busy||!approved||!projectId||!pending.length} onClick={create}>{started?'Retry remaining tasks':`Create ${pending.length} tasks`}</Button>
     {!!saved.length&&<p role="status">{saved.length} task(s) created. <a className="underline" href={`/${org}/m/tasks?projectId=${encodeURIComponent(projectId)}`}>Open task register</a></p>}
     {!!error&&<p role="alert" className="text-sm text-red-700">{error} Previously confirmed tasks will not be resubmitted. Do not regenerate the plan to retry.</p>}
   </section>;
