@@ -15,3 +15,25 @@ export function readCaptchaReturn(raw: string, expectedState: string): string {
   if (!token || token.length > 2048) throw new Error('Security check was not completed. Please try again.');
   return token;
 }
+
+export function embeddedCaptchaUrl(origin: string, state: string): string {
+  const url = new URL(origin);
+  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash || !validCaptchaState(state)) throw new Error('Invalid verification address.');
+  return `${url.origin}/auth/mobile-captcha?${new URLSearchParams({state,embedded:'1'})}`;
+}
+export function isCaptchaPage(raw: string, origin: string, state: string): boolean {
+  try { return new URL(raw).href === embeddedCaptchaUrl(origin,state); } catch { return false; }
+}
+export function allowCaptchaNavigation(raw: string, isTopFrame: boolean | undefined, origin: string, state: string): boolean {
+  if (isCaptchaPage(raw,origin,state)) return true;
+  // The widget uses a Cloudflare iframe, not a new top-level application page.
+  try { const url=new URL(raw); return isTopFrame === false && url.origin==='https://challenges.cloudflare.com' && !url.username && !url.password; } catch { return false; }
+}
+export function readCaptchaMessage(raw: string, sourceUrl: string, origin: string, state: string): {token: string} | {error: true} {
+  if (!isCaptchaPage(sourceUrl,origin,state) || raw.length>4096) throw new Error('Untrusted verification message.');
+  const message=JSON.parse(raw);
+  if (!message || message.state!==state || !validCaptchaState(state)) throw new Error('Security check does not match this attempt.');
+  if (message.type==='myla-captcha-error') return {error:true};
+  if (message.type!=='myla-captcha' || typeof message.token!=='string' || !message.token.trim() || message.token.length>2048) throw new Error('Invalid verification token.');
+  return {token:message.token};
+}

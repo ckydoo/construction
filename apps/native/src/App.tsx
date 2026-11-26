@@ -1,4 +1,4 @@
-import { completeCaptcha } from './captcha';
+import { useCaptcha } from './useCaptcha';
 import React, {
   createContext,
   useCallback,
@@ -355,6 +355,7 @@ export default function App() {
   );
 }
 function Login() {
+  const {completeCaptcha,challenge} = useCaptcha();
   const loginInFlight = useRef(false);
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
@@ -383,6 +384,7 @@ function Login() {
   }
   return (
     <SafeAreaView style={styles.screen}>
+      {challenge}
       <Screen>
         <View style={{ paddingTop: 55, paddingBottom: 45 }}>
           <Text style={{ fontSize: 36, fontWeight: "800", color: colors.navy }}>
@@ -403,6 +405,7 @@ function Login() {
           onChangeText={setEmail}
           autoCapitalize="none"
           autoComplete="email"
+          editable={!busy}
           keyboardType="email-address"
         />
         <Input
@@ -410,6 +413,7 @@ function Login() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          editable={!busy}
           autoCapitalize="none"
           autoComplete="current-password"
           onSubmitEditing={login}
@@ -426,8 +430,9 @@ function Login() {
           onPress={() => Linking.openURL(origin + "/login")}
         />
         <Text style={[styles.small, { marginTop: 18 }]}>
-          Use your existing MYLA account. Sign in opens a secure browser check,
-          then returns you to the app. An internet connection is required.
+          Use your existing MYLA account. A quick security check runs inside the
+          app before sign-in. Browser verification is available if needed.
+          An internet connection is required.
         </Text>
       </Screen>
     </SafeAreaView>
