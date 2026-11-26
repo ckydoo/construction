@@ -34,7 +34,7 @@ export function mylaServiceFailure(status:number,body?:unknown){
   else if(detail.startsWith('AI is configured for free models only.'))code='MYLA_MODEL_SETUP';
   else if(detail.startsWith('AI provider is unavailable.'))code='MYLA_GENERATION';
   else if(detail.startsWith('AI returned an incomplete response.'))code='MYLA_INCOMPLETE';
-  return {code,error:`${message} Support code: ${code}. You can still use the suggestions above.`};
+  return {code,error:`${message} Support code: ${code}. Nothing was saved or sent.`};
 }
 export function parseMylaPlan(raw:unknown):MylaPlan{
   if(!raw||typeof raw!=='object')throw new Error('Please ask about quotations, invoices, jobs or tasks.');

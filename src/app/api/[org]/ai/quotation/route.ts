@@ -1,3 +1,4 @@
+import {mylaServiceFailure} from '@/lib/ask-myla';
 import { NextResponse } from 'next/server';
 import { apiAuth } from '@/lib/auth';
 import { supabase, supabaseEnv } from '@/lib/supabase';
@@ -29,16 +30,21 @@ export async function POST(req:Request,{params}:{params:Promise<{org:string}>}) 
       rates.push({id:`rate-${i}`,description:line.description.slice(0,240),unit:String(line.unit||'').slice(0,30),unitPrice:line.unitPrice});
     }
   }
-  const {url,serviceKey}=supabaseEnv();if(!url||!serviceKey)return reply({error:'AI backend is not configured yet.'},503);
+  const {url,serviceKey}=supabaseEnv();if(!url||!serviceKey)return reply(mylaServiceFailure(503),503);
+  let received=false;
   try{
     const response=await fetch(`${url}/functions/v1/ai-quotation`,{method:'POST',headers:{Authorization:`Bearer ${serviceKey}`,apikey:serviceKey,'Content-Type':'application/json'},body:JSON.stringify({orgId:a.orgId,userId:a.userId,prompt,currency,rates}),signal:AbortSignal.timeout(55000),cache:'no-store'});
+    received=true;
     const result=await response.json().catch(()=>null);
     if(!response.ok){
-      const status=[429,503].includes(response.status)?response.status:502;
-      const error=response.status===404?'AI is not configured yet. Deploy the ai-quotation Supabase function.':response.status===429?'The workspace AI limit has been reached. Try again tomorrow.':response.status===503?'AI is not configured yet. Check the Supabase function secrets (OPENROUTER_API_KEY and any optional OPENROUTER_MODEL override) and AI migration.':'AI is temporarily unavailable. Ask your administrator to check the provider configuration.';
-      return reply({error},status);
+      const failure=mylaServiceFailure(response.status,result);
+      console.error('myla_draft_failed',{status:response.status,code:failure.code});
+      return reply(failure,[429,503].includes(response.status)?response.status:502);
     }
     const suggestion=parseSuggestion(result?.suggestion);
     return reply({...prepareAIDraft(suggestion,rates,currency),questions:suggestion.questions,assumptions:suggestion.assumptions});
-  }catch{return reply({error:'AI could not complete this draft. Please try again. No quotation was saved.'},502);}
+  }catch{
+    const code=received?'MYLA_RESPONSE':'MYLA_TRANSPORT';
+    return reply({code,error:`Myla could not complete this draft. Support code: ${code}. Nothing was saved or sent.`},502);
+  }
 }
