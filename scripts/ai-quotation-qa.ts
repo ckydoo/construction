@@ -58,6 +58,24 @@ async function main(){
  assert.equal((await edge({...env,SUPABASE_SECRET_KEYS:'not-json'},'Bearer sb_secret_test-backend',denyFetch,body)).status,401);
  assert.equal((await edge({...env,SUPABASE_SECRET_KEYS:JSON.stringify({default:'sb_publishable_test'})},'Bearer sb_publishable_test',denyFetch,body)).status,401);
  const response=await edge(env,'Bearer server-test',successful,body);assert.equal(response.status,200);assert.deepEqual((await response.json()).suggestion,suggestion);
+ // Failure sweep: no raw upstream bodies or credentials may reach the app.
+ for(const task of ['quotation','ask','project-plan','site-report','customer-message']){
+  for(const failure of ['quota-unavailable','provider-denied','provider-throws','truncated','bad-json','missing-content']){
+   let providerCalls=0;
+   const fetcher=(async(url:any)=>{
+    if(String(url).includes('/rpc/'))return failure==='quota-unavailable'?Response.json({error:'private db detail'},{status:500}):Response.json(true);
+    providerCalls++;
+    if(failure==='provider-denied')return Response.json({error:'private upstream detail'},{status:401});
+    if(failure==='provider-throws')throw new Error('private transport detail');
+    const content=failure==='bad-json'?'not json':failure==='missing-content'?null:JSON.stringify(suggestion);
+    return Response.json({choices:[{finish_reason:failure==='truncated'?'length':'stop',message:{content}}]});
+   }) as typeof fetch;
+   const failed=await edge(env,'Bearer server-test',fetcher,{...body,task});
+   assert.equal(failed.status,failure==='quota-unavailable'?503:502);
+   assert.doesNotMatch(await failed.text(),/private|server-test|provider-test/);
+   assert.equal(providerCalls,failure==='quota-unavailable'?0:1);
+  }
+ }
  let defaultModel='';
  const defaultFetch=(async(url:any,init:any)=>{if(String(url).includes('/rpc/'))return Response.json(true);defaultModel=JSON.parse(init.body).model;return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(suggestion)}}]});}) as typeof fetch;
  assert.equal((await edge({...env,OPENROUTER_MODEL:''},'Bearer server-test',defaultFetch,body)).status,200);assert.equal(defaultModel,'nvidia/nemotron-3.5-super-vl:free');

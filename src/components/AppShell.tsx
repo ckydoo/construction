@@ -8,7 +8,7 @@ import { apiGet, apiSend, orgApi } from '@/lib/client';
 import { canRead, canWrite, canCapability, ROLES, navGroupsFor, resourceNavGroup } from '@/lib/catalog';
 import { moduleEnabled, resourceFullyEnabled, hrefVisible } from '@/lib/module-visibility';
 import {mylaResources} from '@/lib/ask-myla';
-import { availableAIModes } from '@/lib/ai-assistant';
+import { visibleAIModes } from '@/lib/ai-assistant';
 import { BRAND } from '@/lib/brand';
 import { Icon, Button, Badge, Skeleton, Spinner } from './ui';
 import Overlay from './Overlay';
@@ -84,7 +84,7 @@ export default function AppShell({children,orgSlug,userName,userEmail,role}:{chi
     const role=meta.role||'ADMIN';
     const allowed=new Set(navGroupsFor(role));
     for(const s of SPECIAL){
-      if(s.id==='ai-assistant' && !availableAIModes(role,meta.config).length && !mylaResources(role,meta.config).length) continue;
+      if(s.id==='ai-assistant' && !visibleAIModes(role,meta.config).length && !mylaResources(role,meta.config).length) continue;
       if(!allowed.has(s.group)) continue;
       if((s as any).module && !moduleEnabled(meta.config,(s as any).module)) continue;
       if((s as any).alsoModule && !moduleEnabled(meta.config,(s as any).alsoModule)) continue;

@@ -16,6 +16,10 @@ export function canUseAIMode(role:string,config:{modules?:string[];resources:str
   return resourceFullyEnabled(config,resource)&&canRead(role,resource)&&canWrite(role,resource)&&canCapability(role,'records.create');
 }
 export function availableAIModes(role:string,config:{modules?:string[];resources:string[]}){return (Object.keys(AI_MODES) as AIMode[]).filter(mode=>canUseAIMode(role,config,mode));}
+// Drafting is temporarily hidden pending successful production acceptance.
+// Restore modes individually here after verification; permissions stay separate.
+export const RELEASED_AI_DRAFT_MODES:readonly AIMode[]=[];
+export function visibleAIModes(role:string,config:{modules?:string[];resources:string[]}){return availableAIModes(role,config).filter(mode=>RELEASED_AI_DRAFT_MODES.includes(mode));}
 export type WritingDraft={title:string;body:string;questions:string[];assumptions:string[];tasks?:{name:string}[]};
 export function parseWritingDraft(raw:unknown,includeTasks=false):WritingDraft{
   if(!raw||typeof raw!=='object')throw new Error('AI returned an invalid draft. Please try again.');

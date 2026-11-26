@@ -1,3 +1,4 @@
+import {visibleAIModes,availableAIModes,RELEASED_AI_DRAFT_MODES} from '../src/lib/ai-assistant';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=(name:string)=>readFileSync(`src/components/${name}.tsx`,'utf8');
@@ -26,3 +27,13 @@ assert.match(assistant,/min-h-11/);
 assert.match(tasks,/approved:true/);assert.match(tasks,/!approved/);
 assert.match(tasks,/Do not regenerate the plan to retry/);
 console.log('AI UX source regression checks passed: no browser dialogs, inline switch controls, draft-first quotation review, concise help and use-based notice and retained draft approval gates. Interactive browser acceptance still required.');
+
+const full={modules:['estimating','projects','fieldOps','crm'],resources:['estimates','projects','dailyLogs','clients']};
+assert.equal(availableAIModes('OWNER',full).length,4); // Implementation/permissions preserved.
+assert.deepEqual(RELEASED_AI_DRAFT_MODES,[]);
+assert.deepEqual(visibleAIModes('OWNER',full),[]);
+assert.match(assistant,/modes.length>1/);
+for(const path of ['src/components/AIAssistant.tsx','src/components/AppShell.tsx','src/app/[org]/ai-assistant/page.tsx']){
+ const content=readFileSync(path,'utf8');assert.match(content,/visibleAIModes/);assert.doesNotMatch(content,/availableAIModes/);assert.match(content,/mylaResources/);
+}
+console.log('PASS Ask-only release: hidden drafting modes across assistant, page and sidebar; drafting logic preserved.');
