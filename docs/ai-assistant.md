@@ -74,3 +74,9 @@ The UI submits selected tasks sequentially and tracks each confirmed record. Cre
 Stable request IDs last for the lifetime of this review screen only. Leaving/reloading/regenerating discards them: inspect the task register before starting another approval after an uncertain result. There is no durable approval-history page in this release.
 
 Checks: `npx tsx scripts/ai-tasks-qa.ts` exercises the actual route with mocked auth/storage: denied roles, missing approval, billing, temporary passwords, hidden projects, parser bounds, safe defaults, replay conflicts, concurrent duplicate requests and lost-response recovery. Existing assistant QA, TypeScript and the Next production build passed. Live RLS/database creation, audit entries and real-browser partial-failure recovery still require staging verification. No live tasks were created during implementation. Deploy the updated Edge Function (structured tasks) and web code before using this feature; no new SQL migration is required for this task-action increment.
+
+## Supabase release confirmation
+
+Supabase `ai-quotation` on Construction (`oeadisqfuyhelppinaxw`) has now been updated with the expanded modes and structured project task suggestions from commit `1a2b6bc`. Update and subsequent get both report **ACTIVE, version 3**, function ID `d32df8c9-300c-42ba-a36b-c124f797b771`. Retrieved function source includes the task selector and structured task-name prompt. This supersedes the earlier pending Edge deployment notes above.
+
+A read-only SQL check reconfirmed quota-table RLS, no anon/authenticated table-read or quota-RPC execution privileges, and service-role RPC execution access. Existing migration was not rerun. No secrets or authentication settings were changed, and no user tasks or live provider requests were created. The web UI and task-creation API remain a separate web release; end-to-end validation is still outstanding.
