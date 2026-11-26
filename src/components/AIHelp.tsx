@@ -1,11 +1,12 @@
 'use client';
-/** Secondary information stays available without dominating the drafting form. */
-export default function AIHelp({rates=false}:{rates?:boolean}){
-  return <details className="text-xs muted"><summary className="cursor-pointer py-1 font-medium">How AI works</summary><div className="mt-2 space-y-2 rounded-lg border divider p-3 leading-relaxed">
-    <p>Your notes{rates?' and selected company rates':''} are sent to OpenRouter and its model provider. Avoid personal or confidential information. No other customer or project records are retrieved.</p>
-    {rates&&<p>Only your selected saved template is used—not starter prices or previous client records. Check that its rates are current. Without a template, you enter prices in the quotation editor.</p>}
-    <p>Your workspace shares 20 requests per UTC day across all AI modes, including provider failures.</p>
-    <p>AI can make mistakes. It does not certify engineering, safety or legal compliance. Nothing is sent or saved automatically; creating project tasks requires separate approval.</p>
-    <p>Drafts stay in this view only. Leaving or refreshing the page discards unsaved work.</p>
-  </div></details>;
+/** Use-based acknowledgement; details remain available without a consent gate. */
+export default function AIHelp({ask=false}:{ask?:boolean}){
+  return <div className="space-y-2 pt-2 text-xs muted leading-relaxed">
+    <p>By using Myla, you agree to AI processing of your input. Avoid sensitive information.</p>
+    <details><summary className="cursor-pointer inline-flex py-1 font-medium hover:text-brand-700">About Myla & privacy</summary><div className="mt-2 space-y-2 rounded-xl border divider p-4">
+      <p>{ask?'Only your question is sent to an external AI service, not your workspace records. Matching records are retrieved within your existing permissions.':'Your notes are processed by an external AI service to prepare a draft. No other customer or project records are retrieved.'}</p>
+      <p>{ask?'Ask about recent records or overdue work. Include the record name in each question. Myla does not calculate totals or forecasts.':'Check all draft details, quantities and prices before using them. Nothing is saved or sent to a customer automatically.'}</p>
+      <p>AI can make mistakes. Your workspace has a shared daily usage limit. Unsaved work is cleared when you leave or refresh.</p>
+    </div></details>
+  </div>;
 }

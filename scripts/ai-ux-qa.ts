@@ -10,16 +10,19 @@ assert.match(assistant,/Keep working/);assert.match(assistant,/Discard and switc
 assert.match(assistant,/onDirtyChange=\{setDirty\}/);
 assert.match(assistant,/role="region" aria-label="Confirm task change"/);
 for(const source of [assistant,quotation]){
- assert.match(source,/checked=\{consent\}/);assert.match(source,/!consent/);
+ assert.doesNotMatch(source,/checked=\{consent\}|!consent|setConsent/);assert.match(source,/consent:true/);
  assert.match(source,/checked=\{reviewed\}/);assert.match(source,/!reviewed/);
  assert.match(source,/Generate draft/);assert.match(source,/role="status"/);
  assert.match(source,/onDirtyChange/);
 }
-assert.match(quotation,/Company rates/);assert.match(quotation,/Enter prices myself/);
+assert.doesNotMatch(quotation,/Company rates|templateId|ai-templates|quote-templates/);
 assert.ok(quotation.indexOf('result.draft.items.map')<quotation.indexOf('result.questions.map'));
 assert.match(quotation,/result.warnings.map/); // Critical pricing warnings stay visible.
-assert.match(help,/<details/);assert.match(help,/How AI works/);
-assert.match(help,/OpenRouter and its model provider/);assert.match(help,/20 requests per UTC day/);
+assert.match(help,/<details/);assert.match(help,/About Myla & privacy/);
+assert.match(help,/By using Myla, you agree/);assert.match(help,/external AI service/);
+for(const name of ['AskMyla','AIAssistant','QuotationAssistant','AIHelp'])assert.doesNotMatch(read(name),/OpenRouter|model provider|checked=\{consent\}/);
+assert.match(read('AskMyla'),/consent:true/);
+assert.match(assistant,/min-h-11/);
 assert.match(tasks,/approved:true/);assert.match(tasks,/!approved/);
 assert.match(tasks,/Do not regenerate the plan to retry/);
-console.log('AI UX source regression checks passed: no browser dialogs, inline switch controls, draft-first quotation review, concise help and retained consent/approval gates. Interactive browser acceptance still required.');
+console.log('AI UX source regression checks passed: no browser dialogs, inline switch controls, draft-first quotation review, concise help and use-based notice and retained draft approval gates. Interactive browser acceptance still required.');
