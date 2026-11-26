@@ -4,7 +4,7 @@ import {canUseQuotationAI} from './ai-quotation';
 export const AI_MODES={
   quotation:{label:'Quotation',resource:'estimates',hint:'Prepare a proposed work breakdown and finish in the quotation editor.'},
   'project-plan':{label:'Project plan',resource:'projects',hint:'Describe the job, constraints and milestones. Get a proposed plan and task checklist.'},
-  'site-report':{label:'Site report',resource:'dailyLogs',hint:'Add your site notes: date, completed work, delays, deliveries and next steps.'},
+  'site-report':{label:'Work report',resource:'dailyLogs',hint:'Add site, workshop or service notes: date, completed work, delays, deliveries and next steps.'},
   'customer-message':{label:'Customer message',resource:'clients',hint:'Describe the purpose, confirmed facts and preferred tone. Omit private contact details.'},
 } as const;
 export type AIMode=keyof typeof AI_MODES;
