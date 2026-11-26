@@ -49,13 +49,13 @@ export const MODULES: ModuleDef[] = [
   { id:'company', label:'Company details', group:'Company setup', icon:'Building', tier:'CORE', description:'Company details, numbering, currencies, users and roles', resources:[], defaultTypes:'*' },
   { id:'crm', label:'Clients & contacts', group:'Clients & quotes', icon:'Handshake', tier:'CORE', description:'Client companies, contacts and relationship history', resources:['clients','contacts'], defaultTypes:'*' },
   { id:'pipeline', label:'Enquiries & leads', group:'Clients & quotes', icon:'Target', tier:'STANDARD', description:'Enquiries, chance of winning and expected value', resources:['leads'], defaultTypes:'*', minSize:1 },
-  { id:'estimating', label:'Quotes & tenders', group:'Clients & quotes', icon:'Calculator', tier:'CORE', description:'Measure, price, add markup, revise and win tenders', resources:['estimates','bids'], defaultTypes:'*' },
+  { id:'estimating', label:'Quotations & tenders', group:'Clients & quotes', icon:'Calculator', tier:'CORE', description:'Measure, price, add markup, revise and win tenders', resources:['estimates','bids'], defaultTypes:'*' },
   { id:'projects', label:'Jobs & projects', group:'Jobs & sites', icon:'HardHat', tier:'CORE', description:'Jobs, tasks, budgets, teams and progress', resources:['projects','tasks'], defaultTypes:'*' },
   { id:'scheduling', label:'Job programme', group:'Jobs & sites', icon:'CalendarRange', tier:'STANDARD', description:'Start and finish dates, milestones and progress', resources:[], defaultTypes:'*', minSize:2 },
   { id:'contracts', label:'Contracts & variations', group:'Jobs & sites', icon:'FileSignature', tier:'CORE', description:'Main contracts, subcontracts, variations and retention', resources:['contracts','changeOrders'], defaultTypes:'*' },
   { id:'projectComms', label:'Site queries & approvals', group:'Jobs & sites', icon:'MessagesSquare', tier:'STANDARD', description:'Numbered lists with who must answer and due dates', resources:['rfis','submittals'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','CONSTRUCTION_MANAGEMENT','MIXED_GROUP'] },
   { id:'documents', label:'Document library', group:'Jobs & sites', icon:'FolderOpen', tier:'CORE', description:'One place for files, folders and revisions', resources:['documents'], defaultTypes:'*' },
-  { id:'fieldOps', label:'Site diaries & meetings', group:'Jobs & sites', icon:'Camera', tier:'CORE', description:'Daily site diaries, photos, meetings and instructions', resources:['dailyLogs','meetings'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','CONSTRUCTION_MANAGEMENT'] },
+  { id:'fieldOps', label:'Work reports & meetings', group:'Jobs & sites', icon:'Camera', tier:'CORE', description:'Work reports for sites and workshops, photos, meetings and instructions', resources:['dailyLogs','meetings'], defaultTypes:['GENERAL_CONTRACTOR','CIVIL_INFRASTRUCTURE','INDUSTRIAL_EPC','SPECIALTY_TRADE','CONSTRUCTION_MANAGEMENT'] },
   { id:'closeout', label:'Snag lists & handover', group:'Jobs & sites', icon:'ListChecks', tier:'STANDARD', description:'Snagging, inspections, permits and handover', resources:['punchLists','permits'], defaultTypes:'*', minSize:1 },
   { id:'procurement', label:'Ordering & deliveries', group:'Materials & suppliers', icon:'ShoppingCart', tier:'CORE', description:'Material request → quote → order → delivery note → bill', resources:['requisitions','purchaseOrders','goodsReceipts'], defaultTypes:'*' },
   { id:'vendors', label:'Suppliers & subcontractors', group:'Materials & suppliers', icon:'Store', tier:'CORE', description:'Supplier details and ratings', resources:['vendors','subcontractors'], defaultTypes:'*' },
@@ -67,7 +67,7 @@ export const MODULES: ModuleDef[] = [
   { id:'payroll', label:'Wages & expenses', group:'Staff & wages', icon:'Wallet', tier:'STANDARD', description:'Wage runs, payslips, expense claims and refunds', resources:['payRuns','expenses'], defaultTypes:'*', minSize:1 },
   { id:'competency', label:'Trade certificates & training', group:'Staff & wages', icon:'GraduationCap', tier:'STANDARD', description:'Trade tickets, inductions and expiry alerts', resources:['certifications','training'], defaultTypes:'*' },
   { id:'safety', label:'Safety on site', group:'Safety & quality', icon:'ShieldCheck', tier:'CORE', description:'Toolbox talks, safe-work checks, permits, incidents and follow-up', resources:['toolboxTalks','incidents'], defaultTypes:'*' },
-  { id:'quality', label:'Quality checks', group:'Safety & quality', icon:'BadgeCheck', tier:'STANDARD', description:'Site checks, faults, checklists and test results', resources:['inspections','ncrs','itps'], defaultTypes:'*', minSize:2 },
+  { id:'quality', label:'Quality checks', group:'Safety & quality', icon:'BadgeCheck', tier:'STANDARD', description:'Inspections, faults, checklists and test results', resources:['inspections','ncrs','itps'], defaultTypes:'*', minSize:2 },
   { id:'finance', label:'Money & accounts', group:'Money & invoices', icon:'Landmark', tier:'CORE', description:'Account codes, draft journals, money in and out — posting not yet supported', resources:['accounts','journals','arInvoices','apBills','payments'], defaultTypes:'*' },
   { id:'wallets', label:'Client wallets', group:'Money & invoices', icon:'CreditCard', tier:'CORE', description:'Client money paid in advance, allocated to jobs and reconciled', resources:[], defaultTypes:'*' },
   { id:'billing', label:'Payment certificates & retention', group:'Money & invoices', icon:'Receipt', tier:'STANDARD', description:'Payment certificates, retention and client receipts', resources:['paymentApps'], defaultTypes:'*', minSize:2 },
@@ -105,7 +105,7 @@ const TIER_MIN_SIZE: Record<ModuleTier, number> = { CORE:2, STANDARD:3, ADVANCED
 const SIZE_INDEX: Record<string, number> = { MICRO:0, SMALL:1, MID:2, LARGE:3, ENTERPRISE:4 };
 
 export const WORKSPACE_SETUPS = [
-  { id: 'essentials', label: 'Essentials', description: 'Clients, quotes, jobs, invoices and payments. Add more when you need it.' },
+  { id: 'essentials', label: 'Essentials', description: 'Clients, quotations, jobs, invoices and payments. Add more when you need it.' },
   { id: 'team', label: 'Team operations', description: 'Coordinate staff, suppliers, purchasing and job costs alongside your everyday work.' },
   { id: 'full', label: 'Full operations', description: 'Start with the full section catalogue, subject to your plan. Configure access for each role.' },
 ] as const;

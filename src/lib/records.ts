@@ -218,7 +218,7 @@ async function deriveInvoiceClient(orgId: string, def: ResourceDef, input: Recor
   return clientId ? { ...input, clientId } : input;
 }
 
-export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}, tax?:unknown) {
+export async function createRecord(orgId:string, userId:string|undefined, actor:string, def:ResourceDef, input:Record<string,any>, limits?:{users?:number;projects?:number;storageMb?:number}, tax?:unknown, creationId?:string) {
   // Apply workspace defaults on the server too, including API and CSV imports.
   // Explicit transaction rates remain attached to that transaction.
   if (['arInvoices','purchaseOrders'].includes(def.id) && (input.vatPct === undefined || input.vatPct === null || input.vatPct === '')) {
@@ -242,7 +242,7 @@ export async function createRecord(orgId:string, userId:string|undefined, actor:
 
   const sb = await supabase();
   const { data: rec, error } = await sb.from('records').insert({
-    id: randomUUID(), organization_id: orgId, resource: def.id, number, title,
+    id: creationId || randomUUID(), organization_id: orgId, resource: def.id, number, title,
     status, project_id: projectId, data: clean, created_by_id: userId || null,
   }).select('*').single();
   if (error) dbError(error);

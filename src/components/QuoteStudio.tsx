@@ -35,14 +35,14 @@ const SCOPE_SNIPPETS = [
 ];
 
 export default function QuoteStudio({
-  org, mode, recordId, initialRow,
+  org, mode, recordId, initialRow, initialDraft,
 }: {
-  org: string; mode: 'create' | 'edit'; recordId?: string; initialRow?: any;
+  org: string; mode: 'create' | 'edit'; recordId?: string; initialRow?: any; initialDraft?: QuoteDraft;
 }) {
   const router = useRouter(); const qc = useQueryClient(); const toast = useToast();
   const formatMoney=useDisplayMoney(); const display=useDisplayCurrency();
-  const [draft, setDraft] = useState<QuoteDraft>(() => initialRow ? quoteDraftFromRow(initialRow) : blankQuoteDraft());
-  const [step, setStep] = useState(mode === 'edit' ? 1 : 0);
+  const [draft, setDraft] = useState<QuoteDraft>(() => initialRow ? quoteDraftFromRow(initialRow) : initialDraft ? {...initialDraft,status:'DRAFT'} : blankQuoteDraft());
+  const [step, setStep] = useState(mode === 'edit' || initialDraft ? 1 : 0);
   const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [pendingTemplate, setPendingTemplate] = useState<QuoteTemplate | null>(null);
   const [deleteFor, setDeleteFor] = useState<QuoteTemplate | null>(null);
@@ -208,7 +208,7 @@ export default function QuoteStudio({
       <div className="flex justify-between"><span className="muted">Items priced</span><span className="font-semibold tabular-nums">{totals.lines.length}</span></div>
       <div className="flex justify-between"><span className="muted">Cost subtotal</span><span className="font-semibold tabular-nums">{formatMoney(totals.subtotal,draft.currency)}</span></div>
       <div className="flex justify-between"><span className="muted">Added to cost ({totals.markupPct}%)</span><span className="tabular-nums">{formatMoney(totals.markupAmount,draft.currency)}</span></div>
-      <div className="flex justify-between border-t divider pt-2 text-base"><span className="font-semibold">Quote total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total,draft.currency)}</span></div>
+      <div className="flex justify-between border-t divider pt-2 text-base"><span className="font-semibold">Quotation total</span><span className="font-bold tabular-nums text-brand-700 dark:text-brand-300">{formatMoney(totals.total,draft.currency)}</span></div>
     </div>
     <div className="mt-4 space-y-1.5 border-t divider pt-3">
       {[
@@ -225,7 +225,7 @@ export default function QuoteStudio({
       <div className="absolute -right-10 -top-14 h-40 w-40 rounded-full border border-brand-500/20"/><div className="absolute right-12 top-5 h-20 w-20 rounded-full bg-brand-500/10"/>
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2"><Badge tone="blue">Quote Studio</Badge><Badge tone="slate">{mode==='edit'?`Editing ${initialRow?.number||'quotation'}`:'New quotation'}</Badge></div>
+          <div className="flex flex-wrap items-center gap-2"><Badge tone="blue">Quotation editor</Badge><Badge tone="slate">{mode==='edit'?`Editing ${initialRow?.number||'quotation'}`:'New quotation'}</Badge></div>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">{mode==='edit'?'Polish this quotation':'Create a quotation without the guesswork'}</h1>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-slate-300">Five calm steps, plain-language pricing and a live preview. Start from a reusable package or build your own — every total is calculated for you.</p>
         </div>
@@ -248,7 +248,7 @@ export default function QuoteStudio({
 
         {step===0&&<div className="space-y-4">
           <Card className="p-5"><div className="flex flex-wrap items-center justify-between gap-4"><div className="max-w-lg"><p className="text-[10px] font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">Start simply</p><h2 className="mt-1 text-lg font-semibold text-ink-900 dark:text-white">Blank quote or a ready-made package?</h2><p className="caption mt-1">A starter gives you sensible lines and wording to edit. You can still change every quantity, rate and word before saving.</p></div>
-            <Button type="button" variant="primary" icon="ArrowRight" onClick={()=>{ if(mode==='create'){ setDraft(blankQuoteDraft()); setActiveTemplateId(null); } goStep(1); }}>{mode==='create'?'Start blank':'Use current quote'}</Button></div></Card>
+            <Button type="button" variant="primary" icon="ArrowRight" onClick={()=>{ if(mode==='create'){ setDraft(blankQuoteDraft()); setActiveTemplateId(null); } goStep(1); }}>{mode==='create'?'Start blank':'Use current quotation'}</Button></div></Card>
 
           <Card className="overflow-hidden"><CardHead title="Starter packages" subtitle="Built in and always available · click one to load its lines" action={<Badge tone="slate">{BUILT_IN_QUOTE_TEMPLATES.length} starters</Badge>}/>
             <div className="grid gap-3 p-4 sm:grid-cols-2">{BUILT_IN_QUOTE_TEMPLATES.map(t=>{

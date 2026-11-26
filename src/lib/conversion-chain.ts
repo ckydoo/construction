@@ -16,7 +16,7 @@ export type ChainStage = {
 export const CHAIN_STAGES: ChainStage[] = [
   { id: 'clients', label: 'Client', short: 'Client', singular: 'Client', icon: 'Handshake' },
   { id: 'leads', label: 'Enquiry', short: 'Enquiry', singular: 'Enquiry', icon: 'Target' },
-  { id: 'estimates', label: 'Quote', short: 'Quote', singular: 'Quote', icon: 'Calculator' },
+  { id: 'estimates', label: 'Quotation', short: 'Quotation', singular: 'Quotation', icon: 'Calculator' },
   { id: 'bids', label: 'Tender', short: 'Tender', singular: 'Tender', icon: 'FileText', optional: true },
   { id: 'projects', label: 'Job', short: 'Job', singular: 'Job', icon: 'HardHat' },
   { id: 'contracts', label: 'Contract', short: 'Contract', singular: 'Contract', icon: 'FileSignature' },
