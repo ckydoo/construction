@@ -52,6 +52,15 @@ async function main(){
    const sent=JSON.parse(init.body);assert.equal(sent.model,'test/model:free');assert.deepEqual(sent.provider.max_price,{prompt:0,completion:0});assert.equal(sent.provider.require_parameters,true);assert.equal(sent.provider.allow_fallbacks,false);assert.equal(sent.provider.data_collection,'deny');assert.equal(sent.max_tokens,2500);assert.equal(sent.tools,undefined);
    return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(suggestion)}}]});
  }) as typeof fetch;
+ const explicit={...env,SUPABASE_SERVICE_ROLE_KEY:'different-runtime-key',MYLA_BACKEND_KEY:'configured-project-key'};
+ let rpcChecked=false;
+ const explicitFetcher=(async(url:any,init:any)=>{
+  if(String(url).includes('/rpc/')){assert.equal(init.headers.apikey,'configured-project-key');assert.equal(init.headers.Authorization,'Bearer configured-project-key');rpcChecked=true;}
+  return successful(url,init);
+ }) as typeof fetch;
+ assert.equal((await edge(explicit,'Bearer configured-project-key',explicitFetcher,body)).status,200);assert.equal(rpcChecked,true);
+ assert.equal((await edge(explicit,'Bearer unrelated-project-key',denyFetch,body)).status,401);
+ assert.equal((await edge({...env,SUPABASE_SERVICE_ROLE_KEY:'',MYLA_BACKEND_KEY:''},'Bearer ',denyFetch,body)).status,401);
  const modern={...env,SUPABASE_SECRET_KEYS:JSON.stringify({default:'sb_secret_test-backend'})};
  assert.equal((await edge(modern,'Bearer sb_secret_test-backend',successful,body)).status,200);
  assert.equal((await edge(modern,'Bearer sb_secret_other-project',denyFetch,body)).status,401);
